@@ -1,0 +1,143 @@
+{
+  "run": "out/bench/run2-rules",
+  "scale": 1,
+  "profile": "final",
+  "rendered": 5,
+  "allGatesPassed": 4,
+  "wallSec": 1022.168,
+  "parallel": 3,
+  "results": [
+    {
+      "id": "A01",
+      "engine": "ordinary_object_extreme",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 600.071,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/final/A01/gen-ooe-zapp-presses-a-free-ub5-s1000.mp4"
+    },
+    {
+      "id": "A04",
+      "engine": "ordinary_object_extreme",
+      "kind": "ambiguous",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 564.386,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/final/A04/gen-ooe-something-small-turns-into-1cl-s1003.mp4"
+    },
+    {
+      "id": "B01",
+      "engine": "visible_secret_chase",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 598.38,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/final/B01/gen-vsc-zapp-spots-a-glowing-ooy-s1015.mp4"
+    },
+    {
+      "id": "C01",
+      "engine": "apparent_win_instant_loss",
+      "kind": "compatible",
+      "repairs": 1,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 434.563,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/final/C01/gen-awl-zapp-presses-the-button-duv-s1027.mp4"
+    },
+    {
+      "id": "D02",
+      "engine": "noob_vs_smart",
+      "kind": "compatible",
+      "repairs": 1,
+      "substitutions": 0,
+      "ok": false,
+      "wallSec": 423.768,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/final/D02/gen-nvs-kira-taps-the-button-1ea-s1040.mp4"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "run": {
+    "provider": "rules",
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "dataset": "bench/ideas.json",
+    "ideas": 50,
+    "compatible": 29,
+    "mustReject": 19,
+    "ipTransformable": 2,
+    "analyzer": true,
+    "date": "2026-09-27T13:29:49.075Z"
+  },
+  "m01_schemaValidResponseRate": 100,
+  "m01b_finalSchemaValidOrExplicitRejection": 98,
+  "m02_assetCompatibleFirstPlanRate": 100,
+  "m03_firstPassCompilerSuccess_compatible": 100,
+  "m04_firstPassValidatorAcceptance_compatible": 72.4,
+  "m05_acceptanceAfterRepair_compatible": 100,
+  "m06_avgRepairs_compatible": 0.28,
+  "m06b_avgRepairs_accepted": 0.3,
+  "m07_rejectionCorrectness_mustReject": 100,
+  "m07b_rejectionCategoryMatch": 94.7,
+  "m07c_unsafeRejected": 100,
+  "m07d_protectedIpRejectedOrTransformed": 80,
+  "m07e_falseRejections_compatible": [],
+  "m08_avgLatencyMs_all": 351,
+  "m08b_avgLatencyMs_accepted": 529,
+  "m09_cost": {
+    "modelTokensIn": 0,
+    "modelTokensOut": 0,
+    "modelCostUsd": 0,
+    "computeCostUsdPerIdea_at_0_35_per_hour": 0.000034,
+    "estimatedLlmPromptTokensPerIdea": {
+      "normalize": 1046,
+      "plan": 2132,
+      "note": "estimated from the real prompts (chars/4); output ~1.5-4k tokens per plan; repairs add ~1 plan-sized prompt each"
+    }
+  },
+  "m10_causeResultCompleteness": 100,
+  "m11_reversalPlacementCompliance": 100,
+  "m12_loopCompliance": 100,
+  "m13_mutedStoryHeuristicScore_mean": 98,
+  "m14_cameraQualityPass_firstCompiled": 96.6,
+  "m14b_cameraQualityPass_final": 100,
+  "m15_collisionQualityPass_firstCompiled": 82.8,
+  "m15b_collisionQualityPass_final": 100,
+  "m16_deterministicRecompilation": 100,
+  "zeroArbitraryCodeExecution": "by construction: provider output is parsed as data and schema-validated; no eval/Function/dynamic import/shell exists on the output path (tests/story.security.test.ts)",
+  "silentAssetInvention": 0,
+  "confusion": {
+    "compatible": {
+      "accepted": 29,
+      "rejected": 0,
+      "failed": 0
+    },
+    "mustReject": {
+      "rejected": 19,
+      "accepted": [],
+      "failed": []
+    },
+    "ipTransform": [
+      "A12: failed",
+      "D08: accepted (brand removed)"
+    ]
+  },
+  "perEngine": {
+    "ordinary_object_extreme": {
+      "compatible": 9,
+      "firstPass": 9,
+      "afterRepair": 9
+    },
+    "visible_secret_chase": {
+      "compatible": 7,
+      "firstPass": 5,
+      "afterRepair": 7
+    },
+    "apparent_win_instant_loss": {
+      "compatible": 7,
+      "firstPass": 6,
+      "afterRepair": 7
+    },
+    "noob_vs_smart": {
+      "compatible": 6,
+      "firstPass": 1,
+      "afterRepair": 6
+    }
+  },
+  "substitutionsDeclared": 44,
+  "failures": [
+    {
+      "id": "A12",
+      "expected": "reject_or_transform",
+      "reason": "not accepted after 3 repair(s): HAND_PENETRATION zapp r hand 1.7 cm inside prop:coin (1 sampled frames in s07) | BODY_PROP_INTERSECTION zapp head_-1_1_top 7.9 cm inside prop:coin (1 sampled frames in s07) | FOOT_SLIP planted-foot slip median 0.004 p95 0.962 m/s"
+    }
+  ],
+  "determinism": {
+    "sameProcessAndFresh": "30/30",
+    "mismatches": []
+  }
+}

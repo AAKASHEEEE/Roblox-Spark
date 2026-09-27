@@ -1,0 +1,70 @@
+[
+ {
+  "stage": "plan",
+  "kind": "wrong_slot_order"
+ },
+ {
+  "stage": "plan",
+  "kind": "broken_cause_link"
+ },
+ {
+  "stage": "repair",
+  "kind": "unrequested_patch"
+ },
+ {
+  "stage": "plan",
+  "kind": "prose_instead_of_json"
+ },
+ {
+  "stage": "plan",
+  "kind": "broken_cause_link"
+ },
+ {
+  "stage": "repair",
+  "kind": "unrequested_patch"
+ },
+ {
+  "stage": "plan",
+  "kind": "prose_instead_of_json"
+ },
+ {
+  "stage": "plan",
+  "kind": "broken_cause_link"
+ },
+ {
+  "stage": "repair",
+  "kind": "unrequested_patch"
+ },
+ {
+  "stage": "plan",
+  "kind": "invented_prop"
+ },
+ {
+  "stage": "plan",
+  "kind": "broken_cause_link"
+ },
+ {
+  "stage": "plan",
+  "kind": "broken_cause_link"
+ },
+ {
+  "stage": "plan",
+  "kind": "invented_action"
+ },
+ {
+  "stage": "plan",
+  "kind": "invented_action"
+ },
+ {
+  "stage": "plan",
+  "kind": "prose_instead_of_json"
+ },
+ {
+  "stage": "plan",
+  "kind": "out_of_range_duration"
+ },
+ {
+  "stage": "plan",
+  "kind": "prose_instead_of_json"
+ }
+]
