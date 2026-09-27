@@ -1,6 +1,7 @@
 // BlockSpark Studio render worker — one command from episode JSON to a verified 1080x1920 MP4 + reports.
 //   node apps/render-worker/render.ts --episode episodes/free-coins-loop-001.json [--out out/<id>] [--scale 1] [--gpu]
 //        [--audio-codec aac|opus] (AAC-LC is the production default; Opus is a local fallback only)
+//        [--validation-profile story-episode|action-reel] [--duration-target 14-18 (explicit narrower test target)]
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -13,10 +14,9 @@ import { aacRoundTrip } from './lib/aac-check.ts';
 import { probeFile } from './lib/probe-node.ts';
 import { checkProductionProfile, PRODUCTION_SPEC } from '../../packages/mp4/src/probe.ts';
 import { encodeAacLc } from '../../packages/audio/src/aac/encoder.ts';
-import { EpisodeSchema } from '../../packages/schema/src/episode.ts';
-import { checkRenderDeclaration, canonicalJson, renderKey, semanticContent } from '../../packages/schema/src/render-compat.ts';
+import { canonicalJson, renderKey, semanticContent } from '../../packages/schema/src/render-compat.ts';
 import { contactSheet } from './lib/sheet.ts';
-import { validateEpisode } from '../../packages/pipeline/src/validate.ts';
+import { validateEpisode, type ValidationProfile } from '../../packages/pipeline/src/validate.ts';
 import { buildQualityReport, qualityMarkdown } from '../../packages/pipeline/src/quality.ts';
 import { mix, interleave, wav16, type MixCue } from '../../packages/audio/src/mix.ts';
 import { muxMp4 } from '../../packages/mp4/src/mux.ts';
@@ -29,8 +29,10 @@ export interface RenderOptions {
   audioCodec?: 'aac' | 'opus';
   /** 'diagnostic' = low-resolution QA render (resolution gates check the diagnostic size) */
   profile?: 'final' | 'diagnostic';
-  /** diagnostic reels: schema-only validation, story gates not applicable */
-  skipStoryValidation?: boolean;
+  /** story-episode (default) or action-reel (diagnostic reels: story-structure findings and story-only gates are n/a) */
+  validationProfile?: ValidationProfile;
+  /** explicitly declared NARROWER duration target for this test case (G03); default = channel boundary 14-22 s */
+  durationTargetSec?: [number, number];
   /** in-memory episode (e.g. action reels); written to <out>/episode.json */
   episodeObject?: unknown;
   /** debug-only text overlay per frame (action reel labels) */
@@ -77,7 +79,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
   const lib = loadLibrary();
   if (lib.errors.length) { writeFileSync(join(outDir, 'validation.json'), JSON.stringify({ ok: false, libraryErrors: lib.errors }, null, 2)); log('ASSET LIBRARY ERRORS:\n  ' + lib.errors.join('\n  ')); return { ok: false, outDir }; }
   // 2. validation + safe repairs
-  const v = o.skipStoryValidation ? schemaOnly(raw) : validateEpisode(raw, lib, { repair: true });
+  const v = validateEpisode(raw, lib, { repair: true, profile: o.validationProfile ?? 'story-episode' });
   writeFileSync(join(outDir, 'validation.json'), JSON.stringify(v, null, 2));
   for (const f of v.findings) if (f.severity !== 'info') log(`${f.severity.toUpperCase()} ${f.code}: ${f.message}`);
   for (const r of v.repairs) log(`REPAIR ${r}`);
@@ -254,7 +256,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
       assetLockSha256: sha256(canonical(lib.hashes)), host: { chromium: renderLog.host.chromium, glRenderer: info.renderer, gpu: !!o.gpu },
     }, null, 2));
     writeFileSync(join(outDir, 'analysis.json'), JSON.stringify({ analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts }));
-    const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps, profile, resolution: [W, H], production, aacCheck, extraGates: o.extraGates?.({ ep, analysis, probes, playback, loopDiff }) ?? [] });
+    const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps, profile, resolution: [W, H], production, aacCheck, extraGates: o.extraGates?.({ ep, analysis, probes, playback, loopDiff }) ?? [], validationProfile: o.validationProfile ?? 'story-episode', durationTargetSec: o.durationTargetSec });
     writeFileSync(join(outDir, 'quality-report.json'), JSON.stringify(q, null, 2));
     writeFileSync(join(outDir, 'quality-report.md'), qualityMarkdown(q, ep, renderLog));
     log(`quality: ${q.summary.passed}/${q.summary.total} gates passed${q.summary.failed.length ? ' — FAILED: ' + q.summary.failed.join(', ') : ''}`);
@@ -266,17 +268,10 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
   }
 }
 
-/** schema-only validation (diagnostic reels): strict structure, no story gates — the render declaration is still mandatory */
-function schemaOnly(raw: unknown): any {
-  const c = checkRenderDeclaration(raw);
-  if (!c.ok) return { ok: false, findings: [{ severity: 'error', code: c.code, message: c.message, path: c.path }], repairs: [], metrics: {} };
-  const r = EpisodeSchema.parse(raw);
-  return r.ok ? { ok: true, episode: r.value, findings: [{ severity: 'info', code: 'DIAGNOSTIC', message: 'schema-only validation (diagnostic render; story gates not applicable)' }], repairs: [], metrics: {} } : { ok: false, findings: r.issues.map((i) => ({ severity: 'error', code: 'SCHEMA', message: i.message, path: i.path })), repairs: [], metrics: {} };
-}
-
 if (import.meta.url === `file://${process.argv[1]}`) {
   const ep = arg('episode', 'episodes/free-coins-loop-001.json')!;
-  const res = await renderEpisode({ episode: ep, out: arg('out'), scale: Number(arg('scale', '1')), gpu: arg('gpu') === 'true', verify: arg('no-verify') !== 'true', analyzeOnly: arg('analyze-only') === 'true', audioCodec: (arg('audio-codec') as 'aac' | 'opus' | undefined) });
+  const dt = arg('duration-target'); // e.g. 14-18: only for test cases that explicitly declare the narrower target
+  const res = await renderEpisode({ episode: ep, out: arg('out'), scale: Number(arg('scale', '1')), gpu: arg('gpu') === 'true', verify: arg('no-verify') !== 'true', analyzeOnly: arg('analyze-only') === 'true', audioCodec: (arg('audio-codec') as 'aac' | 'opus' | undefined), validationProfile: (arg('validation-profile') as ValidationProfile | undefined), durationTargetSec: dt ? (dt.split('-').map(Number) as [number, number]) : undefined });
   console.log(res.ok ? `\nOK -> ${res.mp4}` : `\nRENDER FINISHED WITH FAILURES (see ${res.outDir})`);
   process.exit(res.ok ? 0 : 1);
 }

@@ -1,11 +1,16 @@
 // Quality gates evaluated after the analysis + render passes. Each gate states its evidence and whether it is
 // a direct measurement or a proxy (some creative criteria cannot be measured automatically).
 import type { Episode } from '../../schema/src/episode.ts';
-import type { ValidationResult, Lib } from './validate.ts';
+import type { ValidationResult, Lib, ValidationProfile } from './validate.ts';
 import { findBannedTerms } from './validate.ts';
+import { CHANNEL_DURATION_SEC } from '../../config/src/product.ts';
 
-export interface Gate { id: string; name: string; pass: boolean; kind: 'measured' | 'proxy' | 'static'; detail: string; group?: string }
-export interface QualityReport { summary: { total: number; passed: number; failed: string[]; groups: Record<string, { passed: number; total: number }> }; profile: string; gates: Gate[]; frameIssues: Record<string, number>; issuesByShot: Record<string, Record<string, number>>; motion: Record<string, unknown>; notes: string[] }
+/** status 'n/a' = the gate does not apply under the validation profile (never counted as passed or failed) */
+export interface Gate { id: string; name: string; pass: boolean; status?: 'pass' | 'fail' | 'n/a'; kind: 'measured' | 'proxy' | 'static'; detail: string; group?: string }
+export interface QualityReport { summary: { total: number; passed: number; failed: string[]; notApplicable: string[]; validationProfile: ValidationProfile; durationTargetSec: [number, number]; groups: Record<string, { passed: number; total: number }> }; profile: string; gates: Gate[]; frameIssues: Record<string, number>; issuesByShot: Record<string, Record<string, number>>; motion: Record<string, unknown>; notes: string[] }
+
+/** gates that judge the STORY (duration target, premise, pacing, causality, reversal, loop, comprehension) */
+export const STORY_ONLY_GATES: ReadonlySet<string> = new Set(['G03', 'G07', 'G08', 'G10', 'G11', 'G12', 'G13', 'G14', 'G15', 'G23']);
 
 export interface QualityInput {
   ep: Episode; validation: ValidationResult; analysis: Array<{ t: number; shot: string; issues: Array<{ code: string; message: string }>; handErrors: Record<string, number> }>;
@@ -16,6 +21,13 @@ export interface QualityInput {
   production?: { ok: boolean; tool: string; errors: string[]; checks: Array<{ name: string; ok: boolean; got: string; want: string }> } | null;
   aacCheck?: { roundTrip: { snrDb: number[]; bestLag: number }; containerAlignment: { lagSamples: number; lagMs: number; decodedSamples: number; snrDb: number; error?: string } } | null;
   extraGates?: Gate[];
+  /** default story-episode; action-reel marks STORY_ONLY_GATES and story-group extra gates as not applicable */
+  validationProfile?: ValidationProfile;
+  /**
+   * Explicitly declared NARROWER duration target for this test case (e.g. [14, 18] for the original PoC brief). Absent =>
+   * the channel production boundary CHANNEL_DURATION_SEC. Must lie inside the channel boundary.
+   */
+  durationTargetSec?: [number, number];
 }
 
 const HARD = new Set(['SUBJECT_OUT_OF_FRAME', 'SUBJECT_BEHIND_CAMERA', 'FACE_OUT_OF_FRAME', 'FACE_OCCLUDED', 'HAND_PENETRATION', 'CAMERA_IN_PROP']);
@@ -34,7 +46,11 @@ export function buildQualityReport(q: QualityInput): QualityReport {
   const prof = q.profile ?? 'final';
   const [ew, eh] = prof === 'final' ? [1080, 1920] : (q.resolution ?? [1080, 1920]);
   g('G02', prof === 'final' ? 'Resolution 1080x1920' : `Resolution (diagnostic profile ${ew}x${eh})`, vt?.width === ew && vt?.height === eh && q.playback?.videoWidth === ew, 'measured', `container ${vt?.width}x${vt?.height}, decoded ${q.playback?.videoWidth}x${q.playback?.videoHeight}${prof === 'final' ? '' : ' — DIAGNOSTIC render, not a production output'}`);
-  g('G03', 'Duration 14-18 s', vt && vt.durationSec >= 14 && vt.durationSec <= 18, 'measured', `video ${vt?.durationSec.toFixed(3)}s, audio presented ${audioDur.toFixed(3)}s (edit list skips ${at?.editMediaTime ?? 0} ${at?.codec === 'mp4a' ? 'AAC priming' : 'Opus pre-skip'} samples)`);
+  const [cMin, cMax] = CHANNEL_DURATION_SEC;
+  const declared = q.durationTargetSec;
+  if (declared && (declared[0] < cMin || declared[1] > cMax || declared[0] > declared[1])) throw new Error(`durationTargetSec ${declared.join('-')} must be a range inside the channel boundary ${cMin}-${cMax} s`);
+  const [dMin, dMax] = declared ?? [cMin, cMax];
+  g('G03', declared ? `Duration within the declared test target ${dMin}-${dMax} s` : `Duration within the channel production boundary ${cMin}-${cMax} s`, vt && vt.durationSec >= dMin && vt.durationSec <= dMax, 'measured', `video ${vt?.durationSec.toFixed(3)}s, audio presented ${audioDur.toFixed(3)}s (edit list skips ${at?.editMediaTime ?? 0} ${at?.codec === 'mp4a' ? 'AAC priming' : 'Opus pre-skip'} samples)${declared ? ` — narrower target explicitly declared by this test case (channel boundary ${cMin}-${cMax} s)` : ''}`);
   const durs = new Set(vt?.sampleDurations ?? []);
   g('G04', 'Stable frame rate', vt?.sampleCount === N && durs.size === 1, 'measured', `${vt?.sampleCount} samples (expected ${N}), unique sample durations ${[...durs].join(',')} @ timescale ${vt?.timescale} => ${vt ? (vt.timescale / ([...durs][0] as number)).toFixed(3) : '?'} fps constant`);
   const audioDurErr = at && vt ? Math.abs(audioDur - vt.durationSec) : 99;
@@ -115,12 +131,19 @@ export function buildQualityReport(q: QualityInput): QualityReport {
     gates.push({ id: 'P02', name: 'AAC decodes in an independent decoder and is sample-aligned with the source mix', pass: ok, kind: 'measured', group: 'production', detail: al.error ? `decode error: ${al.error}` : `Chromium AAC decoder SNR ${rt.snrDb.join('/')} dB vs source mix; MP4 decode (edit list applied) offset ${al.lagSamples} samples (${al.lagMs.toFixed(2)} ms), ${al.decodedSamples} samples decoded` });
   }
   for (const x of q.extraGates ?? []) gates.push({ ...x, group: x.group ?? 'story' });
-  const failed = gates.filter((x) => !x.pass).map((x) => x.id);
+  const vp: ValidationProfile = q.validationProfile ?? 'story-episode';
+  for (const x of gates) {
+    const na = vp === 'action-reel' && (STORY_ONLY_GATES.has(x.id) || x.group === 'story');
+    if (na) { x.status = 'n/a'; x.pass = false; x.detail = `not applicable under validation profile action-reel (story-only gate). Measured anyway: ${x.detail}`; }
+    else x.status = x.pass ? 'pass' : 'fail';
+  }
+  const applicable = gates.filter((x) => x.status !== 'n/a');
+  const failed = applicable.filter((x) => !x.pass).map((x) => x.id);
   const groups: Record<string, { passed: number; total: number }> = {};
-  for (const x of gates) { const gg = (groups[x.group!] ??= { passed: 0, total: 0 }); gg.total++; if (x.pass) gg.passed++; }
+  for (const x of applicable) { const gg = (groups[x.group!] ??= { passed: 0, total: 0 }); gg.total++; if (x.pass) gg.passed++; }
   return {
     profile: prof,
-    summary: { total: gates.length, passed: gates.length - failed.length, failed, groups },
+    summary: { total: applicable.length, passed: applicable.length - failed.length, failed, notApplicable: gates.filter((x) => x.status === 'n/a').map((x) => x.id), validationProfile: vp, durationTargetSec: [dMin, dMax], groups },
     gates, frameIssues: counts, issuesByShot, motion: { footSlipMedian: med, footSlipP95: p95, samples: slips.length, teleports: tele },
     notes: [
       'Gates marked "proxy" approximate creative judgement and need human review.',
@@ -132,13 +155,14 @@ export function buildQualityReport(q: QualityInput): QualityReport {
 export function qualityMarkdown(q: QualityReport, ep: Episode, log: any): string {
   const L: string[] = [];
   L.push(`# Quality report — ${ep.episode.title} (\`${ep.episode.id}\`)`, '');
-  L.push(`**${q.summary.passed}/${q.summary.total} gates passed** (${Object.entries(q.summary.groups).map(([k, v]) => `${k} ${v.passed}/${v.total}`).join(', ')}). ${q.summary.failed.length ? 'Failed: ' + q.summary.failed.join(', ') : 'No failures.'}`, '');
+  L.push(`**${q.summary.passed}/${q.summary.total} applicable gates passed** (${Object.entries(q.summary.groups).map(([k, v]) => `${k} ${v.passed}/${v.total}`).join(', ')}). ${q.summary.failed.length ? 'Failed: ' + q.summary.failed.join(', ') : 'No failures.'}`, '');
+  L.push(`Validation profile: \`${q.summary.validationProfile}\`${q.summary.notApplicable.length ? ` — not applicable: ${q.summary.notApplicable.join(', ')}` : ''}. Duration target: ${q.summary.durationTargetSec.join('-')} s.`, '');
   if (q.profile !== 'final') L.push(`> **Diagnostic profile** (${log.resolution.join('x')}): low-resolution QA render — not a production output.`, '');
   L.push(`- Output: \`${log.mp4}\` — ${(log.bytes / 1e6).toFixed(2)} MB, sha256 \`${log.mp4Sha256}\``);
   L.push(`- ${log.resolution.join('x')} @ ${log.fps} fps, ${log.frames} frames; render ${log.timing.msPerFrame} ms/frame (${log.timing.realtimeFactor}x real-time), total ${log.timing.totalSec.toFixed(1)} s`);
   L.push(`- Renderer: ${log.host.glRenderer}; host ${log.host.cpus}x ${log.host.cpuModel}; GPU: ${log.host.gpu ? 'yes' : 'no (SwiftShader CPU)'}; audio codec: ${log.audioCodec ?? 'opus'}`, '');
   L.push('| Gate | Group | Result | Kind | Evidence |', '|---|---|---|---|---|');
-  for (const g of q.gates) L.push(`| ${g.id} ${g.name} | ${g.group} | ${g.pass ? 'PASS' : '**FAIL**'} | ${g.kind} | ${g.detail.replace(/\|/g, '/')} |`);
+  for (const g of q.gates) L.push(`| ${g.id} ${g.name} | ${g.group} | ${g.status === 'n/a' ? 'n/a' : g.pass ? 'PASS' : '**FAIL**'} | ${g.kind} | ${g.detail.replace(/\|/g, '/')} |`);
   L.push('', '## Notes', ...q.notes.map((n) => `- ${n}`), '');
   return L.join('\n');
 }

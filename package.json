@@ -12,7 +12,7 @@
     "build": "tsc -p tsconfig.web.json",
     "typecheck": "tsc -p tsconfig.web.json --noEmit",
     "start": "node apps/studio/server.ts",
-    "render:poc": "node apps/render-worker/render.ts --episode episodes/free-coins-loop-001.json",
+    "render:poc": "node apps/render-worker/render.ts --episode episodes/free-coins-loop-001.json --duration-target 14-18",
     "render:preview": "node apps/render-worker/render.ts --episode episodes/free-coins-loop-001.json --scale 0.5 --out out/preview",
     "render:determinism": "node scripts/determinism.ts",
     "spike": "node scripts/spike-render.ts",

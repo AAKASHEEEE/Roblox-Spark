@@ -16,7 +16,8 @@ const epRaw = JSON.parse(readFileSync(resolve(ROOT, episode), 'utf8'));
 const { render: declared, ...content } = epRaw;
 const epSha = createHash('sha256').update(canonical({ ...content, schemaVersion: '1.0' })).digest('hex');
 const out = join('out', 'baseline-compare');
-const r = await renderEpisode({ episode, out, scale: 1, verify: true, hashEvery: 1 });
+// PoC acceptance case: explicitly declares the original brief's narrower 14-18 s target (channel boundary is 14-22 s)
+const r = await renderEpisode({ episode, out, scale: 1, verify: true, hashEvery: 1, durationTargetSec: [14, 18] });
 const log = JSON.parse(readFileSync(join(ROOT, out, 'render-log.json'), 'utf8'));
 const base = new Map<number, string>(baseline.frameHashes);
 const diff = (log.frameHashes as Array<[number, string]>).filter(([i, h]) => base.get(i) !== h).map(([i]) => i);

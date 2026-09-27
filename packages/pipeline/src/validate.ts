@@ -13,7 +13,21 @@ export interface Lib {
 }
 export type Severity = 'error' | 'warning' | 'info';
 export interface Finding { severity: Severity; code: string; message: string; path?: string }
-export interface ValidationResult { ok: boolean; episode?: Episode; findings: Finding[]; repairs: string[]; metrics: Record<string, number> }
+export interface ValidationResult { ok: boolean; episode?: Episode; findings: Finding[]; repairs: string[]; metrics: Record<string, number>; profile?: ValidationProfile }
+
+/**
+ * Validation profiles.
+ *  - story-episode (default): every check, including story structure — for anything meant to be published.
+ *  - action-reel: diagnostic reels that exercise engine actions. Asset, reference, timeline, feasibility, causality,
+ *    audio-sync and safety checks all apply; story-structure checks are NOT applicable and are reported as info.
+ */
+export type ValidationProfile = 'story-episode' | 'action-reel';
+export const VALIDATION_PROFILES: readonly ValidationProfile[] = ['story-episode', 'action-reel'];
+/** findings that judge story structure / editing (not applicable to diagnostic action reels) */
+export const STORY_STRUCTURE_CODES: ReadonlySet<string> = new Set([
+  'HERO_PROP', 'PREMISE_NOT_VISIBLE', 'SLOW_OPENING', 'STALE_STRETCH', 'NO_FACIAL_REACTION', 'NO_REVERSAL', 'REVERSAL_TOO_EARLY',
+  'LOOP', 'BEAT_COVERAGE', 'SHOT_VARIETY', 'SHOT_TOO_SHORT', 'SHOT_TOO_LONG', 'UNUSED_PROP',
+]);
 
 /** Terms that must never appear (brand/trade-dress + platform-safety + family-safety). */
 export const BANNED_TERMS = [
@@ -37,11 +51,14 @@ export function findBannedTerms(texts: string[]): string[] {
 
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
-export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean } = {}): ValidationResult {
+export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean; profile?: ValidationProfile } = {}): ValidationResult {
+  const profile = opts.profile ?? 'story-episode';
+  if (!VALIDATION_PROFILES.includes(profile)) throw new Error(`unknown validation profile ${JSON.stringify(profile)}`);
   const findings: Finding[] = [];
   const repairs: string[] = [];
-  const err = (code: string, message: string, path?: string) => findings.push({ severity: 'error', code, message, path });
-  const warn = (code: string, message: string, path?: string) => findings.push({ severity: 'warning', code, message, path });
+  const na = (code: string) => profile === 'action-reel' && STORY_STRUCTURE_CODES.has(code);
+  const err = (code: string, message: string, path?: string) => findings.push(na(code) ? { severity: 'info', code, message: `[not applicable: validation profile action-reel] ${message}`, path } : { severity: 'error', code, message, path });
+  const warn = (code: string, message: string, path?: string) => findings.push(na(code) ? { severity: 'info', code, message: `[not applicable: validation profile action-reel] ${message}`, path } : { severity: 'warning', code, message, path });
   const info = (code: string, message: string) => findings.push({ severity: 'info', code, message });
 
   // rendering compatibility first: a missing/unsupported declaration is reported with its own code, never defaulted
@@ -259,5 +276,5 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
 
   const metrics = { shots: shots.length, distinctPresets: presets.size, maxStaleGap: r3(maxGap), actions: ep.actions.length, cues: ep.audio.cues.length, reversalAt: r3(lastImpact) };
   const ok = !findings.some((f) => f.severity === 'error');
-  return { ok, episode: ep, findings, repairs, metrics };
+  return { ok, episode: ep, findings, repairs, metrics, profile };
 }

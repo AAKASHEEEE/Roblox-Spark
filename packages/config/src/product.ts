@@ -15,3 +15,9 @@ export const PRODUCT = {
   deprecatedNames: ['RBLX SPARK', 'RBLX SPARK VIDEO FACTORY'],
   trademarkStatus: 'temporary codename — trademark clearance NOT performed; required before commercial launch',
 } as const;
+
+/**
+ * Channel production boundary for publishable episodes (seconds, inclusive). Quality gate G03 checks this range unless a
+ * test case EXPLICITLY declares a narrower target (e.g. the original PoC brief's 14-18 s) — see durationTargetSec.
+ */
+export const CHANNEL_DURATION_SEC: readonly [number, number] = [14, 22];

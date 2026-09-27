@@ -13,7 +13,8 @@ const runs: any[] = [];
 const id = JSON.parse(readFileSync(join(ROOT, episode), 'utf8')).episode.id;
 for (const tag of ['a', 'b']) {
   const out = tag === 'a' ? join('out', scale === 1 ? id : `${id}-x${scale}`) : join('out', 'determinism', tag);
-  const r = await renderEpisode({ episode, out, scale, verify: tag === 'a', hashEvery: 1 });
+  // PoC acceptance case: explicitly declares the original brief's narrower 14-18 s target (channel boundary is 14-22 s)
+  const r = await renderEpisode({ episode, out, scale, verify: tag === 'a', hashEvery: 1, durationTargetSec: [14, 18] });
   const log = JSON.parse(readFileSync(join(ROOT, out, 'render-log.json'), 'utf8'));
   runs.push({ tag, ok: r.ok, mp4Sha256: log.mp4Sha256, frameHashes: log.frameHashes, msPerFrame: log.timing.msPerFrame });
 }
