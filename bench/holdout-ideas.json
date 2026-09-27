@@ -1,0 +1,174 @@
+{
+ "version": "1.0",
+ "frozen": "written and committed AFTER benchmark run 1 and the generic fixes, BEFORE run 2; used to test whether the fixes generalise to unseen ideas",
+ "ideas": [
+  {
+   "id": "H01",
+   "engine": "ordinary_object_extreme",
+   "kind": "holdout",
+   "expected": "accept",
+   "expectedRejectCategory": null,
+   "idea": "Zapp finds a lever that gives him a shiny token, and the token swells until it squishes him.",
+   "request": {
+    "idea": "Zapp finds a lever that gives him a shiny token, and the token swells until it squishes him.",
+    "durationTarget": 16,
+    "comedyEngine": null,
+    "seed": 2000
+   }
+  },
+  {
+   "id": "H02",
+   "engine": "ordinary_object_extreme",
+   "kind": "holdout",
+   "expected": "accept",
+   "expectedRejectCategory": null,
+   "idea": "Kira pushes the switch, gets a gold medal, and it keeps getting bigger.",
+   "request": {
+    "idea": "Kira pushes the switch, gets a gold medal, and it keeps getting bigger.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 2001
+   }
+  },
+  {
+   "id": "H03",
+   "engine": "ordinary_object_extreme",
+   "kind": "holdout",
+   "expected": "reject",
+   "expectedRejectCategory": "unavailable",
+   "idea": "Zapp's pet dog presses the button and the coin grows.",
+   "request": {
+    "idea": "Zapp's pet dog presses the button and the coin grows.",
+    "durationTarget": 18,
+    "comedyEngine": null,
+    "seed": 2002
+   }
+  },
+  {
+   "id": "H04",
+   "engine": "visible_secret_chase",
+   "kind": "holdout",
+   "expected": "accept",
+   "expectedRejectCategory": null,
+   "idea": "Kira spots a hidden prize button behind Zapp and they sprint for it.",
+   "request": {
+    "idea": "Kira spots a hidden prize button behind Zapp and they sprint for it.",
+    "durationTarget": 16,
+    "comedyEngine": null,
+    "seed": 2003
+   }
+  },
+  {
+   "id": "H05",
+   "engine": "visible_secret_chase",
+   "kind": "holdout",
+   "expected": "accept",
+   "expectedRejectCategory": null,
+   "idea": "Zapp notices a glowing reward on the desk across the room and races Kira; winning ruins his day.",
+   "request": {
+    "idea": "Zapp notices a glowing reward on the desk across the room and races Kira; winning ruins his day.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 2004
+   }
+  },
+  {
+   "id": "H06",
+   "engine": "visible_secret_chase",
+   "kind": "holdout",
+   "expected": "reject",
+   "expectedRejectCategory": "unsafe",
+   "idea": "Kira chases Zapp through the hallway with a baseball bat.",
+   "request": {
+    "idea": "Kira chases Zapp through the hallway with a baseball bat.",
+    "durationTarget": 18,
+    "comedyEngine": null,
+    "seed": 2005
+   }
+  },
+  {
+   "id": "H07",
+   "engine": "apparent_win_instant_loss",
+   "kind": "holdout",
+   "expected": "accept",
+   "expectedRejectCategory": null,
+   "idea": "Kira keeps trying the button until it finally pays out, cheers, and is instantly flattened.",
+   "request": {
+    "idea": "Kira keeps trying the button until it finally pays out, cheers, and is instantly flattened.",
+    "durationTarget": 16,
+    "comedyEngine": null,
+    "seed": 2006
+   }
+  },
+  {
+   "id": "H08",
+   "engine": "apparent_win_instant_loss",
+   "kind": "holdout",
+   "expected": "accept",
+   "expectedRejectCategory": null,
+   "idea": "After two failed tries Zapp gets his coin, and a second later it crushes him.",
+   "request": {
+    "idea": "After two failed tries Zapp gets his coin, and a second later it crushes him.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 2007
+   }
+  },
+  {
+   "id": "H09",
+   "engine": "apparent_win_instant_loss",
+   "kind": "holdout",
+   "expected": "reject",
+   "expectedRejectCategory": "impossible",
+   "idea": "Zapp wins a coin and it disappears into thin air.",
+   "request": {
+    "idea": "Zapp wins a coin and it disappears into thin air.",
+    "durationTarget": 18,
+    "comedyEngine": null,
+    "seed": 2008
+   }
+  },
+  {
+   "id": "H10",
+   "engine": "noob_vs_smart",
+   "kind": "holdout",
+   "expected": "accept",
+   "expectedRejectCategory": null,
+   "idea": "Kira presses once like a beginner; Zapp does the expert double-press and regrets it.",
+   "request": {
+    "idea": "Kira presses once like a beginner; Zapp does the expert double-press and regrets it.",
+    "durationTarget": 16,
+    "comedyEngine": null,
+    "seed": 2009
+   }
+  },
+  {
+   "id": "H11",
+   "engine": "noob_vs_smart",
+   "kind": "holdout",
+   "expected": "accept",
+   "expectedRejectCategory": null,
+   "idea": "Zapp gets a coin the obvious way, then Kira calmly shows him the smarter way and gets buried.",
+   "request": {
+    "idea": "Zapp gets a coin the obvious way, then Kira calmly shows him the smarter way and gets buried.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 2010
+   }
+  },
+  {
+   "id": "H12",
+   "engine": "noob_vs_smart",
+   "kind": "holdout",
+   "expected": "reject",
+   "expectedRejectCategory": "unavailable",
+   "idea": "Kira gets one coin; Zapp uses a hammer to smash the button for more.",
+   "request": {
+    "idea": "Kira gets one coin; Zapp uses a hammer to smash the button for more.",
+    "durationTarget": 18,
+    "comedyEngine": null,
+    "seed": 2011
+   }
+  }
+ ]
+}

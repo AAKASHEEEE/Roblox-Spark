@@ -69,7 +69,7 @@ export function stagePlan(plan: VisualBeatPlan, env: EnvironmentManifest): { sta
     // one reachable press position (button on the presser's right): the noob yields it to the smart character
     s.start[P] = v === 2 ? 'press_spot' : 'enter_back_left';
     s.walkIn[P] = v === 2 ? null : 'press_spot';
-    s.start[F] = v === 1 ? 'watch_left' : 'press_left';
+    s.start[F] = v === 1 ? 'watch_left' : 'smart_wait';
     s.pressMark[F] = 'press_spot';
     s.smartApproach = 'press_spot';
     s.noobExit = 'wp_desk_back_right';
