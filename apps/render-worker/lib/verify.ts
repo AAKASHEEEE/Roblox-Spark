@@ -31,6 +31,27 @@ export async function decodeCompare(page: any, src: string, pairs: Array<[number
   }, [src, pairs]);
 }
 
+/** Decode the MP4's audio with Chromium's demuxer+decoder (edit list applied) and measure alignment vs the source mix. */
+export async function mp4AudioAlignment(page: any, src: string, ref: Float32Array): Promise<{ lagSamples: number; lagMs: number; decodedSamples: number; snrDb: number; error?: string }> {
+  const res = await page.evaluate(async (src: string) => {
+    try {
+      const buf = await (await fetch(src)).arrayBuffer();
+      const ctx = new OfflineAudioContext(2, 48000, 48000);
+      const ab = await ctx.decodeAudioData(buf);
+      const d = ab.getChannelData(0);
+      const u = new Uint8Array(d.buffer.slice(d.byteOffset, d.byteOffset + d.byteLength)); let s = '';
+      for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, Array.from(u.subarray(i, i + 0x8000)));
+      return { sr: ab.sampleRate, n: ab.length, b64: btoa(s) };
+    } catch (e) { return { error: String(e) }; }
+  }, src);
+  if (res.error) return { lagSamples: NaN, lagMs: NaN, decodedSamples: 0, snrDb: 0, error: res.error };
+  const u = Buffer.from(res.b64, 'base64'); const dec = new Float32Array(u.buffer, u.byteOffset, u.byteLength / 4);
+  let best = -Infinity, lag = 0;
+  for (let L = -2048; L <= 2048; L++) { let c = 0; for (let i = 4096; i < ref.length - 4096; i += 11) c += ref[i] * (dec[i + L] ?? 0); if (c > best) { best = c; lag = L; } }
+  let sig = 0, noise = 0; for (let i = 0; i < ref.length; i++) { const e = (dec[i + lag] ?? 0) - ref[i]; sig += ref[i] * ref[i]; noise += e * e; }
+  return { lagSamples: lag, lagMs: (lag / 48000) * 1000, decodedSamples: res.n, snrDb: +(10 * Math.log10(sig / Math.max(noise, 1e-20))).toFixed(2) };
+}
+
 export async function verifyPlayback(baseUrl: string, relPath: string, times: number[], outDir: string, playSeconds = 2): Promise<PlaybackCheck> {
   mkdirSync(outDir, { recursive: true });
   const browser = await launchBrowser();

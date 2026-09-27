@@ -14,6 +14,8 @@ export interface TrackInfo {
   channels?: number;
   sampleRate?: number;
   editMediaTime?: number;
+  /** presented duration from the edit list (seconds) */
+  editDurationSec?: number;
 }
 export interface Mp4Info { brands: string; durationSec: number; tracks: TrackInfo[]; boxes: BoxInfo[]; fastStart: boolean }
 
@@ -81,7 +83,7 @@ export function inspectMp4(buf: Uint8Array): Mp4Info {
       t.channels = dv.getUint16(entry + 24); t.sampleRate = dv.getUint32(entry + 32) / 65536;
     }
     const edts = find(trak.children, 'edts');
-    if (edts) { const elst = find(edts.children, 'elst'); if (elst) t.editMediaTime = dv.getInt32(elst.start + 20); }
+    if (edts) { const elst = find(edts.children, 'elst'); if (elst) { t.editMediaTime = dv.getInt32(elst.start + 20); t.editDurationSec = dv.getUint32(elst.start + 16) / mts; } }
     tracks.push(t);
   }
   const mdat = find(boxes, 'mdat');
