@@ -49,6 +49,8 @@ export interface GenerationRecord {
   attempts: Attempt[];
   repairs: number;
   episode: Episode | null;
+  /** last compiled (possibly rejected) episode, for diagnostics only — never rendered as a deliverable */
+  lastCompiled: Episode | null;
   episodeSha256: string | null;
   events: KeyEvent[];
   gates: StoryGate[];
@@ -58,7 +60,7 @@ export interface GenerationRecord {
   tokens: { in: number; out: number };
 }
 
-const HARD = new Set(['SUBJECT_OUT_OF_FRAME', 'SUBJECT_BEHIND_CAMERA', 'FACE_OUT_OF_FRAME', 'FACE_OCCLUDED', 'HAND_PENETRATION', 'CAMERA_IN_PROP', 'BODY_PROP_INTERSECTION', 'ACTOR_OVERLAP']);
+const HARD = new Set(['SUBJECT_OUT_OF_FRAME', 'SUBJECT_BEHIND_CAMERA', 'FACE_OUT_OF_FRAME', 'FACE_OCCLUDED', 'HAND_PENETRATION', 'CAMERA_IN_PROP', 'BODY_PROP_INTERSECTION', 'ACTOR_OVERLAP', 'PROP_OCCLUDED']);
 const SOFT = new Set(['SUBJECT_OUTSIDE_ACTION_SAFE', 'FACE_TURNED_AWAY']);
 
 /** apply only patches that address a listed constraint (beatId + field), everything else is rejected */
@@ -119,7 +121,7 @@ export async function generateEpisode(requestIn: unknown, deps: GenerateDeps): P
   const T0 = performance.now();
   const { provider, registry: reg } = deps;
   const maxRepairs = deps.maxRepairs ?? 3;
-  const rec: GenerationRecord = { request: requestIn as StoryRequest, provider: { name: provider.name, model: provider.model }, status: 'failed', rejection: null, failure: null, normalized: null, plan: null, substitutions: [], warnings: [], schemaEvents: [], attempts: [], repairs: 0, episode: null, episodeSha256: null, events: [], gates: [], mutedStoryScore: null, calls: [], latencyMs: 0, tokens: { in: 0, out: 0 } };
+  const rec: GenerationRecord = { request: requestIn as StoryRequest, provider: { name: provider.name, model: provider.model }, status: 'failed', rejection: null, failure: null, normalized: null, plan: null, substitutions: [], warnings: [], schemaEvents: [], attempts: [], repairs: 0, episode: null, lastCompiled: null, episodeSha256: null, events: [], gates: [], mutedStoryScore: null, calls: [], latencyMs: 0, tokens: { in: 0, out: 0 } };
   const finish = () => { rec.latencyMs = Math.round(performance.now() - T0); for (const c of rec.calls) { rec.tokens.in += c.tokensIn; rec.tokens.out += c.tokensOut; } return rec; };
   const call = async <T>(stage: string, fn: () => Promise<unknown>, schema: { parse(v: unknown): { ok: true; value: T } | { ok: false; issues: Array<{ path: string; message: string }> } }): Promise<{ ok: true; value: T } | { ok: false; issues: string[] }> => {
     let raw: unknown;
@@ -187,6 +189,7 @@ export async function generateEpisode(requestIn: unknown, deps: GenerateDeps): P
         }
       }
       if (ep) {
+        rec.lastCompiled = ep;
         const v = validateEpisode(ep, deps.lib, { repair: false });
         at.validatorErrors = v.findings.filter((f) => f.severity === 'error').map((f) => `${f.code}: ${f.message}`);
         at.validatorWarnings = v.findings.filter((f) => f.severity === 'warning').map((f) => `${f.code}: ${f.message}`);

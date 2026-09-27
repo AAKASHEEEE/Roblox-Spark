@@ -11,11 +11,11 @@ function params(preset: string, slot: string, d: number): P {
   switch (preset) {
     case 'prop_ecu': return slot === 'premise' || slot === 'loop' ? { fill: 0.78, elev: 0.42, yaw: -12, push: 0.08, fov: 34 } : { fill: 0.26, elev: 0.12, lift: 3.2, fov: 44, push: 0.06, yaw: 8 };
     case 'frontal_medium': return { dist: 2.0, bias: 0.35, solveAt: 0.4, push: 0.08 };
-    case 'reaction_punch_in': return slot === 'payoff' ? { dist: 1.45, fromDist: 1.9, bias: 0.9, solveAt: 0 } : slot === 'threat' ? { dist: 1.05, fromDist: 1.5, bias: 0.4 } : { dist: 1.75, fromDist: 2.3, bias: 0.65, solveAt: 0.35 };
+    case 'reaction_punch_in': return slot === 'payoff' ? { dist: 2.0, fromDist: 2.5, bias: 0.9, solveAt: 0 } : slot === 'threat' ? { dist: 1.3, fromDist: 1.7, bias: 0.4, solveAt: 0.35 } : { dist: 1.75, fromDist: 2.3, bias: 0.65, solveAt: 0.35 };
     case 'two_shot': return { fill: 0.82, push: 0.04 };
     case 'top_down_insert': return { fill: 0.9, minRadius: 0.5, push: 0.1 };
     case 'low_angle_reveal': return slot === 'threat' ? { side: 0.3, height: 0.25, fill: 0.95, minDist: 3.2, aim: 0.55, fov: 50, push: 0.05 } : { solveAt: Math.max(0, d - 0.05), side: -0.35, height: 0.35, fill: 0.7, minDist: 2.4, aim: 0.4, fov: 44 };
-    case 'wide_environment': return slot === 'reversal' ? { solveAt: 0, margin: 0.7, elev: 0.2, fov: 42, push: 0.02 } : slot === 'race' ? { solveAt: d * 0.6, margin: 0.8, elev: 0.15, fov: 44, push: 0.02 } : { solveAt: Math.max(0, d - 0.1), margin: 0.7, elev: 0.12, fov: 40, push: 0.03 };
+    case 'wide_environment': return slot === 'reversal' ? { solveAt: 0, margin: 0.7, elev: 0.2, fov: 42, push: 0.02 } : slot === 'race' ? { solveAt: 0, margin: 0.8, elev: 0.15, fov: 44, push: 0.02 } : { solveAt: Math.max(0, d - 0.1), margin: 0.7, elev: 0.12, fov: 40, push: 0.03 };
     case 'over_shoulder': return { back: 0.6, side: 0.35, up: 0.1, fov: 40, push: 0.05, targetLift: -0.25 };
     case 'final_loop': return { pullback: 0.12 };
     default: return {};
@@ -38,7 +38,7 @@ export function planShots(plan: VisualBeatPlan, beatTimes: Record<string, [numbe
       case 'leap': case 'reversal': return preset === 'wide_environment' ? ['coin', V, O] : ['coin'];
       case 'instant_loss': return preset === 'wide_environment' ? ['coin', V, O] : ['coin'];
       case 'threat': return preset === 'low_angle_reveal' ? ['coin'] : [V];
-      case 'smart_attempt': return preset === 'prop_ecu' ? ['button'] : [b.actor];
+      case 'smart_attempt': return preset === 'prop_ecu' ? ['button'] : preset === 'two_shot' ? [b.actor, Pr] : preset === 'wide_environment' ? [b.actor, Pr, 'button'] : [b.actor];
       case 'warn': return preset === 'two_shot' ? [b.actor, Pr] : [b.actor];
       default: return [b.actor];
     }
@@ -53,17 +53,22 @@ export function planShots(plan: VisualBeatPlan, beatTimes: Record<string, [numbe
     // two-part beats: cause insert then reaction, or reaction then reveal
     const split: Record<string, [string, string, number] | undefined> = {
       attempt_fail: ['prop_ecu', preset === 'prop_ecu' ? 'frontal_medium' : preset, 0.55],
-      smart_attempt: ['prop_ecu', 'reaction_punch_in', 0.62],
+      smart_attempt: ['wide_environment', 'prop_ecu', 0.35],
       threat: ['reaction_punch_in', 'low_angle_reveal', 0.45],
       instant_loss: ['low_angle_reveal', 'wide_environment', 0.4],
+      // cut on impact: the second wide is solved on the aftermath (flattened prop + victim) so the payoff is centred
+      reversal: ['wide_environment', 'wide_environment', 0.7],
     };
     const sp = split[b.slot];
     if (sp && d >= 1.2) {
       // cut points never hide a cause: smart_attempt keeps both presses (contacts at +0.48 s and +1.48 s) in the insert
-      const cut = b.slot === 'smart_attempt' ? t0 + Math.min(d - 0.6, Math.max(d * sp[2], 1.75)) : t0 + d * sp[2];
-      shots.push({ beatId: b.id, from: t0, to: cut, preset: sp[0], subjects: subj(b, sp[0]), params: rel(params(sp[0], b.slot, cut - t0), t0), purpose: `${b.purpose} (${sp[0]})` });
+      const cut = b.slot === 'smart_attempt' ? t0 + Math.min(d - 1.6, 1.25) : b.slot === 'instant_loss' ? t0 + 0.8 : b.slot === 'threat' ? t0 + Math.min(0.95, d * sp[2]) : t0 + d * sp[2];
+      const prevWide = shots.length && shots[shots.length - 1].preset === 'wide_environment';
+      if (b.slot === 'reversal' && prevWide) shots.push({ beatId: b.id, from: t0, to: cut, preset: 'low_angle_reveal', subjects: ['coin'], params: rel({ ...params('low_angle_reveal', 'threat', cut - t0), solveAt: 0 }, t0), purpose: `${b.purpose} (low_angle_reveal)` });
+      else shots.push({ beatId: b.id, from: t0, to: cut, preset: sp[0], subjects: subj(b, sp[0]), params: rel(b.slot === 'instant_loss' ? { ...params(sp[0], b.slot, 0.8), solveAt: 0.75 } : params(sp[0], b.slot, cut - t0), t0), purpose: `${b.purpose} (${sp[0]})` });
+      if (b.slot === 'reversal') { shots.push({ beatId: b.id, from: cut, to: t1, preset: 'wide_environment', subjects: ['coin', V], params: { solveAt: +(t1 - 0.05).toFixed(3), margin: 0.6, elev: 0.28, fov: 40, push: 0 }, purpose: 'Aftermath: flattened by the prize' }); continue; }
       // a reaction half that shows a not-yet-introduced foil reacting becomes a two-shot (introduces the foil)
-      const introFoil = !foilFramed && b.reactor?.actor === F && (b.slot === 'attempt_fail' || b.slot === 'smart_attempt');
+      const introFoil = !foilFramed && b.reactor?.actor === F && b.slot === 'attempt_fail';
       const p2 = introFoil ? 'two_shot' : sp[1];
       shots.push({ beatId: b.id, from: cut, to: t1, preset: p2, subjects: introFoil ? [b.actor, F] : subj(b, p2), params: rel(params(p2, b.slot, t1 - cut), cut), purpose: `${b.purpose} (${p2})` });
     } else shots.push({ beatId: b.id, from: t0, to: t1, preset: b.slot === 'celebrate' && !foilFramed ? 'two_shot' : preset, subjects: subj(b, b.slot === 'celebrate' && !foilFramed ? 'two_shot' : preset), params: rel(params(b.slot === 'celebrate' && !foilFramed ? 'two_shot' : preset, b.slot, d), t0), purpose: b.purpose });

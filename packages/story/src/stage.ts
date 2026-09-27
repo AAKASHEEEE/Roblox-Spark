@@ -11,6 +11,7 @@ export interface StagingPlan {
   walkIn: Record<string, string | null>;
   raceTo: Record<string, string>;
   smartApproach: string | null;
+  noobExit?: string;
   victimBack: string; giantFront: string; diveEnd: string; giantSpot: string;
   observerEscape: string[];
   screenDirection: string;
@@ -21,15 +22,17 @@ export interface StagingPlan {
 
 /** torso half-width (0.27 m) + margin; the probe-based body check in the analysis pass is the ground truth */
 const BODY_HALF_WIDTH = 0.3;
-const DESK = { id: 'prop:desk', min: [-0.5, -0.31], max: [0.5, 0.31] };
+/** low furniture (tops below hip height) only needs leg/arm clearance; tall geometry needs torso half-width */
+const LOW_CLEARANCE = 0.18;
+const DESK = { id: 'prop:desk', min: [-0.5, -0.31], max: [0.5, 0.31], low: true };
 
-function colliders2d(env: EnvironmentManifest): Array<{ id: string; min: number[]; max: number[] }> {
-  const out = [DESK];
+function colliders2d(env: EnvironmentManifest): Array<{ id: string; min: number[]; max: number[]; low: boolean }> {
+  const out: Array<{ id: string; min: number[]; max: number[]; low: boolean }> = [DESK];
   for (const p of env.pieces) {
     if (!p.collide || p.id === 'floor' || p.pos[1] - (p.size[1] || 0) / 2 > 1.2) continue;
     const shape = p.shape ?? 'box';
     const hx = shape === 'cylinder' || shape === 'sphere' ? p.size[0] : p.size[0] / 2, hz = shape === 'cylinder' || shape === 'sphere' ? p.size[0] : p.size[2] / 2;
-    out.push({ id: `env:${p.id}`, min: [p.pos[0] - hx, p.pos[2] - hz], max: [p.pos[0] + hx, p.pos[2] + hz] });
+    out.push({ id: `env:${p.id}`, min: [p.pos[0] - hx, p.pos[2] - hz], max: [p.pos[0] + hx, p.pos[2] + hz], low: p.pos[1] + (p.size[1] || 0) / 2 <= 0.85 });
   }
   return out;
 }
@@ -54,7 +57,7 @@ export function stagePlan(plan: VisualBeatPlan, env: EnvironmentManifest): { sta
   const slots = plan.beats.map((b) => b.slot);
   const s: StagingPlan = {
     engine: plan.engine, variant: v, start: {}, pressMark: { [P]: 'press_spot' }, walkIn: { [P]: null, [F]: null }, raceTo: {}, smartApproach: null,
-    victimBack: 'wp_desk_back_left', giantFront: 'giant_front', diveEnd: 'dive_end', giantSpot: 'giant_spot', observerEscape: ['foil_safe'],
+    victimBack: 'wp_desk_back_left', giantFront: 'giant_front', diveEnd: 'dive_end', giantSpot: 'giant_spot', observerEscape: ['observe_safe'],
     screenDirection: 'audience side only (+z); protagonist enters from screen-left, foil holds screen-right; giant prop lands screen-left and falls toward camera',
     contacts: [], safetyMargins: { actorActor: 0.6, pathCollider: BODY_HALF_WIDTH, endpointSlack: 0.35 }, moves: [],
   };
@@ -63,26 +66,29 @@ export function stagePlan(plan: VisualBeatPlan, env: EnvironmentManifest): { sta
     s.start[F] = v === 1 ? 'watch_right' : 'race_right';
     s.raceTo = { [P]: 'press_spot', [F]: 'foil_spot' };
   } else if (plan.engine === 'noob_vs_smart') {
+    // one reachable press position (button on the presser's right): the noob yields it to the smart character
     s.start[P] = v === 2 ? 'press_spot' : 'enter_back_left';
     s.walkIn[P] = v === 2 ? null : 'press_spot';
-    s.start[F] = v === 1 ? 'press_left' : 'watch_left';
-    s.pressMark[F] = 'press_left';
-    s.smartApproach = v === 1 ? null : 'press_left';
-    s.observerEscape = ['wp_desk_back_right', 'foil_safe'];
+    s.start[F] = v === 1 ? 'watch_left' : 'press_left';
+    s.pressMark[F] = 'press_spot';
+    s.smartApproach = 'press_spot';
+    s.noobExit = 'wp_desk_back_right';
+    s.observerEscape = ['observe_safe'];
   } else {
     s.start[P] = v === 2 ? 'press_spot' : 'enter_back_left';
     s.walkIn[P] = v === 2 ? null : 'press_spot';
     s.start[F] = v === 1 ? 'watch_right' : 'foil_spot';
   }
   // observer escape starts from wherever the observer stands when the prop leaps
-  const obsAt = O === P ? s.pressMark[P] : plan.engine === 'visible_secret_chase' ? 'foil_spot' : s.start[F];
-  if (O === F && plan.engine !== 'noob_vs_smart') s.observerEscape = ['foil_safe'];
+  const obsAt = s.noobExit && O === P ? s.noobExit : O === P ? s.pressMark[P] : plan.engine === 'visible_secret_chase' ? 'foil_spot' : s.start[F];
+  if (O === F && plan.engine !== 'noob_vs_smart') s.observerEscape = ['observe_safe'];
   for (const b of plan.beats) if (b.action === 'press_button') s.contacts.push({ actor: b.actor, anchor: 'button.press_surface' });
   // moves
   const mk = (actor: string, slot: string, from: string, to: string, kind: Move['kind']) => s.moves.push({ actor, slot, from, to, kind, clearance: 0 });
   if (s.walkIn[P]) mk(P, 'premise', s.start[P], s.walkIn[P]!, 'walk');
   if (s.raceTo[P]) { mk(P, 'race', s.start[P], s.raceTo[P], 'run'); mk(F, 'race', s.start[F], s.raceTo[F], 'chase'); }
-  if (s.smartApproach) mk(F, 'celebrate', s.start[F], s.smartApproach, 'walk');
+  if (s.noobExit) mk(P, 'smart_attempt', s.pressMark[P], s.noobExit, 'walk');
+  if (s.smartApproach) mk(F, 'smart_attempt', s.start[F], s.smartApproach, 'walk');
   const victimPress = s.pressMark[V] ?? 'press_spot';
   const leapSlot = slots.includes('leap') ? 'leap' : 'instant_loss';
   mk(V, leapSlot, victimPress, s.victimBack, 'walk');
@@ -96,8 +102,10 @@ export function stagePlan(plan: VisualBeatPlan, env: EnvironmentManifest): { sta
   const pos = (m: string) => { const x = env.marks[m]?.pos; if (!x) throw new Error(`stager: mark ${m} missing in ${env.id}@${env.version}`); return [x[0], x[2]]; };
   for (const m of s.moves) {
     const a = pos(m.from), b = pos(m.to);
-    m.clearance = Math.min(...cols.map((c) => segClearance(a, b, c, s.safetyMargins.endpointSlack)));
-    if (m.kind !== 'dive_prone' && m.clearance < BODY_HALF_WIDTH) errors.push({ code: 'PATH_BLOCKED', message: `${m.actor} ${m.kind} ${m.from}->${m.to} passes ${m.clearance.toFixed(2)} m from geometry (< ${BODY_HALF_WIDTH})`, beatId: plan.beats.find((x) => x.slot === m.slot)?.id ?? null, field: 'stagingVariant', source: 'compiler' });
+    // margin = clearance minus what this collider requires (negative = blocked)
+    const margins = cols.map((c) => segClearance(a, b, c, s.safetyMargins.endpointSlack) - (c.low ? LOW_CLEARANCE : BODY_HALF_WIDTH));
+    m.clearance = +(Math.min(...margins) + BODY_HALF_WIDTH).toFixed(3);
+    if (m.kind !== 'dive_prone' && Math.min(...margins) < 0) errors.push({ code: 'PATH_BLOCKED', message: `${m.actor} ${m.kind} ${m.from}->${m.to} passes ${m.clearance.toFixed(2)} m from geometry (< ${BODY_HALF_WIDTH})`, beatId: plan.beats.find((x) => x.slot === m.slot)?.id ?? null, field: 'stagingVariant', source: 'compiler' });
   }
   return { staging: s, errors };
 }

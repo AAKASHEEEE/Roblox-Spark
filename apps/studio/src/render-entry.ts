@@ -31,11 +31,12 @@ const api = {
     return canvas!.toDataURL('image/png');
   },
   /** Evaluate (no draw) + validate a list of times; returns per-frame issues and hand contact errors. */
-  analyze(times: number[]) {
-    const out: Array<{ t: number; shot: string; issues: FrameIssue[]; handErrors: Record<string, number>; cam: number[] }> = [];
+  analyze(times: number[], opts: { body?: boolean; screen?: string[]; occlusion?: Array<[string, string]> } = {}) {
+    const out: Array<{ t: number; shot: string; issues: FrameIssue[]; handErrors: Record<string, number>; cam: number[]; screen?: Record<string, { area: number; cx: number; cy: number; visible: boolean }> }> = [];
     for (const t of times) {
       const f = prod!.evaluate(t);
-      out.push({ t, shot: f.shot.id, issues: [...prod!.validateFrame(renderer!, f), ...prod!.handPenetrations(t)], handErrors: f.handErrors, cam: [...f.cam.pos, ...f.cam.target] });
+      const issues = [...prod!.validateFrame(renderer!, f), ...prod!.handPenetrations(t), ...(opts.body ? prod!.bodyIssues(t) : []), ...(opts.occlusion ?? []).flatMap(([inst, anchor]) => prod!.propOcclusion(f, inst, anchor))];
+      out.push({ t, shot: f.shot.id, issues, handErrors: f.handErrors, cam: [...f.cam.pos, ...f.cam.target], ...(opts.screen ? { screen: prod!.screenInfo(renderer!, f, opts.screen) } : {}) });
     }
     return out;
   },

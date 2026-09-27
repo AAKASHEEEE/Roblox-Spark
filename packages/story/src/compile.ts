@@ -17,7 +17,7 @@ export interface CompileErr { ok: false; errors: RepairConstraint[]; notes: stri
 
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 const TAIL: Record<string, number> = { reversal: 2.3, payoff: 1.0, loop: 1.1 };
-const MIN: Record<string, number> = { premise: 0.9, notice: 1.0, foil_notice: 0.9, warn: 0.9, race: 1.2, attempt_fail: 1.4, press_reward: 1.25, reward_reveal: 0.9, celebrate: 1.3, smart_attempt: 2.6, escalate: 1.15, leap: 1.55, threat: 2.2, instant_loss: 2.25 };
+const MIN: Record<string, number> = { premise: 0.9, notice: 1.0, foil_notice: 0.9, warn: 0.9, race: 1.2, attempt_fail: 1.4, press_reward: 1.25, reward_reveal: 0.9, celebrate: 1.3, smart_attempt: 3.2, escalate: 1.15, leap: 1.55, threat: 2.2, instant_loss: 2.25 };
 const ENGINE_ABBR: Record<string, string> = { ordinary_object_extreme: 'ooe', visible_secret_chase: 'vsc', apparent_win_instant_loss: 'awl', noob_vs_smart: 'nvs' };
 
 export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: VisualBeatPlan, st: StagingPlan, reg: Registry): CompileOk | CompileErr {
@@ -53,9 +53,10 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
     const V0 = plan.roles.victim;
     const vPress = st.pressMark[V0] ?? 'press_spot';
     const back = locoDur(V0, 'walk', vPress, st.victimBack), run = locoDur(V0, 'run', st.victimBack, st.giantFront);
-    if (!has('threat')) { need.leap = 0.3 + back + 0.12 + run + 0.12; need.instant_loss = 1.05 + back + 0.12 + run + 0.12; }
-    else { need.leap = Math.max(1.55, 0.3 + back + 0.1); need.instant_loss = Math.max(2.25, 1.05 + back + 0.1); need.threat = 1.0 + run + 0.6; }
+    if (!has('threat')) { need.leap = 0.6 + back + 0.12 + run + 0.12; need.instant_loss = 1.35 + back + 0.12 + run + 0.12; }
+    else { need.leap = Math.max(1.55, 0.6 + back + 0.1); need.instant_loss = Math.max(2.25, 1.35 + back + 0.1); need.threat = 1.0 + run + 0.6; }
   }
+  if (st.smartApproach) need.smart_attempt = 0.25 + 0.3 + locoDur(F, 'walk', st.start[F], st.smartApproach) + 0.1 + 1.0 + 0.9 * 0.42 + 0.7;
   const dur: Record<string, number> = {};
   for (const b of head) dur[b.id] = Math.max(need[b.slot] ?? 0, Math.min(hi(b), Math.max(lo(b), b.approxDuration)));
   for (let it = 0; it < 8; it++) {
@@ -93,14 +94,28 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
       if (nd >= 0.1) prev.duration = nd; else start = prev.start + prev.duration;
     }
     const a = { actor, action, start: r3(start), duration: r3(Math.max(0.1, duration)), ...extra } as EpisodeAction;
-    actions.push(a); last[actor] = a; return a;
+    actions.push(a); last[actor] = a;
+    if (!['walk', 'run', 'chase', 'dive_prone', 'turn_toward'].includes(action)) lastWasLoco[actor] = false;
+    return a;
   };
   const face = (actor: string, state: string | null | undefined, at: number) => { if (state) exprs.push({ actor, state: state as never, at: r3(at) }); };
   const prop = (p: string, event: string, start: number, duration: number, extra: Record<string, unknown> = {}) => pe.push({ prop: p, event: event as never, start: r3(start), duration: r3(duration), ...extra } as never);
   const fx = (type: string, at: number, duration: number, target?: string, params?: Record<string, number | string | boolean>) => vfx.push({ type: type as never, at: r3(at), duration: r3(duration), ...(target ? { target } : {}), ...(params ? { params } : {}) });
   const sfx = (id: string, at: number, gainDb: number, extra: { pitch?: number; sync?: string } = {}) => cues.push({ sfx: id, at: r3(at), gainDb, ...extra });
   const hold = (actor: string, action: string, start: number, target: string, expression?: string | null) => act(actor, action, start, D - start, { target, ...(expression ? { expression: expression as never } : {}) });
-  const loco = (actor: string, kind: string, start: number, from: string, to: string, extra: Partial<EpisodeAction> = {}) => { const d = locoDur(actor, kind, from, to); act(actor, kind, start, d, { to, ...extra }); return start + d; };
+  // facing bookkeeping: after arriving, the next non-locomotion action turns the actor to the mark's facing
+  const yawNow: Record<string, number> = {}, lastWasLoco: Record<string, boolean> = {};
+  const yawTo = (a: string, b: string) => Math.atan2(mark(b)[0] - mark(a)[0], mark(b)[2] - mark(a)[2]) * 180 / Math.PI;
+  const wrap = (d: number) => ((d + 540) % 360) - 180;
+  /** locomotion with an in-place pre-turn when the heading change exceeds 50 deg (avoids planted-foot drag) */
+  const loco = (actor: string, kind: string, start: number, from: string, to: string, extra: Partial<EpisodeAction> = {}) => {
+    const cur = lastWasLoco[actor] ? yawNow[actor] : env.marks[from]?.facingDeg ?? 0;
+    const want = yawTo(from, to);
+    if (Math.abs(wrap(want - cur)) > 50 && kind !== 'dive_prone') { act(actor, 'turn_toward', start, 0.3, { target: to }); start += 0.3; }
+    const d = locoDur(actor, kind, from, to); act(actor, kind, start, d, { to, ...extra });
+    yawNow[actor] = want; lastWasLoco[actor] = true;
+    return start + d;
+  };
   const press = (actor: string, start: number, expression: string | null | undefined, beatId: string) => {
     act(actor, 'press_button', start, 0.9, { target: 'button.press_surface', ...(expression ? { expression: expression as never } : {}) });
     const c = r3(start + 0.9 * (ACTION_DEFS.press_button.contactU ?? 0.42));
@@ -120,7 +135,7 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
   };
 
   // cast start
-  const cast = [P, F].map((id, i) => ({ id, version: man(id).version, role: (i === 0 ? 'protagonist' : 'foil') as 'protagonist' | 'foil', startMark: st.start[id], ...(i === 1 ? { startFacing: 'button' } : {}), startExpression: faceOf(id, i === 0 ? 'neutral' : 'smug') as never }));
+  const cast = [P, F].map((id, i) => ({ id, version: man(id).version, role: (i === 0 ? 'protagonist' : 'foil') as 'protagonist' | 'foil', startMark: st.start[id], startExpression: faceOf(id, i === 0 ? 'neutral' : 'smug') as never }));
   if (walkIn) loco(P, 'walk', 0, st.start[P], st.walkIn[P]!);
   let pAt = st.walkIn[P] ?? st.start[P];
   let fAt = st.start[F];
@@ -198,30 +213,34 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
         act(A, b.action, s + 0.05, dd, b.expressionAfter ? { expression: b.expressionAfter as never } : {});
         fx('confetti', s + 0.2, 1.2, `${A}.above_head`, { count: 40 }); sfx('sfx_tada', s + 0.15, -8);
         const other = A === P ? F : P;
-        if (plan.engine === 'noob_vs_smart' && st.smartApproach && other === F) {
-          face(F, b.reactor?.expression ?? faceOf(F, 'smug'), s + 0.2);
-          const endW = loco(F, 'walk', s + 0.3, fAt, st.smartApproach);
-          fAt = st.smartApproach;
-          if (endW > e - 0.05) err('SMART_WALK_TOO_LONG', `smart approach needs ${r3(endW - s + 0.1)}s`, b.id, 'approxDuration', [r3(endW - s + 0.15)]);
-          act(F, 'look_at', endW + 0.02, e - endW, { target: 'button' });
-        } else if (b.reactor) act(other, 'arms_crossed', s + 0.2, d + 0.6, { target: A, ...(b.reactor.expression ? { expression: b.reactor.expression as never } : {}) });
+        if (plan.engine === 'noob_vs_smart') face(F, b.reactor?.expression ?? faceOf(F, 'smug'), s + 0.2);
+        if (plan.engine === 'noob_vs_smart') {
+          act(F, 'arms_crossed', s + 0.2, d, { target: 'coin' });
+        } else if (b.reactor) act(other, 'arms_crossed', s + 0.2, d + 0.6, { target: 'coin', ...(b.reactor.expression ? { expression: b.reactor.expression as never } : {}) });
         break;
       }
       case 'smart_attempt': {
-        const c1 = press(A, s + 0.1, b.expressionBefore, b.id);
+        // the noob yields the only reachable press position; the smart character steps in and double-presses
+        const exitEnd = loco(P, 'walk', s, pAt, st.noobExit!, { expression: (b.reactor?.expression ?? faceOf(P, 'curious')) as never });
+        pAt = st.noobExit!;
+        act(P, 'look_at', exitEnd + 0.02, 0.5, { target: 'coin' });
+        const inEnd = loco(A, 'walk', s + 0.25, fAt, st.smartApproach!, b.expressionBefore ? { expression: b.expressionBefore as never } : {});
+        fAt = st.smartApproach!;
+        const p1 = Math.max(inEnd + 0.1, s + 1.0);
+        const c1 = press(A, p1, b.expressionBefore, b.id);
         standUp(c1 + 0.1);
-        const c2 = press(A, s + 1.1, b.expressionBefore, b.id);
+        const c2 = press(A, p1 + 1.0, b.expressionBefore, b.id);
         grow(c2 + 0.1, 3, 0.3, 1.3, b.id);
         face(A, b.expressionAfter, c2 + 0.45);
         fx('emote', c2 + 0.35, 0.6, A, { symbol: '!' });
-        reactor(b, s + 0.2, 'coin');
-        if (b.reactor?.action === 'look_at' || !b.reactor) act(P, 'look_at', s + 0.2, d, { target: 'coin', ...(b.reactor?.expression ? { expression: b.reactor.expression as never } : {}) });
-        act(A, 'look_at', s + 2.02, Math.max(0.3, e - s - 2.02), { target: 'coin' });
+        act(P, 'look_at', exitEnd + 0.55, Math.max(0.3, e - exitEnd - 0.55), { target: 'coin' });
+        act(A, 'shock_recoil', c2 + 0.12, Math.max(0.4, e - c2 - 0.12), { target: 'coin' }); // startled back from the rising coin (never peers into it)
+        if (c2 + 0.5 > e) err('SMART_TOO_SHORT', `smart attempt needs ${r3(c2 + 0.6 - s)}s`, b.id, 'approxDuration', [r3(c2 + 0.7 - s)]);
         break;
       }
       case 'escalate': {
         if (!coinStanding) standUp(s + 0.05);
-        const ladder = coinScale < 3 ? [3, 6] : coinScale < 6 ? [6, 8] : [coinScale + 2];
+        const ladder = coinScale < 3 ? [3, 6] : coinScale < 6 ? [6] : [coinScale + 1];
         ladder.forEach((sc, i) => grow(s + 0.4 + i * 0.4, sc, 0.3, [1.3, 1.0][i] ?? 0.9, b.id));
         const shockAt = s + 0.7;
         act(V, 'shock_recoil', shockAt, 1.0, { target: 'coin', expression: (b.reactor?.actor === V && b.reactor.expression ? b.reactor.expression : faceOf(V, 'shock')) as never });

@@ -30,7 +30,8 @@ export function storyGates(ep: Episode, plan: VisualBeatPlan, events: KeyEvent[]
   const vis = presses.map((p) => {
     const shot = ep.shots.find((s) => p.t >= s.start && p.t < s.end)!;
     const f = a?.frames.reduce((best, x) => (Math.abs(x.t - p.t) < Math.abs(best.t - p.t) ? x : best), a.frames[0]);
-    const onScreen = f?.screen?.button ? f.screen.button.visible : shot.subjects.includes('button');
+    const occluded = !!a?.frames.some((x) => Math.abs(x.t - p.t) < 0.05 && x.issues.some((i) => i.code === 'PROP_OCCLUDED'));
+    const onScreen = (f?.screen?.button ? f.screen.button.visible : shot.subjects.includes('button')) && !occluded;
     return { t: p.t, ok: onScreen && (shot.subjects.includes('button') || shot.subjects.includes(p.actor ?? '')), shot: shot.id };
   });
   const bad02 = vis.find((x) => !x.ok);
@@ -84,7 +85,9 @@ export function storyGates(ep: Episode, plan: VisualBeatPlan, events: KeyEvent[]
       let moved = false;
       for (const id of Object.keys(p.actors)) if (Math.hypot(p.actors[id].head[0] - q.actors[id].head[0], p.actors[id].head[1] - q.actors[id].head[1], p.actors[id].head[2] - q.actors[id].head[2]) > 0.005) moved = true;
       for (const id of Object.keys(p.props)) if (p.props[id].visible && (Math.hypot(p.props[id].pos[0] - q.props[id].pos[0], p.props[id].pos[1] - q.props[id].pos[1], p.props[id].pos[2] - q.props[id].pos[2]) > 0.005 || p.props[id].scale !== q.props[id].scale)) moved = true;
-      run = moved ? 0 : run + 1;
+      const tt = p.t;
+      const active = ep.propEvents.some((x) => tt >= x.start && tt <= x.start + x.duration) || ep.vfx.some((x) => tt >= x.at && tt <= x.at + x.duration) || ep.shots.some((x) => tt >= x.start && tt < x.end && Number((x.params ?? {}).push ?? 0.06) > 0);
+      run = moved || active ? 0 : run + 1;
       still = Math.max(still, run);
     }
   }

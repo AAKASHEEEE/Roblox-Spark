@@ -327,6 +327,110 @@ export class Production {
     return issues;
   }
 
+  // ---------- body / actor overlap (generated staging QA) ----------
+  /** Body probe points (head, torso corners, knees, feet) inside props or furniture, and actor-actor overlap.
+   *  The reversal victim is exempt from the escalation prop after its tip_over starts (intended cartoon flattening;
+   *  the buried-face check still guards the face). */
+  bodyIssues(t: number): FrameIssue[] {
+    const issues: FrameIssue[] = [];
+    const visible = [...this.props].filter(([, p]) => p.track.stateAt(t).visible).map(([k]) => k);
+    const env = this.env.colliders.filter((c) => c.id !== 'floor');
+    const tip = this.ep.propEvents.find((e) => e.event === 'tip_over');
+    const victim = this.ep.actions.find((a) => a.action === 'dive_prone')?.actor;
+    for (const [id, tr] of this.tracks) {
+      let worst: { d: number; what: string; probe: string } | undefined;
+      this.root.updateWorld();
+      for (const p of tr.rig.probes) {
+        if (p.name.startsWith('hand_')) continue;
+        const w = p.worldPos();
+        for (const inst of visible) {
+          if (tip && id === victim && inst === tip.prop && t >= tip.start) continue;
+          const d = this.partDepth(inst, w);
+          if (d > 0.03 && (!worst || d > worst.d)) worst = { d, what: `prop:${inst}`, probe: p.name };
+        }
+        for (const b of env) {
+          const d = Math.min(w[0] - b.min[0], b.max[0] - w[0], w[1] - b.min[1], b.max[1] - w[1], w[2] - b.min[2], b.max[2] - w[2]);
+          if (d > 0.03 && (!worst || d > worst.d)) worst = { d, what: `env:${b.id}`, probe: p.name };
+        }
+      }
+      if (worst) issues.push({ t, shot: this.shotAt(t).id, code: 'BODY_PROP_INTERSECTION', message: `${id} ${worst.probe.replace('probe:', '')} ${(worst.d * 100).toFixed(1)} cm inside ${worst.what}`, subject: id });
+    }
+    const ids = [...this.tracks.keys()];
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+      const a = this.tracks.get(ids[i])!.rig.root.worldPos(), b = this.tracks.get(ids[j])!.rig.root.worldPos();
+      const d = Math.hypot(a[0] - b[0], a[2] - b[2]);
+      if (d < 0.45) issues.push({ t, shot: this.shotAt(t).id, code: 'ACTOR_OVERLAP', message: `${ids[i]} and ${ids[j]} only ${(d * 100).toFixed(0)} cm apart`, subject: ids[i] });
+    }
+    return issues;
+  }
+
+  /** depth (m) of a point inside the prop's actual part boxes (part-accurate; e.g. empty space under a tabletop is free) */
+  partDepth(inst: string, p: Vec3): number {
+    const pr = this.props.get(inst)!;
+    let best = -Infinity;
+    for (const n of Object.values(pr.inst.parts)) {
+      if (!n.geometry || n.decal) continue;
+      const w = n.world, sx = Math.hypot(w[0], w[1], w[2]);
+      if (sx < 0.02) continue;
+      const l = m4TransformPoint(m4Invert(w), p), h = n.geometry.half;
+      best = Math.max(best, Math.min(h[0] - Math.abs(l[0]), h[1] - Math.abs(l[1]), h[2] - Math.abs(l[2])) * sx);
+    }
+    return best;
+  }
+  /** first mesh (actor bodies/accessories, prop parts) hit by the segment from->to (OBB slab test), or undefined */
+  segmentOccluder(from: Vec3, to: Vec3, skip: (n: Node, owner: string) => boolean): string | undefined {
+    this.root.updateWorld();
+    const hit = (n: Node): number | null => {
+      const inv = m4Invert(n.world), a = m4TransformPoint(inv, from), b = m4TransformPoint(inv, to), h = n.geometry!.half;
+      let t0 = 0, t1 = 0.97;
+      for (let k = 0; k < 3; k++) {
+        const d = b[k] - a[k];
+        if (Math.abs(d) < 1e-9) { if (a[k] < -h[k] || a[k] > h[k]) return null; continue; }
+        let u0 = (-h[k] - a[k]) / d, u1 = (h[k] - a[k]) / d;
+        if (u0 > u1) [u0, u1] = [u1, u0];
+        t0 = Math.max(t0, u0); t1 = Math.min(t1, u1);
+        if (t0 > t1) return null;
+      }
+      return t0;
+    };
+    for (const [id, rig] of this.rigs) for (const n of rig.meshes) if (n.geometry && !skip(n, id) && hit(n) !== null) return `${id}:${n.name.replace('_mesh', '')}`;
+    for (const [inst, pr] of this.props) {
+      if (!pr.track.stateAt(0).visible && !pr.inst.root.visible) continue;
+      for (const n of Object.values(pr.inst.parts)) if (n.geometry && !n.decal && !skip(n, `prop:${inst}`) && Math.hypot(n.world[0], n.world[1], n.world[2]) > 0.02 && hit(n) !== null) return `prop:${inst}:${n.name}`;
+    }
+    return undefined;
+  }
+  /** hero-prop occlusion: is the line of sight from the camera to the prop's key anchor blocked by a body/accessory? */
+  propOcclusion(f: FrameState, inst: string, anchor: string): FrameIssue[] {
+    const p = this.props.get(inst);
+    if (!p || !p.track.stateAt(f.t).visible || !f.shot.subjects.includes(inst)) return [];
+    const target = this.propAnchor(inst, anchor, f.t);
+    if (!target) return [];
+    const pressing = new Set(this.ep.actions.filter((a) => a.action === 'press_button' && f.t >= a.start && f.t < a.start + a.duration).map((a) => a.actor));
+    const occ = this.segmentOccluder(f.cam.pos, target, (n, owner) => owner === `prop:${inst}` || owner === `prop:${p.parent ?? ''}` || (pressing.has(owner) && /(arm_r|forearm_r|hand_r|wristband_r|cuff_r)/.test(n.name)));
+    return occ ? [{ t: f.t, shot: f.shot.id, code: 'PROP_OCCLUDED', message: `${inst}.${anchor} hidden behind ${occ}`, subject: inst }] : [];
+  }
+
+  /** projected screen coverage of subjects (for readability gates) */
+  screenInfo(r: Renderer, f: FrameState, ids: string[]): Record<string, { area: number; cx: number; cy: number; visible: boolean }> {
+    const { vp } = r.viewProj(f.cam);
+    const out: Record<string, { area: number; cx: number; cy: number; visible: boolean }> = {};
+    for (const id of ids) {
+      const s = this.subject(id, f.t);
+      if (!s) continue;
+      const pts: Vec3[] = [];
+      for (const sx of [-1, 1]) for (const sy of [s.bottom[1], s.top[1]]) for (const sz of [-1, 1]) pts.push([s.center[0] + sx * s.radius, sy, s.center[2] + sz * s.radius]);
+      const pr = pts.map((p) => m4TransformPoint(vp, p)).filter((c) => c[3] > 0).map((c) => ({ x: (c[0] / c[3] + 1) / 2, y: 1 - (c[1] / c[3] + 1) / 2 }));
+      if (!pr.length) { out[id] = { area: 0, cx: -1, cy: -1, visible: false }; continue; }
+      const x0 = Math.max(0, Math.min(...pr.map((p) => p.x))), x1 = Math.min(1, Math.max(...pr.map((p) => p.x)));
+      const y0 = Math.max(0, Math.min(...pr.map((p) => p.y))), y1 = Math.min(1, Math.max(...pr.map((p) => p.y)));
+      const area = Math.max(0, x1 - x0) * Math.max(0, y1 - y0);
+      const hidden = this.props.has(id) && !this.props.get(id)!.track.stateAt(f.t).visible;
+      out[id] = { area: +area.toFixed(4), cx: +((x0 + x1) / 2).toFixed(3), cy: +((y0 + y1) / 2).toFixed(3), visible: area > 0.0005 && !hidden };
+    }
+    return out;
+  }
+
   // ---------- screen-space shot validation ----------
   validateFrame(r: Renderer, f: FrameState): FrameIssue[] {
     const issues: FrameIssue[] = [];
