@@ -17,7 +17,7 @@ export interface ActionCtx {
   target?: Vec3; // resolved world target (prop anchor, actor head, mark)
   params: Record<string, number | string | boolean>;
   /** locomotion state supplied by the track compiler */
-  loco?: { dist: number; speed: number; run: boolean; legLen: number; total: number };
+  loco?: { dist: number; speed: number; run: boolean; legLen: number; total: number; /** gait phase at dist 0 (default 0.25 = left mid-stance) */ phase0?: number; /** whole stances over total (default: rounded from total) */ stances?: number };
 }
 
 export interface ActionDef {
@@ -55,13 +55,13 @@ function locomotion(c: ActionCtx): ActionPose {
   let S = run ? 0.62 : 0.4; // foot travel per stance (m)
   // stride fitting: arrive at mid-stance (feet under the body) so the stop needs no foot correction
   // start and finish at mid-stance (planted foot under the hip): whole number of stances over the path
-  if (total > 0.05) { const n = Math.max(1, Math.round(total / S)); S = total / n; }
+  if (total > 0.05) { const n = c.loco?.stances ?? Math.max(1, Math.round(total / S)); S = total / n; }
   const dist = c.loco?.dist ?? 0;
   const speed = c.loco?.speed ?? 0;
   // phase is driven purely by distance travelled; when speed -> 0 the legs freeze in place (no snap)
   const moving = total > 0.05 ? 1 : 0; // legs: distance-driven, never faded (feet stay planted)
   const amp = Math.min(1, speed / (run ? 1.2 : 0.7)); // upper body: settles as the character decelerates
-  const cyc = 0.25 + dist / (2 * S);
+  const cyc = (c.loco?.phase0 ?? 0.25) + dist / (2 * S);
   const leg = (p: number): { hip: number; knee: number } => {
     const f = p - Math.floor(p);
     let z: number, knee: number;

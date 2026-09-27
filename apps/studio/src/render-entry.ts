@@ -81,6 +81,10 @@ const api = {
       return { t, root: rig.root.worldPos(), yaw: Math.atan2(w[8], w[10]) * 180 / Math.PI, fwdY: w[9], head: rig.face.worldPos(), faceYaw: Math.atan2(f[8], f[10]) * 180 / Math.PI, faceFwd: [f[8], f[9], f[10]], gazeFrom: ((n) => [n[0], n[1] + rig.dims.headH * 0.5, n[2]])(rig.joints.neck.worldPos()), handL: rig.hand_l.worldPos(), handR: rig.hand_r.worldPos(), soleL: rig.sole_l.worldPos(), soleR: rig.sole_r.worldPos(), stance: tr.lastStance ?? null, target: target ? prod!.point(target, t) ?? null : null };
     });
   },
+  /** QA: an actor's compiled motion segments (yaw pass + synchronised-onset plans, when the profile uses them) */
+  segments(actor: string) {
+    return prod!.tracks.get(actor)!.segs.map((s) => ({ action: s.a.action, start: s.start, end: s.end, dist: s.dist, fromYaw: s.fromYaw, endYaw: s.endYaw, onset: s.onset ? { stance: s.onset.stance, cyc0: s.onset.cyc0, G: s.onset.G, sOn: s.onset.sOn, yaw0: s.onset.yaw0, yaw1: s.onset.yaw1, turn: s.onset.turn } : null, onsetSkip: s.onsetSkip ?? null }));
+  },
   /** QA: depth of samples along camera->face ray inside a prop */
   rayDebug(actor: string, inst: string, t: number) {
     const f = prod!.evaluate(t);
