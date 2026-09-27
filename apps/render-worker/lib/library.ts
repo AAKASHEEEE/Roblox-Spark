@@ -23,10 +23,12 @@ const DIRS: Array<[string, 'characters' | 'props' | 'environments' | 'audio', an
   ['environments', 'environments', EnvironmentManifestSchema], ['audio', 'audio', AudioManifestSchema],
 ];
 
-export function loadLibrary(opts: { enforceLock?: boolean } = {}): LoadedLibrary {
+export function loadLibrary(opts: { enforceLock?: boolean; root?: string } = {}): LoadedLibrary {
   const lib: LoadedLibrary = { characters: {}, props: {}, environments: {}, audio: {}, hashes: {}, errors: [] };
+  const root = opts.root ?? ROOT;
+  const lockFile = join(root, 'assets', 'asset-lock.json');
   for (const [dir, key, schema] of DIRS) {
-    const d = join(ROOT, 'assets', dir);
+    const d = join(root, 'assets', dir);
     if (!existsSync(d)) continue;
     for (const f of readdirSync(d).filter((f) => f.endsWith('.json')).sort()) {
       const raw = JSON.parse(readFileSync(join(d, f), 'utf8'));
@@ -39,9 +41,9 @@ export function loadLibrary(opts: { enforceLock?: boolean } = {}): LoadedLibrary
     }
   }
   if (opts.enforceLock !== false) {
-    if (!existsSync(LOCK_FILE)) lib.errors.push('asset-lock.json missing: run `npm run assets:lock`');
+    if (!existsSync(lockFile)) lib.errors.push('asset-lock.json missing: run `npm run assets:lock`');
     else {
-      const lock = JSON.parse(readFileSync(LOCK_FILE, 'utf8')) as { assets: Record<string, string> };
+      const lock = JSON.parse(readFileSync(lockFile, 'utf8')) as { assets: Record<string, string> };
       for (const [k, h] of Object.entries(lib.hashes)) {
         if (!lock.assets[k]) lib.errors.push(`LOCK: ${k} is not in asset-lock.json (new assets must be registered with a new version)`);
         else if (lock.assets[k] !== h) lib.errors.push(`LOCK: ${k} content changed without a version bump (expected ${lock.assets[k].slice(0, 12)}, got ${h.slice(0, 12)}). Locked assets are immutable: create ${k.split('@')[0]}@<next-version>.json instead.`);
