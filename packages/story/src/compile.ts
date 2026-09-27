@@ -56,7 +56,7 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
     if (!has('threat')) { need.leap = 0.6 + back + 0.12 + run + 0.12; need.instant_loss = 1.35 + back + 0.12 + run + 0.12; }
     else { need.leap = Math.max(1.55, 0.6 + back + 0.1); need.instant_loss = Math.max(2.25, 1.35 + back + 0.1); need.threat = 1.0 + run + 0.6; }
   }
-  if (st.smartApproach) need.smart_attempt = 0.25 + 0.3 + locoDur(F, 'walk', st.start[F], st.smartApproach) + 0.1 + 1.0 + 0.9 * 0.42 + 0.7;
+  if (st.smartApproach) need.smart_attempt = Math.max(0.25 + 0.3 + locoDur(F, 'walk', st.start[F], st.smartApproach) + 0.1, 1.0) + 2.1;
   const dur: Record<string, number> = {};
   for (const b of head) dur[b.id] = Math.max(need[b.slot] ?? 0, Math.min(hi(b), Math.max(lo(b), b.approxDuration)));
   for (let it = 0; it < 8; it++) {
@@ -91,7 +91,9 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
     const prev = last[actor];
     if (prev && prev.start + prev.duration > start - 1e-6) {
       const nd = r3(start - prev.start);
-      if (nd >= 0.1) prev.duration = nd; else start = prev.start + prev.duration;
+      // actions with a contact point (press, facepalm...) are never shortened: that would move the contact frame
+      const contact = (ACTION_DEFS as Record<string, { contactU?: number }>)[prev.action]?.contactU !== undefined;
+      if (nd >= 0.1 && !contact) prev.duration = nd; else start = prev.start + prev.duration;
     }
     const a = { actor, action, start: r3(start), duration: r3(Math.max(0.1, duration)), ...extra } as EpisodeAction;
     actions.push(a); last[actor] = a;
@@ -234,8 +236,8 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
         face(A, b.expressionAfter, c2 + 0.45);
         fx('emote', c2 + 0.35, 0.6, A, { symbol: '!' });
         act(P, 'look_at', exitEnd + 0.55, Math.max(0.3, e - exitEnd - 0.55), { target: 'coin' });
-        act(A, 'shock_recoil', c2 + 0.12, Math.max(0.4, e - c2 - 0.12), { target: 'coin' }); // startled back from the rising coin (never peers into it)
-        if (c2 + 0.5 > e) err('SMART_TOO_SHORT', `smart attempt needs ${r3(c2 + 0.6 - s)}s`, b.id, 'approxDuration', [r3(c2 + 0.7 - s)]);
+        act(A, 'shock_recoil', p1 + 1.92, Math.max(0.4, e - p1 - 1.92), { target: 'coin' }); // startled back from the rising coin (never peers into it)
+        if (p1 + 2.0 > e) err('SMART_TOO_SHORT', `smart attempt needs ${r3(p1 + 2.1 - s)}s`, b.id, 'approxDuration', [r3(p1 + 2.2 - s)]);
         break;
       }
       case 'escalate': {
