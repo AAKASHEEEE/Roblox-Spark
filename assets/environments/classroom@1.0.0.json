@@ -804,11 +804,11 @@
   "marks": {
     "zapp_enter": {
       "pos": [
-        -1.4,
+        -0.75,
         0,
-        -0.5
+        -1.9
       ],
-      "facingDeg": 90
+      "facingDeg": 40
     },
     "zapp_desk": {
       "pos": [
@@ -840,7 +840,7 @@
         0,
         0.6
       ],
-      "facingDeg": -45
+      "facingDeg": 20
     },
     "center_stage": {
       "pos": [
@@ -854,7 +854,7 @@
       "pos": [
         -1.5,
         0,
-        -0.85
+        -0.3
       ],
       "facingDeg": 0
     }

@@ -17,7 +17,7 @@ export interface ActionCtx {
   target?: Vec3; // resolved world target (prop anchor, actor head, mark)
   params: Record<string, number | string | boolean>;
   /** locomotion state supplied by the track compiler */
-  loco?: { dist: number; speed: number; run: boolean; legLen: number };
+  loco?: { dist: number; speed: number; run: boolean; legLen: number; total: number };
 }
 
 export interface ActionDef {
@@ -51,32 +51,38 @@ export function idleLayer(t: number, seed: number, amount = 1): JointPose {
 function locomotion(c: ActionCtx): ActionPose {
   const L = c.loco?.legLen ?? 0.8;
   const run = !!c.loco?.run;
-  const S = run ? 0.62 : 0.4; // foot travel per stance (m)
+  const total = c.loco?.total ?? 0;
+  let S = run ? 0.62 : 0.4; // foot travel per stance (m)
+  // stride fitting: arrive at mid-stance (feet under the body) so the stop needs no foot correction
+  // start and finish at mid-stance (planted foot under the hip): whole number of stances over the path
+  if (total > 0.05) { const n = Math.max(1, Math.round(total / S)); S = total / n; }
   const dist = c.loco?.dist ?? 0;
   const speed = c.loco?.speed ?? 0;
-  const moving = Math.min(1, speed / 0.25);
-  const cyc = dist / (2 * S);
+  // phase is driven purely by distance travelled; when speed -> 0 the legs freeze in place (no snap)
+  const moving = total > 0.05 ? 1 : 0; // legs: distance-driven, never faded (feet stay planted)
+  const amp = Math.min(1, speed / (run ? 1.2 : 0.7)); // upper body: settles as the character decelerates
+  const cyc = 0.25 + dist / (2 * S);
   const leg = (p: number): { hip: number; knee: number } => {
     const f = p - Math.floor(p);
     let z: number, knee: number;
     if (f < 0.5) { z = S / 2 - S * (f / 0.5); knee = 4; }
-    else { const s = (f - 0.5) / 0.5; const e = s * s * (3 - 2 * s); z = -S / 2 + S * e; knee = Math.pow(Math.sin(Math.PI * s), 0.55) * (run ? 105 : 78); }
+    else { const s = (f - 0.5) / 0.5; const e = -4 * s * s * s + 6 * s * s - s; /* Hermite: lift-off and touch-down at world velocity 0 */ z = -S / 2 + S * e; knee = Math.pow(Math.sin(Math.PI * s), 0.55) * (run ? 105 : 78); }
     const hip = (Math.asin(Math.max(-0.95, Math.min(0.95, -z / L))) * 180) / Math.PI - (f >= 0.5 ? Math.sin(Math.PI * ((f - 0.5) / 0.5)) * (run ? 32 : 22) : 0);
     return { hip: hip * moving, knee: knee * moving + 3 };
   };
   const l = leg(cyc), r = leg(cyc + 0.5);
   const armAmp = run ? 55 : 28;
-  const armL = -Math.sin(2 * Math.PI * (cyc + 0.5)) * armAmp * moving, armR = -Math.sin(2 * Math.PI * cyc) * armAmp * moving;
-  const lean = (run ? 14 : 4) * moving;
+  const armL = -Math.sin(2 * Math.PI * (cyc + 0.5)) * armAmp * amp, armR = -Math.sin(2 * Math.PI * cyc) * armAmp * amp;
+  const lean = (run ? 14 : 4) * amp;
   // flight phase around foot exchange, grounded at mid-stance
   const bounce = run ? Math.cos(2 * Math.PI * cyc) ** 2 * 0.045 * moving : 0;
   return {
     joints: {
-      hips: [0, 6 * Math.sin(2 * Math.PI * cyc) * moving, 0],
-      spine: [lean, -8 * Math.sin(2 * Math.PI * cyc) * moving, 0], neck: [-lean * 0.6, 0, 0],
+      hips: [0, 0, 0],
+      spine: [lean, -10 * Math.sin(2 * Math.PI * cyc) * amp, 0], neck: [-lean * 0.6, 6 * Math.sin(2 * Math.PI * cyc) * amp, 0],
       hip_l: [l.hip, 0, 1.5], knee_l: [l.knee, 0, 0], hip_r: [r.hip, 0, -1.5], knee_r: [r.knee, 0, 0],
       shoulder_l: [armL, 0, 8], shoulder_r: [armR, 0, -8],
-      elbow_l: [run ? -85 : -18 - Math.max(0, -armL) * 0.4, 0, 0], elbow_r: [run ? -85 : -18 - Math.max(0, -armR) * 0.4, 0, 0],
+      elbow_l: [run ? -85 * amp - 18 * (1 - amp) : -18 - Math.max(0, -armL) * 0.4, 0, 0], elbow_r: [run ? -85 * amp - 18 * (1 - amp) : -18 - Math.max(0, -armR) * 0.4, 0, 0],
     },
     lift: bounce, still: moving > 0.5,
     stance: moving > 0.05 ? (cyc - Math.floor(cyc) < 0.5 ? 'l' : 'r') : undefined,
@@ -237,15 +243,19 @@ D.regret_freeze = {
 
 D.arms_crossed = {
   holds: true, blendIn: 0.25,
-  pose: (c) => ({
-    joints: {
-      ...IDLE_POSE, spine: [-4, 0, 0], neck: [-4, 0, 6],
-      shoulder_l: [-32, -58, 6], elbow_l: [-108, 0, 0],
-      shoulder_r: [-26, 58, -6], elbow_r: [-100, 0, 0],
-      hip_l: [0, 0, 5], hip_r: [0, 0, -3],
-    },
-    lookAt: c.target, lookWeight: 0.8,
-  }),
+  // Each hand tucks under the OPPOSITE upper arm; right forearm stacked above/in front of the left. Solved with IK
+  // in actor-local space so it fits any locked body proportions. Elbows point out and slightly down.
+  pose: (c) => {
+    const chest = (c.loco?.legLen ?? 0.78) + 0.36;
+    return {
+      joints: { ...IDLE_POSE, spine: [-4, 0, 0], neck: [-4, 0, 6], hip_l: [0, 0, 5], hip_r: [0, 0, -3] },
+      ik: [
+        { arm: 'l', target: [-0.13, chest - 0.03, 0.215], weight: 1, pole: [-1, -0.35, -0.15], local: true },
+        { arm: 'r', target: [0.13, chest + 0.035, 0.265], weight: 1, pole: [-1, -0.35, -0.15], local: true },
+      ],
+      lookAt: c.target, lookWeight: 0.8,
+    };
+  },
 };
 
 D.head_shake = {

@@ -4,7 +4,7 @@ import type { Vec3 } from '../math.ts';
 /** Euler degrees per joint (XYZ). Absolute pose (not additive). */
 export type JointPose = Partial<Record<Joint, Vec3>>;
 
-export interface IkRequest { arm: 'l' | 'r'; target: Vec3; weight: number; /** pole hint in actor-local space */ pole?: Vec3 }
+export interface IkRequest { arm: 'l' | 'r'; target: Vec3; weight: number; /** pole hint in actor-local space */ pole?: Vec3; /** target is in actor-local space (x = actor's left, y = up from feet, z = forward) */ local?: boolean }
 
 export interface ActionPose {
   joints: JointPose;

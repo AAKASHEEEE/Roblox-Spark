@@ -13,7 +13,7 @@ export interface QualityInput {
   impacts: Array<{ prop: string; t: number; kind: string; strength: number }>; inspect: any; playback: any; loopDiff: number[]; audio: any; lib: Lib & { hashes?: Record<string, string> }; timing: any; fps: number;
 }
 
-const HARD = new Set(['SUBJECT_OUT_OF_FRAME', 'SUBJECT_BEHIND_CAMERA', 'FACE_OUT_OF_FRAME', 'FACE_OCCLUDED']);
+const HARD = new Set(['SUBJECT_OUT_OF_FRAME', 'SUBJECT_BEHIND_CAMERA', 'FACE_OUT_OF_FRAME', 'FACE_OCCLUDED', 'HAND_PENETRATION', 'CAMERA_IN_PROP']);
 
 export function buildQualityReport(q: QualityInput): QualityReport {
   const { ep, validation: v, fps } = q;
@@ -70,7 +70,7 @@ export function buildQualityReport(q: QualityInput): QualityReport {
   for (const i of all) counts[i.code] = (counts[i.code] ?? 0) + 1;
   const hard = all.filter((i) => HARD.has(i.code)).length;
   const soft = all.filter((i) => ['SUBJECT_OUTSIDE_ACTION_SAFE', 'FACE_TURNED_AWAY'].includes(i.code)).length;
-  g('G20', 'Shot validation (projected screen-space bounds)', hard === 0 && soft <= q.analysis.length * 0.1, 'measured', `${q.analysis.length} sampled frames: hard issues ${hard}, soft issues ${soft}; ${JSON.stringify(counts)}`);
+  g('G20', 'Shot validation (screen-space bounds, face visibility, hand-vs-geometry penetration)', hard === 0 && soft <= q.analysis.length * 0.1, 'measured', `${q.analysis.length} sampled frames: hard issues ${hard}, soft issues ${soft}; ${JSON.stringify(counts)}`);
   // foot slip: planted foot horizontal speed while the actor is locomoting
   const slips: number[] = [];
   let airborneStance = 0;
@@ -80,12 +80,12 @@ export function buildQualityReport(q: QualityInput): QualityReport {
     if (!a.stance || a.stance !== b.stance) continue;
     const s = b.stance === 'l' ? 'soleL' : 'soleR';
     const moving = Math.hypot(b.root[0] - a.root[0], b.root[2] - a.root[2]) * fps > 0.3;
-    if (moving && b[s][1] < 0.02) slips.push(Math.hypot(b[s][0] - a[s][0], b[s][2] - a[s][2]) * fps);
+    if (moving && b[s][1] < 0.02 && a[s][1] < 0.02) slips.push(Math.hypot(b[s][0] - a[s][0], b[s][2] - a[s][2]) * fps);
     if (moving && b[s][1] >= 0.02) airborneStance++;
   }
   slips.sort((a, b) => a - b);
   const p95 = slips.length ? slips[Math.floor(slips.length * 0.95)] : 0, med = slips.length ? slips[Math.floor(slips.length / 2)] : 0;
-  g('G21', 'Planted feet do not slide during locomotion', p95 < 0.3, 'measured', `${slips.length} planted-foot samples while moving: median ${med.toFixed(3)} m/s, p95 ${p95.toFixed(3)} m/s vs root speed 1.2-2.7 m/s; ${airborneStance} stance samples in run flight phase`);
+  g('G21', 'Planted feet do not slide during locomotion', med < 0.05 && p95 < 0.5, 'measured', `${slips.length} planted-foot samples while moving: median ${med.toFixed(3)} m/s, p95 ${p95.toFixed(3)} m/s vs root speed 1.2-2.7 m/s; ${airborneStance} stance samples in run flight phase`);
   g('G22', 'Loudness normalised, no clipping', Math.abs(q.audio.integratedLufs - ep.audio.loudnessLufs) <= 1 && q.audio.truePeakDbfsApprox <= -1, 'measured', `integrated ${q.audio.integratedLufs} LUFS (target ${ep.audio.loudnessLufs}), approx true peak ${q.audio.truePeakDbfsApprox} dBFS, limiter max GR ${q.audio.limiterReductionDbMax} dB`);
   g('G23', 'Story readable while muted', v.ok && !has('STALE_STRETCH') && !has('CAUSALITY') && ep.beats.every((b) => ep.shots.some((s) => s.start < b.end && s.end > b.start)), 'proxy', 'PROXY ONLY: every beat has a shot, causal chain is on screen, emotes/expressions carry the reactions and no dialogue is needed. A human viewing test is still required to confirm comprehension.');
 

@@ -133,8 +133,11 @@ export function solveShot(shot: EpisodeShot, t: number, q: CameraQuery, env: Cam
       const head = s0.head ?? s0.top;
       const yaw = (s0.facingYaw ?? 0) * DEG;
       const back: Vec3 = [-Math.sin(yaw), 0, -Math.cos(yaw)];
-      pos = add(add(head, scale(back, 1.8)), [0.4, 0.2, 0.6]);
-      target = add(head, [0, -0.2, 0]);
+      // follow from behind, offset toward the audience side so the path ahead (the threat) stays readable
+      let side: Vec3 = norm(cross([0, 1, 0], back));
+      if (side[2] < 0) side = scale(side, -1);
+      pos = add(add(head, scale(back, Number(P.back ?? 1.8))), add(scale(side, Number(P.side ?? 0.5)), [0, Number(P.up ?? 0.2), 0]));
+      target = add(add(head, scale(back, -Number(P.lead ?? 0.6))), [0, Number(P.targetLift ?? -0.2), 0]);
       break;
     }
     default:

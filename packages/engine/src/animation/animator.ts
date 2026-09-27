@@ -51,6 +51,8 @@ export class ActorTrack {
   readonly segs: Segment[] = [];
   layers: EpisodeAction[] = [];
   lastStance: 'l' | 'r' | undefined;
+  /** arms under intentional IK contact this frame (exempt from collision avoidance) */
+  lastIkArms = new Set<'l' | 'r'>();
   readonly seed: number;
   private blinks: number[] = [];
   expressionTrack: Array<{ at: number; state: string }> = [];
@@ -75,16 +77,18 @@ export class ActorTrack {
     }
     // pass 2: yaw (positions of all actors are known via resolver)
     let yaw = startYaw;
+    // arrival facing is applied as an in-place turn AFTER the stop (turning while moving would drag the planted foot)
+    let pendingFacing: number | undefined;
     for (const s of this.segs) {
       s.fromYaw = yaw;
       const tgt = s.a.target ? res.point(s.a.target, s.start) : undefined;
       if (LOCOMOTION_ACTIONS.includes(s.a.action) && s.dist > 0.05) {
         s.travelYaw = yawTo(s.fromPos, s.toPos);
-        const mf = s.a.to ? res.markFacing(s.a.to) : undefined;
-        s.endYaw = s.a.action === 'dive_prone' ? s.travelYaw : mf ?? s.travelYaw;
+        s.endYaw = s.travelYaw;
+        pendingFacing = s.a.action === 'dive_prone' || !s.a.to ? undefined : res.markFacing(s.a.to);
       } else if ((s.a.action === 'turn_toward' || s.a.params?.turn === true) && tgt) {
-        s.travelYaw = s.endYaw = yawTo(s.fromPos, tgt);
-      } else { s.travelYaw = s.endYaw = yaw; }
+        s.travelYaw = s.endYaw = yawTo(s.fromPos, tgt); pendingFacing = undefined;
+      } else { s.travelYaw = s.endYaw = pendingFacing ?? yaw; pendingFacing = undefined; }
       yaw = s.endYaw;
     }
     // deterministic blink schedule
@@ -116,8 +120,7 @@ export class ActorTrack {
       const { s, v } = travel(lt, d, cur.dist);
       const f = s / cur.dist;
       const pos: Vec3 = [cur.fromPos[0] + (cur.toPos[0] - cur.fromPos[0]) * f, 0, cur.fromPos[2] + (cur.toPos[2] - cur.fromPos[2]) * f];
-      let yaw = lerpAngle(cur.fromYaw, cur.travelYaw, smooth01(lt / 0.2));
-      yaw = lerpAngle(yaw, cur.endYaw, smooth01((lt - (d - 0.3)) / 0.3));
+      const yaw = lerpAngle(cur.fromYaw, cur.travelYaw, smooth01(lt / 0.2));
       return { pos, yaw, speed: v, dist: s };
     }
     const turnDur = Math.min(d, 0.35);
@@ -138,7 +141,7 @@ export class ActorTrack {
       lt, d, u: lt / d, t, seed: this.seed,
       target: s.a.target ? this.res.point(s.a.target, t) : undefined,
       params: (s.a.params ?? {}) as Record<string, number | string | boolean>,
-      loco: { dist: t >= s.end ? s.dist : root.dist, speed: t >= s.end ? 0 : root.speed, run: s.run, legLen: this.rig.dims.legLen },
+      loco: { dist: t >= s.end ? s.dist : root.dist, speed: t >= s.end ? 0 : root.speed, run: s.run, legLen: this.rig.dims.legLen, total: s.dist },
     };
     return def.pose(ctx);
   }
@@ -217,9 +220,12 @@ export class ActorTrack {
     }
     // IK
     let handError: number | undefined;
+    this.lastIkArms.clear();
     for (const ik of pose.ik ?? []) {
       if (ik.weight <= 0.001) continue;
-      const err = solveArmIk(rig, ik.arm, ik.target, ik.weight, ik.pole ?? [0, -0.5, -1], root.yaw);
+      if (ik.weight > 0.05) this.lastIkArms.add(ik.arm);
+      const tgt: Vec3 = ik.local ? add([root.pos[0], 0, root.pos[2]], rot(qEuler(0, root.yaw * DEG, 0), ik.target)) : ik.target;
+      const err = solveArmIk(rig, ik.arm, tgt, ik.weight, ik.pole ?? [0, -0.5, -1], root.yaw);
       if (ik.weight > 0.95) handError = err;
     }
     // grounding: lowest relevant probe touches y=0, then add lift

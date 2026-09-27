@@ -1,14 +1,14 @@
 // Production runtime: episode data + locked asset library -> deterministic frame state at any time t.
 import type { Episode, EpisodeShot } from '../../schema/src/episode.ts';
 import type { CharacterManifest, EnvironmentManifest, PropManifest } from '../../schema/src/assets.ts';
-import { ActorTrack, type PointResolver } from './animation/animator.ts';
+import { ActorTrack, solveArmIk, type PointResolver } from './animation/animator.ts';
 import { ACTION_DEFS } from './animation/actions.ts';
 import { buildCharacter, buildEnvironment, buildProp, type EnvInstance, type PropInstance, type Rig } from './build.ts';
 import { applyShake, solveShot, type CameraEnv, type SubjectInfo } from './camera.ts';
 import { plane } from './gl/geometry.ts';
 import type { CameraState, Lighting, Particle, PostFx, PointLight, Renderer } from './gl/renderer.ts';
 import { Node, hex } from './gl/scene.ts';
-import { DEG, add, m4, m4Mul, m4TRS, m4TransformPoint, qEuler, qMul, scale, sub, type Mat4, type Vec3, dot, norm, len } from './math.ts';
+import { DEG, add, m4, m4Mul, m4TRS, m4TransformPoint, m4Invert, qEuler, qMul, scale, sub, type Mat4, type Vec3, dot, norm, len } from './math.ts';
 import { PropTrack, type PropState } from './props.ts';
 import { texture } from './textures.ts';
 import { evalVfx } from './vfx.ts';
@@ -198,9 +198,11 @@ export class Production {
     // apply scene state at t (after camera solve, which may probe other times)
     this.applyProps(t);
     const handErrors: Record<string, number> = {};
+    const boxes = this.propBoxes(t);
     for (const [id, tr] of this.tracks) {
       const d = tr.apply(t);
       if (d.handError !== undefined) handErrors[id] = d.handError;
+      this.avoidHandCollisions(tr, boxes, t);
     }
     const vf = evalVfx(this.ep.vfx, t, (id, tt) => this.point(id, tt), this.ep.episode.seed);
     for (const [id, n] of this.emoteNodes) {
@@ -233,6 +235,96 @@ export class Production {
     const f = this.evaluate(t);
     r.render(this.root, f.cam, f.light, f.post, f.particles);
     return f;
+  }
+
+  // ---------- hand/prop collision ----------
+  /** world AABBs of visible props (from manifest collision shapes) at time t */
+  propBoxes(t: number): Array<{ inst: string; category: string; min: Vec3; max: Vec3 }> {
+    const out: Array<{ inst: string; category: string; min: Vec3; max: Vec3 }> = [];
+    for (const [inst, p] of this.props) {
+      if (!p.track.stateAt(t).visible) continue;
+      const c = p.inst.manifest.collision;
+      const h: Vec3 = c.shape === 'box' ? [c.size[0] / 2, c.size[1] / 2, c.size[2] / 2] : c.shape === 'cylinder' ? [c.size[0], c.size[1] / 2, c.size[0]] : [c.size[0], c.size[0], c.size[0]];
+      const m = this.propMatrix(inst, t);
+      let min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) {
+        const w = m4TransformPoint(m, [c.offset[0] + sx * h[0], c.offset[1] + sy * h[1], c.offset[2] + sz * h[2]]);
+        min = [Math.min(min[0], w[0]), Math.min(min[1], w[1]), Math.min(min[2], w[2])];
+        max = [Math.max(max[0], w[0]), Math.max(max[1], w[1]), Math.max(max[2], w[2])];
+      }
+      out.push({ inst, category: p.inst.manifest.category, min, max });
+    }
+    return out;
+  }
+  /** hand sample points: fingertip end and palm centre */
+  private handPoints(rig: Rig, arm: 'l' | 'r'): Vec3[] {
+    const tip = (arm === 'l' ? rig.hand_l : rig.hand_r).worldPos();
+    const el = rig.joints[arm === 'l' ? 'elbow_l' : 'elbow_r'].worldPos();
+    const k = 0.18 / Math.max(0.01, rig.dims.lowerArm);
+    return [tip, [tip[0] + (el[0] - tip[0]) * k, tip[1] + (el[1] - tip[1]) * k, tip[2] + (el[2] - tip[2]) * k]];
+  }
+  /**
+   * Soft constraint: a hand approaching the top of furniture/device props is lifted over it (continuous weight
+   * over a margin zone, so no pops). Arms under intentional IK contact (press, pick up) are exempt.
+   */
+  private avoidHandCollisions(tr: ActorTrack, boxes: ReturnType<Production['propBoxes']>, t: number): void {
+    const rig = tr.rig, r = rig.manifest.body.armWidth * 0.45, margin = 0.08;
+    const solid = boxes.filter((b) => b.category === 'furniture' || b.category === 'device');
+    for (const arm of ['l', 'r'] as const) {
+      if (tr.lastIkArms.has(arm)) continue;
+      let best: { w: number; target: Vec3 } | undefined;
+      for (const p of this.handPoints(rig, arm)) for (const b of solid) {
+        if (p[0] < b.min[0] - r || p[0] > b.max[0] + r || p[2] < b.min[2] - r || p[2] > b.max[2] + r || p[1] < b.min[1] - r) continue;
+        const clear = b.max[1] + r;
+        const w = Math.min(1, Math.max(0, (clear + margin - p[1]) / margin));
+        if (w > 0 && (!best || w > best.w + 1e-6 || (Math.abs(w - best.w) <= 1e-6 && clear + margin * 0.5 > best.target[1]))) best = { w, target: [p[0], clear + margin * 0.5, p[2]] };
+      }
+      if (best) solveArmIk(rig, arm, best.target, best.w, [0, -0.5, -1], tr.rootAt(t).yaw);
+    }
+  }
+  /**
+   * Penetration depth (m, world units) of point p inside a prop's collision shape, tested exactly in the prop's
+   * local space (so rotated/tilted props are not approximated by loose world AABBs). <= 0 means outside.
+   */
+  propDepth(inst: string, p: Vec3, t: number): number {
+    const pr = this.props.get(inst)!;
+    const c = pr.inst.manifest.collision;
+    const m = this.propMatrix(inst, t);
+    if (Math.hypot(m[0], m[1], m[2]) < 0.02) return -Infinity; // spawning at ~zero scale: nothing to intersect
+    const inv = m4Invert(m);
+    const l = m4TransformPoint(inv, p);
+    const ws = Math.hypot(m[0], m[1], m[2]);
+    const x = l[0] - c.offset[0], y = l[1] - c.offset[1], z = l[2] - c.offset[2];
+    let d: number;
+    if (c.shape === 'box') d = Math.min(c.size[0] / 2 - Math.abs(x), c.size[1] / 2 - Math.abs(y), c.size[2] / 2 - Math.abs(z));
+    else if (c.shape === 'cylinder') d = Math.min(c.size[0] - Math.hypot(x, z), c.size[1] / 2 - Math.abs(y));
+    else d = c.size[0] - Math.hypot(x, y, z);
+    return d * ws;
+  }
+  /** QA: hand points inside any prop or environment collider (excluding floor and intentional contacts). */
+  handPenetrations(t: number): FrameIssue[] {
+    const issues: FrameIssue[] = [];
+    const visible = [...this.props].filter(([, p]) => p.track.stateAt(t).visible).map(([k]) => k);
+    const env = this.env.colliders.filter((c) => c.id !== 'floor');
+    for (const [id, tr] of this.tracks) {
+      const tgts = new Set(this.ep.actions.filter((a) => a.actor === id && a.target && t >= a.start && t < a.start + a.duration).map((a) => a.target!.split('.')[0]));
+      for (const arm of ['l', 'r'] as const) {
+        let worst: { d: number; what: string } | undefined;
+        for (const p of this.handPoints(tr.rig, arm)) {
+          for (const inst of visible) {
+            if (tr.lastIkArms.has(arm) && tgts.has(inst)) continue;
+            const d = this.propDepth(inst, p, t);
+            if (d > 0.01 && (!worst || d > worst.d)) worst = { d, what: `prop:${inst}` };
+          }
+          for (const b of env) {
+            const d = Math.min(p[0] - b.min[0], b.max[0] - p[0], p[1] - b.min[1], b.max[1] - p[1], p[2] - b.min[2], b.max[2] - p[2]);
+            if (d > 0.01 && (!worst || d > worst.d)) worst = { d, what: `env:${b.id}` };
+          }
+        }
+        if (worst) issues.push({ t, shot: this.shotAt(t).id, code: 'HAND_PENETRATION', message: `${id} ${arm} hand ${(worst.d * 100).toFixed(1)} cm inside ${worst.what}`, subject: id });
+      }
+    }
+    return issues;
   }
 
   // ---------- screen-space shot validation ----------
@@ -276,6 +368,12 @@ export class Production {
       }
     }
     for (const a of f.camAdjust) issues.push({ t: f.t, shot: shot.id, code: 'CAMERA_ADJUSTED', message: a });
+    // near plane must not be inside any visible prop (props can move/grow into a locked-off camera)
+    for (const [inst, p] of this.props) {
+      if (!p.track.stateAt(f.t).visible) continue;
+      const d = this.propDepth(inst, f.cam.pos, f.t);
+      if (d > -0.05) issues.push({ t: f.t, shot: shot.id, code: 'CAMERA_IN_PROP', message: `camera ${d > 0 ? 'inside' : 'within 5 cm of'} ${inst}` });
+    }
     return issues;
   }
 
