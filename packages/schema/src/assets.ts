@@ -98,6 +98,7 @@ export const EnvironmentManifestSchema = v.object({
     fog: v.hexColor(), fogNear: v.number(), fogFar: v.number(), exposure: v.number({ min: 0.1, max: 4 }),
   })),
   extras: v.object({ decorDensity: v.number({ min: 0, max: 1 }), backgroundCharacters: v.int({ min: 0, max: 0 }) }),
+  notes: v.string({ max: 400 }).optional(),
   license: License,
 });
 export type EnvironmentManifest = SchemaT<typeof EnvironmentManifestSchema>;

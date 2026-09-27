@@ -240,7 +240,7 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
     if (c.at > D) err('TIMELINE_OVERFLOW', `audio.cues[${i}] after end`);
     const m = c.sync?.match(/^contact:([a-z0-9_]+):([a-z_]+)$/);
     let want: number | undefined;
-    if (m) want = contacts.find((x) => x.a.actor === m[1] && x.a.action === m[2])?.t;
+    if (m) { const cands = contacts.filter((x) => x.a.actor === m[1] && x.a.action === m[2]); want = cands.length ? cands.reduce((b, x) => (Math.abs(x.t - c.at) < Math.abs(b.t - c.at) ? x : b)).t : undefined; }
     else if (c.sync && impactTimes[c.sync] !== undefined) want = impactTimes[c.sync];
     if (want !== undefined && Math.abs(want - c.at) > frame) {
       if (opts.repair) { repairs.push(`moved cue ${c.sfx} ${c.at} -> ${r3(want)} (sync ${c.sync})`); c.at = r3(want); }

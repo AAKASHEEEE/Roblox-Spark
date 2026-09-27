@@ -1,0 +1,464 @@
+{
+  "kind": "character",
+  "id": "kira",
+  "version": "1.1.0",
+  "displayName": "Kira",
+  "description": "Clever peer/friend/rival. Medium-brown square head, straight black jaw-length bob, magenta cap with cyan underside, magenta bomber over white shirt, black trousers, cyan high-tops. Never cruel.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.52,
+      0.52,
+      0.5
+    ],
+    "headBevel": 0.07,
+    "skin": "#9a6440",
+    "torso": [
+      0.52,
+      0.58,
+      0.28
+    ],
+    "torsoColor": "#c21f72",
+    "armWidth": 0.15,
+    "upperArm": 0.31,
+    "lowerArm": 0.29,
+    "sleeveColor": "#c21f72",
+    "handColor": "#9a6440",
+    "legWidth": 0.21,
+    "upperLeg": 0.39,
+    "lowerLeg": 0.39,
+    "legColor": "#1d1d22",
+    "shoeColor": "#19c6e0",
+    "soleColor": "#f4f4f2"
+  },
+  "parts": [
+    {
+      "id": "bob_top",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.57,
+        0.08,
+        0.56
+      ],
+      "pos": [
+        0,
+        0.54,
+        -0.01
+      ],
+      "color": "#141418",
+      "bevel": 0.025
+    },
+    {
+      "id": "bob_back",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.58,
+        0.44,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.31,
+        -0.27
+      ],
+      "color": "#141418",
+      "bevel": 0.02
+    },
+    {
+      "id": "bob_side_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.07,
+        0.42,
+        0.52
+      ],
+      "pos": [
+        0.29,
+        0.31,
+        -0.015
+      ],
+      "color": "#141418",
+      "bevel": 0.02
+    },
+    {
+      "id": "bob_side_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.07,
+        0.42,
+        0.52
+      ],
+      "pos": [
+        -0.29,
+        0.31,
+        -0.015
+      ],
+      "color": "#141418",
+      "bevel": 0.02
+    },
+    {
+      "id": "bob_fringe",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.07,
+        0.06
+      ],
+      "pos": [
+        0,
+        0.49,
+        0.245
+      ],
+      "color": "#141418",
+      "bevel": 0.015
+    },
+    {
+      "id": "cap_crown",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.6,
+        0.13,
+        0.58
+      ],
+      "pos": [
+        0,
+        0.63,
+        -0.01
+      ],
+      "color": "#d6247f",
+      "bevel": 0.04
+    },
+    {
+      "id": "cap_brim",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.5,
+        0.03,
+        0.22
+      ],
+      "pos": [
+        0,
+        0.575,
+        0.36
+      ],
+      "rotDeg": [
+        -6,
+        0,
+        0
+      ],
+      "color": "#d6247f",
+      "bevel": 0.01
+    },
+    {
+      "id": "cap_brim_under",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.48,
+        0.012,
+        0.2
+      ],
+      "pos": [
+        0,
+        0.557,
+        0.36
+      ],
+      "rotDeg": [
+        -6,
+        0,
+        0
+      ],
+      "color": "#19d3e6"
+    },
+    {
+      "id": "cap_button",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.03,
+        0.06
+      ],
+      "pos": [
+        0,
+        0.705,
+        -0.01
+      ],
+      "color": "#19d3e6",
+      "bevel": 0.01
+    },
+    {
+      "id": "shirt_front",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.5,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.3,
+        0.142
+      ],
+      "color": "#f7f7f5"
+    },
+    {
+      "id": "jacket_lapel_l",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.5,
+        0.016
+      ],
+      "pos": [
+        0.105,
+        0.3,
+        0.144
+      ],
+      "color": "#a8185f"
+    },
+    {
+      "id": "jacket_lapel_r",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.5,
+        0.016
+      ],
+      "pos": [
+        -0.105,
+        0.3,
+        0.144
+      ],
+      "color": "#a8185f"
+    },
+    {
+      "id": "bomber_collar",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.46,
+        0.06,
+        0.3
+      ],
+      "pos": [
+        0,
+        0.58,
+        -0.01
+      ],
+      "color": "#8e1450",
+      "bevel": 0.02
+    },
+    {
+      "id": "bomber_hem",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.07,
+        0.3
+      ],
+      "pos": [
+        0,
+        0.035,
+        0
+      ],
+      "color": "#8e1450",
+      "bevel": 0.02
+    },
+    {
+      "id": "cuff_l",
+      "attach": "forearm_l",
+      "shape": "box",
+      "size": [
+        0.165,
+        0.05,
+        0.165
+      ],
+      "pos": [
+        0,
+        -0.26,
+        0
+      ],
+      "color": "#8e1450",
+      "bevel": 0.01
+    },
+    {
+      "id": "cuff_r",
+      "attach": "forearm_r",
+      "shape": "box",
+      "size": [
+        0.165,
+        0.05,
+        0.165
+      ],
+      "pos": [
+        0,
+        -0.26,
+        0
+      ],
+      "color": "#8e1450",
+      "bevel": 0.01
+    },
+    {
+      "id": "hightop_l",
+      "attach": "lowerleg_l",
+      "shape": "box",
+      "size": [
+        0.235,
+        0.12,
+        0.25
+      ],
+      "pos": [
+        0,
+        -0.26,
+        0.0
+      ],
+      "color": "#19c6e0",
+      "bevel": 0.02
+    },
+    {
+      "id": "hightop_r",
+      "attach": "lowerleg_r",
+      "shape": "box",
+      "size": [
+        0.235,
+        0.12,
+        0.25
+      ],
+      "pos": [
+        0,
+        -0.26,
+        0.0
+      ],
+      "color": "#19c6e0",
+      "bevel": 0.02
+    }
+  ],
+  "face": {
+    "eyeColor": "#111114",
+    "browColor": "#0e0e10",
+    "mouthColor": "#3a1a14",
+    "eyeSpacing": 0.33,
+    "eyeY": 0.52,
+    "eyeW": 0.1,
+    "eyeH": 0.17,
+    "browThickness": 0.05,
+    "browWidth": 0.21,
+    "mouthY": 0.75,
+    "mouthW": 0.22,
+    "hasNose": false,
+    "states": {
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.25,
+          4
+        ],
+        "browR": [
+          -0.05,
+          -8
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "smug",
+    "skeptical",
+    "surprised",
+    "laughing"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.25,
+    "runSpeed": 3.4
+  },
+  "personality": "Clever, dry, a half-step ahead. Teases but is never cruel; laughs WITH the chaos.",
+  "identityRules": [
+    "Bob always ends at the jaw line.",
+    "Cap is magenta with a cyan underside; never removed.",
+    "Never cruel: no mocking gestures aimed at appearance."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

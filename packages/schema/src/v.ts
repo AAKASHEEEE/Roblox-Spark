@@ -12,13 +12,25 @@ export abstract class Schema<T> {
     return issues.length ? { ok: false, issues } : { ok: true, value: out as T };
   }
   optional(): Schema<T | undefined> { return new Optional(this); }
+  nullable(): Schema<T | null> { return new Nullable(this); }
   describe(d: string): this { (this as any)._desc = d; return this; }
+  /** JSON Schema (draft 2020-12 subset). strictCompat: only keywords accepted by strict structured-output APIs. */
+  abstract json(strictCompat: boolean): Record<string, unknown>;
 }
+class Nullable<T> extends Schema<T | null> {
+  private inner: Schema<T>;
+  constructor(inner: Schema<T>) { super(); this.inner = inner; }
+  check(v: unknown, p: string, i: Issue[]) { return v === null ? null : this.inner.check(v, p, i); }
+  json(s: boolean) { return { anyOf: [this.inner.json(s), { type: 'null' }] }; }
+}
+/** JSON Schema for any validator (used to enforce structured output at the model provider). */
+export function toJsonSchema(schema: Schema<unknown>, strictCompat = false): Record<string, unknown> { return schema.json(strictCompat); }
 class Optional<T> extends Schema<T | undefined> {
   private inner: Schema<T>;
   constructor(inner: Schema<T>) { super(); this.inner = inner; }
   isOptional = true;
   check(v: unknown, p: string, i: Issue[]) { return v === undefined ? undefined : this.inner.check(v, p, i); }
+  json(s: boolean) { return this.inner.json(s); }
 }
 
 class Str extends Schema<string> {
@@ -32,6 +44,12 @@ class Str extends Schema<string> {
     if (this.o.oneOf && !this.o.oneOf.includes(v)) i.push({ path: p, message: `"${v}" not one of [${this.o.oneOf.join(', ')}]` });
     return v;
   }
+  json(s: boolean) {
+    const j: Record<string, unknown> = { type: 'string' };
+    if (this.o.oneOf) j.enum = [...this.o.oneOf];
+    if (!s) { if (this.o.min !== undefined) j.minLength = this.o.min; if (this.o.max !== undefined) j.maxLength = this.o.max; if (this.o.pattern) j.pattern = this.o.pattern.source; }
+    return j;
+  }
 }
 class Num extends Schema<number> {
   private o: { min?: number; max?: number; int?: boolean };
@@ -43,14 +61,17 @@ class Num extends Schema<number> {
     if (this.o.max !== undefined && v > this.o.max) i.push({ path: p, message: `${v} > max ${this.o.max}` });
     return v;
   }
+  json(s: boolean) { const j: Record<string, unknown> = { type: this.o.int ? 'integer' : 'number' }; if (!s) { if (this.o.min !== undefined) j.minimum = this.o.min; if (this.o.max !== undefined) j.maximum = this.o.max; } return j; }
 }
 class Bool extends Schema<boolean> {
   check(v: unknown, p: string, i: Issue[]) { if (typeof v !== 'boolean') { i.push({ path: p, message: 'expected boolean' }); return; } return v; }
+  json() { return { type: 'boolean' }; }
 }
 class Lit<T extends string | number | boolean> extends Schema<T> {
   private val: T;
   constructor(val: T) { super(); this.val = val; }
   check(v: unknown, p: string, i: Issue[]) { if (v !== this.val) { i.push({ path: p, message: `expected ${JSON.stringify(this.val)}` }); return; } return v as T; }
+  json() { return { type: typeof this.val === 'number' ? 'number' : typeof this.val, enum: [this.val] }; }
 }
 class Arr<T> extends Schema<T[]> {
   private item: Schema<T>;
@@ -63,6 +84,7 @@ class Arr<T> extends Schema<T[]> {
     if (this.o.max !== undefined && v.length > this.o.max) i.push({ path: p, message: `expected at most ${this.o.max} items` });
     return v.map((x, k) => this.item.check(x, `${p}[${k}]`, i)) as T[];
   }
+  json(s: boolean) { const j: Record<string, unknown> = { type: 'array', items: this.item.json(s) }; if (!s) { if (this.o.min !== undefined) j.minItems = this.o.min; if (this.o.max !== undefined) j.maxItems = this.o.max; if (this.o.len !== undefined) { j.minItems = this.o.len; j.maxItems = this.o.len; } } return j; }
 }
 type Shape = Record<string, Schema<any>>;
 type Infer<S extends Shape> = { [K in keyof S as undefined extends SchemaT<S[K]> ? never : K]: SchemaT<S[K]> } & { [K in keyof S as undefined extends SchemaT<S[K]> ? K : never]?: SchemaT<S[K]> };
@@ -84,6 +106,11 @@ class Obj<S extends Shape> extends Schema<Infer<S>> {
     if (this.strict) for (const k of Object.keys(o)) if (!(k in this.shape)) i.push({ path: `${p}.${k}`, message: 'unknown key (strict schema)' });
     return out as Infer<S>;
   }
+  json(s: boolean) {
+    const props: Record<string, unknown> = {}, req: string[] = [];
+    for (const [k, sch] of Object.entries(this.shape)) { props[k] = sch.json(s); if (!(sch as any).isOptional) req.push(k); }
+    return { type: 'object', properties: props, required: req, additionalProperties: !this.strict };
+  }
 }
 class Rec<T> extends Schema<Record<string, T>> {
   private val: Schema<T>;
@@ -98,6 +125,7 @@ class Rec<T> extends Schema<Record<string, T>> {
     }
     return out;
   }
+  json(s: boolean) { return { type: 'object', additionalProperties: this.val.json(s) }; }
 }
 class Tuple<T extends unknown[]> extends Schema<T> {
   private items: Schema<any>[];
@@ -106,6 +134,7 @@ class Tuple<T extends unknown[]> extends Schema<T> {
     if (!Array.isArray(v) || v.length !== this.items.length) { i.push({ path: p, message: `expected tuple of ${this.items.length}` }); return; }
     return v.map((x, k) => this.items[k].check(x, `${p}[${k}]`, i)) as T;
   }
+  json(s: boolean) { return { type: 'array', prefixItems: this.items.map((x) => x.json(s)), minItems: this.items.length, maxItems: this.items.length }; }
 }
 class Union<T> extends Schema<T> {
   private opts: Schema<any>[];
@@ -121,6 +150,7 @@ class Union<T> extends Schema<T> {
     i.push(...(best ?? [{ path: p, message: 'no union member matched' }]));
     return undefined;
   }
+  json(s: boolean) { return { anyOf: this.opts.map((x) => x.json(s)) }; }
 }
 /** Discriminated union on a string key -> precise error messages. */
 class DUnion<T> extends Schema<T> {
@@ -133,6 +163,7 @@ class DUnion<T> extends Schema<T> {
     if (!s) { i.push({ path: `${p}.${this.key}`, message: `"${k}" not one of [${Object.keys(this.map).join(', ')}]` }); return; }
     return s.check(v, p, i);
   }
+  json(st: boolean) { return { anyOf: Object.values(this.map).map((x) => x.json(st)) }; }
 }
 
 export const v = {
