@@ -115,7 +115,8 @@ test('pin needs an explicit renderer + profile and refuses already-declared epis
 
 test('the default for newly generated episodes is corrected-head-v2', async () => {
   assert.equal(DEFAULT_MOTION_PROFILE, 'corrected-head-v2');
-  assert.equal(MOTION_PROFILES['legacy-head-v1'].status, 'frozen');
+  assert.equal(MOTION_PROFILES['legacy-head-v1'].status, 'legacy');
+  assert.equal(MOTION_PROFILES['corrected-head-v2'].status, 'current');
   const { generateEpisode } = await import('../packages/story/src/pipeline.ts');
   const { RulesProvider } = await import('../packages/story/src/providers/rules.ts');
   const { buildRegistry } = await import('../packages/story/src/registry.ts');

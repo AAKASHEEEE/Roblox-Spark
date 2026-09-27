@@ -18,7 +18,9 @@
     "spike": "node scripts/spike-render.ts",
     "stills": "node scripts/stills.ts",
     "assets:lock": "node scripts/assets-lock.ts",
-    "test": "node --test tests/*.test.ts"
+    "test": "node --test tests/*.test.ts",
+    "golden:check": "node scripts/golden.ts check",
+    "episode:upgrade": "node scripts/episode-version.ts upgrade"
   },
   "devDependencies": {
     "typescript": "^5.8.0",

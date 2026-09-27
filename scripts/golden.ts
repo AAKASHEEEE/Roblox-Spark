@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { basename, join, relative, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { launchBrowser, findChromium } from '../apps/render-worker/lib/browser.ts';
 import { startServer, ROOT } from '../apps/render-worker/lib/server.ts';
 import { loadLibrary, canonical } from '../apps/render-worker/lib/library.ts';
@@ -32,7 +32,8 @@ export interface GoldenFile {
 const sha = (s: string | Buffer) => createHash('sha256').update(s).digest('hex');
 export const episodeSha = (ep: unknown) => sha(canonical(ep));
 export const semanticSha = (ep: unknown) => sha(canonicalJson(semanticContent(ep)));
-export const goldenPath = (fixture: string, key: string) => join(GOLDEN_DIR, basename(fixture, '.json'), `${key}.json`);
+/** goldens are grouped by episode id: every renderer/profile combination of one episode sits side by side */
+export const goldenPath = (ep: { episode: { id: string } }, key: string) => join(GOLDEN_DIR, ep.episode.id, `${key}.json`);
 export function readFixture(fixture: string): any { return JSON.parse(readFileSync(resolve(ROOT, fixture), 'utf8')); }
 export function listGoldens(): GoldenFile[] {
   if (!existsSync(GOLDEN_DIR)) return [];
@@ -85,7 +86,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const fixture = relative(ROOT, resolve(files[0] ?? ''));
     const ep = readFixture(fixture);
     const compat = resolveRenderCompat(ep); // throws on missing/unsupported declaration
-    const out = goldenPath(fixture, compat.key);
+    const out = goldenPath(ep, compat.key);
     if (existsSync(out)) { console.error(`refusing to overwrite ${relative(ROOT, out)}: golden hashes are immutable (new pixels need a new rendererVersion or motionProfile)`); process.exit(1); }
     const scale = Number(flag('scale', '1')), every = Number(flag('every', '1'));
     const res: [number, number] = [Math.round(1080 * scale), Math.round(1920 * scale)];
@@ -101,7 +102,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       resolution: res, fps: ep.episode.fps, frames: N, checkFrames: subsetFrames(N).filter((i) => frames.includes(i)), hash: 'sha256(raw RGBA readPixels, frame i at t=i/fps)', frameHashes: hashes,
       provenance: { recordedAt: new Date().toISOString(), commit: gitHead(), method: 'scripts/golden.ts record (fast path: render + readPixels + SHA-256, no encode)', chromium: findChromium(), renderSeconds: (Date.now() - t0) / 1000 },
     };
-    mkdirSync(join(GOLDEN_DIR, basename(fixture, '.json')), { recursive: true });
+    mkdirSync(join(GOLDEN_DIR, ep.episode.id), { recursive: true });
     writeFileSync(out, JSON.stringify(g, null, 1) + '\n');
     console.log(`recorded ${relative(ROOT, out)}: ${hashes.length} frames at ${res.join('x')} in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
   } else if (cmd === 'check') {

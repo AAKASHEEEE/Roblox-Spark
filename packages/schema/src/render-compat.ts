@@ -26,8 +26,11 @@ export interface MotionBehaviour {
 }
 
 export interface MotionProfileSpec {
-  /** frozen = reproduced bit-for-bit forever, never changed; current = default for newly generated episodes */
-  status: 'frozen' | 'current';
+  /**
+   * Every published profile is immutable (its golden hashes never change). 'legacy' = kept only to reproduce existing
+   * episodes; 'current' = the profile written into newly generated episodes.
+   */
+  status: 'legacy' | 'current';
   description: string;
   behaviour: MotionBehaviour;
 }
@@ -37,7 +40,7 @@ export type MotionProfileId = (typeof MOTION_PROFILE_IDS)[number];
 
 export const MOTION_PROFILES: Record<MotionProfileId, MotionProfileSpec> = {
   'legacy-head-v1': {
-    status: 'frozen',
+    status: 'legacy',
     description: 'Motion exactly as rendered before explicit versioning (PoC commit 1dc7a26), including the known defects: look-at pitch composed about the spine axis, head_shake attenuated by an active look-at, turn/startFacing toward a later-cast actor ignored, locomotion onset blended while the root already rotates and translates.',
     behaviour: { lookAt: 'euler-spine-pitch', headLayersOverLookAt: false, laterCastTargets: false, locomotionOnset: 'blended' },
   },
