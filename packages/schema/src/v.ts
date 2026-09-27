@@ -99,11 +99,13 @@ class Obj<S extends Shape> extends Schema<Infer<S>> {
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(this.shape)) {
       const s = this.shape[k];
-      if (!(k in o) && !(s as any).isOptional) { i.push({ path: `${p}.${k}`, message: 'required' }); continue; }
+      if (!Object.hasOwn(o, k) && !(s as any).isOptional) { i.push({ path: `${p}.${k}`, message: 'required' }); continue; }
       const r = s.check(o[k], `${p}.${k}`, i);
       if (r !== undefined) out[k] = r;
     }
-    if (this.strict) for (const k of Object.keys(o)) if (!(k in this.shape)) i.push({ path: `${p}.${k}`, message: 'unknown key (strict schema)' });
+    // own-property checks: `k in shape` also matched inherited Object.prototype names (__proto__, constructor, toString),
+    // letting such unknown keys through the strict check (security test finding)
+    if (this.strict) for (const k of Object.keys(o)) if (!Object.hasOwn(this.shape, k)) i.push({ path: `${p}.${k}`, message: 'unknown key (strict schema)' });
     return out as Infer<S>;
   }
   json(s: boolean) {
