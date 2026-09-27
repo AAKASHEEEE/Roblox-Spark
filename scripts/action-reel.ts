@@ -198,6 +198,9 @@ function judge(s: Seg & { start: number; end: number }, pose: any[], issues: any
   return { status: !ok ? 'FAIL' : partial ? 'PARTIAL' : 'PASS', checks, notes };
 }
 
+/** episode object for one reel under a declared motion profile (tests / tooling) */
+export function reelEpisodeFor(r: (typeof REELS)[number], profile: MotionProfileId = DEFAULT_MOTION_PROFILE): any { return reelEpisode(r, profile).ep; }
+
 async function analyseReels(page: any, lib: any, profile: MotionProfileId, outDir: string, withStills: boolean): Promise<{ results: any[]; stills: string[]; labels: string[] }> {
   const env = lib.environments['classroom@1.1.0'];
   const results: any[] = []; const stills: string[] = []; const labels: string[] = [];

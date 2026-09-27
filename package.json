@@ -20,10 +20,16 @@
     "assets:lock": "node scripts/assets-lock.ts",
     "test": "node --test tests/*.test.ts",
     "golden:check": "node scripts/golden.ts check",
-    "episode:upgrade": "node scripts/episode-version.ts upgrade"
+    "episode:upgrade": "node scripts/episode-version.ts upgrade",
+    "test:e2e": "node --test --test-concurrency=1 tests/e2e/*.e2e.test.ts",
+    "test:all": "node --test tests/*.test.ts && node --test --test-concurrency=1 tests/e2e/*.e2e.test.ts",
+    "bench": "node scripts/bench-generate.ts --set bench/ideas.json --provider rules --out out/bench/rules",
+    "bench:holdout": "node scripts/bench-generate.ts --set bench/holdout-ideas.json --provider rules --out out/bench/holdout",
+    "bench:render": "node scripts/bench-render.ts",
+    "action-reel": "node scripts/action-reel.ts --scale 0.5"
   },
   "devDependencies": {
-    "typescript": "^5.8.0",
-    "playwright-core": "^1.50.0"
+    "typescript": "7.0.2",
+    "playwright-core": "1.62.0-alpha-1783623505000"
   }
 }
