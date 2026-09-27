@@ -1,0 +1,141 @@
+{
+ "item": {
+  "id": "C06",
+  "engine": "apparent_win_instant_loss",
+  "kind": "reject_impossible",
+  "expected": "reject",
+  "expectedRejectCategory": "impossible",
+  "idea": "Zapp wins the coin and it instantly turns into a butterfly and flies away.",
+  "request": {
+   "idea": "Zapp wins the coin and it instantly turns into a butterfly and flies away.",
+   "durationTarget": 18,
+   "comedyEngine": "apparent_win_instant_loss",
+   "seed": 1032
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Zapp wins the coin and it instantly turns into a butterfly and flies away.",
+   "durationTarget": 18,
+   "comedyEngine": "apparent_win_instant_loss",
+   "seed": 1032
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "impossible",
+   "reason": "flight is not supported (no flying rig or flight-path effect)"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "apparent_win_instant_loss",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "(added)"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "coin"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp"
+    ],
+    "props": [
+     "coin"
+    ],
+    "places": [],
+    "actions": [
+     "fly",
+     "transform",
+     "win",
+     "instant"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "(no trigger)",
+     "used": "suspicious_button",
+     "kind": "prop",
+     "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "impossible",
+    "reason": "flight is not supported (no flying rig or flight-path effect)"
+   }
+  },
+  "plan": null,
+  "substitutions": [
+   {
+    "requested": "(no trigger)",
+    "used": "suspicious_button",
+    "kind": "prop",
+    "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+   }
+  ],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.6259590000008757,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

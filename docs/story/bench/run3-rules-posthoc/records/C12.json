@@ -1,0 +1,139 @@
+{
+ "item": {
+  "id": "C12",
+  "engine": "apparent_win_instant_loss",
+  "kind": "reject_impossible",
+  "expected": "reject",
+  "expectedRejectCategory": "requires_text",
+  "idea": "The button's screen says a funny message that explains why Zapp loses.",
+  "request": {
+   "idea": "The button's screen says a funny message that explains why Zapp loses.",
+   "durationTarget": 18,
+   "comedyEngine": "apparent_win_instant_loss",
+   "seed": 1038
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "The button's screen says a funny message that explains why Zapp loses.",
+   "durationTarget": 18,
+   "comedyEngine": "apparent_win_instant_loss",
+   "seed": 1038
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "requires_text",
+   "reason": "the joke depends on reading text on screen; stories must read without text"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "apparent_win_instant_loss",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "(added)"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp"
+    ],
+    "props": [
+     "button"
+    ],
+    "places": [],
+    "actions": [
+     "speech",
+     "needsText"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "spoken line",
+     "used": "emote + expression",
+     "kind": "action",
+     "reason": "no dialogue: speech is conveyed with an emote and facial expression"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": true,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "requires_text",
+    "reason": "the joke depends on reading text on screen; stories must read without text"
+   }
+  },
+  "plan": null,
+  "substitutions": [
+   {
+    "requested": "spoken line",
+    "used": "emote + expression",
+    "kind": "action",
+    "reason": "no dialogue: speech is conveyed with an emote and facial expression"
+   }
+  ],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.6105629999983648,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

@@ -1,0 +1,140 @@
+{
+ "item": {
+  "id": "HB16",
+  "engine": "ordinary_object_extreme",
+  "kind": "holdout2",
+  "expected": "reject",
+  "expectedRejectCategory": "unavailable",
+  "idea": "Zapp's cat knocks the coin off the desk and it grows.",
+  "request": {
+   "idea": "Zapp's cat knocks the coin off the desk and it grows.",
+   "durationTarget": 17,
+   "comedyEngine": null,
+   "seed": 3015
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Zapp's cat knocks the coin off the desk and it grows.",
+   "durationTarget": 17,
+   "comedyEngine": null,
+   "seed": 3015
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "unavailable",
+   "reason": "no rig for non-human character(s): cat"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "(added)"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "coin"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp",
+     "cat"
+    ],
+    "props": [
+     "coin",
+     "desk"
+    ],
+    "places": [],
+    "actions": [
+     "grow"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "(no trigger)",
+     "used": "suspicious_button",
+     "kind": "prop",
+     "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "unavailable",
+    "reason": "no rig for non-human character(s): cat"
+   }
+  },
+  "plan": null,
+  "substitutions": [
+   {
+    "requested": "(no trigger)",
+    "used": "suspicious_button",
+    "kind": "prop",
+    "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+   }
+  ],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.342279000000417,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

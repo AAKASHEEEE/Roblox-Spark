@@ -1,0 +1,140 @@
+{
+ "item": {
+  "id": "B05",
+  "engine": "visible_secret_chase",
+  "kind": "reject_unavailable",
+  "expected": "reject",
+  "expectedRejectCategory": "unavailable",
+  "idea": "BZTT the robot finds the button and zooms over to it.",
+  "request": {
+   "idea": "BZTT the robot finds the button and zooms over to it.",
+   "durationTarget": 19,
+   "comedyEngine": null,
+   "seed": 1019
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "BZTT the robot finds the button and zooms over to it.",
+   "durationTarget": 19,
+   "comedyEngine": null,
+   "seed": 1019
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "unavailable",
+   "reason": "BZTT (floating robot) is not built yet (floating_orb_v1 rig missing) and may never be replaced by a human character (identity lock)"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "bztt"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "(added)"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "bztt",
+     "robot"
+    ],
+    "props": [
+     "button"
+    ],
+    "places": [],
+    "actions": [
+     "fly",
+     "notice"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "BZTT",
+     "used": "zapp",
+     "kind": "character",
+     "reason": "BZTT is not built yet; role played by locked character zapp"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "unavailable",
+    "reason": "BZTT (floating robot) is not built yet (floating_orb_v1 rig missing) and may never be replaced by a human character (identity lock)"
+   }
+  },
+  "plan": null,
+  "substitutions": [
+   {
+    "requested": "BZTT",
+    "used": "zapp",
+    "kind": "character",
+    "reason": "BZTT is not built yet; role played by locked character zapp"
+   }
+  ],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.572957000000315,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

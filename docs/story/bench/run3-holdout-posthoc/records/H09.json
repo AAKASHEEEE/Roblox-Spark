@@ -1,0 +1,139 @@
+{
+ "item": {
+  "id": "H09",
+  "engine": "apparent_win_instant_loss",
+  "kind": "holdout",
+  "expected": "reject",
+  "expectedRejectCategory": "impossible",
+  "idea": "Zapp wins a coin and it disappears into thin air.",
+  "request": {
+   "idea": "Zapp wins a coin and it disappears into thin air.",
+   "durationTarget": 18,
+   "comedyEngine": null,
+   "seed": 2008
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Zapp wins a coin and it disappears into thin air.",
+   "durationTarget": 18,
+   "comedyEngine": null,
+   "seed": 2008
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "impossible",
+   "reason": "vanishing/teleporting is not supported (and violates the no-teleport rule)"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "(added)"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "coin"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp"
+    ],
+    "props": [
+     "coin"
+    ],
+    "places": [],
+    "actions": [
+     "teleport",
+     "win"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "(no trigger)",
+     "used": "suspicious_button",
+     "kind": "prop",
+     "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "impossible",
+    "reason": "vanishing/teleporting is not supported (and violates the no-teleport rule)"
+   }
+  },
+  "plan": null,
+  "substitutions": [
+   {
+    "requested": "(no trigger)",
+    "used": "suspicious_button",
+    "kind": "prop",
+    "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+   }
+  ],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.49943200000052457,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}
