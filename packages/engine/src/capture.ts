@@ -51,7 +51,10 @@ export class FrameCapture {
   meta: EncoderMeta;
   private error: Error | null = null;
 
-  constructor(private cfg: CaptureConfig, private canvas: HTMLCanvasElement, private readPixels: () => Uint8Array) {
+  private cfg: CaptureConfig;
+  private canvas: HTMLCanvasElement;
+  private readPixels: () => Uint8Array;
+  constructor(cfg: CaptureConfig, canvas: HTMLCanvasElement, readPixels: () => Uint8Array) { this.cfg = cfg; this.canvas = canvas; this.readPixels = readPixels;
     this.meta = { avcCb64: null, colorSpace: null, codec: cfg.codec };
     this.encoder = new VideoEncoder({
       output: (chunk, md) => {

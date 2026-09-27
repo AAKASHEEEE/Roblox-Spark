@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "sfx_thud_big",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "thud_big",
+  "params": {
+    "seed": 4
+  },
+  "durationSec": 1.6,
+  "description": "Huge impact",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

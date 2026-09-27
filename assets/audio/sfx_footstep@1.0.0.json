@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "sfx_footstep",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "footstep",
+  "params": {
+    "seed": 77
+  },
+  "durationSec": 0.12,
+  "description": "Sneaker footstep",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

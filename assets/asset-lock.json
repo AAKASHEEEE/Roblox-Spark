@@ -1,0 +1,33 @@
+{
+  "lockVersion": 1,
+  "note": "sha256 of canonical manifest JSON. Append-only.",
+  "assets": {
+    "audio/amb_classroom@1.0.0": "b61d92660fdd6af558750fb0b75df3703fb86da598348f176e3ba10d953f4ac8",
+    "audio/mus_spark_bounce@1.0.0": "90c796c7a9e1246630eef3a1460996e8da72e2c9f62328d7154aa7ce897a5789",
+    "audio/sfx_beep@1.0.0": "18023f759788dfa21afc070cc290de5598f604aba76a5686437a5e3606b75753",
+    "audio/sfx_blip_dots@1.0.0": "c4993a5dcbce34b3311fb7d544c21f34b476fc2435fbceabeeb7eae8c4e9c6df",
+    "audio/sfx_blip_question@1.0.0": "ef1dac3b47b05b34ddf05d39272f47b1d5616492cccef0706d4658644e2e2160",
+    "audio/sfx_boing@1.0.0": "ed7ec51e525c2b19d9d3393f3174407d887b8c327048dd5ef3e4b1bdf7e895b4",
+    "audio/sfx_click@1.0.0": "20f2e5212f71513e6ff603613d73d4d5e005ce4a9a61097096586c94a768d8d2",
+    "audio/sfx_coin_ding@1.0.0": "14274abc4a878f02fa7d02211b3ad063b32b570bc7717a9b87f723752b932555",
+    "audio/sfx_coin_pop@1.0.0": "210641a4c2aba54e695d2cce7a543f167e6036538d92e528c6fb2ff3470e2d5e",
+    "audio/sfx_coin_spin@1.0.0": "a17d8ad4a1fa8d0456d3d550795a92a3fd98480af7c3f8b5995eb198bccd18fd",
+    "audio/sfx_creak@1.0.0": "34c2035ac86d616d3d532760852fe707e60298c858fea8a75822c6bcf540bef7",
+    "audio/sfx_deflate_slide@1.0.0": "a06c9d2af269f946f97a1bffeab9538a6c74d87c38d29647c18337aedc04b069",
+    "audio/sfx_ding_reset@1.0.0": "220ecb63d43ecff7e059213e8e160edce4c10a4f3a145e6e75bedea89cc8c526",
+    "audio/sfx_footstep@1.0.0": "2dbb6c40a79399726a8126cc485b6c7b5b6d98afcb7b1692727c1fd35c2bf3ea",
+    "audio/sfx_rumble@1.0.0": "e0296818cf1d50cf82a8f908bc1b4fcc71f658165e5c85ed1d25c7047824fdec",
+    "audio/sfx_scrape@1.0.0": "759cff313dde649183916649be99896262cd314f7cc54223e92db787a36eb4d2",
+    "audio/sfx_sparkle@1.0.0": "5bdeb41a860b67c38daaedca788d0d156e32fb992580ba139d2434b87e32f4ce",
+    "audio/sfx_tada@1.0.0": "e71b623bb84c03b70d3c4bbf31a69a669e6b616bc287ab130d27b43345df3cff",
+    "audio/sfx_thud_big@1.0.0": "071501aa590beaad947654da12e0ece432db2724244459fae2c3184a8504f6a8",
+    "audio/sfx_thud_small@1.0.0": "ed9656a3b23bf4da68695d53a8df420babbc07e2c51a70a2b0562086c2ce0b7f",
+    "audio/sfx_whoosh@1.0.0": "6c0c03c3f9835b98a667685f7af098422faa1be32195d153272c1035f176efea",
+    "characters/kira@1.0.0": "54c5948d437ea45a5cb3e8f00bc24a8612d9b7ef7184670292378b829bb296be",
+    "characters/zapp@1.0.0": "558834f42521e80823cff0d0a55a44b329195e559694361e8bb00a09183b3a06",
+    "environments/classroom@1.0.0": "85d0c2a3228754be755359faef1f4023ea7891b305ffbfd51093632f5547b964",
+    "props/spark_coin@1.0.0": "e039c00dd892079b80b40082dfbda4f5ed3bfa1544d278319e663dcd234d6d46",
+    "props/student_desk@1.0.0": "c482af9121205ab419b26e917f23e6ead933671e83853c31521854d591227313",
+    "props/suspicious_button@1.0.0": "81850afa9f72c59121f741cb978c5b33a73ae574803500da24004539a9f4e8d0"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "kind": "audio",
+  "id": "sfx_whoosh",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "whoosh",
+  "params": {
+    "dur": 0.38,
+    "from": 400,
+    "to": 2600,
+    "seed": 9
+  },
+  "durationSec": 0.38,
+  "description": "Air whoosh",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

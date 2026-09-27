@@ -1,0 +1,20 @@
+{
+  "kind": "audio",
+  "id": "sfx_coin_ding",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "coin_ding",
+  "params": {
+    "freq": 1318.5,
+    "dur": 1.1
+  },
+  "durationSec": 1.1,
+  "description": "Bell-like coin ding",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

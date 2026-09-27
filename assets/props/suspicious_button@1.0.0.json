@@ -1,0 +1,28 @@
+{
+  "kind": "prop",
+  "id": "suspicious_button",
+  "version": "1.0.0",
+  "displayName": "Suspicious Button",
+  "category": "device",
+  "dimensions": [0.34, 0.16, 0.26],
+  "collision": { "shape": "box", "size": [0.34, 0.16, 0.26], "offset": [0, 0.08, 0] },
+  "parts": [
+    { "id": "housing", "attach": "root", "shape": "box", "size": [0.34, 0.09, 0.26], "pos": [0, 0.045, 0], "color": "#2a2b31", "bevel": 0.025, "sheen": 0.5 },
+    { "id": "hazard_rim", "attach": "root", "shape": "cylinder", "size": [0.105, 0.018], "pos": [0, 0.099, -0.01], "color": "#ffd21a", "bevel": 0.006 },
+    { "id": "cap", "attach": "root", "shape": "cylinder", "size": [0.082, 0.05], "pos": [0, 0.125, -0.01], "color": "#ff2a3c", "bevel": 0.018, "sheen": 1, "emissive": "#ff2a3c" },
+    { "id": "label", "attach": "root", "shape": "plane", "size": [0.3, 0.07], "pos": [0, 0.046, 0.131], "color": "#ffffff", "texture": "label_free_coins" },
+    { "id": "lamp_l", "attach": "root", "shape": "box", "size": [0.03, 0.02, 0.03], "pos": [-0.135, 0.1, -0.09], "color": "#20e37a", "emissive": "#20e37a", "bevel": 0.006 },
+    { "id": "lamp_r", "attach": "root", "shape": "box", "size": [0.03, 0.02, 0.03], "pos": [0.135, 0.1, -0.09], "color": "#20e37a", "emissive": "#20e37a", "bevel": 0.006 }
+  ],
+  "grips": { "base": [0, 0.02, 0] },
+  "anchors": { "press_surface": [0, 0.152, -0.01], "spawn_point": [0, 0.2, -0.01], "front_face": [0, 0.05, 0.13] },
+  "effectAnchors": { "glow": [0, 0.16, -0.01], "sparkle": [0, 0.22, -0.01] },
+  "defaultMaterial": "glossy_plastic",
+  "defaultColor": "#ff2a3c",
+  "allowedTransformations": ["translate", "rotate", "press_depress", "glow"],
+  "forbiddenTransformations": ["uniform_scale", "non_uniform_scale", "recolor", "morph", "text_change"],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/suspicious_button.png",
+  "status": "ready",
+  "license": { "source": "original-procedural", "author": "RBLX SPARK (in-house)", "license": "Proprietary - owned", "attributionRequired": false, "notes": "Label uses in-house 5x7 block pixel font. The coin emblem and wording are generic; no platform currency names or logos." }
+}

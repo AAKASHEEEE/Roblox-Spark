@@ -1,0 +1,17 @@
+{
+  "kind": "audio",
+  "id": "sfx_coin_spin",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "coin_spin",
+  "params": {},
+  "durationSec": 0.9,
+  "description": "Coin spinning on a desk",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

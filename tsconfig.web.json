@@ -5,6 +5,7 @@
     "moduleResolution": "bundler",
     "lib": ["es2023", "dom", "dom.iterable"],
     "strict": true,
+    "erasableSyntaxOnly": true,
     "noUnusedLocals": false,
     "skipLibCheck": true,
     "outDir": "dist",

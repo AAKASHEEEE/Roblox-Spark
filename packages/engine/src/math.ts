@@ -101,6 +101,23 @@ export function qFromTo(a: Vec3, b: Vec3): Quat {
   return [q[0] / l, q[1] / l, q[2] / l, q[3] / l];
 }
 
+/** Quaternion from orthonormal basis columns (x, y, z axes). */
+export function qFromBasis(x: Vec3, y: Vec3, z: Vec3): Quat {
+  const m00 = x[0], m10 = x[1], m20 = x[2], m01 = y[0], m11 = y[1], m21 = y[2], m02 = z[0], m12 = z[1], m22 = z[2];
+  const tr = m00 + m11 + m22;
+  let q: Quat;
+  if (tr > 0) { const s = Math.sqrt(tr + 1) * 2; q = [(m21 - m12) / s, (m02 - m20) / s, (m10 - m01) / s, 0.25 * s]; }
+  else if (m00 > m11 && m00 > m22) { const s = Math.sqrt(1 + m00 - m11 - m22) * 2; q = [0.25 * s, (m01 + m10) / s, (m02 + m20) / s, (m21 - m12) / s]; }
+  else if (m11 > m22) { const s = Math.sqrt(1 + m11 - m00 - m22) * 2; q = [(m01 + m10) / s, 0.25 * s, (m12 + m21) / s, (m02 - m20) / s]; }
+  else { const s = Math.sqrt(1 + m22 - m00 - m11) * 2; q = [(m02 + m20) / s, (m12 + m21) / s, 0.25 * s, (m10 - m01) / s]; }
+  const l = Math.hypot(q[0], q[1], q[2], q[3]);
+  return [q[0] / l, q[1] / l, q[2] / l, q[3] / l];
+}
+/** Rotation part of a (possibly scaled) world matrix. */
+export function qFromMat(m: Mat4): Quat {
+  return qFromBasis(norm([m[0], m[1], m[2]]), norm([m[4], m[5], m[6]]), norm([m[8], m[9], m[10]]));
+}
+
 // ---------- matrices ----------
 export const m4 = (): Mat4 => {
   const m = new Float32Array(16);

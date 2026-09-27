@@ -1,0 +1,20 @@
+{
+  "kind": "audio",
+  "id": "sfx_beep",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "beep",
+  "params": {
+    "freq": 1760,
+    "dur": 0.09
+  },
+  "durationSec": 0.09,
+  "description": "Suspicious device beep",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

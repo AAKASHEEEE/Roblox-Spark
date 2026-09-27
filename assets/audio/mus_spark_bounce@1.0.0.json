@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "mus_spark_bounce",
+  "version": "1.0.0",
+  "category": "music",
+  "synth": "music",
+  "params": {
+    "bars": 8
+  },
+  "durationSec": 17,
+  "description": "Original bouncy 8-bar loop (tempo fitted to episode length)",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

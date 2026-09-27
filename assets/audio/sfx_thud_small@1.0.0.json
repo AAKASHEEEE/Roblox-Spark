@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "sfx_thud_small",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "thud_small",
+  "params": {
+    "seed": 3
+  },
+  "durationSec": 0.45,
+  "description": "Small heavy landing",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

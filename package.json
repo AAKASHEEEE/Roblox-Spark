@@ -1,0 +1,24 @@
+{
+  "name": "rblx-spark-video-factory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Automated, deterministic, original blocky-style vertical comedy video production (validation PoC).",
+  "engines": { "node": ">=22.18" },
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "setup": "node scripts/doctor.ts",
+    "build": "tsc -p tsconfig.web.json",
+    "typecheck": "tsc -p tsconfig.web.json --noEmit",
+    "start": "node apps/studio/server.ts",
+    "render:poc": "node apps/render-worker/render.ts --episode episodes/free-coins-loop-001.json",
+    "render:preview": "node apps/render-worker/render.ts --episode episodes/free-coins-loop-001.json --scale 0.5 --out out/preview",
+    "render:determinism": "node scripts/determinism.ts",
+    "render:gallery": "node apps/render-worker/render.ts --episode episodes/action-gallery.json",
+    "spike": "node scripts/spike-render.ts",
+    "stills": "node scripts/stills.ts",
+    "assets:lock": "node scripts/assets-lock.ts",
+    "test": "node --test tests/"
+  },
+  "optionalDependencies": {}
+}

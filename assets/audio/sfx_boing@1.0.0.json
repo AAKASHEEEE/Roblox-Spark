@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "sfx_boing",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "boing",
+  "params": {
+    "base": 1
+  },
+  "durationSec": 0.55,
+  "description": "Cartoon growth boing",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

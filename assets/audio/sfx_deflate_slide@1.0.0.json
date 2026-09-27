@@ -1,0 +1,17 @@
+{
+  "kind": "audio",
+  "id": "sfx_deflate_slide",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "deflate_slide",
+  "params": {},
+  "durationSec": 1.0,
+  "description": "Descending slide-whistle 'deflate'",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

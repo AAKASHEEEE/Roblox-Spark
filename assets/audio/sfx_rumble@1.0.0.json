@@ -1,0 +1,20 @@
+{
+  "kind": "audio",
+  "id": "sfx_rumble",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "rumble",
+  "params": {
+    "dur": 3.5,
+    "seed": 21
+  },
+  "durationSec": 3.5,
+  "description": "Low ominous rumble",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

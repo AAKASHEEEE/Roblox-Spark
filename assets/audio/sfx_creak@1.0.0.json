@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "sfx_creak",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "creak",
+  "params": {
+    "base": 1
+  },
+  "durationSec": 0.7,
+  "description": "Metal creak / wobble",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

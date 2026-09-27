@@ -1,0 +1,17 @@
+{
+  "kind": "audio",
+  "id": "sfx_tada",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "tada",
+  "params": {},
+  "durationSec": 1.1,
+  "description": "Short triumphant arpeggio",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

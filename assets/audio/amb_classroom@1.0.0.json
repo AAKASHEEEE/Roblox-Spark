@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "amb_classroom",
+  "version": "1.0.0",
+  "category": "ambience",
+  "synth": "ambience",
+  "params": {
+    "seed": 99
+  },
+  "durationSec": 17,
+  "description": "Quiet room tone + wall clock",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

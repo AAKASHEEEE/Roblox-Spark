@@ -1,0 +1,17 @@
+{
+  "kind": "audio",
+  "id": "sfx_blip_dots",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "blip_dots",
+  "params": {},
+  "durationSec": 0.42,
+  "description": "Three dot blips",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

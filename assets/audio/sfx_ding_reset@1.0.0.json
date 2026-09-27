@@ -1,0 +1,17 @@
+{
+  "kind": "audio",
+  "id": "sfx_ding_reset",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "ding_reset",
+  "params": {},
+  "durationSec": 0.9,
+  "description": "Device reset chime",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

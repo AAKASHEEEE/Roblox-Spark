@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "sfx_click",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "click",
+  "params": {
+    "seed": 1
+  },
+  "durationSec": 0.08,
+  "description": "Chunky button click",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}

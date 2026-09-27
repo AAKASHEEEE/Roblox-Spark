@@ -1,0 +1,19 @@
+{
+  "kind": "audio",
+  "id": "sfx_scrape",
+  "version": "1.0.0",
+  "category": "sfx",
+  "synth": "scrape",
+  "params": {
+    "seed": 12
+  },
+  "durationSec": 0.5,
+  "description": "Desk scraping across floor",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Synthesised deterministically by packages/audio/src/synth.ts; no samples or recordings."
+  }
+}
