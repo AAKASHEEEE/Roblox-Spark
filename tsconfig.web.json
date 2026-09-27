@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "strict": true,
+    "noUnusedLocals": false,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "resolveJsonModule": false,
+    "sourceMap": false,
+    "types": []
+  },
+  "include": ["packages/*/src/**/*.ts", "apps/studio/src/**/*.ts"]
+}

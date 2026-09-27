@@ -1,0 +1,137 @@
+// Browser-side deterministic frame capture + WebCodecs encode.
+// Frames are rendered at t = frameIndex / fps (never wall-clock), so output is independent of render speed.
+
+export interface CaptureConfig {
+  width: number;
+  height: number;
+  fps: number;
+  bitrate: number;
+  keyframeInterval: number; // frames
+  codec: string; // e.g. avc1.640028 (High@4.0)
+  /** SHA-256 of raw pixels every N frames (0 = off) for determinism checks */
+  hashEvery: number;
+}
+
+export interface EncodedBatch {
+  /** base64 of concatenated chunk payloads */
+  b64: string;
+  sizes: number[];
+  keys: boolean[];
+  hashes: Array<[number, string]>;
+  renderMs: number;
+  encodeWaitMs: number;
+}
+
+export interface EncoderMeta {
+  avcCb64: string | null;
+  colorSpace: { primaries?: string | null; transfer?: string | null; matrix?: string | null; fullRange?: boolean | null } | null;
+  codec: string;
+}
+
+export function toB64(u8: Uint8Array): string {
+  let s = '';
+  const CH = 0x8000;
+  for (let i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, Array.from(u8.subarray(i, i + CH)));
+  return btoa(s);
+}
+export function fromB64(b64: string): Uint8Array {
+  const s = atob(b64);
+  const u = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
+  return u;
+}
+async function sha256Hex(data: Uint8Array): Promise<string> {
+  const d = new Uint8Array(await crypto.subtle.digest('SHA-256', data as unknown as ArrayBuffer));
+  return Array.from(d, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+export class FrameCapture {
+  private encoder: VideoEncoder;
+  private pending: Array<{ data: Uint8Array; key: boolean }> = [];
+  meta: EncoderMeta;
+  private error: Error | null = null;
+
+  constructor(private cfg: CaptureConfig, private canvas: HTMLCanvasElement, private readPixels: () => Uint8Array) {
+    this.meta = { avcCb64: null, colorSpace: null, codec: cfg.codec };
+    this.encoder = new VideoEncoder({
+      output: (chunk, md) => {
+        const data = new Uint8Array(chunk.byteLength);
+        chunk.copyTo(data);
+        this.pending.push({ data, key: chunk.type === 'key' });
+        const dc = md?.decoderConfig;
+        if (dc?.description && !this.meta.avcCb64) {
+          const desc = dc.description instanceof ArrayBuffer ? new Uint8Array(dc.description) : new Uint8Array((dc.description as ArrayBufferView).buffer);
+          this.meta.avcCb64 = toB64(desc);
+        }
+        if (dc?.colorSpace) this.meta.colorSpace = dc.colorSpace as EncoderMeta['colorSpace'];
+      },
+      error: (e) => { this.error = e as Error; },
+    });
+    this.encoder.configure({
+      codec: cfg.codec, width: cfg.width, height: cfg.height, bitrate: cfg.bitrate, framerate: cfg.fps,
+      bitrateMode: 'variable', latencyMode: 'quality', hardwareAcceleration: 'no-preference', avc: { format: 'avc' },
+    } as VideoEncoderConfig);
+  }
+
+  /** Render + encode frames [from, to). renderFrame must draw frame i synchronously into the canvas. */
+  async encodeRange(from: number, to: number, renderFrame: (i: number) => void, final: boolean): Promise<EncodedBatch> {
+    let renderMs = 0, encodeWaitMs = 0;
+    const hashes: Array<[number, string]> = [];
+    for (let i = from; i < to; i++) {
+      const t0 = performance.now();
+      renderFrame(i);
+      if (this.cfg.hashEvery && i % this.cfg.hashEvery === 0) hashes.push([i, await sha256Hex(this.readPixels())]);
+      const frame = new VideoFrame(this.canvas, { timestamp: Math.round((i * 1e6) / this.cfg.fps), duration: Math.round(1e6 / this.cfg.fps) });
+      renderMs += performance.now() - t0;
+      this.encoder.encode(frame, { keyFrame: i % this.cfg.keyframeInterval === 0 });
+      frame.close();
+      const t1 = performance.now();
+      while (this.encoder.encodeQueueSize > 3) await new Promise((r) => setTimeout(r, 1));
+      encodeWaitMs += performance.now() - t1;
+      if (this.error) throw this.error;
+    }
+    if (final) await this.encoder.flush();
+    if (this.error) throw this.error;
+    const out = this.pending; this.pending = [];
+    const total = out.reduce((s, c) => s + c.data.length, 0);
+    const cat = new Uint8Array(total);
+    let o = 0;
+    for (const c of out) { cat.set(c.data, o); o += c.data.length; }
+    return { b64: toB64(cat), sizes: out.map((c) => c.data.length), keys: out.map((c) => c.key), hashes, renderMs, encodeWaitMs };
+  }
+}
+
+/** Encode interleaved float32 stereo PCM (48 kHz) to Opus packets with WebCodecs. */
+export async function encodeOpus(pcmB64: string, sampleRate: number, channels: number, bitrate = 160000): Promise<{ b64: string; sizes: number[]; durations: number[]; descB64: string | null }> {
+  const raw = fromB64(pcmB64);
+  const pcm = new Float32Array(raw.buffer, raw.byteOffset, raw.byteLength / 4);
+  const packets: Array<{ data: Uint8Array; duration: number }> = [];
+  let desc: Uint8Array | null = null;
+  let err: Error | null = null;
+  const ae = new AudioEncoder({
+    output: (chunk, md) => {
+      const d = new Uint8Array(chunk.byteLength); chunk.copyTo(d);
+      packets.push({ data: d, duration: Math.round(((chunk.duration ?? 20000) * sampleRate) / 1e6) });
+      const dd = md?.decoderConfig?.description;
+      if (dd && !desc) desc = dd instanceof ArrayBuffer ? new Uint8Array(dd) : new Uint8Array((dd as ArrayBufferView).buffer);
+    },
+    error: (e) => { err = e as Error; },
+  });
+  ae.configure({ codec: 'opus', sampleRate, numberOfChannels: channels, bitrate, opus: { frameDuration: 20000, complexity: 10 } } as AudioEncoderConfig);
+  const frames = pcm.length / channels;
+  const block = 4800;
+  for (let f = 0; f < frames; f += block) {
+    const n = Math.min(block, frames - f);
+    const data = pcm.subarray(f * channels, (f + n) * channels);
+    const ad = new AudioData({ format: 'f32', sampleRate, numberOfFrames: n, numberOfChannels: channels, timestamp: Math.round((f * 1e6) / sampleRate), data: new Float32Array(data) });
+    ae.encode(ad); ad.close();
+  }
+  await ae.flush();
+  if (err) throw err;
+  const total = packets.reduce((s, p) => s + p.data.length, 0);
+  const cat = new Uint8Array(total);
+  let o = 0;
+  for (const p of packets) { cat.set(p.data, o); o += p.data.length; }
+  const d: Uint8Array | null = desc;
+  return { b64: toB64(cat), sizes: packets.map((p) => p.data.length), durations: packets.map((p) => p.duration), descB64: d ? toB64(d) : null };
+}
