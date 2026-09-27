@@ -78,7 +78,9 @@ const api = {
       prod!.evaluate(t);
       const rig = prod!.rigs.get(actor)!, tr = prod!.tracks.get(actor)!;
       const w = rig.root.world, f = rig.face.world;
-      return { t, root: rig.root.worldPos(), yaw: Math.atan2(w[8], w[10]) * 180 / Math.PI, fwdY: w[9], head: rig.face.worldPos(), faceYaw: Math.atan2(f[8], f[10]) * 180 / Math.PI, faceFwd: [f[8], f[9], f[10]], gazeFrom: ((n) => [n[0], n[1] + rig.dims.headH * 0.5, n[2]])(rig.joints.neck.worldPos()), handL: rig.hand_l.worldPos(), handR: rig.hand_r.worldPos(), soleL: rig.sole_l.worldPos(), soleR: rig.sole_r.worldPos(), stance: tr.lastStance ?? null, target: target ? prod!.point(target, t) ?? null : null };
+      // same foot point as the probe API / G21: sole x,z with the lowest toe/heel height
+      const foot = (side: 'l' | 'r') => { const ys = rig.probes.filter((p) => p.name === `probe:toe_${side}` || p.name === `probe:heel_${side}`).map((p) => p.worldPos()[1]); const s = (side === 'l' ? rig.sole_l : rig.sole_r).worldPos(); return [s[0], Math.min(...ys), s[2]]; };
+      return { t, root: rig.root.worldPos(), footL: foot('l'), footR: foot('r'), yaw: Math.atan2(w[8], w[10]) * 180 / Math.PI, fwdY: w[9], head: rig.face.worldPos(), faceYaw: Math.atan2(f[8], f[10]) * 180 / Math.PI, faceFwd: [f[8], f[9], f[10]], gazeFrom: ((n) => [n[0], n[1] + rig.dims.headH * 0.5, n[2]])(rig.joints.neck.worldPos()), handL: rig.hand_l.worldPos(), handR: rig.hand_r.worldPos(), soleL: rig.sole_l.worldPos(), soleR: rig.sole_r.worldPos(), stance: tr.lastStance ?? null, target: target ? prod!.point(target, t) ?? null : null };
     });
   },
   /** QA: an actor's compiled motion segments (yaw pass + synchronised-onset plans, when the profile uses them) */
