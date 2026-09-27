@@ -1,6 +1,7 @@
 // Deterministic idea scanner: safety, protected IP, characters, places, objects and mechanisms.
 // Used by the offline `rules` provider AND by Stage C as an independent safety net for any model provider.
 // General vocabulary lists — never keyed to specific benchmark sentences.
+import { classifyObjectIntent } from './safety.ts';
 
 export type Mention<K extends string> = { mention: string; kind: K; id?: string; index: number };
 
@@ -109,6 +110,8 @@ export function scanIdea(idea: string): IdeaScan {
     if (findWord(text, w) >= 0) safety.push({ category: cat, term: w });
   }
   if (FIRE_CONTEXT.test(text) && !safety.some((s) => s.category === 'dangerous_imitation')) safety.push({ category: 'dangerous_imitation', term: 'fire' });
+  // contextual object + intent (safety.ts): an everyday harm-capable object used against a person
+  for (const f of classifyObjectIntent(idea)) safety.push({ category: f.category, term: f.term });
   const ip: IdeaScan['ip'] = [];
   for (const g of IP) for (const n of g.names) {
     const i = findWord(text, n);
