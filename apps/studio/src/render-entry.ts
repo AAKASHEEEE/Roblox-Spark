@@ -62,6 +62,14 @@ const api = {
   stats: () => renderer!.stats,
   encodeOpus: (pcmB64: string, sr: number, ch: number, br: number) => encodeOpus(pcmB64, sr, ch, br),
   lastIssues: () => lastIssues,
+  /** QA: depth of samples along camera->face ray inside a prop */
+  rayDebug(actor: string, inst: string, t: number) {
+    const f = prod!.evaluate(t);
+    const face = prod!.rigs.get(actor)!.face.worldPos();
+    const c = f.cam.pos; const out: string[] = [`cam ${c.map((x) => x.toFixed(2))} face ${face.map((x) => x.toFixed(2))} coin ${prod!.props.get(inst)!.inst.root.worldPos().map((x) => x.toFixed(2))}`];
+    for (let k = 0; k <= 10; k++) { const u = k / 10; const p = [c[0] + (face[0] - c[0]) * u, c[1] + (face[1] - c[1]) * u, c[2] + (face[2] - c[2]) * u] as [number, number, number]; out.push(`${u.toFixed(1)} depth ${prod!.propDepth(inst, p, t).toFixed(3)}`); }
+    return out;
+  },
   /** QA: hand positions vs an anchor (contact / interpenetration checks) */
   hands(actor: string, anchor: string, a: number, b: number) {
     const out: string[] = [];

@@ -194,6 +194,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
       playback, loopDiff, pageErrors, log: logLines,
     };
     writeFileSync(join(outDir, 'render-log.json'), JSON.stringify(renderLog, null, 2));
+    writeFileSync(join(outDir, 'analysis.json'), JSON.stringify({ analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts }));
     const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps });
     writeFileSync(join(outDir, 'quality-report.json'), JSON.stringify(q, null, 2));
     writeFileSync(join(outDir, 'quality-report.md'), qualityMarkdown(q, ep, renderLog));

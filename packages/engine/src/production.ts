@@ -363,7 +363,8 @@ export class Production {
         const toCam = norm(sub(f.cam.pos, face));
         if (!fp || fp.x < 0.02 || fp.x > 0.98 || fp.y < 0.02 || fp.y > 0.98) issues.push({ t: f.t, shot: shot.id, code: 'FACE_OUT_OF_FRAME', message: `${sid} face not in frame`, subject: sid });
         else if (dot(toCam, faceN) < 0.15) issues.push({ t: f.t, shot: shot.id, code: 'FACE_TURNED_AWAY', message: `${sid} face turned away from camera (dot=${dot(toCam, faceN).toFixed(2)})`, subject: sid });
-        const occ = this.occluder(f.cam.pos, face, base);
+        const buried = [...this.props.keys()].find((k) => this.props.get(k)!.track.stateAt(f.t).visible && this.propDepth(k, face, f.t) > -0.03);
+        const occ = buried ? `prop:${buried} (face buried inside it)` : this.occluder(f.cam.pos, face, base) ?? this.propOccluder(f.cam.pos, face, f.t);
         if (occ) issues.push({ t: f.t, shot: shot.id, code: 'FACE_OCCLUDED', message: `${sid} face occluded by ${occ}`, subject: sid });
       }
     }
@@ -377,6 +378,20 @@ export class Production {
     return issues;
   }
 
+  /** props between camera and point (exact local-space shape tests along the ray, last 6 cm excluded). */
+  private propOccluder(from: Vec3, to: Vec3, t: number): string | undefined {
+    const L = len(sub(to, from));
+    const n = Math.max(24, Math.ceil(L / 0.03));
+    for (const [inst, p] of this.props) {
+      if (!p.track.stateAt(t).visible) continue;
+      for (let k = 1; k < n; k++) {
+        const u = k / n;
+        if ((1 - u) * L < 0.06) break;
+        if (this.propDepth(inst, [from[0] + (to[0] - from[0]) * u, from[1] + (to[1] - from[1]) * u, from[2] + (to[2] - from[2]) * u], t) > 0) return `prop:${inst}`;
+      }
+    }
+    return undefined;
+  }
   /** segment vs AABB test against environment colliders (camera -> face). */
   private occluder(from: Vec3, to: Vec3, self: string): string | undefined {
     const d = sub(to, from);

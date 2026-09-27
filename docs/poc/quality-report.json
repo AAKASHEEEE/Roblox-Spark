@@ -1,0 +1,193 @@
+{
+  "summary": {
+    "total": 23,
+    "passed": 23,
+    "failed": []
+  },
+  "gates": [
+    {
+      "id": "G01",
+      "name": "Playable MP4 produced automatically (no screen recording)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "Chromium decoded 90 frames in 2.96s real-time playback, 0 dropped; errors: none"
+    },
+    {
+      "id": "G02",
+      "name": "Resolution 1080x1920",
+      "pass": true,
+      "kind": "measured",
+      "detail": "container 1080x1920, decoded 1080x1920"
+    },
+    {
+      "id": "G03",
+      "name": "Duration 14-18 s",
+      "pass": true,
+      "kind": "measured",
+      "detail": "video 17.000s, audio 17.020s (incl. 312-sample Opus pre-skip)"
+    },
+    {
+      "id": "G04",
+      "name": "Stable frame rate",
+      "pass": true,
+      "kind": "measured",
+      "detail": "510 samples (expected 510), unique sample durations 1000 @ timescale 30000 => 30.000 fps constant"
+    },
+    {
+      "id": "G05",
+      "name": "Audio present, decodable, length matches video",
+      "pass": true,
+      "kind": "measured",
+      "detail": "codec Opus, 2ch 48000 Hz; decoded 395291 bytes; |audio-video| = 13.5 ms"
+    },
+    {
+      "id": "G06",
+      "name": "Audio synchronised to visual events (<= 1 frame)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "synced cues are pinned to computed contact/impact times; repairs: none needed"
+    },
+    {
+      "id": "G07",
+      "name": "Premise (hero prop) visible within 1 s",
+      "pass": true,
+      "kind": "measured",
+      "detail": "opening shot s01 prop_ecu on \"button\" from t=0; hard framing issues in first second: 0"
+    },
+    {
+      "id": "G08",
+      "name": "Protagonist and hero prop identifiable",
+      "pass": true,
+      "kind": "measured",
+      "detail": "zapp is a framed subject in 6 shots; face/framing issues on zapp: 0"
+    },
+    {
+      "id": "G09",
+      "name": "No unexplained teleportation (actors/props)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "checked 510 consecutive frames: max plausible speed thresholds 7 m/s (actors) / 14 m/s (props)"
+    },
+    {
+      "id": "G10",
+      "name": "Cause -> effect: contact happens and triggers the event",
+      "pass": true,
+      "kind": "measured",
+      "detail": "zapp.press_button@3.828s hand-to-target 0.0 cm; press/spawn causality validated"
+    },
+    {
+      "id": "G11",
+      "name": "Facial change at every information-change beat",
+      "pass": true,
+      "kind": "static",
+      "detail": "every non-hook/loop information beat contains an expression change or emote"
+    },
+    {
+      "id": "G12",
+      "name": "Meaningful visual change every <= 1.5 s",
+      "pass": true,
+      "kind": "static",
+      "detail": "longest interval without a new cut/action/expression/prop/VFX event: 1.2s"
+    },
+    {
+      "id": "G13",
+      "name": "No shot > 3 s without a cut",
+      "pass": true,
+      "kind": "static",
+      "detail": "shot lengths: 1.20, 1.05, 1.05, 1.30, 1.20, 1.40, 1.25, 1.55, 1.30, 1.30, 2.30, 1.00, 1.10"
+    },
+    {
+      "id": "G14",
+      "name": "Largest physical reversal in the final 3 s",
+      "pass": true,
+      "kind": "measured",
+      "detail": "largest impact coin:tip_over strength 16.7 at 14.25s (window starts 14s)"
+    },
+    {
+      "id": "G15",
+      "name": "Ending loops into the opening",
+      "pass": true,
+      "kind": "measured",
+      "detail": "decoded last-vs-first frame mean abs diff 2.62% (a mid-episode control frame differs by 33.81%)"
+    },
+    {
+      "id": "G16",
+      "name": "Character identity locked (versioned manifests + hash lock)",
+      "pass": true,
+      "kind": "static",
+      "detail": "zapp@1.0.0 sha256 558834f42521; kira@1.0.0 sha256 54c5948d437e; episodes cannot contain appearance fields (strict schema)"
+    },
+    {
+      "id": "G17",
+      "name": "All assets licensed/owned with metadata",
+      "pass": true,
+      "kind": "static",
+      "detail": "every environment/character/prop/audio manifest carries license.source/author/license; all are original-procedural"
+    },
+    {
+      "id": "G18",
+      "name": "No protected branding or third-party IP",
+      "pass": true,
+      "kind": "static",
+      "detail": "banned-term scan clean; no external meshes/textures/sounds are loaded by the engine at all"
+    },
+    {
+      "id": "G19",
+      "name": "Family-safe (no gore/sexual/weapons/real-money giveaways)",
+      "pass": true,
+      "kind": "static",
+      "detail": "In-world fictional coins only; no real currency, no platform currency names, no calls to action."
+    },
+    {
+      "id": "G20",
+      "name": "Shot validation (screen-space bounds, face visibility, hand-vs-geometry penetration)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "170 sampled frames: hard issues 0, soft issues 1; {\"CAMERA_ADJUSTED\":38,\"SUBJECT_OUTSIDE_ACTION_SAFE\":1}"
+    },
+    {
+      "id": "G21",
+      "name": "Planted feet do not slide during locomotion",
+      "pass": true,
+      "kind": "measured",
+      "detail": "40 planted-foot samples while moving: median 0.005 m/s, p95 0.041 m/s vs root speed 1.2-2.7 m/s. Excluded: 8 touchdown frames (max 2.94 m/s) and 13 run flight-phase frames"
+    },
+    {
+      "id": "G22",
+      "name": "Loudness normalised, no clipping",
+      "pass": true,
+      "kind": "measured",
+      "detail": "integrated -14.1 LUFS (target -14), approx true peak -1.5 dBFS, limiter max GR -6.56 dB"
+    },
+    {
+      "id": "G23",
+      "name": "Story readable while muted",
+      "pass": true,
+      "kind": "proxy",
+      "detail": "PROXY ONLY: every beat has a shot, causal chain is on screen, emotes/expressions carry the reactions and no dialogue is needed. A human viewing test is still required to confirm comprehension."
+    }
+  ],
+  "frameIssues": {
+    "CAMERA_ADJUSTED": 38,
+    "SUBJECT_OUTSIDE_ACTION_SAFE": 1
+  },
+  "issuesByShot": {
+    "s08": {
+      "CAMERA_ADJUSTED": 15,
+      "SUBJECT_OUTSIDE_ACTION_SAFE:kira": 1
+    },
+    "s11": {
+      "CAMERA_ADJUSTED": 23
+    }
+  },
+  "motion": {
+    "footSlipMedian": 0.004518513485579411,
+    "footSlipP95": 0.041238184326453924,
+    "samples": 40,
+    "teleports": []
+  },
+  "notes": [
+    "Gates marked \"proxy\" approximate creative judgement and need human review.",
+    "Frame issues are sampled every 3rd frame from the deterministic timeline before pixels are rendered."
+  ]
+}

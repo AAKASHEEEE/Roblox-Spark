@@ -1,0 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { launchBrowser } from '../apps/render-worker/lib/browser.ts';
+import { startServer, ROOT } from '../apps/render-worker/lib/server.ts';
+import { loadLibrary } from '../apps/render-worker/lib/library.ts';
+const [actor, inst, t] = process.argv.slice(2);
+const ep = JSON.parse(readFileSync(ROOT + '/episodes/free-coins-loop-001.json', 'utf8'));
+const { server, url } = await startServer(0); const b = await launchBrowser(); const p = await b.newPage();
+await p.goto(url + '/apps/studio/render.html'); await p.waitForFunction(() => (window as any).__spark?.ready);
+await p.evaluate(([e, l]: any) => (window as any).__spark.load(e, l, 270, 480), [ep, loadLibrary()]);
+console.log((await p.evaluate(([a, i, t]: any) => (window as any).__spark.rayDebug(a, i, Number(t)), [actor, inst, t])).join('\n'));
+await b.close(); server.close();

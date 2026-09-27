@@ -65,10 +65,10 @@ function renderStoryboard(): void {
     const pe = e.propEvents.filter((p) => p.start >= b.start && p.start < b.end).map((p) => `${p.prop}.${p.event}`);
     return `<div class="beat" data-t="${b.start}"><div class="bh"><b>${esc(b.id)}</b> ${esc(b.intent)} <span>${b.start.toFixed(2)}–${b.end.toFixed(2)}s</span></div>
       <div>${esc(b.summary)}</div>
-      <div class="tags">🎥 ${shots.map((s) => esc(s.preset)).join(', ')}</div>
-      <div class="tags">🏃 ${acts.map((a) => esc(`${a.actor}.${a.action}`)).join(', ') || '—'}</div>
-      <div class="tags">🙂 ${ex.map(esc).join(', ') || '—'}</div>
-      <div class="tags">📦 ${pe.map(esc).join(', ') || '—'}</div></div>`;
+      <div class="tags">cam: ${shots.map((s) => esc(s.preset)).join(', ')}</div>
+      <div class="tags">act: ${acts.map((a) => esc(`${a.actor}.${a.action}`)).join(', ') || '—'}</div>
+      <div class="tags">face: ${ex.map(esc).join(', ') || '—'}</div>
+      <div class="tags">prop: ${pe.map(esc).join(', ') || '—'}</div></div>`;
   }).join('');
   for (const el of Array.from(document.querySelectorAll('.beat'))) (el as HTMLElement).onclick = () => seek(Number((el as HTMLElement).dataset.t));
 }

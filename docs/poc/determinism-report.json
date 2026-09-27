@@ -1,0 +1,16 @@
+{
+  "episode": "episodes/free-coins-loop-001.json",
+  "scale": 1,
+  "framesCompared": 510,
+  "identicalFramePixels": true,
+  "differingFrames": [],
+  "identicalMp4Bytes": true,
+  "mp4Sha256": [
+    "f8c0a2bdc15305e4e84614e38af7090b42df166ee3dde13fbf18b4c7af2d2609",
+    "f8c0a2bdc15305e4e84614e38af7090b42df166ee3dde13fbf18b4c7af2d2609"
+  ],
+  "msPerFrame": [
+    429.7,
+    429.9
+  ]
+}
