@@ -42,7 +42,8 @@ export function fromB64(b64: string): Uint8Array {
   for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
   return u;
 }
-async function sha256Hex(data: Uint8Array): Promise<string> {
+/** SHA-256 of raw pixels: the SAME function the capture path uses for frame hashes (golden hashes depend on it) */
+export async function sha256Hex(data: Uint8Array): Promise<string> {
   const d = new Uint8Array(await crypto.subtle.digest('SHA-256', data as unknown as ArrayBuffer));
   return Array.from(d, (b) => b.toString(16).padStart(2, '0')).join('');
 }

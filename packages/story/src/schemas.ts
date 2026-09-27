@@ -2,6 +2,7 @@
 // Schemas are built from the live capability registry so enums always equal what the engine can render.
 import { v, type SchemaT } from '../../schema/src/v.ts';
 import { ACTIONS, EXPRESSIONS, CAMERA_PRESETS } from '../../schema/src/episode.ts';
+import { MOTION_PROFILE_IDS } from '../../schema/src/render-compat.ts';
 
 export const ENGINES = ['ordinary_object_extreme', 'visible_secret_chase', 'apparent_win_instant_loss', 'noob_vs_smart'] as const;
 export type Engine = (typeof ENGINES)[number];
@@ -25,6 +26,8 @@ export const StoryRequestSchema = v.object({
   durationTarget: v.number({ min: 14, max: 22 }),
   comedyEngine: v.enum(ENGINES).nullable(),
   seed: v.int({ min: 0, max: 2 ** 31 - 1 }),
+  /** motion profile declared by the generated episode; absent => DEFAULT_MOTION_PROFILE (render-compat.ts) */
+  motionProfile: v.enum(MOTION_PROFILE_IDS).optional(),
 });
 export type StoryRequest = SchemaT<typeof StoryRequestSchema>;
 

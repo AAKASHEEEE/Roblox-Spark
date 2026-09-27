@@ -2,7 +2,7 @@
 import type { Episode } from '../../../packages/schema/src/episode.ts';
 import { Renderer } from '../../../packages/engine/src/gl/renderer.ts';
 import { Production, type Library, type FrameIssue } from '../../../packages/engine/src/production.ts';
-import { FrameCapture, encodeOpus } from '../../../packages/engine/src/capture.ts';
+import { FrameCapture, encodeOpus, sha256Hex } from '../../../packages/engine/src/capture.ts';
 
 let prod: Production | null = null;
 let renderer: Renderer | null = null;
@@ -22,7 +22,16 @@ const api = {
     ensure(w, h);
     prod = new Production(ep, lib);
     fps = ep.episode.fps;
-    return { renderer: renderer!.gl.getParameter(renderer!.gl.RENDERER) as string, contacts: prod.contacts(), impacts: [...prod.props].flatMap(([id, p]) => p.track.impacts.map((i) => ({ prop: id, ...i }))) };
+    return { renderer: renderer!.gl.getParameter(renderer!.gl.RENDERER) as string, render: prod.renderDecl, renderKey: prod.renderKey, contacts: prod.contacts(), impacts: [...prod.props].flatMap(([id, p]) => p.track.impacts.map((i) => ({ prop: id, ...i }))) };
+  },
+  /**
+   * Golden-hash path: render frame i at t = i / fps and hash the raw RGBA exactly like FrameCapture does (same draw call,
+   * same readPixels, same SHA-256), without encoding. Random access: frames may be any subset in any order.
+   */
+  async hashFrames(frames: number[]): Promise<Array<[number, string]>> {
+    const out: Array<[number, string]> = [];
+    for (const i of frames) { prod!.render(renderer!, i / fps); out.push([i, await sha256Hex(renderer!.readPixels())]); }
+    return out;
   },
   /** Render one frame at time t and return it as PNG data URL (QA stills / thumbnails / contact sheets). */
   still(t: number): string {
@@ -63,6 +72,15 @@ const api = {
   stats: () => renderer!.stats,
   encodeOpus: (pcmB64: string, sr: number, ch: number, br: number) => encodeOpus(pcmB64, sr, ch, br),
   lastIssues: () => lastIssues,
+  /** action-reel QA: full pose summary of one actor at each time */
+  pose(times: number[], actor: string, target?: string) {
+    return times.map((t) => {
+      prod!.evaluate(t);
+      const rig = prod!.rigs.get(actor)!, tr = prod!.tracks.get(actor)!;
+      const w = rig.root.world, f = rig.face.world;
+      return { t, root: rig.root.worldPos(), yaw: Math.atan2(w[8], w[10]) * 180 / Math.PI, fwdY: w[9], head: rig.face.worldPos(), faceYaw: Math.atan2(f[8], f[10]) * 180 / Math.PI, faceFwd: [f[8], f[9], f[10]], gazeFrom: ((n) => [n[0], n[1] + rig.dims.headH * 0.5, n[2]])(rig.joints.neck.worldPos()), handL: rig.hand_l.worldPos(), handR: rig.hand_r.worldPos(), soleL: rig.sole_l.worldPos(), soleR: rig.sole_r.worldPos(), stance: tr.lastStance ?? null, target: target ? prod!.point(target, t) ?? null : null };
+    });
+  },
   /** QA: depth of samples along camera->face ray inside a prop */
   rayDebug(actor: string, inst: string, t: number) {
     const f = prod!.evaluate(t);

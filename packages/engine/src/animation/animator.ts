@@ -6,6 +6,7 @@ import type { Joint, Rig } from '../build.ts';
 import { JOINTS } from '../build.ts';
 import { DEG, clamp, cross, dot, hashSeed, len, noise1, norm, qEuler, qFromBasis, qFromMat, qMul, qConj, qSlerp, qAxisAngle, scale, sub, add, type Quat, type Vec3, rng } from '../math.ts';
 import { ACTION_DEFS, IDLE_POSE, idleLayer, type ActionCtx } from './actions.ts';
+import type { MotionBehaviour } from '../../../schema/src/render-compat.ts';
 import { blendAction, type ActionPose } from './pose.ts';
 
 export interface Segment {
@@ -29,6 +30,9 @@ export interface PointResolver {
 }
 
 export interface ActorDiag { handError?: number; soleSlip?: number; grounded: boolean; minY: number; stance?: 'l' | 'r' }
+
+/** neck look-at joint limits in degrees, relative to the spine frame (QA reports residual gaze error beyond these) */
+export const LOOK_LIMITS = { yaw: 75, pitchDown: 40, pitchUp: 35 } as const;
 
 const yawTo = (from: Vec3, to: Vec3): number => Math.atan2(to[0] - from[0], to[2] - from[2]) / DEG;
 const wrap = (d: number): number => { let x = ((d + 180) % 360 + 360) % 360 - 180; if (x === -180) x = 180; return x; };
@@ -59,8 +63,10 @@ export class ActorTrack {
 
   readonly id: string;
   readonly rig: Rig;
+  /** behaviour switches of the episode's DECLARED motion profile (render-compat.ts); never inferred */
+  readonly behaviour: MotionBehaviour;
   private res: PointResolver;
-  constructor(id: string, rig: Rig, actions: EpisodeAction[], startPos: Vec3, startYaw: number, res: PointResolver, episodeSeed: number, duration: number) { this.id = id; this.rig = rig; this.res = res;
+  constructor(id: string, rig: Rig, actions: EpisodeAction[], startPos: Vec3, startYaw: number, res: PointResolver, episodeSeed: number, duration: number, behaviour: MotionBehaviour) { this.id = id; this.rig = rig; this.res = res; this.behaviour = behaviour;
     this.seed = (hashSeed(id) ^ episodeSeed) >>> 0;
     this._startPos = startPos; this._startYaw = startYaw;
     const all = actions.filter((a) => a.actor === id).sort((x, y) => x.start - y.start);
@@ -75,25 +81,34 @@ export class ActorTrack {
       this.segs.push({ a, start: a.start, end: a.start + a.duration, fromPos: pos, toPos, dist: Math.hypot(d[0], d[2]), travelYaw: 0, fromYaw: 0, endYaw: 0, run: a.action === 'run' || a.action === 'chase' || a.action === 'dive_prone' || a.action === 'exit_frame' });
       pos = toPos;
     }
-    // pass 2: yaw (positions of all actors are known via resolver)
+    // pass 2: yaw (targets resolved through the resolver; see resolveYaw)
+    this.resolveYaw(startYaw);
+    // deterministic blink schedule
+    const r = rng(this.seed);
+    for (let t = 0.6 + r() * 1.5; t < duration + 2; t += 2.2 + r() * 2.4) this.blinks.push(t);
+  }
+
+  /**
+   * Yaw pass over the segments. Idempotent (depends only on segments, start yaw and the resolver). Production calls it
+   * again once every actor track exists, because a turn toward an actor cast LATER cannot resolve during construction.
+   */
+  resolveYaw(startYaw: number = this._startYaw): void {
+    this._startYaw = startYaw;
     let yaw = startYaw;
     // arrival facing is applied as an in-place turn AFTER the stop (turning while moving would drag the planted foot)
     let pendingFacing: number | undefined;
     for (const s of this.segs) {
       s.fromYaw = yaw;
-      const tgt = s.a.target ? res.point(s.a.target, s.start) : undefined;
+      const tgt = s.a.target ? this.res.point(s.a.target, s.start) : undefined;
       if (LOCOMOTION_ACTIONS.includes(s.a.action) && s.dist > 0.05) {
         s.travelYaw = yawTo(s.fromPos, s.toPos);
         s.endYaw = s.travelYaw;
-        pendingFacing = s.a.action === 'dive_prone' || !s.a.to ? undefined : res.markFacing(s.a.to);
+        pendingFacing = s.a.action === 'dive_prone' || !s.a.to ? undefined : this.res.markFacing(s.a.to);
       } else if ((s.a.action === 'turn_toward' || s.a.params?.turn === true) && tgt) {
         s.travelYaw = s.endYaw = yawTo(s.fromPos, tgt); pendingFacing = undefined;
       } else { s.travelYaw = s.endYaw = pendingFacing ?? yaw; pendingFacing = undefined; }
       yaw = s.endYaw;
     }
-    // deterministic blink schedule
-    const r = rng(this.seed);
-    for (let t = 0.6 + r() * 1.5; t < duration + 2; t += 2.2 + r() * 2.4) this.blinks.push(t);
   }
 
   segAt(t: number): { cur?: Segment; prev?: Segment } {
@@ -184,12 +199,17 @@ export class ActorTrack {
     rig.root.pos = [root.pos[0], 0, root.pos[2]];
     rig.root.rot = qMul(qEuler(0, root.yaw * DEG, 0), qEuler(pitch * DEG, 0, 0));
     const add3 = (a: Vec3 | undefined, b: Vec3 | undefined): Vec3 => [(a?.[0] ?? 0) + (b?.[0] ?? 0), (a?.[1] ?? 0) + (b?.[1] ?? 0), (a?.[2] ?? 0) + (b?.[2] ?? 0)];
+    // neck before additive layers: the look-at below blends from THIS pose and re-adds the layer afterwards, otherwise a
+    // look-at of weight w scales a head_shake layer by (1 - w) (action-reel finding: 22 deg shake measured as 4 deg)
+    const baseNeck = pose.joints.neck;
+    let layerNeck: Vec3 | undefined;
     for (const la of this.layers) {
       if (t < la.start || t >= la.start + la.duration) continue;
       const lp = ACTION_DEFS[la.action].pose({ lt: t - la.start, d: la.duration, u: (t - la.start) / la.duration, t, seed: this.seed, params: (la.params ?? {}) as Record<string, number | string | boolean> });
       for (const [j, e] of Object.entries(lp.joints)) {
         const cur = pose.joints[j as Joint] ?? [0, 0, 0];
         pose.joints = { ...pose.joints, [j]: [cur[0] + e![0], cur[1] + e![1], cur[2] + e![2]] };
+        if (j === 'neck') layerNeck = add3(layerNeck, e);
       }
     }
     const idleAmt = pose.still ? 0.15 : 1;
@@ -210,12 +230,28 @@ export class ActorTrack {
       const d = sub(pose.lookAt, hp);
       const spineQ = qFromMat(rig.joints.spine.world);
       const local = rotInv(spineQ, d);
-      const yaw = clamp(Math.atan2(local[0], local[2]) / DEG, -75, 75);
-      const pitchL = clamp(-Math.atan2(local[1], Math.hypot(local[0], local[2])) / DEG, -35, 40);
-      const cur = pose.joints.neck ?? [0, 0, 0];
+      const yaw = clamp(Math.atan2(local[0], local[2]) / DEG, -LOOK_LIMITS.yaw, LOOK_LIMITS.yaw);
+      const pitchL = clamp(-Math.atan2(local[1], Math.hypot(local[0], local[2])) / DEG, -LOOK_LIMITS.pitchUp, LOOK_LIMITS.pitchDown);
       const w = pose.lookWeight ?? 1;
-      const e: Vec3 = [cur[0] + (pitchL - cur[0]) * w, cur[1] + (yaw - cur[1]) * w, cur[2] * (1 - w)];
-      neck.rot = qEuler(e[0] * DEG, e[1] * DEG, e[2] * DEG);
+      const layered = this.behaviour.headLayersOverLookAt;
+      // legacy blends from the neck INCLUDING additive layers, so a look-at of weight w scales head_shake by (1 - w);
+      // corrected blends from the pose's own neck and re-applies the layers on top afterwards
+      const from = (layered ? baseNeck : pose.joints.neck) ?? [0, 0, 0];
+      if (this.behaviour.lookAt === 'euler-spine-pitch') {
+        // legacy-head-v1 (frozen): the pre-versioning math, unchanged. qEuler(pitch, yaw) is Rx * Ry, i.e. the pitch is
+        // applied about the SPINE's x axis: with the head turned by psi the gaze only drops asin(cos psi * sin theta).
+        const e: Vec3 = [from[0] + (pitchL - from[0]) * w, from[1] + (yaw - from[1]) * w, from[2] * (1 - w)];
+        if (layered && layerNeck) { e[0] += layerNeck[0]; e[1] += layerNeck[1]; e[2] += layerNeck[2]; }
+        neck.rot = qEuler(e[0] * DEG, e[1] * DEG, e[2] * DEG);
+      } else {
+        // corrected: yaw about the spine's up axis THEN pitch about the turned head's own x axis (Ry * Rx)
+        // (action reel: 30 deg needed, 17.1 deg reached under legacy with the head turned 54 deg; 30.1 deg here)
+        const look = qMul(qEuler(0, yaw * DEG, 0), qEuler(pitchL * DEG, 0, 0));
+        let q = w >= 0.999 ? look : qSlerp(qEuler(from[0] * DEG, from[1] * DEG, from[2] * DEG), look, w);
+        // additive layers (head_shake) ride on top of the gaze, in the head's own frame
+        if (layered && layerNeck) q = qMul(q, qEuler(layerNeck[0] * DEG, layerNeck[1] * DEG, layerNeck[2] * DEG));
+        neck.rot = q;
+      }
       rig.root.updateWorld();
     }
     // IK

@@ -1,6 +1,7 @@
 // Stage F — deterministic timeline compiler: semantic plan + staging + shots -> strict Episode v1.0.
 // Pure function (no randomness, no clock): identical inputs always give byte-identical episode JSON.
 import type { Episode, EpisodeAction } from '../../schema/src/episode.ts';
+import { CURRENT_RENDERER_VERSION, DEFAULT_MOTION_PROFILE, EPISODE_SCHEMA_VERSION } from '../../schema/src/render-compat.ts';
 import type { EnvironmentManifest } from '../../schema/src/assets.ts';
 import { ACTION_DEFS } from '../../engine/src/animation/actions.ts';
 import { hashSeed } from '../../engine/src/math.ts';
@@ -358,7 +359,9 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
   const idHash = (hashSeed(req.idea) % 46656).toString(36);
   const epId = `gen-${ENGINE_ABBR[plan.engine]}-${slug}-${idHash}-s${req.seed}`.slice(0, 64).replace(/-+$/, '');
   const ep: Episode = {
-    schemaVersion: '1.0',
+    schemaVersion: EPISODE_SCHEMA_VERSION,
+    // newly generated episodes declare the CURRENT renderer and the default motion profile explicitly
+    render: { rendererVersion: CURRENT_RENDERER_VERSION, motionProfile: req.motionProfile ?? DEFAULT_MOTION_PROFILE },
     episode: { id: epId, title: plan.title.slice(0, 80), logline: plan.logline.slice(0, 280), duration: D, format: 'vertical', resolution: [1080, 1920], fps: 30, seed: req.seed, comedyEngine: ({ ordinary_object_extreme: 'escalation_backfire', visible_secret_chase: 'too_good_to_be_true', apparent_win_instant_loss: 'too_good_to_be_true', noob_vs_smart: 'skeptic_reversal' } as const)[plan.engine] },
     environment: { id: env.id, version: env.version, lighting: 'morning' },
     cast: cast as never,

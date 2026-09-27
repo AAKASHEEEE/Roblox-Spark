@@ -12,6 +12,7 @@ import { DEG, add, m4, m4Mul, m4TRS, m4TransformPoint, m4Invert, qEuler, qMul, s
 import { PropTrack, type PropState } from './props.ts';
 import { texture } from './textures.ts';
 import { evalVfx } from './vfx.ts';
+import { resolveRenderCompat, type MotionBehaviour, type RenderDeclaration } from '../../schema/src/render-compat.ts';
 
 export interface Library {
   characters: Record<string, CharacterManifest>; // key id@version
@@ -37,7 +38,13 @@ export class Production {
 
   readonly ep: Episode;
   readonly lib: Library;
+  /** the episode's declared rendering compatibility (throws RenderCompatError when missing/unsupported: no fallback) */
+  readonly renderDecl: RenderDeclaration;
+  readonly renderKey: string;
+  readonly behaviour: MotionBehaviour;
   constructor(ep: Episode, lib: Library) { this.ep = ep; this.lib = lib;
+    const compat = resolveRenderCompat(ep);
+    this.renderDecl = compat.decl; this.renderKey = compat.key; this.behaviour = compat.behaviour;
     const envM = lib.environments[`${ep.environment.id}@${ep.environment.version}`];
     if (!envM) throw new Error(`environment ${ep.environment.id}@${ep.environment.version} missing`);
     this.env = buildEnvironment(envM);
@@ -82,7 +89,7 @@ export class Production {
       if (!mark) throw new Error(`${c.id}: start mark ${c.startMark} missing`);
       let yaw = mark.facingDeg;
       if (c.startFacing) { const p = this.point(c.startFacing, 0); if (p) yaw = Math.atan2(p[0] - mark.pos[0], p[2] - mark.pos[2]) / DEG; }
-      const track = new ActorTrack(c.id, rig, ep.actions, [mark.pos[0], 0, mark.pos[2]], yaw, res, ep.episode.seed, ep.episode.duration);
+      const track = new ActorTrack(c.id, rig, ep.actions, [mark.pos[0], 0, mark.pos[2]], yaw, res, ep.episode.seed, ep.episode.duration, this.behaviour);
       const ex = [{ at: 0, state: c.startExpression as string }];
       for (const e of ep.expressions) if (e.actor === c.id) ex.push({ at: e.at, state: e.state });
       for (const a of ep.actions) if (a.actor === c.id && a.expression) ex.push({ at: a.start, state: a.expression });
@@ -92,6 +99,18 @@ export class Production {
       em.billboard = true; em.castShadow = false; em.visible = false;
       this.root.add(em);
       this.emoteNodes.set(c.id, em);
+    }
+    // Declared profile only: a startFacing / turn target that is an actor cast LATER cannot resolve while the earlier
+    // tracks are being built (legacy-head-v1 keeps that behaviour: the turn is silently skipped). With laterCastTargets
+    // every track is re-resolved in cast order once all tracks exist (twice, so mutual references settle). The pass is
+    // idempotent: episodes without forward references resolve exactly as in the first pass.
+    if (this.behaviour.laterCastTargets) {
+      for (let pass = 0; pass < 2; pass++) for (const c of ep.cast) {
+        const mark = envM.marks[c.startMark];
+        let yaw = mark.facingDeg;
+        if (c.startFacing) { const p = this.point(c.startFacing, 0); if (p) yaw = Math.atan2(p[0] - mark.pos[0], p[2] - mark.pos[2]) / DEG; }
+        this.tracks.get(c.id)!.resolveYaw(yaw);
+      }
     }
     this.firstShot = [...ep.shots].sort((a, b) => a.start - b.start)[0];
   }

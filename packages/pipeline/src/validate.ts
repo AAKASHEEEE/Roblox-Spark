@@ -1,6 +1,7 @@
 // Episode validation: strict schema + semantic checks + safe automatic repairs.
 // Never executes anything from the episode; the episode is inert data.
 import { EpisodeSchema, LOCOMOTION_ACTIONS, type Episode } from '../../schema/src/episode.ts';
+import { checkRenderDeclaration } from '../../schema/src/render-compat.ts';
 import type { AudioManifest, CharacterManifest, EnvironmentManifest, PropManifest } from '../../schema/src/assets.ts';
 import { ACTION_DEFS } from '../../engine/src/animation/actions.ts';
 
@@ -43,6 +44,9 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
   const warn = (code: string, message: string, path?: string) => findings.push({ severity: 'warning', code, message, path });
   const info = (code: string, message: string) => findings.push({ severity: 'info', code, message });
 
+  // rendering compatibility first: a missing/unsupported declaration is reported with its own code, never defaulted
+  const compat = checkRenderDeclaration(raw);
+  if (!compat.ok) { err(compat.code, compat.message, compat.path); return { ok: false, findings, repairs, metrics: {} }; }
   const parsed = EpisodeSchema.parse(raw);
   if (!parsed.ok) {
     for (const i of parsed.issues) err('SCHEMA', i.message, i.path);

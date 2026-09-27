@@ -14,6 +14,7 @@ import { probeFile } from './lib/probe-node.ts';
 import { checkProductionProfile, PRODUCTION_SPEC } from '../../packages/mp4/src/probe.ts';
 import { encodeAacLc } from '../../packages/audio/src/aac/encoder.ts';
 import { EpisodeSchema } from '../../packages/schema/src/episode.ts';
+import { checkRenderDeclaration, canonicalJson, renderKey, semanticContent } from '../../packages/schema/src/render-compat.ts';
 import { contactSheet } from './lib/sheet.ts';
 import { validateEpisode } from '../../packages/pipeline/src/validate.ts';
 import { buildQualityReport, qualityMarkdown } from '../../packages/pipeline/src/quality.ts';
@@ -98,7 +99,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     const cdp = await page.context().newCDPSession(page);
     await cdp.send('Performance.enable');
     const info = await page.evaluate(([e, l, w, h]: any) => (window as any).__spark.load(e, l, w, h), [ep, lib, W, H]);
-    log(`renderer: ${info.renderer}; contacts: ${info.contacts.map((c: any) => `${c.actor}.${c.action}@${c.t.toFixed(3)}`).join(', ')}`);
+    log(`renderer: ${info.renderer}; declared renderer ${info.render.rendererVersion}, motion profile ${info.render.motionProfile}; contacts: ${info.contacts.map((c: any) => `${c.actor}.${c.action}@${c.t.toFixed(3)}`).join(', ')}`);
 
     // 3. analysis pass (no pixels): shot validation, contacts, motion probes
     phase('analyze', 0, 1);
@@ -233,8 +234,9 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     }
 
     // 9. reports
+    const renderDecl = { rendererVersion: ep.render.rendererVersion, motionProfile: ep.render.motionProfile, key: renderKey(ep.render), ...(ep.render.upgradedFrom ? { upgradedFrom: ep.render.upgradedFrom } : {}) };
     const renderLog = {
-      episode: id, episodeSha256: sha256(canonical(ep)), assetHashes: lib.hashes, mp4: relative(ROOT, mp4Path), mp4Sha256: mp4Sha, bytes: mp4.length,
+      episode: id, episodeSha256: sha256(canonical(ep)), semanticSha256: sha256(canonicalJson(semanticContent(ep))), render: renderDecl, assetHashes: lib.hashes, mp4: relative(ROOT, mp4Path), mp4Sha256: mp4Sha, bytes: mp4.length,
       resolution: [W, H], fps, frames: N, frameHashes: hashes,
       timing: { totalSec: (Date.now() - T0) / 1000, encodeWallSec: encodeWall / 1000, msPerFrame: +(encodeWall / N).toFixed(1), renderOnlyMsPerFrame: +(renderMs / N).toFixed(1), realtimeFactor: +((encodeWall / 1000) / ep.episode.duration).toFixed(2) },
       memory: { peakPageJsHeapMB: +(peakJsHeap / 1e6).toFixed(1), workerRssMB: +(process.memoryUsage().rss / 1e6).toFixed(1), hostTotalGB: +(os.totalmem() / 1e9).toFixed(1) },
@@ -243,6 +245,14 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
       playback, loopDiff, pageErrors, log: logLines, profile, audioCodec, probe: { tool: probe.tool, production }, aacCheck,
     };
     writeFileSync(join(outDir, 'render-log.json'), JSON.stringify(renderLog, null, 2));
+    // render manifest: the compact reproducibility contract of this output (what was declared, what came out)
+    const frameHashesSha256 = sha256(hashes.map(([i, h]) => `${i}:${h}`).join('\n'));
+    writeFileSync(join(outDir, 'render-manifest.json'), JSON.stringify({
+      manifest: 'blockspark.render-manifest/1', episode: { id, episodeSha256: renderLog.episodeSha256, semanticSha256: renderLog.semanticSha256, schemaVersion: ep.schemaVersion },
+      rendererVersion: renderDecl.rendererVersion, motionProfile: renderDecl.motionProfile, renderKey: renderDecl.key, ...(renderDecl.upgradedFrom ? { upgradedFrom: renderDecl.upgradedFrom } : {}),
+      resolution: [W, H], fps, frames: N, hashedFrames: hashes.length, hashEvery: o.hashEvery ?? 15, frameHashesSha256, mp4: relative(ROOT, mp4Path), mp4Sha256: mp4Sha, audioCodec,
+      assetLockSha256: sha256(canonical(lib.hashes)), host: { chromium: renderLog.host.chromium, glRenderer: info.renderer, gpu: !!o.gpu },
+    }, null, 2));
     writeFileSync(join(outDir, 'analysis.json'), JSON.stringify({ analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts }));
     const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps, profile, resolution: [W, H], production, aacCheck, extraGates: o.extraGates?.({ ep, analysis, probes, playback, loopDiff }) ?? [] });
     writeFileSync(join(outDir, 'quality-report.json'), JSON.stringify(q, null, 2));
@@ -256,8 +266,10 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
   }
 }
 
-/** schema-only validation (diagnostic reels): strict structure, no story gates */
+/** schema-only validation (diagnostic reels): strict structure, no story gates — the render declaration is still mandatory */
 function schemaOnly(raw: unknown): any {
+  const c = checkRenderDeclaration(raw);
+  if (!c.ok) return { ok: false, findings: [{ severity: 'error', code: c.code, message: c.message, path: c.path }], repairs: [], metrics: {} };
   const r = EpisodeSchema.parse(raw);
   return r.ok ? { ok: true, episode: r.value, findings: [{ severity: 'info', code: 'DIAGNOSTIC', message: 'schema-only validation (diagnostic render; story gates not applicable)' }], repairs: [], metrics: {} } : { ok: false, findings: r.issues.map((i) => ({ severity: 'error', code: 'SCHEMA', message: i.message, path: i.path })), repairs: [], metrics: {} };
 }
