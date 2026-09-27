@@ -373,4 +373,24 @@ D.drink = {
 D.hover = { holds: true, blendIn: 0.1, pose: (c) => ({ joints: {}, lift: 0.08 * Math.sin(c.lt * 6) }) };
 
 export const ACTION_DEFS = D as Record<ActionName, ActionDef>;
+
+/**
+ * Engine features some actions need before they are USABLE in stories (their poses exist either way and are exercised by
+ * the action reel). Flip a feature to true only when it is implemented and tested; availability follows automatically.
+ */
+export const ENGINE_FEATURES = { handAttachment: false, floatingRig: false } as const;
+export type EngineFeature = keyof typeof ENGINE_FEATURES;
+const HAND = 'the held object must follow the hand; engine 1.0 has no prop-to-hand attachment, so the object would stay behind';
+export const ACTION_REQUIREMENTS: Partial<Record<ActionName, { features: EngineFeature[]; reason: string }>> = {
+  pick_up: { features: ['handAttachment'], reason: HAND },
+  hold: { features: ['handAttachment'], reason: HAND },
+  put_down: { features: ['handAttachment'], reason: HAND },
+  throw: { features: ['handAttachment'], reason: `${HAND}; a thrown object also needs release + flight` },
+  drink: { features: ['handAttachment'], reason: `${HAND}; no drinkable prop exists either` },
+  hover: { features: ['floatingRig'], reason: 'only floating rigs can hover and none is built (BZTT is unbuilt)' },
+};
+/** features an action still needs (empty = available) */
+export function unmetRequirements(action: ActionName, features: Record<EngineFeature, boolean> = ENGINE_FEATURES): EngineFeature[] {
+  return (ACTION_REQUIREMENTS[action]?.features ?? []).filter((f) => !features[f]);
+}
 export const IMPLEMENTED_ACTIONS = Object.keys(D) as ActionName[];

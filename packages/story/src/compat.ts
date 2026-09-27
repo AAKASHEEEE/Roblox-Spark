@@ -59,7 +59,7 @@ export function checkCompatibility(idea: NormalizedIdea, plan: VisualBeatPlan, r
     if (b.action !== 'none') {
       const cap = reg.actions[b.action];
       if (!cap?.implemented) c('UNKNOWN_ACTION', `action "${b.action}" is not implemented`, b.id, 'action', { allowed: spec.allowedActions });
-      else if (!cap.storyUse) c('UNUSABLE_ACTION', `action "${b.action}" cannot be used in stories: ${cap.note}`, b.id, 'action', { allowed: spec.allowedActions.filter((a) => reg.actions[a]?.storyUse) });
+      else if (cap.availability.status === 'unavailable') c('ACTION_UNAVAILABLE', `action "${b.action}" is unavailable to the generator: ${cap.availability.reason}${cap.availability.requires.length ? ` (requires: ${cap.availability.requires.join(', ')})` : ''}`, b.id, 'action', { allowed: spec.allowedActions.filter((a) => reg.actions[a]?.storyUse) });
       const actor = b.actor !== 'none' ? reg.characters[b.actor] : null;
       if (actor && !actor.allowedActions.includes(b.action as never)) c('ACTION_NOT_ALLOWED', `${b.actor}@${actor.version} is not allowed to ${b.action}`, b.id, 'action', { allowed: spec.allowedActions.filter((a) => actor.allowedActions.includes(a as never)) });
       if (b.action === 'press_button' && b.target !== 'button.press_surface') c('ACTION_TARGET', `press_button must target button.press_surface (got ${b.target})`, b.id, 'target', { allowed: ['button.press_surface'] });

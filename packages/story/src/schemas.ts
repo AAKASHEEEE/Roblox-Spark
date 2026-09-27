@@ -31,7 +31,7 @@ export const StoryRequestSchema = v.object({
 });
 export type StoryRequest = SchemaT<typeof StoryRequestSchema>;
 
-export interface RegistrySummaryForSchema { characters: string[]; props: string[]; environments: string[] }
+export interface RegistrySummaryForSchema { characters: string[]; props: string[]; environments: string[]; /** actions AVAILABLE to the generator (unavailable ones are not offered) */ actions?: string[] }
 
 /** Stage A output. `id` fields are registry ids; `mention` is the raw words from the idea (for substitution audit). */
 export function normalizedIdeaSchema(r: RegistrySummaryForSchema) {
@@ -77,12 +77,12 @@ export function beatPlanSchema(r: RegistrySummaryForSchema) {
       purpose: v.string({ min: 1, max: 160 }),
       visibleChange: v.string({ min: 1, max: 160 }),
       actor: v.enum([...chars, 'none'] as unknown as readonly string[]),
-      action: v.enum([...ACTIONS, 'none'] as unknown as readonly string[]),
+      action: v.enum([...(r.actions ?? ACTIONS), 'none'] as unknown as readonly string[]),
       target: ref.nullable(),
       propEffect: v.object({ prop: v.enum(['button', 'coin', 'desk'] as const), effect: v.enum(PROP_EFFECTS), magnitude: v.enum(MAGNITUDES).nullable() }).nullable(),
       expressionBefore: v.enum(EXPRESSIONS).nullable(),
       expressionAfter: v.enum(EXPRESSIONS).nullable(),
-      reactor: v.object({ actor: v.enum(chars), action: v.enum([...ACTIONS, 'none'] as unknown as readonly string[]), expression: v.enum(EXPRESSIONS).nullable() }).nullable(),
+      reactor: v.object({ actor: v.enum(chars), action: v.enum([...(r.actions ?? ACTIONS), 'none'] as unknown as readonly string[]), expression: v.enum(EXPRESSIONS).nullable() }).nullable(),
       emote: v.enum(EMOTES).nullable(),
       viewerInference: v.string({ min: 1, max: 160 }),
       approxDuration: v.number({ min: 0.4, max: 4 }),

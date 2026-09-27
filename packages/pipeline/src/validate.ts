@@ -3,7 +3,7 @@
 import { EpisodeSchema, LOCOMOTION_ACTIONS, type Episode } from '../../schema/src/episode.ts';
 import { checkRenderDeclaration } from '../../schema/src/render-compat.ts';
 import type { AudioManifest, CharacterManifest, EnvironmentManifest, PropManifest } from '../../schema/src/assets.ts';
-import { ACTION_DEFS } from '../../engine/src/animation/actions.ts';
+import { ACTION_DEFS, ACTION_REQUIREMENTS, unmetRequirements } from '../../engine/src/animation/actions.ts';
 
 export interface Lib {
   characters: Record<string, CharacterManifest>;
@@ -138,6 +138,12 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
     if (!m.allowedActions.includes(a.action)) err('INVALID_ACTION', `${a.actor} is not allowed to ${a.action}`);
     if (a.expression && !m.allowedExpressions.includes(a.expression)) err('INVALID_EXPRESSION', `${a.actor} cannot use expression ${a.expression}`);
     if (a.start + a.duration > D + 1e-6) err('TIMELINE_OVERFLOW', `actions[${i}] ${a.actor}.${a.action} ends at ${r3(a.start + a.duration)} > ${D}`);
+    // stories may not rely on actions whose engine features do not exist yet (reels exercise their poses on purpose)
+    const unmet = unmetRequirements(a.action);
+    if (unmet.length) {
+      const msg = `actions[${i}] ${a.actor}.${a.action}: ${ACTION_REQUIREMENTS[a.action]!.reason} (requires: ${unmet.join(', ')})`;
+      if (profile === 'action-reel') info('ACTION_UNAVAILABLE', `[allowed in action-reel: pose exercised without the feature] ${msg}`); else err('ACTION_UNAVAILABLE', msg);
+    }
     if (['press_button', 'pick_up', 'point', 'turn_toward', 'look_at'].includes(a.action) && !a.target) err('MISSING_TARGET', `actions[${i}] ${a.action} needs a target`);
     if (LOCOMOTION_ACTIONS.includes(a.action) && !a.to) err('MISSING_TARGET', `actions[${i}] ${a.action} needs "to"`);
     if (!def?.layer) byActor.set(a.actor, [...(byActor.get(a.actor) ?? []), a]);
