@@ -57,8 +57,10 @@ export class RulesProvider implements StoryModelProvider {
     const scan = scanIdea(request.idea);
     const m = scan.mech;
     const subs: NormalizedIdea['substitutions'] = [];
-    let rejection: NormalizedIdea['rejection'] = null;
-    const reject = (category: NonNullable<NormalizedIdea['rejection']>['category'], reason: string) => { if (!rejection) rejection = { category, reason }; };
+    // every reason is recorded; the PRIMARY category is the first found in this fixed order (safety, IP, cast, mechanisms,
+    // objects, text) and is never re-ranked to match an expected label (bench metric m07b is strict, m07f secondary)
+    const reasons: Array<{ category: NonNullable<NormalizedIdea['rejection']>['category']; reason: string }> = [];
+    const reject = (category: NonNullable<NormalizedIdea['rejection']>['category'], reason: string) => { if (!reasons.some((r) => r.category === category && r.reason === reason)) reasons.push({ category, reason: reason.slice(0, 300) }); };
     // ---- safety + IP ----
     const cats = [...new Set(scan.safety.map((s) => s.category))];
     const centralIp = scan.ip.filter((x) => !x.styleQualified);
@@ -152,7 +154,7 @@ export class RulesProvider implements StoryModelProvider {
       requiresDialogue: false,
       requiresReadableText: !!m.needsText,
       safety: { classification, categories: [...new Set(safetyCats)].slice(0, 6) as NormalizedIdea['safety']['categories'], notes: scan.safety.length || scan.ip.length ? `scan: ${[...scan.safety.map((s) => s.term), ...scan.ip.map((x) => x.name)].join(', ')}` : 'no unsafe or protected terms found' },
-      rejection,
+      rejection: reasons.length ? { ...reasons[0], ...(reasons.length > 1 ? { also: reasons.slice(1, 9) } : {}) } : null,
     };
   }
 

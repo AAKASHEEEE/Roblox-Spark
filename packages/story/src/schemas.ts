@@ -56,7 +56,8 @@ export function normalizedIdeaSchema(r: RegistrySummaryForSchema) {
     requiresDialogue: v.boolean(),
     requiresReadableText: v.boolean(),
     safety: v.object({ classification: v.enum(SAFETY_CLASSES), categories: v.array(v.enum(SAFETY_CATEGORIES), { max: 6 }), notes: v.string({ max: 300 }) }),
-    rejection: v.object({ category: v.enum(REJECT_CATEGORIES), reason: v.string({ min: 1, max: 300 }) }).nullable(),
+    // primary reason = first found in the provider's fixed check order; `also` = every other reason found (optional)
+    rejection: v.object({ category: v.enum(REJECT_CATEGORIES), reason: v.string({ min: 1, max: 300 }), also: v.array(v.object({ category: v.enum(REJECT_CATEGORIES), reason: v.string({ min: 1, max: 300 }) }), { max: 8 }).optional() }).nullable(),
   });
 }
 export type NormalizedIdea = SchemaT<ReturnType<typeof normalizedIdeaSchema>>;

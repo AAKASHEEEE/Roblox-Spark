@@ -96,6 +96,8 @@ const metrics = {
   m06b_avgRepairs_accepted: +(accepted.reduce((a, r) => a + r.rec.repairs, 0) / Math.max(1, accepted.length)).toFixed(2),
   m07_rejectionCorrectness_mustReject: pct(rej.filter((r) => r.rec.status === 'rejected').length, rej.length),
   m07b_rejectionCategoryMatch: pct(rej.filter((r) => r.rec.status === 'rejected' && (r.rec.rejection?.category === r.item.expectedRejectCategory)).length, rej.length),
+  /** secondary (N1): the expected category is the primary OR any other recorded reason; the strict m07b stays primary */
+  m07f_expectedCategoryAmongReasons: pct(rej.filter((r) => r.rec.status === 'rejected' && [r.rec.rejection?.category, ...(r.rec.rejection?.also ?? []).map((x: { category: string }) => x.category)].includes(r.item.expectedRejectCategory)).length, rej.length),
   m07c_unsafeRejected: pct(unsafe.filter((r) => r.rec.status === 'rejected').length, unsafe.length),
   m07d_protectedIpRejectedOrTransformed: pct(ipRej.filter((r) => r.rec.status === 'rejected').length + ipHandled, ipRej.length + ipT.length),
   m07e_falseRejections_compatible: compat.filter((r) => r.rec.status === 'rejected').map((r) => `${r.item.id}: ${r.rec.rejection?.reason}`),
@@ -124,6 +126,6 @@ const metrics = {
   determinism: { sameProcessAndFresh: `${detOk}/${accepted.length}`, mismatches: sameProc.filter((x) => !(x.a && x.a === x.b && x.a === x.want && fresh[x.id] === x.want)).map((x) => x.id) },
 };
 writeFileSync(join(out, 'metrics.json'), JSON.stringify(metrics, null, 2));
-const tbl = rows.map((r) => `| ${r.item.id} | ${r.item.kind} | ${r.item.expected} | **${r.rec.status}** | ${r.rec.repairs} | ${r.rec.substitutions.length} | ${(r.rec.rejection?.category ?? '')} | ${(r.rec.rejection?.reason ?? r.rec.failure ?? '').replace(/\|/g, '/').slice(0, 120)} |`).join('\n');
+const tbl = rows.map((r) => `| ${r.item.id} | ${r.item.kind} | ${r.item.expected} | **${r.rec.status}** | ${r.rec.repairs} | ${r.rec.substitutions.length} | ${(r.rec.rejection?.category ?? '')}${r.rec.rejection?.also?.length ? ' (+' + r.rec.rejection.also.map((x: { category: string }) => x.category).join(',') + ')' : ''} | ${(r.rec.rejection?.reason ?? r.rec.failure ?? '').replace(/\|/g, '/').slice(0, 120)} |`).join('\n');
 writeFileSync(join(out, 'results.md'), `# Benchmark results — provider \`${providerName}\`\n\nDataset \`${setFile}\` (${rows.length} ideas). Analyzer: ${staticOnly ? 'off (static only)' : 'on'}.\n\n\`\`\`json\n${JSON.stringify(metrics, null, 2)}\n\`\`\`\n\n| id | kind | expected | result | repairs | subs | reject category | reason |\n|---|---|---|---|---|---|---|---|\n${tbl}\n`);
 console.log(JSON.stringify(Object.fromEntries(Object.entries(metrics).filter(([k]) => k.startsWith('m'))), null, 1));

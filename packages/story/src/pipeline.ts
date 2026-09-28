@@ -47,7 +47,7 @@ export interface GenerationRecord {
   request: StoryRequest;
   provider: { name: string; model: string };
   status: 'accepted' | 'rejected' | 'failed';
-  rejection: { category: string; reason: string } | null;
+  rejection: { category: string; reason: string; also?: Array<{ category: string; reason: string }> } | null;
   failure: string | null;
   normalized: NormalizedIdea | null;
   plan: VisualBeatPlan | null;
@@ -165,7 +165,7 @@ export async function generateEpisode(requestIn: unknown, deps: GenerateDeps): P
     rec.normalized = norm; rec.substitutions = norm.substitutions;
     const net = ideaSafetyNet(request.idea, norm);
     rec.warnings.push(...net.warnings);
-    const rej = norm.rejection ?? net.rejection;
+    const rej = net.rejection && ['unsafe', 'protected_ip'].includes(net.rejection.category) ? net.rejection : norm.rejection ?? net.rejection;
     if (rej) { rec.status = 'rejected'; rec.rejection = rej; return finish(); }
     if (norm.safety.classification === 'unsafe' || norm.safety.classification === 'protected_ip') { rec.status = 'rejected'; rec.rejection = { category: norm.safety.classification === 'unsafe' ? 'unsafe' : 'protected_ip', reason: norm.safety.notes }; return finish(); }
     const template = TEMPLATES[norm.engine];

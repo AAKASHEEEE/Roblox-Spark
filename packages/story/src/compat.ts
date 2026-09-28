@@ -17,9 +17,17 @@ export interface CompatResult {
 export function ideaSafetyNet(ideaText: string, idea: NormalizedIdea): { rejection: CompatResult['rejection']; warnings: string[] } {
   const scan = scanIdea(ideaText);
   const warnings: string[] = [];
-  if (scan.safety.length && !idea.rejection) return { rejection: { category: 'unsafe', reason: `independent safety scan: ${scan.safety.map((s) => `${s.category} ("${s.term}")`).join(', ')} (provider classified "${idea.safety.classification}")` }, warnings };
+  // precedence: unsafe > protected_ip > whatever else the provider rejected for (its reasons are kept in `also`)
+  const keep = (r: NormalizedIdea['rejection']) => (r ? [{ category: r.category, reason: r.reason }, ...(r.also ?? [])].filter((x) => x.category !== 'unsafe').slice(0, 8) : []);
+  if (scan.safety.length && idea.rejection?.category !== 'unsafe') {
+    const also = keep(idea.rejection);
+    return { rejection: { category: 'unsafe', reason: `independent safety scan: ${scan.safety.map((s) => `${s.category} (${s.term})`).join(', ')} (provider classified "${idea.safety.classification}")`.slice(0, 300), ...(also.length ? { also } : {}) }, warnings };
+  }
   const central = scan.ip.filter((x) => !x.styleQualified);
-  if (central.length && !idea.rejection) return { rejection: { category: 'protected_ip', reason: `independent IP scan: ${central.map((x) => x.name).join(', ')}` }, warnings };
+  if (central.length && (!idea.rejection || !['unsafe', 'protected_ip'].includes(idea.rejection.category))) {
+    const also = keep(idea.rejection).filter((x) => x.category !== 'protected_ip');
+    return { rejection: { category: 'protected_ip', reason: `independent IP scan: ${central.map((x) => x.name).join(', ')}`, ...(also.length ? { also } : {}) }, warnings };
+  }
   const style = scan.ip.filter((x) => x.styleQualified);
   if (style.length && !idea.substitutions.some((s) => s.kind === 'brand')) warnings.push(`brand reference(s) ${style.map((x) => x.name).join(', ')} not declared as removed by the provider; removed by the safety net`);
   // unregistered objects the provider silently ignored or mapped
