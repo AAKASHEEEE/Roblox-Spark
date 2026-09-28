@@ -49,6 +49,10 @@ const api = {
     }
     return out;
   },
+  /** QA: continuous-time swept hand volume in locomotion onset/arrival windows (default: unpadded, 1 cm tolerance) */
+  sweep(opts: { substeps?: number; radius?: number; tolerance?: number } = {}) {
+    return prod!.sweptHandIssues(opts).map((i) => ({ t: i.t, shot: i.shot, code: i.code, message: i.message, subject: i.subject, depth: i.depth, window: i.window }));
+  },
   /** World-space probes for motion QA (foot slip, teleport detection). */
   probe(times: number[]) {
     return times.map((t) => {

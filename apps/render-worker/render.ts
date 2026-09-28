@@ -113,6 +113,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     const aTimes = times.filter((_, i) => i % 3 === 0);
     for (let a = 0; a < aTimes.length; a += 60) analysis.push(...(await page.evaluate((ts: number[]) => (window as any).__spark.analyze(ts), aTimes.slice(a, a + 60))));
     const contactChecks = await page.evaluate((ts: number[]) => (window as any).__spark.analyze(ts), info.contacts.map((c: any) => c.t));
+    const sweep = await page.evaluate(() => (window as any).__spark.sweep({ substeps: 4 }));
     log(`analysis pass: ${N} probes + ${aTimes.length} shot validations in ${((Date.now() - t1) / 1000).toFixed(1)}s`);
     if (o.analyzeOnly) {
       const by: Record<string, Record<string, number>> = {};
@@ -255,8 +256,8 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
       resolution: [W, H], fps, frames: N, hashedFrames: hashes.length, hashEvery: o.hashEvery ?? 15, frameHashesSha256, mp4: relative(ROOT, mp4Path), mp4Sha256: mp4Sha, audioCodec,
       assetLockSha256: sha256(canonical(lib.hashes)), host: { chromium: renderLog.host.chromium, glRenderer: info.renderer, gpu: !!o.gpu },
     }, null, 2));
-    writeFileSync(join(outDir, 'analysis.json'), JSON.stringify({ analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts }));
-    const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps, profile, resolution: [W, H], production, aacCheck, extraGates: o.extraGates?.({ ep, analysis, probes, playback, loopDiff }) ?? [], validationProfile: o.validationProfile ?? 'story-episode', durationTargetSec: o.durationTargetSec });
+    writeFileSync(join(outDir, 'analysis.json'), JSON.stringify({ analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, sweep }));
+    const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps, profile, resolution: [W, H], production, aacCheck, extraGates: o.extraGates?.({ ep, analysis, probes, playback, loopDiff }) ?? [], validationProfile: o.validationProfile ?? 'story-episode', durationTargetSec: o.durationTargetSec, sweep });
     writeFileSync(join(outDir, 'quality-report.json'), JSON.stringify(q, null, 2));
     writeFileSync(join(outDir, 'quality-report.md'), qualityMarkdown(q, ep, renderLog));
     log(`quality: ${q.summary.passed}/${q.summary.total} gates passed${q.summary.failed.length ? ' — FAILED: ' + q.summary.failed.join(', ') : ''}`);

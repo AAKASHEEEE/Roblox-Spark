@@ -21,6 +21,8 @@ export interface QualityInput {
   production?: { ok: boolean; tool: string; errors: string[]; checks: Array<{ name: string; ok: boolean; got: string; want: string }> } | null;
   aacCheck?: { roundTrip: { snrDb: number[]; bestLag: number }; containerAlignment: { lagSamples: number; lagMs: number; decodedSamples: number; snrDb: number; error?: string } } | null;
   extraGates?: Gate[];
+  /** continuous-time swept-hand issues (Production.sweptHandIssues); absent = gate M01 not evaluated */
+  sweep?: Array<{ t: number; message: string; code: string }>;
   /** default story-episode; action-reel marks STORY_ONLY_GATES and story-group extra gates as not applicable */
   validationProfile?: ValidationProfile;
   /**
@@ -130,6 +132,8 @@ export function buildQualityReport(q: QualityInput): QualityReport {
     const ok = !al.error && Math.min(...rt.snrDb) >= 15 && Math.abs(al.lagSamples) <= 48 && Math.abs(al.decodedSamples - Math.round(q.ep.episode.duration * 48000)) <= 1024;
     gates.push({ id: 'P02', name: 'AAC decodes in an independent decoder and is sample-aligned with the source mix', pass: ok, kind: 'measured', group: 'production', detail: al.error ? `decode error: ${al.error}` : `Chromium AAC decoder SNR ${rt.snrDb.join('/')} dB vs source mix; MP4 decode (edit list applied) offset ${al.lagSamples} samples (${al.lagMs.toFixed(2)} ms), ${al.decodedSamples} samples decoded` });
   }
+  // motion gates (not part of the original 23): continuous-time checks between video frames
+  if (q.sweep) gates.push({ id: 'M01', name: 'Swept hand volume clear during locomotion onsets/arrivals (4 substeps per frame, 1 cm tolerance)', pass: q.sweep.length === 0, kind: 'measured', group: 'motion', detail: q.sweep.length ? q.sweep.slice(0, 4).map((i) => `${i.message} @${i.t.toFixed(3)}s`).join('; ') : 'no hand point entered a prop or collider by more than 1 cm between or on video frames' });
   for (const x of q.extraGates ?? []) gates.push({ ...x, group: x.group ?? 'story' });
   const vp: ValidationProfile = q.validationProfile ?? 'story-episode';
   for (const x of gates) {

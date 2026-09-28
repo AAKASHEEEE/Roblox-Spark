@@ -1,5 +1,6 @@
 // Production runtime: episode data + locked asset library -> deterministic frame state at any time t.
 import type { Episode, EpisodeShot } from '../../schema/src/episode.ts';
+import { LOCOMOTION_ACTIONS } from '../../schema/src/episode.ts';
 import type { CharacterManifest, EnvironmentManifest, PropManifest } from '../../schema/src/assets.ts';
 import { ActorTrack, solveArmIk, type PointResolver } from './animation/animator.ts';
 import { ACTION_DEFS } from './animation/actions.ts';
@@ -31,7 +32,8 @@ export class Production {
   readonly rigs = new Map<string, Rig>();
   readonly tracks = new Map<string, ActorTrack>();
   readonly props = new Map<string, { inst: PropInstance; track: PropTrack; parent?: string; anchorLocal: Vec3 }>();
-  private emoteNodes = new Map<string, Node>();
+  /** emote billboards per actor (read-only for QA / framing: position + visibility are set by evaluate()) */
+  readonly emoteNodes = new Map<string, Node>();
   private subjectCache = new Map<string, SubjectInfo>();
   readonly camEnv: CameraEnv;
   readonly firstShot: EpisodeShot;
@@ -344,6 +346,77 @@ export class Production {
       }
     }
     return issues;
+  }
+
+  /**
+   * Windows where swept-hand QA runs: every locomotion action's onset (0.35 s before the start, which covers the
+   * previous pose's blend-out and the gait blend-in, through the first 1.0 s) and its arrival transition (0.3 s before
+   * to 0.4 s after the end: stop, settle and blend back). A dive covers its whole duration.
+   */
+  locomotionWindows(): Array<{ t0: number; t1: number; actor: string; action: string; start: number; kind: 'onset' | 'arrival' | 'dive' }> {
+    const out: Array<{ t0: number; t1: number; actor: string; action: string; start: number; kind: 'onset' | 'arrival' | 'dive' }> = [];
+    const D = this.ep.episode.duration;
+    for (const a of this.ep.actions) {
+      if (!LOCOMOTION_ACTIONS.includes(a.action)) continue;
+      const e = a.start + a.duration;
+      if (a.action === 'dive_prone') { out.push({ t0: Math.max(0, a.start - 0.35), t1: Math.min(D, e + 0.4), actor: a.actor, action: a.action, start: a.start, kind: 'dive' }); continue; }
+      out.push({ t0: Math.max(0, a.start - 0.35), t1: Math.min(D, a.start + Math.min(a.duration, 1.0)), actor: a.actor, action: a.action, start: a.start, kind: 'onset' });
+      out.push({ t0: Math.max(0, e - 0.3), t1: Math.min(D, e + 0.4), actor: a.actor, action: a.action, start: a.start, kind: 'arrival' });
+    }
+    return out;
+  }
+  /**
+   * QA: swept hand volume. Inside each window the scene is evaluated `substeps` times per frame and the path of each
+   * hand point (fingertip end and palm centre) between consecutive samples is tested at <= 1 cm spacing against every
+   * visible prop's collision shape and the environment colliders (floor excluded), as a capsule of `radius` metres.
+   * Reported when penetration (depth + radius) exceeds `tolerance`. radius 0 / tolerance 0.01 is the continuous-time
+   * version of handPenetrations(); the generator uses a padded radius/tolerance (docs/story/CLEARANCE_AND_FRAMING.md).
+   * Intentional contacts are exempt exactly as in handPenetrations(). QA only: rendering is unaffected.
+   */
+  sweptHandIssues(opts: { windows?: Array<{ t0: number; t1: number; actor?: string; action?: string; start?: number; kind?: string }>; substeps?: number; radius?: number; tolerance?: number } = {}): Array<FrameIssue & { depth: number; arm: 'l' | 'r'; what: string; window: string }> {
+    const fps = this.ep.episode.fps, sub = Math.max(1, Math.round(opts.substeps ?? 4)), dt = 1 / (fps * sub);
+    const radius = opts.radius ?? 0, tol = opts.tolerance ?? 0.01;
+    const env = this.env.colliders.filter((c) => c.id !== 'floor');
+    const worst = new Map<string, FrameIssue & { depth: number; arm: 'l' | 'r'; what: string; window: string }>();
+    // the reversal victim is exempt from the tipping prop once its tip_over starts (intended flattening, as in bodyIssues)
+    const tip = this.ep.propEvents.find((e) => e.event === 'tip_over');
+    const victim = this.ep.actions.find((a) => a.action === 'dive_prone')?.actor;
+    for (const w of opts.windows ?? this.locomotionWindows()) {
+      const wid = `${w.actor ?? '*'}:${w.action ?? '*'}@${w.start ?? w.t0}:${w.kind ?? 'window'}`;
+      const prev = new Map<string, Vec3>();
+      // canonical sample grid anchored at t=0 (overlapping windows share sample times -> identical results)
+      for (let k = Math.ceil(w.t0 / dt - 1e-9); k * dt <= w.t1 + 1e-9; k++) {
+        const t = k * dt;
+        this.evaluate(t);
+        const visible = [...this.props].filter(([, p]) => p.track.stateAt(t).visible).map(([key]) => key);
+        for (const [id, tr] of this.tracks) {
+          if (w.actor && w.actor !== id) continue;
+          const tgts = new Set(this.ep.actions.filter((a) => a.actor === id && a.target && t >= a.start && t < a.start + a.duration).map((a) => a.target!.split('.')[0]));
+          for (const arm of ['l', 'r'] as const) {
+            this.handPoints(tr.rig, arm).forEach((p, pi) => {
+              const key = `${id}:${arm}:${pi}`, p0 = prev.get(key) ?? p;
+              prev.set(key, p);
+              const n = Math.max(1, Math.ceil(Math.hypot(p[0] - p0[0], p[1] - p0[1], p[2] - p0[2]) / 0.01));
+              for (let j = 1; j <= n; j++) {
+                const q: Vec3 = [p0[0] + (p[0] - p0[0]) * (j / n), p0[1] + (p[1] - p0[1]) * (j / n), p0[2] + (p[2] - p0[2]) * (j / n)];
+                const hit = (d: number, what: string) => {
+                  if (d + radius <= tol) return;
+                  const wk = `${wid}:${id}:${arm}`, cur = worst.get(wk);
+                  if (!cur || d > cur.depth) worst.set(wk, { t, shot: this.shotAt(t).id, code: 'HAND_SWEEP_PENETRATION', message: `${id} ${arm} hand sweeps ${((d + radius) * 100).toFixed(1)} cm into ${what} (continuous ${sub}x/frame, ${w.kind ?? 'window'} of ${w.action ?? '?'}@${w.start ?? w.t0})`, subject: id, depth: d, arm, what, window: wid });
+                };
+                for (const inst of visible) {
+                  if (tr.lastIkArms.has(arm) && tgts.has(inst)) continue;
+                  if (tip && id === victim && inst === tip.prop && t >= tip.start) continue;
+                  hit(this.propDepth(inst, q, t), `prop:${inst}`);
+                }
+                for (const b of env) hit(Math.min(q[0] - b.min[0], b.max[0] - q[0], q[1] - b.min[1], b.max[1] - q[1], q[2] - b.min[2], b.max[2] - q[2]), `env:${b.id}`);
+              }
+            });
+          }
+        }
+      }
+    }
+    return [...worst.values()].sort((a, b) => a.t - b.t || (a.subject! < b.subject! ? -1 : 1));
   }
 
   // ---------- body / actor overlap (generated staging QA) ----------

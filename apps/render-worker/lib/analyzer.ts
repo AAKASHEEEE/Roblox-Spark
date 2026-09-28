@@ -42,6 +42,9 @@ export class BrowserAnalyzer implements Analyzer {
     const contacts = await p.evaluate((ts: number[]) => (window as any).__spark.analyze(ts, { occlusion: [['button', 'press_surface']] }), info.contacts.map((c: any) => c.t));
     for (const c of contacts) for (const i of c.issues) if (i.code === 'PROP_OCCLUDED') frames.push({ t: c.t, shot: c.shot, issues: [{ ...i, code: 'PROP_OCCLUDED', message: `at press contact: ${i.message}` }], cam: c.cam });
     const issues = frames.flatMap((f: any) => f.issues.map((i: any) => ({ ...i, t: f.t, shot: f.shot })));
+    // continuous-time swept hands during locomotion onsets/arrivals (every frame x 4 substeps, 1 cm tolerance)
+    const sweep = await p.evaluate(() => (window as any).__spark.sweep({ substeps: 4 }));
+    issues.push(...sweep);
     // metrics (same definitions as quality gates G09/G10/G21)
     const slips: number[] = [];
     for (let i = 2; i < probes.length; i++) for (const id of Object.keys(probes[i].actors)) {
