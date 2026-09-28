@@ -56,7 +56,7 @@ Each render writes to `out/<episode>/`:
 - `renders/<approval>/<job>/<episode-id>.mp4`, plus its quality report, probe and render manifest
 - `generations/` and `jobs.json`
 
-The form and the current storyboard, approval and render job survive a browser refresh and a server restart. A render interrupted by a restart is marked failed and needs a manual retry. Screenshots: `docs/studio/`.
+The form and the current storyboard, approval and render job survive a browser refresh and a server restart. A render interrupted by a restart is marked failed and needs a manual retry. Screenshots and one demo render (`demo-final-1080x1920.mp4`: 17 s, 1080×1920, 26/26 quality gates): `docs/studio/`.
 
 **Known limitations**
 - Single local user; no accounts.
