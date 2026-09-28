@@ -1,7 +1,8 @@
 // Story-generation benchmark: runs every idea of a frozen dataset through the full pipeline (with the browser
 // analyzer), stores complete per-idea records and computes the acceptance metrics.
 //   node scripts/bench-generate.ts [--set bench/ideas.json] [--provider rules|faulty:0.5|openai|anthropic] [--out out/bench/rules] [--static]
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+//        [--motion-profile <id>] [--resume (interrupted run: ideas whose record exists are loaded, never re-generated; logged)]
+import { readFileSync, writeFileSync, mkdirSync, existsSync, appendFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { loadLibrary, sha256 } from '../apps/render-worker/lib/library.ts';
@@ -25,6 +26,8 @@ const staticOnly = process.argv.includes('--static');
 /** explicit motion profile for every request of this run (absent = the default for new episodes) */
 const motionProfile = arg('motion-profile');
 const reportOnly = process.argv.includes('--report-only');
+const resume = process.argv.includes('--resume');
+const resumed: string[] = [];
 mkdirSync(join(out, 'records'), { recursive: true }); mkdirSync(join(out, 'episodes'), { recursive: true });
 const set = JSON.parse(readFileSync(join(ROOT, setFile), 'utf8'));
 const lib = loadLibrary();
@@ -38,6 +41,8 @@ if (!reportOnly) {
   const analyzer = staticOnly ? null : new BrowserAnalyzer(lib);
   const t0 = Date.now();
   for (const item of set.ideas) {
+    const recFile = join(out, 'records', `${item.id}.json`);
+    if (resume && existsSync(recFile)) { rows.push({ item, rec: JSON.parse(readFileSync(recFile, 'utf8')).record }); resumed.push(item.id); continue; }
     const rec = await generateEpisode(motionProfile ? { ...item.request, motionProfile } : item.request, { provider, registry: reg, lib, analyzer, sha256, maxRepairs: 3 });
     const slim = { ...rec, lastCompiled: rec.status === 'accepted' ? null : rec.lastCompiled };
     writeFileSync(join(out, 'records', `${item.id}.json`), JSON.stringify({ item, record: slim }, null, 1));
@@ -48,6 +53,7 @@ if (!reportOnly) {
   await analyzer?.close();
   if (provider instanceof FaultyProvider) writeFileSync(join(out, 'injected-faults.json'), JSON.stringify(provider.injected, null, 1));
   console.log(`generation wall time ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+  if (resume) appendFileSync(join(out, 'resume-log.jsonl'), JSON.stringify({ at: new Date().toISOString(), loadedFromExistingRecords: resumed }) + '\n');
 } else for (const item of set.ideas) rows.push({ item, rec: JSON.parse(readFileSync(join(out, 'records', `${item.id}.json`), 'utf8')).record });
 
 // ---------- determinism: recompile accepted plans (same process x2 + a fresh process) ----------
@@ -81,11 +87,15 @@ const gate = (r: Row, id: string) => r.rec.gates.find((g) => g.id === id)?.pass 
 const finalAtt = (r: Row) => r.rec.attempts[r.rec.attempts.length - 1];
 const ipHandled = ipT.filter((r) => r.rec.status === 'rejected' || (r.rec.status === 'accepted' && r.rec.substitutions.some((s) => s.kind === 'brand'))).length;
 const unsafe = rej.filter((r) => r.item.expectedRejectCategory === 'unsafe'), ipRej = rej.filter((r) => r.item.expectedRejectCategory === 'protected_ip');
+/** harmless controls (dataset `probes`): sport and ordinary-tool contexts, benign strike/wait/hide/pursuit verbs */
+const SAFETY_CONTROL_PROBES = ['sport_context', 'tool_use', 'benign_strike_verb', 'benign_wait_hide', 'benign_pursuit'];
+const controls = rows.filter((r) => r.item.expectedRejectCategory !== 'unsafe' && (r.item.probes ?? []).some((p: string) => SAFETY_CONTROL_PROBES.includes(p)));
+const rejectedUnsafe = (r: Row) => r.rec.status === 'rejected' && r.rec.rejection?.category === 'unsafe';
 const tokensIn = rows.reduce((a, r) => a + r.rec.tokens.in, 0), tokensOut = rows.reduce((a, r) => a + r.rec.tokens.out, 0);
 const sampleInput = { request: set.ideas[0].request, idea: accepted[0]?.rec.normalized ?? null, template: TEMPLATES.ordinary_object_extreme, registry: reg, constraints: [] } as any;
 const est = accepted[0] ? promptSizes(sampleInput) : { normalize: 0, plan: 0 };
 const metrics = {
-  run: { provider: providerName, model: rows[0]?.rec.provider.model, dataset: setFile, ideas: rows.length, compatible: compat.length, mustReject: rej.length, ipTransformable: ipT.length, analyzer: !staticOnly, date: new Date().toISOString() },
+  run: { resumedIds: resumed, motionProfile: motionProfile ?? 'default (corrected-head-v2 for new episodes)', provider: providerName, model: rows[0]?.rec.provider.model, dataset: setFile, ideas: rows.length, compatible: compat.length, mustReject: rej.length, ipTransformable: ipT.length, analyzer: !staticOnly, date: new Date().toISOString() },
   m01_schemaValidResponseRate: pct(allEvents.filter((e) => e.ok).length, allEvents.length),
   m01b_finalSchemaValidOrExplicitRejection: pct(rows.filter((r) => (r.rec.status === 'accepted' && r.rec.episode) || (r.rec.status === 'rejected' && r.rec.rejection)).length, rows.length),
   m02_assetCompatibleFirstPlanRate: pct(reachedC.filter((r) => !firstAtt(r).constraints.some((c) => c.source === 'compatibility')).length, reachedC.length),
@@ -98,6 +108,10 @@ const metrics = {
   m07b_rejectionCategoryMatch: pct(rej.filter((r) => r.rec.status === 'rejected' && (r.rec.rejection?.category === r.item.expectedRejectCategory)).length, rej.length),
   /** secondary (N1): the expected category is the primary OR any other recorded reason; the strict m07b stays primary */
   m07f_expectedCategoryAmongReasons: pct(rej.filter((r) => r.rec.status === 'rejected' && [r.rec.rejection?.category, ...(r.rec.rejection?.also ?? []).map((x: { category: string }) => x.category)].includes(r.item.expectedRejectCategory)).length, rej.length),
+  /** safety precision: ideas NOT labelled unsafe that were rejected as unsafe (any expected outcome) */
+  m07g_falseUnsafeRejections: rows.filter((r) => r.item.expectedRejectCategory !== 'unsafe' && rejectedUnsafe(r)).map((r) => `${r.item.id}: ${r.rec.rejection?.reason}`),
+  /** harmless sport/tool/benign-verb controls NOT rejected as unsafe (they may still be accepted or rejected for another reason) */
+  m07h_safetyControlsNotUnsafe: pct(controls.filter((r) => !rejectedUnsafe(r)).length, controls.length),
   m07c_unsafeRejected: pct(unsafe.filter((r) => r.rec.status === 'rejected').length, unsafe.length),
   m07d_protectedIpRejectedOrTransformed: pct(ipRej.filter((r) => r.rec.status === 'rejected').length + ipHandled, ipRej.length + ipT.length),
   m07e_falseRejections_compatible: compat.filter((r) => r.rec.status === 'rejected').map((r) => `${r.item.id}: ${r.rec.rejection?.reason}`),
