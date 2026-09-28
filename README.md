@@ -23,7 +23,7 @@ npm run setup                        # doctor: checks WebGL2 + WebCodecs H.264/O
 ## One-command usage
 | Command | What it does |
 |---|---|
-| `npm start` | Studio at http://localhost:5173: storyboard, live preview with audio, validation, **Generate episode** button, downloads |
+| `npm start` | Supervised Studio at http://localhost:5173: idea, storyboard, approve, render, download (see *Supervised Studio (MVP)*). The developer episode player is at `/apps/studio/player.html` |
 | `npm run render:poc` | Final 1080×1920 MP4 plus reports in `out/free-coins-loop-001/` (about 4 min on 8 CPU cores) |
 | `npm run render:preview` | 540×960 preview render (about 80 s) |
 | `npm run render:determinism` | Renders twice from scratch and compares every frame's pixels and the MP4 bytes |
@@ -35,6 +35,37 @@ Each render writes to `out/<episode>/`:
 - `<id>.mp4`, `thumbnail.png`, `contact-sheet.png`;
 - `episode.json` (validated), `validation.json`;
 - `render-log.json` (timings, memory, hashes, host), `quality-report.{md,json}`, `mix.wav`.
+
+## Supervised Studio (MVP)
+
+**Start:** `npm start`, then open http://localhost:5173. The first start builds the browser bundle; rendering needs the Chromium from *Setup*.
+
+**Create an episode**
+1. Type an idea in plain text. Choose a comedy engine (or *Auto*), a duration (14–22 s, default 17) and a seed. The seed is random by default; the same idea, settings and seed always give the same storyboard.
+2. **Generate Storyboard** runs the existing story pipeline: rules provider, then safety, protected IP and asset/action availability checks, then the compiler with its shot and collision checks. A blocked idea shows the primary reason, and approval stays disabled.
+3. Review the beat cards: time range, character, action, target, face, camera, story purpose, sound and VFX. A read-only JSON view is under *Developer*.
+4. **Approve storyboard** freezes that exact episode. It is content-addressed and written once. To replace it, use *Back to storyboard generation*.
+
+**Render:** **Render Video** renders only the approved episode, as the final 1080×1920 MP4 or a quick 540×960 preview. It goes through the existing render worker: validation, H.264 + AAC-LC encoding, playback checks and quality gates.
+- Progress: while frames render, the bar shows real frame counts; the other steps show an indeterminate bar.
+- On success: video preview, duration, resolution, frame rate, codecs, quality gates, **Download MP4** and **Download Episode JSON**.
+- On failure: the actual error, the unchanged approval, and a manual **Retry**.
+
+**Output location:** `out/studio/` (not in Git).
+- `approved/<approval>/episode.json` and `approval.json`
+- `renders/<approval>/<job>/<episode-id>.mp4`, plus its quality report, probe and render manifest
+- `generations/` and `jobs.json`
+
+The form and the current storyboard, approval and render job survive a browser refresh and a server restart. A render interrupted by a restart is marked failed and needs a manual retry. Screenshots: `docs/studio/`.
+
+**Known limitations**
+- Single local user; no accounts.
+- One render at a time. A final render takes several minutes on CPU.
+- Rules provider only (no LLM). One environment and two characters.
+- Storyboards are review-only by design.
+- You must discard an approval before generating a new storyboard.
+- `out/studio/` is never cleaned automatically.
+- The previous episode player is at `/apps/studio/player.html` (developer use).
 
 ## Documents
 - [VALIDATION_REPORT](docs/VALIDATION_REPORT.md) — results, measurements, limitations, recommendation

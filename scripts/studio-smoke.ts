@@ -12,7 +12,7 @@ const b = await launchBrowser();
 try {
   const p = await b.newPage({ viewport: { width: 1400, height: 900 } });
   p.on('pageerror', (e: any) => console.error('[pageerror]', e));
-  await p.goto(`http://localhost:${port}/`);
+  await p.goto(`http://localhost:${port}/apps/studio/player.html`);
   await p.waitForSelector('.beat');
   await p.click('.beat:nth-child(9)'); // seek via storyboard card
   await p.waitForTimeout(500);

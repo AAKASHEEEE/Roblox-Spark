@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>BlockSpark Studio — episode player (developer)</title>
+<style>
+  body{margin:0;font:14px system-ui,sans-serif;background:#14161c;color:#e8eaf0}
+  header{padding:10px 16px;background:#1f4fd1;display:flex;gap:12px;align-items:center}
+  header h1{font-size:18px;margin:0} select,button{font:inherit;padding:6px 10px;border-radius:6px;border:0}
+  button{background:#ffd21a;color:#111;cursor:pointer;font-weight:600} button:disabled{opacity:.4;cursor:not-allowed}
+  main{display:grid;grid-template-columns:1fr 300px 380px;gap:14px;padding:14px}
+  #board{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;max-height:78vh;overflow:auto}
+  .beat{background:#232733;border-radius:8px;padding:8px;cursor:pointer;border-left:4px solid #19d3e6}.beat:hover{background:#2c3140}
+  .bh span{float:right;opacity:.7}.tags{font-size:12px;opacity:.85;margin-top:3px}
+  canvas#view{width:270px;height:480px;background:#000;border-radius:8px;display:block}
+  input[type=range]{width:270px} #time{font-size:12px;min-height:32px}
+  .job{background:#232733;border-radius:8px;padding:8px;margin-bottom:8px} .job video{width:180px;display:block;margin-top:6px}
+  a{color:#19d3e6} .err{color:#ff6b6b}.warning{color:#ffd21a}.info{color:#9fb3c8}.ok{color:#5fe08a}
+  #warnings{font-size:12px;max-height:160px;overflow:auto;margin:8px 0} table{font-size:11px;border-collapse:collapse;width:100%} td,th{padding:2px 4px;border-bottom:1px solid #333;text-align:left}
+  h3{margin:6px 0}
+</style></head>
+<body>
+<header><h1>BlockSpark Studio — episode player (developer)</h1><a href="/" style="color:#111">← supervised workflow</a><select id="episodes"></select><button id="dup">Duplicate / variation</button><span id="libErrors" class="err"></span></header>
+<main>
+  <section><h3>Storyboard</h3><div id="title"></div><div id="warnings"></div><div id="board"></div></section>
+  <section><h3>Preview (live WebGL, same engine as final render)</h3>
+    <canvas id="view"></canvas><input id="scrub" type="range" min="0" max="17" step="0.0333" value="0">
+    <div><button id="play">Play</button></div><div id="time"></div></section>
+  <section><h3>Render</h3>
+    <button id="renderPreview">Render preview (540×960)</button> <button id="renderFinal">Generate episode (1080×1920 MP4)</button>
+    <div id="jobs" style="margin-top:10px"></div>
+    <h3>Asset library (locked)</h3><table id="assets"></table></section>
+</main>
+<script type="module" src="/dist/apps/studio/src/studio.js"></script>
+</body></html>
