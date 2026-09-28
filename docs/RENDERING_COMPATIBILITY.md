@@ -104,6 +104,7 @@ Known limits of `corrected-head-v2`, all measured in the action reel report:
 | `free-coins-loop-001/1.0.0__legacy-head-v1` | 510 | 1080×1920 | the 1dc7a26 baseline; re-verified 510/510 with a full render of the pinned fixture (25/25 gates) |
 | `free-coins-loop-001/1.0.0__corrected-head-v2` | 510 | 1080×1920 | upgrade copy `tests/fixtures/episodes/free-coins-loop-001.corrected-head-v2.json` |
 | `gen-ooe-zapp-presses-a-free-ub5-s17/1.0.0__corrected-head-v2` | 510 | 540×960 | generator output for the brief's example idea (`scripts/fixture-generate.ts`), stored verbatim |
+| `gen-ooe-zapp-presses-a-free-ub5-s17/1.0.0__corrected-head-v2__gen-example-free-coins.tuned` | 510 | 540×960 | the same idea and seed through the re-tuned generator (profile-aware fit pass, `docs/story/CLEARANCE_AND_FRAMING.md`); a separate fixture with the same episode id, so its golden is named after the fixture |
 
 The two PoC goldens share one semantic hash. Their pixels differ in 445 of 510 frames: every frame from 0 to 14.87 s except 11.30–11.33 s. The last 63 frames (14.9–17 s) are identical. `tests/render-golden.integration.test.ts` asserts all of this.
 

@@ -19,6 +19,8 @@ const golden = (fixture: string, key: string): GoldenFile => {
 const LEGACY = 'episodes/free-coins-loop-001.json';
 const CORRECTED = 'tests/fixtures/episodes/free-coins-loop-001.corrected-head-v2.json';
 const GENERATED = 'tests/fixtures/episodes/gen-example-free-coins.json';
+/** the same idea + seed through the re-tuned generator (profile-aware fit pass): a separate fixture, recorded separately */
+const TUNED = 'tests/fixtures/episodes/gen-example-free-coins.tuned.json';
 const rendered: Record<string, Array<[number, string]>> = {};
 
 before(async () => { ({ page, close } = await openRenderPage()); });
@@ -37,7 +39,7 @@ test('legacy episode retains its previous hashes (1dc7a26 baseline, legacy-head-
 });
 
 test('corrected episodes reproduce deterministically (stored golden + fresh re-render)', { timeout: 300000 }, async () => {
-  for (const [fixture, key] of [[CORRECTED, '1.0.0__corrected-head-v2'], [GENERATED, '1.0.0__corrected-head-v2']] as const) {
+  for (const [fixture, key] of [[CORRECTED, '1.0.0__corrected-head-v2'], [GENERATED, '1.0.0__corrected-head-v2'], [TUNED, '1.0.0__corrected-head-v2']] as const) {
     const g = golden(fixture, key);
     const ep = readFixture(fixture);
     assert.equal(goldenAppliesTo(g, ep), null);

@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { join, relative, resolve } from 'node:path';
+import { basename, join, relative, resolve } from 'node:path';
 import { launchBrowser, findChromium } from '../apps/render-worker/lib/browser.ts';
 import { startServer, ROOT } from '../apps/render-worker/lib/server.ts';
 import { loadLibrary, canonical } from '../apps/render-worker/lib/library.ts';
@@ -32,7 +32,8 @@ export interface GoldenFile {
 const sha = (s: string | Buffer) => createHash('sha256').update(s).digest('hex');
 export const episodeSha = (ep: unknown) => sha(canonical(ep));
 export const semanticSha = (ep: unknown) => sha(canonicalJson(semanticContent(ep)));
-/** goldens are grouped by episode id: every renderer/profile combination of one episode sits side by side */
+/** goldens are grouped by episode id: every renderer/profile combination of one episode sits side by side (a second
+ *  fixture with the same id + declaration is stored as `<key>__<fixture name>.json`, see `record`) */
 export const goldenPath = (ep: { episode: { id: string } }, key: string) => join(GOLDEN_DIR, ep.episode.id, `${key}.json`);
 export function readFixture(fixture: string): any { return JSON.parse(readFileSync(resolve(ROOT, fixture), 'utf8')); }
 export function listGoldens(): GoldenFile[] {
@@ -86,7 +87,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const fixture = relative(ROOT, resolve(files[0] ?? ''));
     const ep = readFixture(fixture);
     const compat = resolveRenderCompat(ep); // throws on missing/unsupported declaration
-    const out = goldenPath(ep, compat.key);
+    let out = goldenPath(ep, compat.key);
+    // a DIFFERENT fixture with the same episode id and declaration (e.g. regenerated generator output for the same idea +
+    // seed) gets its own file named after the fixture; the existing golden is never touched
+    if (existsSync(out) && JSON.parse(readFileSync(out, 'utf8')).fixture !== fixture) out = join(GOLDEN_DIR, ep.episode.id, `${compat.key}__${basename(fixture, '.json').replace(/[^A-Za-z0-9.-]+/g, '-')}.json`);
     if (existsSync(out)) { console.error(`refusing to overwrite ${relative(ROOT, out)}: golden hashes are immutable (new pixels need a new rendererVersion or motionProfile)`); process.exit(1); }
     const scale = Number(flag('scale', '1')), every = Number(flag('every', '1'));
     const res: [number, number] = [Math.round(1080 * scale), Math.round(1920 * scale)];
