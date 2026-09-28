@@ -11,7 +11,8 @@ import { buildRegistry } from '../packages/story/src/registry.ts';
 import { createProvider } from '../packages/story/src/providers/index.ts';
 import { generateEpisode, type GenerationRecord } from '../packages/story/src/pipeline.ts';
 import { stagePlan } from '../packages/story/src/stage.ts';
-import { compileEpisode } from '../packages/story/src/compile.ts';
+import { compileEpisode, type FitKnobs } from '../packages/story/src/compile.ts';
+import { fitCompile } from '../packages/story/src/fit.ts';
 import { promptSizes } from '../packages/story/src/providers/llm.ts';
 import { TEMPLATES } from '../packages/story/src/templates.ts';
 import { FaultyProvider } from '../packages/story/src/providers/mock.ts';
@@ -21,6 +22,8 @@ const setFile = arg('set', 'bench/ideas.json')!;
 const providerName = arg('provider', process.env.BLOCKSPARK_LLM_PROVIDER ?? 'rules')!;
 const out = join(ROOT, arg('out', `out/bench/${providerName.replace(/[^a-z0-9]+/gi, '_')}`)!);
 const staticOnly = process.argv.includes('--static');
+/** explicit motion profile for every request of this run (absent = the default for new episodes) */
+const motionProfile = arg('motion-profile');
 const reportOnly = process.argv.includes('--report-only');
 mkdirSync(join(out, 'records'), { recursive: true }); mkdirSync(join(out, 'episodes'), { recursive: true });
 const set = JSON.parse(readFileSync(join(ROOT, setFile), 'utf8'));
@@ -35,7 +38,7 @@ if (!reportOnly) {
   const analyzer = staticOnly ? null : new BrowserAnalyzer(lib);
   const t0 = Date.now();
   for (const item of set.ideas) {
-    const rec = await generateEpisode(item.request, { provider, registry: reg, lib, analyzer, sha256, maxRepairs: 3 });
+    const rec = await generateEpisode(motionProfile ? { ...item.request, motionProfile } : item.request, { provider, registry: reg, lib, analyzer, sha256, maxRepairs: 3 });
     const slim = { ...rec, lastCompiled: rec.status === 'accepted' ? null : rec.lastCompiled };
     writeFileSync(join(out, 'records', `${item.id}.json`), JSON.stringify({ item, record: slim }, null, 1));
     if (rec.episode) writeFileSync(join(out, 'episodes', `${item.id}.json`), JSON.stringify(rec.episode, null, 2));
@@ -51,7 +54,9 @@ if (!reportOnly) {
 const recompile = (rec: GenerationRecord): string | null => {
   if (!rec.plan || !rec.normalized) return null;
   const sp = stagePlan(rec.plan, reg.environment);
-  const c = compileEpisode(rec.request, rec.normalized, rec.plan, sp.staging, reg);
+  // replay: the fit pass from scratch when the record was fitted (tests the fit's determinism too), else unfitted compile
+  const compile = (k?: FitKnobs) => compileEpisode(rec.request, rec.normalized!, rec.plan!, sp.staging, reg, k);
+  const c = rec.fitKnobs ? fitCompile(compile, lib as never).compiled : compile();
   return c.ok ? sha256(JSON.stringify(c.episode)) : null;
 };
 const accepted = rows.filter((r) => r.rec.status === 'accepted');

@@ -4,7 +4,8 @@
 import { validateEpisode, type Lib } from '../../pipeline/src/validate.ts';
 import type { Episode } from '../../schema/src/episode.ts';
 import { checkCompatibility, ideaSafetyNet } from './compat.ts';
-import { compileEpisode, type KeyEvent } from './compile.ts';
+import { compileEpisode, type FitKnobs, type KeyEvent } from './compile.ts';
+import { fitCompile } from './fit.ts';
 import { storyGates, mutedStoryScore, type AnalysisLite, type StoryGate } from './gates.ts';
 import type { StoryModelProvider, CallMeta } from './providers/types.ts';
 import { ProviderError } from './providers/types.ts';
@@ -16,7 +17,13 @@ import { TEMPLATES } from './templates.ts';
 export interface Analyzer {
   analyze(ep: Episode): Promise<{ analysis: AnalysisLite; issues: Array<{ t: number; shot: string; code: string; message: string; subject?: string }>; metrics: Record<string, number> }>;
 }
-export interface GenerateDeps { provider: StoryModelProvider; registry: Registry; lib: Lib & { hashes?: Record<string, string> }; analyzer?: Analyzer | null; maxRepairs?: number; sha256?: (s: string) => string }
+export interface GenerateDeps {
+  provider: StoryModelProvider; registry: Registry; lib: Lib & { hashes?: Record<string, string> }; analyzer?: Analyzer | null; maxRepairs?: number; sha256?: (s: string) => string;
+  /** profile-aware fit pass (fit.ts, headless engine). Default on; false only for tests of the plan/repair protocol itself */
+  fit?: boolean;
+}
+/** compact fit record kept per attempt (knobs replay the compile exactly) */
+export interface FitSummary { knobs: FitKnobs; decisions: string[]; residual: string[]; warnings: number; clearance: { enforced: number; reported: number }; framingFitted: string[]; ms: number }
 
 export interface Attempt {
   n: number;
@@ -30,6 +37,7 @@ export interface Attempt {
   validatorWarnings: string[];
   gates: StoryGate[];
   analysis?: { hardIssues: number; softIssues: number; frames: number; byCode: Record<string, number>; metrics: Record<string, number> };
+  fit?: FitSummary | null;
   patchesApplied: Patch[];
   patchesRejected: Array<{ patch: unknown; reason: string }>;
   accepted: boolean;
@@ -52,6 +60,8 @@ export interface GenerationRecord {
   /** last compiled (possibly rejected) episode, for diagnostics only — never rendered as a deliverable */
   lastCompiled: Episode | null;
   episodeSha256: string | null;
+  /** fit knobs of the accepted episode (null = unfitted) */
+  fitKnobs: FitKnobs | null;
   events: KeyEvent[];
   gates: StoryGate[];
   mutedStoryScore: number | null;
@@ -60,7 +70,7 @@ export interface GenerationRecord {
   tokens: { in: number; out: number };
 }
 
-const HARD = new Set(['SUBJECT_OUT_OF_FRAME', 'SUBJECT_BEHIND_CAMERA', 'FACE_OUT_OF_FRAME', 'FACE_OCCLUDED', 'HAND_PENETRATION', 'CAMERA_IN_PROP', 'BODY_PROP_INTERSECTION', 'ACTOR_OVERLAP', 'PROP_OCCLUDED']);
+const HARD = new Set(['SUBJECT_OUT_OF_FRAME', 'SUBJECT_BEHIND_CAMERA', 'FACE_OUT_OF_FRAME', 'FACE_OCCLUDED', 'HAND_PENETRATION', 'HAND_SWEEP_PENETRATION', 'CAMERA_IN_PROP', 'BODY_PROP_INTERSECTION', 'ACTOR_OVERLAP', 'PROP_OCCLUDED']);
 const SOFT = new Set(['SUBJECT_OUTSIDE_ACTION_SAFE', 'FACE_TURNED_AWAY']);
 
 /** apply only patches that address a listed constraint (beatId + field), everything else is rejected */
@@ -110,7 +120,7 @@ function constraintsFromAnalysis(ep: Episode, plan: VisualBeatPlan, issues: Arra
     const frac = n / (shotsByFrames.get(i.shot) ?? 1);
     if (SOFT.has(i.code) && frac < 0.34) continue; // tolerate brief soft issues
     const beatId = shotBeat(i.shot);
-    const staging = ['BODY_PROP_INTERSECTION', 'ACTOR_OVERLAP', 'HAND_PENETRATION'].includes(i.code);
+    const staging = ['BODY_PROP_INTERSECTION', 'ACTOR_OVERLAP', 'HAND_PENETRATION', 'HAND_SWEEP_PENETRATION'].includes(i.code);
     const shotPreset = ep.shots.find((s) => s.id === i.shot)?.preset;
     out.push({ code: i.code, message: `${i.message} (${n} sampled frames in ${i.shot})`, beatId: staging ? plan.beats[0].id : beatId, field: staging ? 'stagingVariant' : 'shotHint', disallow: staging ? undefined : [shotPreset], source: 'analysis' });
   }
@@ -121,7 +131,7 @@ export async function generateEpisode(requestIn: unknown, deps: GenerateDeps): P
   const T0 = performance.now();
   const { provider, registry: reg } = deps;
   const maxRepairs = deps.maxRepairs ?? 3;
-  const rec: GenerationRecord = { request: requestIn as StoryRequest, provider: { name: provider.name, model: provider.model }, status: 'failed', rejection: null, failure: null, normalized: null, plan: null, substitutions: [], warnings: [], schemaEvents: [], attempts: [], repairs: 0, episode: null, lastCompiled: null, episodeSha256: null, events: [], gates: [], mutedStoryScore: null, calls: [], latencyMs: 0, tokens: { in: 0, out: 0 } };
+  const rec: GenerationRecord = { request: requestIn as StoryRequest, provider: { name: provider.name, model: provider.model }, status: 'failed', rejection: null, failure: null, normalized: null, plan: null, substitutions: [], warnings: [], schemaEvents: [], attempts: [], repairs: 0, episode: null, lastCompiled: null, episodeSha256: null, fitKnobs: null, events: [], gates: [], mutedStoryScore: null, calls: [], latencyMs: 0, tokens: { in: 0, out: 0 } };
   const finish = () => { rec.latencyMs = Math.round(performance.now() - T0); for (const c of rec.calls) { rec.tokens.in += c.tokensIn; rec.tokens.out += c.tokensOut; } return rec; };
   const call = async <T>(stage: string, fn: () => Promise<unknown>, schema: { parse(v: unknown): { ok: true; value: T } | { ok: false; issues: Array<{ path: string; message: string }> } }): Promise<{ ok: true; value: T } | { ok: false; issues: string[] }> => {
     let raw: unknown;
@@ -179,13 +189,23 @@ export async function generateEpisode(requestIn: unknown, deps: GenerateDeps): P
       if (compat.rejection) { rec.status = 'rejected'; rec.rejection = compat.rejection; at.ms = performance.now() - t0; return finish(); }
       let constraints = compat.constraints;
       let ep: Episode | null = null, events: KeyEvent[] = [];
+      let fitResidual: RepairConstraint[] = [], fitKnobs: FitKnobs | null = null;
       if (!constraints.length) {
         const sp = stagePlan(plan!, reg.environment);
         at.staging = sp.staging;
         constraints = sp.errors;
         if (!constraints.length) {
-          const c = compileEpisode(request, norm, plan!, sp.staging, reg);
-          if (c.ok) { ep = c.episode; events = c.events; at.compiled = true; rec.warnings.push(...c.notes.filter((w) => !rec.warnings.includes(w))); } else constraints = c.errors;
+          const compile = (k?: FitKnobs) => compileEpisode(request, norm!, plan!, sp.staging, reg, k);
+          const fitted = deps.fit === false ? { compiled: compile(), report: null } : fitCompile(compile, deps.lib as never);
+          const c = fitted.compiled;
+          if (c.ok) {
+            ep = c.episode; events = c.events; at.compiled = true; rec.warnings.push(...c.notes.filter((w) => !w.startsWith('fit:') && !rec.warnings.includes(w)));
+            if (fitted.report) {
+              const r = fitted.report;
+              fitResidual = r.residual; fitKnobs = r.knobs;
+              at.fit = { knobs: r.knobs, decisions: r.decisions, residual: r.residual.map((x) => `${x.code}: ${x.message}`), warnings: r.warnings.length, clearance: r.clearance, framingFitted: r.framing.filter((f) => f.fitted).map((f) => `${f.shot}:${f.preset}`), ms: r.ms };
+            }
+          } else constraints = c.errors;
         }
       }
       if (ep) {
@@ -193,7 +213,7 @@ export async function generateEpisode(requestIn: unknown, deps: GenerateDeps): P
         const v = validateEpisode(ep, deps.lib, { repair: false });
         at.validatorErrors = v.findings.filter((f) => f.severity === 'error').map((f) => `${f.code}: ${f.message}`);
         at.validatorWarnings = v.findings.filter((f) => f.severity === 'warning').map((f) => `${f.code}: ${f.message}`);
-        constraints = constraintsFromValidator(ep, plan!, v.findings);
+        constraints = [...fitResidual, ...constraintsFromValidator(ep, plan!, v.findings)];
         let analysisLite: AnalysisLite | null = null;
         if (!constraints.length && deps.analyzer) {
           const an = await deps.analyzer.analyze(ep);
@@ -211,7 +231,7 @@ export async function generateEpisode(requestIn: unknown, deps: GenerateDeps): P
         if (!constraints.length) {
           at.accepted = true; at.ms = performance.now() - t0;
           const json = JSON.stringify(ep);
-          rec.status = 'accepted'; rec.episode = ep; rec.plan = plan; rec.events = events; rec.gates = at.gates;
+          rec.status = 'accepted'; rec.episode = ep; rec.plan = plan; rec.events = events; rec.gates = at.gates; rec.fitKnobs = fitKnobs;
           rec.episodeSha256 = deps.sha256 ? deps.sha256(json) : null; at.episodeSha256 = rec.episodeSha256 ?? undefined;
           rec.mutedStoryScore = mutedStoryScore(at.gates, plan!);
           return finish();

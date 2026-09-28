@@ -27,11 +27,12 @@ test('same request => byte-identical episode (in-process, repeated)', async () =
   }
 });
 
-test('compileEpisode is a pure function of (request, idea, plan, staging, registry)', async () => {
+test('compileEpisode is a pure function of (request, idea, plan, staging, registry, fit knobs)', async () => {
   const r = await gen(IDEAS[0], 7);
   assert.equal(r.status, 'accepted');
+  assert.ok(r.fitKnobs, 'accepted episodes record the fit knobs chosen from sampled motion');
   const st = stagePlan(r.plan!, reg.environment).staging;
-  const c1 = compileEpisode(r.request, r.normalized!, r.plan!, st, reg), c2 = compileEpisode(JSON.parse(JSON.stringify(r.request)), JSON.parse(JSON.stringify(r.normalized)), JSON.parse(JSON.stringify(r.plan)), JSON.parse(JSON.stringify(st)), reg);
+  const c1 = compileEpisode(r.request, r.normalized!, r.plan!, st, reg, r.fitKnobs!), c2 = compileEpisode(JSON.parse(JSON.stringify(r.request)), JSON.parse(JSON.stringify(r.normalized)), JSON.parse(JSON.stringify(r.plan)), JSON.parse(JSON.stringify(st)), reg, JSON.parse(JSON.stringify(r.fitKnobs)));
   assert.ok(c1.ok && c2.ok);
   assert.equal(JSON.stringify(c1.ok && c1.episode), JSON.stringify(c2.ok && c2.episode));
   assert.equal(JSON.stringify(c1.ok && c1.episode), JSON.stringify(r.episode));
