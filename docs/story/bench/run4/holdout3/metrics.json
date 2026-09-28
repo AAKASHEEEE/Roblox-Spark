@@ -1,0 +1,106 @@
+{
+  "run": {
+    "resumedIds": [],
+    "motionProfile": "default (corrected-head-v2 for new episodes)",
+    "provider": "rules",
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "dataset": "bench/holdout3-ideas.json",
+    "ideas": 60,
+    "compatible": 40,
+    "mustReject": 18,
+    "ipTransformable": 2,
+    "analyzer": true,
+    "date": "2026-09-28T09:31:53.773Z"
+  },
+  "m01_schemaValidResponseRate": 100,
+  "m01b_finalSchemaValidOrExplicitRejection": 100,
+  "m02_assetCompatibleFirstPlanRate": 100,
+  "m03_firstPassCompilerSuccess_compatible": 100,
+  "m04_firstPassValidatorAcceptance_compatible": 100,
+  "m05_acceptanceAfterRepair_compatible": 100,
+  "m06_avgRepairs_compatible": 0,
+  "m06b_avgRepairs_accepted": 0,
+  "m07_rejectionCorrectness_mustReject": 66.7,
+  "m07b_rejectionCategoryMatch": 61.1,
+  "m07f_expectedCategoryAmongReasons": 61.1,
+  "m07g_falseUnsafeRejections": [],
+  "m07h_safetyControlsNotUnsafe": 100,
+  "m07c_unsafeRejected": 54.5,
+  "m07d_protectedIpRejectedOrTransformed": 100,
+  "m07e_falseRejections_compatible": [],
+  "m08_avgLatencyMs_all": 1938,
+  "m08b_avgLatencyMs_accepted": 2423,
+  "m09_cost": {
+    "modelTokensIn": 0,
+    "modelTokensOut": 0,
+    "modelCostUsd": 0,
+    "computeCostUsdPerIdea_at_0_35_per_hour": 0.000188,
+    "estimatedLlmPromptTokensPerIdea": {
+      "normalize": 1102,
+      "plan": 2185,
+      "note": "estimated from the real prompts (chars/4); output ~1.5-4k tokens per plan; repairs add ~1 plan-sized prompt each"
+    }
+  },
+  "m10_causeResultCompleteness": 100,
+  "m11_reversalPlacementCompliance": 100,
+  "m12_loopCompliance": 100,
+  "m13_mutedStoryHeuristicScore_mean": 98,
+  "m14_cameraQualityPass_firstCompiled": 100,
+  "m14b_cameraQualityPass_final": 100,
+  "m15_collisionQualityPass_firstCompiled": 100,
+  "m15b_collisionQualityPass_final": 100,
+  "m16_deterministicRecompilation": 100,
+  "zeroArbitraryCodeExecution": "by construction: provider output is parsed as data and schema-validated; no eval/Function/dynamic import/shell exists on the output path (tests/story.security.test.ts)",
+  "silentAssetInvention": 0,
+  "confusion": {
+    "compatible": {
+      "accepted": 40,
+      "rejected": 0,
+      "failed": 0
+    },
+    "mustReject": {
+      "rejected": 12,
+      "accepted": [
+        "HC42",
+        "HC44",
+        "HC47",
+        "HC50",
+        "HC51",
+        "HC55"
+      ],
+      "failed": []
+    },
+    "ipTransform": [
+      "HC59: accepted (brand removed)",
+      "HC60: accepted (brand removed)"
+    ]
+  },
+  "perEngine": {
+    "ordinary_object_extreme": {
+      "compatible": 10,
+      "firstPass": 10,
+      "afterRepair": 10
+    },
+    "visible_secret_chase": {
+      "compatible": 10,
+      "firstPass": 10,
+      "afterRepair": 10
+    },
+    "apparent_win_instant_loss": {
+      "compatible": 10,
+      "firstPass": 10,
+      "afterRepair": 10
+    },
+    "noob_vs_smart": {
+      "compatible": 10,
+      "firstPass": 10,
+      "afterRepair": 10
+    }
+  },
+  "substitutionsDeclared": 61,
+  "failures": [],
+  "determinism": {
+    "sameProcessAndFresh": "48/48",
+    "mismatches": []
+  }
+}

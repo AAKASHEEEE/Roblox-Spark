@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-awl-zapp-finally-beats-the-x0z-s4025",
+    "episodeSha256": "807c6c974046b3f1618849e3ddd3308801a55d4b06097a7c8d1c0a978240afec",
+    "semanticSha256": "43022985889430e935c86c1301ab523f4b7fdaf3fd699fd1532cb375e20d5aa2",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 570,
+  "hashedFrames": 38,
+  "hashEvery": 15,
+  "frameHashesSha256": "9eaafa071275a8b7d36d4d2d9cacaacf3a585140a064d12a00a2c41d8b9892b4",
+  "mp4": "out/bench-renders/run4-diag/HC25/gen-awl-zapp-finally-beats-the-x0z-s4025.mp4",
+  "mp4Sha256": "944c37a3613f271449d825f1dccfe5324f54ae03491ccb1d95797d4616b872d4",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

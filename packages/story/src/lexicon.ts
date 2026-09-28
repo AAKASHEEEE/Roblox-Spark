@@ -1,7 +1,7 @@
 // Deterministic idea scanner: safety, protected IP, characters, places, objects and mechanisms.
 // Used by the offline `rules` provider AND by Stage C as an independent safety net for any model provider.
 // General vocabulary lists — never keyed to specific benchmark sentences.
-import { analyzeIntent } from './safety.ts';
+import { analyzeIntent, HARM_CAPABLE_OBJECTS } from './safety.ts';
 
 export type Mention<K extends string> = { mention: string; kind: K; id?: string; index: number };
 
@@ -42,6 +42,11 @@ const PLACES: Array<{ words: string[]; kind: 'classroom' | 'school' | 'elsewhere
   { words: ['school bus', 'bus', 'living room', 'bedroom', 'kitchen', 'home', 'house', 'park', 'street', 'beach', 'space', 'castle', 'forest', 'mall', 'store', 'shop', 'arcade'], kind: 'elsewhere' },
 ];
 
+/** safety-vocabulary words that usually are NOT the object sense (verbs, other nouns): never matched as props */
+const OBJECT_SENSE_AMBIGUOUS = new Set(['stick', 'sticks', 'club', 'pole', 'saw', 'board', 'rake', 'spade', 'pan', 'bats', 'belt', 'compass', 'rock', 'rocks', 'stone', 'stones']);
+/** every harm-capable everyday object (sport and tool items included) is an unregistered prop: holding or using it as a
+ *  tool needs prop attachment, which engine v1 does not have */
+const HARM_OBJECT_NOUNS = HARM_CAPABLE_OBJECTS.map((w) => w.replace(/_/g, ' ')).filter((w) => !OBJECT_SENSE_AMBIGUOUS.has(w));
 // object vocabulary -> class. trigger/collectible/furniture map to registered props; the rest are unavailable.
 const OBJECTS: Array<{ words: string[]; cls: 'trigger' | 'collectible' | 'furniture' | 'unavailable'; id?: string }> = [
   { words: ['button', 'buttons', 'switch', 'lever', 'buzzer', 'remote', 'dispenser', 'prize machine', 'machine'], cls: 'trigger', id: 'suspicious_button' },
@@ -50,6 +55,7 @@ const OBJECTS: Array<{ words: string[]; cls: 'trigger' | 'collectible' | 'furnit
   { words: ['pizza', 'cake', 'cookie', 'candy', 'burger', 'sandwich', 'apple', 'banana', 'ice cream', 'soda', 'juice', 'milk', 'gum', 'donut', 'slime', 'lunch', 'food'], cls: 'unavailable' },
   { words: ['phone', 'laptop', 'tablet', 'computer', 'router', 'console', 'controller', 'tv', 'television', 'speaker', 'camera', 'video game'], cls: 'unavailable' },
   { words: ['backpack', 'lunchbox', 'book', 'homework', 'report card', 'pencil', 'eraser', 'ruler', 'paper', 'card', 'ball', 'balloon', 'hat', 'shoe', 'chair', 'door', 'window', 'magnet', 'hammer', 'potion', 'bottle', 'cup', 'box', 'rope', 'ladder', 'money', 'cash', 'dollar', 'wallet'], cls: 'unavailable' },
+  { words: HARM_OBJECT_NOUNS, cls: 'unavailable' },
 ];
 
 // mechanisms / verbs

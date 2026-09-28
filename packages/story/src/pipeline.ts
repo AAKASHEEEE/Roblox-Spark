@@ -13,6 +13,7 @@ import type { Registry } from './registry.ts';
 import { beatPlanSchema, normalizedIdeaSchema, RepairResponseSchema, StoryRequestSchema, type NormalizedIdea, type Patch, type RepairConstraint, type StoryRequest, type VisualBeatPlan, PATCH_FIELDS } from './schemas.ts';
 import { stagePlan, type StagingPlan } from './stage.ts';
 import { TEMPLATES } from './templates.ts';
+import { mergeRejections } from './schemas.ts';
 
 export interface Analyzer {
   analyze(ep: Episode): Promise<{ analysis: AnalysisLite; issues: Array<{ t: number; shot: string; code: string; message: string; subject?: string }>; metrics: Record<string, number> }>;
@@ -165,7 +166,8 @@ export async function generateEpisode(requestIn: unknown, deps: GenerateDeps): P
     rec.normalized = norm; rec.substitutions = norm.substitutions;
     const net = ideaSafetyNet(request.idea, norm);
     rec.warnings.push(...net.warnings);
-    const rej = net.rejection && ['unsafe', 'protected_ip'].includes(net.rejection.category) ? net.rejection : norm.rejection ?? net.rejection;
+    // every reason of the provider AND the independent net, ranked (REJECT_PRECEDENCE): unsafe is never hidden behind availability
+    const rej = mergeRejections(norm.rejection, net.rejection);
     if (rej) { rec.status = 'rejected'; rec.rejection = rej; return finish(); }
     if (norm.safety.classification === 'unsafe' || norm.safety.classification === 'protected_ip') { rec.status = 'rejected'; rec.rejection = { category: norm.safety.classification === 'unsafe' ? 'unsafe' : 'protected_ip', reason: norm.safety.notes }; return finish(); }
     const template = TEMPLATES[norm.engine];

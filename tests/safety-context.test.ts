@@ -59,16 +59,20 @@ test('the same objects without a person-directed harm intent stay safe (context,
   }
 });
 
-test('post-hoc impact across all frozen datasets: exactly the four must-reject unsafe ideas are flagged, nothing else', () => {
-  // was "only H06" for the clause-local rule over ideas/holdout/dev; with holdout2 included the contextual analysis
-  // flags H06 plus HB13 (chair thrown at a person, already caught before), HB14 and HB17 (the two Run 3 misses)
+test('post-hoc impact across all frozen datasets: only must-reject unsafe ideas are flagged, and every one is caught', () => {
+  // history: the clause-local rule (18553be) flagged only H06; the contextual analysis (91ea6ca) added HB13, HB14, HB17;
+  // the Run 4 closure pass adds D07 (fork in an outlet: hazard + inserted object; already rejected via the lexicon) and
+  // HC41-HC51. holdout3 is development data since that pass (Run 4 measured it once, before these rules existed).
   const flagged: string[] = [];
-  for (const f of ['bench/ideas.json', 'bench/holdout-ideas.json', 'bench/dev-ideas.json', 'bench/holdout2-ideas.json']) {
+  for (const f of ['bench/ideas.json', 'bench/holdout-ideas.json', 'bench/dev-ideas.json', 'bench/holdout2-ideas.json', 'bench/holdout3-ideas.json']) {
     const set = JSON.parse(readFileSync(join(ROOT, f), 'utf8'));
-    for (const it of set.ideas) if (analyzeIntent(it.idea ?? it.request.idea).length) {
-      flagged.push(it.id);
-      assert.equal(it.expectedRejectCategory, 'unsafe', `${it.id} is flagged but not an expected unsafe rejection`);
+    for (const it of set.ideas) {
+      const t = it.idea ?? it.request.idea;
+      if (analyzeIntent(t).length) {
+        flagged.push(it.id);
+        assert.equal(it.expectedRejectCategory, 'unsafe', `${it.id} is flagged but not an expected unsafe rejection`);
+      } else if (it.expectedRejectCategory === 'unsafe') assert.ok(scanIdea(t).safety.length > 0, `${it.id}: expected unsafe, no safety finding`);
     }
   }
-  assert.deepEqual(flagged, ['H06', 'HB13', 'HB14', 'HB17']);
+  assert.deepEqual(flagged, ['D07', 'H06', 'HB13', 'HB14', 'HB17', 'HC41', 'HC42', 'HC43', 'HC44', 'HC45', 'HC46', 'HC47', 'HC48', 'HC49', 'HC50', 'HC51']);
 });

@@ -20,6 +20,26 @@ export const SAFETY_CLASSES = ['safe', 'unsafe', 'protected_ip', 'ip_transformed
 export const SAFETY_CATEGORIES = ['violence', 'weapon', 'sexual', 'drugs_alcohol', 'dangerous_imitation', 'self_harm', 'real_money_giveaway', 'platform_currency', 'cruelty', 'protected_character', 'protected_brand', 'real_person'] as const;
 export const REJECT_CATEGORIES = ['unsafe', 'protected_ip', 'unavailable', 'impossible', 'requires_dialogue', 'requires_text', 'duration', 'provider_failure'] as const;
 export type RejectCategory = (typeof REJECT_CATEGORIES)[number];
+/**
+ * Rejection precedence, lower first; stable within a class (the provider's fixed check order):
+ * (a) malformed / security-invalid (an invalid request is a provider_failure and returns before classification; provider
+ *     output is schema-validated first), (b) unsafe, (c) protected IP, (d) asset/action availability, (e) story
+ *     compatibility (text, dialogue, duration). (f) render compatibility is checked after compilation. So an unsafe idea
+ *     is never reported as merely unavailable.
+ */
+export const REJECT_PRECEDENCE: Readonly<Record<RejectCategory, number>> = { provider_failure: 0, unsafe: 1, protected_ip: 2, unavailable: 3, impossible: 3, requires_dialogue: 4, requires_text: 4, duration: 4 };
+export function rankRejections<T extends { category: RejectCategory }>(reasons: readonly T[]): T[] {
+  return reasons.map((r, i) => ({ r, i })).sort((a, b) => REJECT_PRECEDENCE[a.r.category] - REJECT_PRECEDENCE[b.r.category] || a.i - b.i).map((x) => x.r);
+}
+type Rej = { category: RejectCategory; reason: string; also?: Array<{ category: RejectCategory; reason: string }> };
+/** every reason of every rejection (deduplicated), ranked: primary + up to 8 secondary reasons */
+export function mergeRejections(...rs: Array<Rej | null | undefined>): Rej | null {
+  const all: Array<{ category: RejectCategory; reason: string }> = [];
+  for (const r of rs) if (r) for (const x of [{ category: r.category, reason: r.reason }, ...(r.also ?? [])]) if (!all.some((y) => y.category === x.category && y.reason === x.reason)) all.push({ category: x.category, reason: x.reason });
+  if (!all.length) return null;
+  const ranked = rankRejections(all);
+  return { ...ranked[0], ...(ranked.length > 1 ? { also: ranked.slice(1, 9) } : {}) };
+}
 
 export const StoryRequestSchema = v.object({
   idea: v.string({ min: 1, max: 400 }),

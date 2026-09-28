@@ -2,7 +2,7 @@
 // a direct measurement or a proxy (some creative criteria cannot be measured automatically).
 import type { Episode } from '../../schema/src/episode.ts';
 import type { ValidationResult, Lib, ValidationProfile } from './validate.ts';
-import { findBannedTerms } from './validate.ts';
+import { findBannedTerms, longShots, MAX_SHOT_SEC } from './validate.ts';
 import { CHANNEL_DURATION_SEC } from '../../config/src/product.ts';
 
 /** status 'n/a' = the gate does not apply under the validation profile (never counted as passed or failed) */
@@ -11,6 +11,8 @@ export interface QualityReport { summary: { total: number; passed: number; faile
 
 /** gates that judge the STORY (duration target, premise, pacing, causality, reversal, loop, comprehension) */
 export const STORY_ONLY_GATES: ReadonlySet<string> = new Set(['G03', 'G07', 'G08', 'G10', 'G11', 'G12', 'G13', 'G14', 'G15', 'G23']);
+/** G13 = no shot longer than the shared MAX_SHOT_SEC (same rule as the validator's SHOT_TOO_LONG) */
+export const g13Pass = (ep: { shots: ReadonlyArray<{ start: number; end: number }> }): boolean => longShots(ep).length === 0;
 
 export interface QualityInput {
   ep: Episode; validation: ValidationResult; analysis: Array<{ t: number; shot: string; issues: Array<{ code: string; message: string }>; handErrors: Record<string, number> }>;
@@ -80,7 +82,7 @@ export function buildQualityReport(q: QualityInput): QualityReport {
   g('G10', 'Cause -> effect: contact happens and triggers the event', !has('CAUSALITY') && worst < 0.05, 'measured', handErr.map((h) => `${h.c.actor}.${h.c.action}@${h.c.t.toFixed(3)}s hand-to-target ${h.e === undefined ? 'n/a' : (h.e * 100).toFixed(1) + ' cm'}`).join('; ') + '; press/spawn causality validated');
   g('G11', 'Facial change at every information-change beat', !has('NO_FACIAL_REACTION'), 'static', v.findings.filter((f) => f.code === 'NO_FACIAL_REACTION').map((f) => f.message).join('; ') || 'every non-hook/loop information beat contains an expression change or emote');
   g('G12', 'Meaningful visual change every <= 1.5 s', v.metrics.maxStaleGap <= 1.5, 'static', `longest interval without a new cut/action/expression/prop/VFX event: ${v.metrics.maxStaleGap}s`);
-  g('G13', 'No shot > 3 s without a cut', !has('SHOT_TOO_LONG'), 'static', `shot lengths: ${ep.shots.map((s) => (s.end - s.start).toFixed(2)).join(', ')}`);
+  g('G13', `No shot > ${MAX_SHOT_SEC} s without a cut`, g13Pass(ep), 'static', `shot lengths: ${ep.shots.map((s) => (s.end - s.start).toFixed(2)).join(', ')}`);
   const biggest = [...q.impacts].sort((a, b) => b.strength - a.strength)[0];
   g('G14', 'Largest physical reversal in the final 3 s', !!biggest && biggest.t >= D - 3, 'measured', biggest ? `largest impact ${biggest.prop}:${biggest.kind} strength ${biggest.strength.toFixed(1)} at ${biggest.t.toFixed(2)}s (window starts ${D - 3}s)` : 'no impacts');
   const ld = q.loopDiff[0] ?? 1, ctrl = q.loopDiff[1] ?? 0;

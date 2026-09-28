@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-a-fortnite-style-victory-2kb-s4059",
+    "episodeSha256": "09f2c7b6421ee693eeccb3cd0ac650cd1d45de7a8a3c342053bf07385805762b",
+    "semanticSha256": "303dacca7d55df6456b8ce16493cacb3c11fdb8655abccdd6acdf93027fcd32a",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 540,
+  "hashedFrames": 36,
+  "hashEvery": 15,
+  "frameHashesSha256": "68ef7f5b73f112a9be02a7dd8ba15af85c52f64cc4972e4c809cc31b5f97bfdd",
+  "mp4": "out/bench-renders/run4-diag/HC59/gen-ooe-a-fortnite-style-victory-2kb-s4059.mp4",
+  "mp4Sha256": "3d951fa0212527084426474cedf8bb226d6a623aeccaadbe698f0d25240be1c0",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

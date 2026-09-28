@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-the-teacher-s-reward-4xi-s4010",
+    "episodeSha256": "63ee6e6e4ee90dc6df969e54bb5e7478636300f8b8ceee9ec4a03ab1e4177841",
+    "semanticSha256": "9f241009df331586584afab9713d912f8dc8def0b1ffda9db6da87b5f2d49828",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "42101195905698d3a52360f037857c0612a27489c4fc65ba53116194b2efb18e",
+  "mp4": "out/bench-renders/run4-diag/HC10/gen-ooe-the-teacher-s-reward-4xi-s4010.mp4",
+  "mp4Sha256": "77f1ca6a50d8c6fbd5a1f71da9915a88686ddca69d35299b6c94845cdf486dd0",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

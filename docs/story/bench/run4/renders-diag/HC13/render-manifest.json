@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-during-dodgeball-warm-ups-9p9-s4013",
+    "episodeSha256": "154435d3a4316d4009a4404a193b682cf5a4c5aa8577e0669343babead8d5e61",
+    "semanticSha256": "d979b3b8d2efb91275c4dcc60a36a31965cbc56452923c440c24bfdb64d0e993",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 540,
+  "hashedFrames": 36,
+  "hashEvery": 15,
+  "frameHashesSha256": "f73f2b138e45cf5fa0d4b3c3c5ef80b5ecbd287b2d768986161dae5028883279",
+  "mp4": "out/bench-renders/run4-diag/HC13/gen-ooe-during-dodgeball-warm-ups-9p9-s4013.mp4",
+  "mp4Sha256": "0f743ceaed3d99cd56f3426a563e7606b39b9af3cb6e3d3ae8db1639512ecd96",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

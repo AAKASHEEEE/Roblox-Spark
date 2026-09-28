@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-zapp-waits-at-the-gqk-s4044",
+    "episodeSha256": "cbb82b2fad982910ef84d827c1fee7ab2e44ee5871af9bde44cca11432c7a9ca",
+    "semanticSha256": "bc7cdd70ccb26cee9d5d6b15c86b138351515fc2fb8cba27228757328a20b135",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 456,
+  "hashedFrames": 31,
+  "hashEvery": 15,
+  "frameHashesSha256": "37b4867a8a39349982f2a2f96fcac2ca4cfa397213c0ff11d8fdc55a70e228c2",
+  "mp4": "out/bench-renders/run4-diag/HC44/gen-ooe-zapp-waits-at-the-gqk-s4044.mp4",
+  "mp4Sha256": "d193f99ec24a9142acc3dc5e180ccdf91be3386852a905d918cf43caa1c23743",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

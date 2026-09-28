@@ -1,0 +1,30 @@
+{
+  "id": "HC13",
+  "engine": "visible_secret_chase",
+  "kind": "holdout3",
+  "repairs": 0,
+  "substitutions": 2,
+  "ok": true,
+  "wallSec": 135.407,
+  "gates": "37/37",
+  "groups": {
+    "core": {
+      "passed": 23,
+      "total": 23
+    },
+    "production": {
+      "passed": 2,
+      "total": 2
+    },
+    "motion": {
+      "passed": 1,
+      "total": 1
+    },
+    "story": {
+      "passed": 11,
+      "total": 11
+    }
+  },
+  "failed": [],
+  "mp4": "out/bench-renders/run4-diag/HC13/gen-ooe-during-dodgeball-warm-ups-9p9-s4013.mp4"
+}

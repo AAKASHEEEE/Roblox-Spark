@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-nvs-like-a-pro-gamer-49y-s4036",
+    "episodeSha256": "944102a10cb47ff38544eeafb351dfb0dcb15b43ce7381a102639147f8b70baf",
+    "semanticSha256": "e5d2484a1911ad2edce0f6d10c9ac870e15128609e8a3c0852debfa9eeaed7f9",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 555,
+  "hashedFrames": 37,
+  "hashEvery": 15,
+  "frameHashesSha256": "7f292ef3115db2b1fc726bda65e2b4c22a2b9868b6b072f47aedd0bde991b6a0",
+  "mp4": "out/bench-renders/run4-diag/HC36/gen-nvs-like-a-pro-gamer-49y-s4036.mp4",
+  "mp4Sha256": "49108356966acf1c957b021a36e9d725c6fa60bb2d04dc7dcd55bf9a103b5227",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

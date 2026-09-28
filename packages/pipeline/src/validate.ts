@@ -51,6 +51,11 @@ export function findBannedTerms(texts: string[]): string[] {
 
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
+/** maximum shot length without a cut (s): the ONE source of truth for the story validator (SHOT_TOO_LONG) and gate G13 */
+export const MAX_SHOT_SEC = 3.0;
+export const shotTooLong = (s: { start: number; end: number }): boolean => s.end - s.start > MAX_SHOT_SEC + 1e-9;
+export const longShots = <S extends { start: number; end: number }>(ep: { shots: readonly S[] }): S[] => ep.shots.filter(shotTooLong);
+
 export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean; profile?: ValidationProfile } = {}): ValidationResult {
   const profile = opts.profile ?? 'story-episode';
   if (!VALIDATION_PROFILES.includes(profile)) throw new Error(`unknown validation profile ${JSON.stringify(profile)}`);
@@ -218,7 +223,7 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
   for (const s of shots) {
     const len = s.end - s.start;
     if (len < 0.4) warn('SHOT_TOO_SHORT', `${s.id} lasts ${r3(len)}s (< 0.4 s reads as a glitch)`);
-    if (len > 3.0) warn('SHOT_TOO_LONG', `${s.id} lasts ${r3(len)}s (> 3 s without a cut)`);
+    if (shotTooLong(s)) err('SHOT_TOO_LONG', `${s.id} lasts ${r3(len)}s (> ${MAX_SHOT_SEC} s without a cut) @${s.start}`);
   }
   info('SHOT_STATS', `${shots.length} shots, ${presets.size} distinct presets: ${[...presets].join(', ')}`);
 

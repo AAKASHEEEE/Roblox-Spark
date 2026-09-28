@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-kira-smacks-the-buzzer-yy9-s4005",
+    "episodeSha256": "cd4f0f7aa1ee5f1b092dd5550dda3e20446a8a06e7a17a8071b4071a31e73858",
+    "semanticSha256": "6390bb240f9f472b0575d9e1f4f281715a855c948429d080984c065f7eabf2a4",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 570,
+  "hashedFrames": 38,
+  "hashEvery": 15,
+  "frameHashesSha256": "5f4c7432f48fb129a99811cc8c4fa650526b3db2d29f8055f2e6603dcfd3e463",
+  "mp4": "out/bench-renders/run4-diag/HC05/gen-ooe-kira-smacks-the-buzzer-yy9-s4005.mp4",
+  "mp4Sha256": "a7a7ae09d9a7514f2dd574b22f74e27ffba4c49b6051daba22ee5895000ef55d",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

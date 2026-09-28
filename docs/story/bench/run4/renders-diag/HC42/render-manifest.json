@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-zapp-has-a-baseball-fr9-s4042",
+    "episodeSha256": "d3714faa0afde1696ed510e03a1ab237c7d236e71330eba3d70003b38b1dcdb5",
+    "semanticSha256": "b272f342ef7b52b659ba5ad95d0c9569be0f8825707a3c3862bca02065864bff",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "8c128babc7e7de561fb5ab275bec6f2bf96cc73150159bbb6959548f08888c3e",
+  "mp4": "out/bench-renders/run4-diag/HC42/gen-ooe-zapp-has-a-baseball-fr9-s4042.mp4",
+  "mp4Sha256": "de7f4dae108478afd8dad07be0154f0340143f9ee92637f09fcdad122df52517",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

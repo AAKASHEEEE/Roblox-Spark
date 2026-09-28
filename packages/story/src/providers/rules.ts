@@ -7,6 +7,7 @@ import { EMOTION_FACE } from '../registry.ts';
 import { SLOT_SPECS, TEMPLATES } from '../templates.ts';
 import type { Engine, NormalizedIdea, Patch, PlanBeat, RepairConstraint, Slot, VisualBeatPlan } from '../schemas.ts';
 import type { CallMeta, NormalizeInput, PlanInput, RepairInput, StoryModelProvider } from './types.ts';
+import { rankRejections } from '../schemas.ts';
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const NAME: Record<string, string> = { zapp: 'Zapp', kira: 'Kira' };
@@ -154,7 +155,8 @@ export class RulesProvider implements StoryModelProvider {
       requiresDialogue: false,
       requiresReadableText: !!m.needsText,
       safety: { classification, categories: [...new Set(safetyCats)].slice(0, 6) as NormalizedIdea['safety']['categories'], notes: scan.safety.length || scan.ip.length ? `scan: ${[...scan.safety.map((s) => s.term), ...scan.ip.map((x) => x.name)].join(', ')}` : 'no unsafe or protected terms found' },
-      rejection: reasons.length ? { ...reasons[0], ...(reasons.length > 1 ? { also: reasons.slice(1, 9) } : {}) } : null,
+      // ranked by REJECT_PRECEDENCE (unsafe > protected IP > availability > story), stable within a class
+      rejection: reasons.length ? ((rk) => ({ ...rk[0], ...(rk.length > 1 ? { also: rk.slice(1, 9) } : {}) }))(rankRejections(reasons)) : null,
     };
   }
 

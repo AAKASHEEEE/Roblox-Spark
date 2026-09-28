@@ -32,6 +32,7 @@ export const HARM_CAPABLE_OBJECTS = [
 export const SOFT_OBJECTS = ['pillow', 'pillows', 'cushion', 'cushions', 'balloon', 'balloons', 'water_balloon', 'water_balloons', 'pool_noodle', 'noodle', 'feather', 'feathers', 'plush', 'teddy_bear', 'stuffed_animal', 'marshmallow', 'marshmallows', 'confetti', 'bubble', 'bubbles', 'paper_airplane', 'snowball', 'snowballs', 'sponge', 'foam'] as const;
 
 const MULTI = ['baseball bat', 'cricket bat', 'softball bat', 'golf club', 'hockey stick', 'lacrosse stick', 'tennis racket', 'frying pan', 'metal pipe', 'brass knuckles', 'water balloons', 'water balloon', 'pool noodle', 'teddy bear', 'stuffed animal', 'paper airplane', 'ms. byte', 'ms byte', 'miss byte', 'each other', 'one another', 'home run'];
+MULTI.push('power strip', 'extension cord', 'laundry pod', 'tide pod', 'paper clip');
 const HARM = new Set<string>(HARM_CAPABLE_OBJECTS), SOFT = new Set<string>(SOFT_OBJECTS);
 const PERSON = new Set(['zapp', 'kira', 'max', 'ms_byte', 'miss_byte', 'teacher', 'principal', 'friend', 'friends', 'classmate', 'classmates', 'rival', 'bestie', 'buddy', 'student', 'students', 'kid', 'kids', 'boy', 'boys', 'girl', 'girls', 'someone', 'somebody', 'anyone', 'anybody', 'everyone', 'everybody', 'people', 'noob', 'genius', 'stranger', 'man', 'woman', 'guy', 'sister', 'brother', 'mom', 'dad', 'janitor', 'coach', 'player', 'opponent', 'victim', 'each_other', 'one_another', 'nerd', 'bully']);
 const SUBJ_PRON = new Set(['he', 'she', 'they']);
@@ -74,9 +75,33 @@ const BODY = new Set(['arm', 'arms', 'head', 'face', 'nose', 'back', 'leg', 'leg
 const ARRIVE = /\b(walks|comes|steps|runs|wanders|sneaks|strolls|bursts|rushes) (in|into|by|past|around|through|closer|over)\b|\b(enters|arrives|appears|approaches|shows up|turns the corner|opens the door|turns around|gets close|comes near|leans in|bends down|looks away)\b/;
 const ON_BODY = new Set(['back', 'coat', 'jacket', 'shirt', 'hoodie', 'sweater', 'sleeve', 'sleeves', 'pocket', 'pockets', 'cape', 'cloak', 'robe', 'vest']);
 const POSS_PRON = new Set(['his', 'her', 'their']);
-export type IntentRule = 'strike_person' | 'threat' | 'armed_pursuit' | 'armed_ambush' | 'concealed_instrument' | 'implied_strike' | 'person_harm';
+// ---- closure pass after Run 4 (generic vocabulary; no ids or sentences) ----
+for (const w of ['crack', 'cracks', 'cracking', 'cracked', 'thump', 'thumps', 'thumping', 'thumped', 'hurt', 'hurts', 'hurting', 'injure', 'injures', 'injuring', 'harm', 'harms', 'harming', 'bite', 'bites', 'biting', 'headbutt', 'headbutts', 'strangle', 'strangles', 'choke', 'chokes', 'choking']) STRIKE.add(w);
+/** strike idioms: "let <person> have it" (needs a held harm-capable object; otherwise it means giving or keeping
+ *  something), "give <person> a whack", "take a swing at <person>" */
+const LET_HAVE = new Set(['let', 'lets', 'letting']);
+const GIVE = new Set(['give', 'gives', 'gave', 'giving']);
+const TAKE = new Set(['take', 'takes', 'took', 'taking']);
+const BLOW_NOUNS = new Set(['whack', 'smack', 'thump', 'wallop', 'beating', 'punch', 'kick', 'slap', 'bonk', 'clobbering', 'thrashing', 'shove', 'bop', 'jab', 'swat', 'knock', 'headbutt']);
+const SWING_NOUNS = new Set(['swing', 'whack', 'swipe', 'shot', 'poke', 'jab', 'crack', 'stab', 'punch', 'kick']);
+/** adverbs between a thrown or swung object and its target ("right at her face") */
+const INTENSIFIER = new Set(['right', 'straight', 'directly', 'squarely', 'full', 'hard', 'back', 'wildly', 'angrily']);
+/** places where a push is a dangerous fall (same or previous sentence, any clause) */
+const FALL_DANGER = new Set(['stairs', 'staircase', 'stairway', 'stairwell', 'roof', 'rooftop', 'ledge', 'balcony', 'cliff', 'railing', 'window', 'bleachers', 'ladder', 'bridge', 'pool', 'river', 'lake']);
+const FORCE_PUSH = new Set(['push', 'pushes', 'pushed', 'pushing', 'shove', 'shoves', 'shoved', 'shoving', 'knock', 'knocks', 'knocked', 'knocking', 'trip', 'trips', 'tripped', 'tripping', 'kick', 'kicks', 'kicked', 'kicking', 'throw', 'throws', 'threw', 'throwing', 'hurl', 'hurls', 'fling', 'flings', 'drop', 'drops', 'dropped', 'tip', 'tips', 'tipped']);
+/** improvised weapons: a sap-like container loaded with heavy things; everyday carriers only with rocks, bricks, batteries */
+const LOAD = new Set(['fill', 'fills', 'filled', 'filling', 'load', 'loads', 'loaded', 'loading', 'stuff', 'stuffs', 'stuffed', 'stuffing', 'pack', 'packs', 'packed', 'packing', 'tape', 'tapes', 'taped', 'cram', 'crams', 'crammed', 'weigh', 'weighs', 'weighted', 'full']);
+const SAP = new Set(['sock', 'socks', 'stocking', 'stockings', 'pillowcase', 'towel']);
+const CARRIER = new Set(['bag', 'bags', 'backpack', 'purse', 'sack', 'lunchbox']);
+const HEAVY = new Set(['rock', 'rocks', 'stone', 'stones', 'brick', 'bricks', 'battery', 'batteries', 'marbles', 'padlock', 'gravel', 'sand']);
+/** dangerous imitation: an electrical, heat or chemical hazard with mouth contact, an object pushed into it, or a dare */
+const HAZARD = new Set(['battery', 'batteries', 'volt', 'volts', 'outlet', 'outlets', 'socket', 'sockets', 'plug', 'plugs', 'wire', 'wires', 'power_strip', 'extension_cord', 'toaster', 'stove', 'oven', 'heater', 'bleach', 'detergent', 'laundry_pod', 'tide_pod', 'lighter', 'candle', 'candles', 'flame', 'flames', 'microwave']);
+const MOUTH = new Set(['tongue', 'tongues', 'lick', 'licks', 'licking', 'licked', 'taste', 'tastes', 'tasting', 'swallow', 'swallows', 'swallowing', 'chew', 'chews', 'mouth']);
+const INSERT = new Set(['fork', 'forks', 'key', 'keys', 'paper_clip', 'paperclip', 'paperclips', 'pin', 'pins', 'finger', 'fingers', 'knife']);
+const DARE = new Set(['dare', 'dares', 'dared', 'daring', 'challenge', 'challenges', 'challenged', 'bet', 'bets']);
+export type IntentRule = 'strike_person' | 'threat' | 'armed_pursuit' | 'armed_ambush' | 'concealed_instrument' | 'implied_strike' | 'person_harm' | 'hazard_contact' | 'hazard_dare';
 export interface IntentFinding {
-  category: 'violence';
+  category: 'violence' | 'dangerous_imitation';
   rule: IntentRule;
   /** resolved actor(s) of the intent ('?' = unresolved) */
   actor: string;
@@ -119,22 +144,30 @@ export function analyzeIntent(text: string): IntentFinding[] {
   const sentences = normalize(text).split(/[.!?;:]+/).map((s) => s.trim()).filter(Boolean);
   const mentioned: string[] = [];
   const holds = new Map<string, Holding[]>();
+  /** containers that became improvised weapons in this document (sap: sock + coins, bag + rocks) */
+  const improvised = new Set<string>();
   let last: Subject = { kind: 'none', ids: [] };
   const sentToks = sentences.map(tokens);
   const personsIn = (toks: string[]) => toks.filter((t) => PERSON.has(t));
   const evasionIn = (toks: string[]) => toks.some((t) => EVADE.has(t)) || /\bruns away\b|\bjumps back\b|\bcovers (his|her|their) head\b/.test(toks.join(' '));
-  const push = (f: Omit<IntentFinding, 'category' | 'term'>) => {
+  const push = (f: Omit<IntentFinding, 'category' | 'term'>, category: IntentFinding['category'] = 'violence') => {
     if (out.some((x) => x.rule === f.rule && x.sentence === f.sentence)) return;
     if (f.object) f.object = norm(f.object);
     f.target = norm(f.target); f.actor = norm(f.actor);
-    const what = { strike_person: 'strikes a person', threat: 'threatens', armed_pursuit: 'pursues with a harm-capable object', armed_ambush: 'lies in wait / hides with a harm-capable object (ambiguous weapon + ambush)', concealed_instrument: 'conceals a harm-capable object near a person', implied_strike: 'swings/strikes with a harm-capable object at an implied person', person_harm: 'pushes/throws/traps a person into danger' }[f.rule];
+    const what = ({ strike_person: 'strikes a person', threat: 'threatens', armed_pursuit: 'pursues with a harm-capable object', armed_ambush: 'lies in wait / hides with a harm-capable object (ambiguous weapon + ambush)', concealed_instrument: 'conceals a harm-capable object near a person', implied_strike: 'swings/strikes with a harm-capable object at an implied person', person_harm: 'pushes/throws/traps a person into danger' } as Record<string, string>)[f.rule];
     void what;
-    out.push({ category: 'violence', ...f, term: `${f.rule}: ${f.actor} "${norm(f.intent)}"${f.object ? ` + ${f.object}` : ''} -> ${f.target}`.slice(0, 110) });
+    out.push({ category, ...f, term: `${f.rule}: ${f.actor} "${norm(f.intent)}"${f.object ? ` + ${f.object}` : ''} -> ${f.target}`.slice(0, 110) });
   };
 
   sentences.forEach((sentence, si) => {
     const sToks = sentToks[si];
     const sport = sToks.some((t) => SPORT.has(t));
+    // dangerous imitation (one sentence): a hazard together with mouth/tongue contact, an object pushed into it, or a dare
+    {
+      const hz = sToks.find((t) => HAZARD.has(t));
+      const how = sToks.find((t) => MOUTH.has(t)) ?? sToks.find((t) => INSERT.has(t)) ?? sToks.find((t) => DARE.has(t));
+      if (hz && how) { const ps = personsIn(sToks); push({ rule: DARE.has(how) ? 'hazard_dare' : 'hazard_contact', actor: ps[0] ?? '?', intent: how, target: ps[1] ?? ps[0] ?? 'omitted', object: hz, sentence: si, evidence: sentence }, 'dangerous_imitation'); }
+    }
     let clauseIdx = 0;
     for (const clause of splitClauses(sentence)) {
       const ci = clauseIdx++;
@@ -159,6 +192,12 @@ export function analyzeIntent(text: string): IntentFinding[] {
           clauseObjs.push(o.w);
           if (HARM.has(o.w)) for (const id of actorIds) { const h = holds.get(id) ?? []; h.push({ obj: o.w, sentence: si, clause: ci, context }); holds.set(id, h); }
         }
+      }
+      // improvised weapon: a sap-like container loaded with heavy things ("fills a sock with coins", "a bag of rocks")
+      if (actorIds.length && toks.some((t) => LOAD.has(t) || POSSESS.has(t))) {
+        const cont = toks.find((t) => SAP.has(t) || CARRIER.has(t));
+        const heavy = cont && toks.find((t) => HEAVY.has(t) || (SAP.has(cont) && (t === 'coins' || t === 'coin')));
+        if (cont && heavy) { improvised.add(cont); clauseObjs.push(cont); for (const id of actorIds) { const h = holds.get(id) ?? []; h.push({ obj: cont, sentence: si, clause: ci, context }); holds.set(id, h); } }
       }
       // instrument mentioned later in the same sentence ("chases Zapp and Max with a bat", "waits, holding a bat")
       const sentenceObjs = sToks.filter((t, k) => (HARM.has(t) || SOFT.has(t)) && k > 0 && (POSSESS.has(sToks[k - 1]) || DET.has(sToks[k - 1]) || ADJ.has(sToks[k - 1])) && sToks.slice(Math.max(0, k - 4), k).some((x) => POSSESS.has(x)));
@@ -185,6 +224,19 @@ export function analyzeIntent(text: string): IntentFinding[] {
           passiveTarget = subj.kind === 'person' ? subj.ids.join('|') : null;
         }
         const aName = actor.join('|') || actorName;
+        // ---- strike idioms ----
+        if (actorKind === 'person' && (LET_HAVE.has(w) || GIVE.has(w) || TAKE.has(w))) {
+          let hit: { target: string; end: number; needsObject: boolean } | null = null;
+          const p1 = toks[k + 1] ?? '';
+          if (LET_HAVE.has(w)) { if ((PERSON.has(p1) || OBJ_PRON.has(p1) || p1 === 'her') && ['have', 'had'].includes(toks[k + 2] ?? '') && toks[k + 3] === 'it') hit = { target: p1, end: k + 4, needsObject: true }; }
+          else if (GIVE.has(w)) { const tg = targetAt(toks, k + 1); const n = tg.kind === 'person' ? objectAt(toks, tg.next) : null; if (n && BLOW_NOUNS.has(n.w)) hit = { target: tg.name, end: n.next, needsObject: false }; }
+          else { const n = objectAt(toks, k + 1); if (n && SWING_NOUNS.has(n.w) && ['at', 'on'].includes(toks[n.next] ?? '')) { const tg = targetAt(toks, n.next + 1); if (tg.kind === 'person') hit = { target: tg.name, end: tg.next, needsObject: false }; } }
+          if (hit) {
+            const o = inst(actor, { any: true });
+            if (!hit.needsObject || o) push({ rule: 'strike_person', actor: aName, intent: toks.slice(k, hit.end).join(' '), target: hit.target, object: o ?? null, sentence: si, evidence: clause });
+            continue;
+          }
+        }
         // ---- strike / shoot / swing / throw ----
         if (STRIKE.has(w) || SWING.has(w) || THROW.has(w)) {
           if (k > 0 && (DET.has(toks[k - 1]) || ADJ.has(toks[k - 1]) || SPORT.has(toks[k - 1]))) continue; // noun: "a kick", "her golf swing"
@@ -206,6 +258,7 @@ export function analyzeIntent(text: string): IntentFinding[] {
           const d = objectAt(toks, j);
           if ((SWING.has(w) || THROW.has(w)) && d && !PERSON.has(d.w) && !OBJ_PRON.has(d.w) && d.w !== 'her') { instrument = d.w === 'it' ? inst(actor, { any: true }) : d.w; j = d.next; }
           if (viaObject) instrument = viaObject;
+          while (INTENSIFIER.has(toks[j] ?? '')) j++;
           if (toks[j] === 'at' || toks[j] === 'toward' || toks[j] === 'towards' || (SWING.has(w) && toks[j] === 'on')) j++;
           const tg = passiveTarget ? { kind: 'person' as const, name: passiveTarget, next: j } : targetAt(toks, j);
           const withObj = toks.slice(j).includes('with') ? objectAt(toks, toks.indexOf('with', j) + 1)?.w ?? null : null;
@@ -224,7 +277,7 @@ export function analyzeIntent(text: string): IntentFinding[] {
           } else if (tg.kind === 'omitted') {
             // implied target: someone reacts (ducks, dodges...) or arrives/approaches right then; an explicit non-harm
             // object ("throws his hands up") never falls back to a held one
-            const o = instrument ? (HARM.has(instrument) ? instrument : null) : inst(actor);
+            const o = instrument ? (HARM.has(instrument) || improvised.has(instrument) ? instrument : null) : inst(actor);
             if (!o || soft) continue;
             const evade = evasionIn(sToks) || (si + 1 < sentences.length && evasionIn(sentToks[si + 1]));
             const arrive = ARRIVE.test(sentence) || (si > 0 && ARRIVE.test(sentences[si - 1]));
@@ -312,6 +365,7 @@ export function analyzeIntent(text: string): IntentFinding[] {
           const tg = targetAt(toks, j);
           if (tg.kind !== 'person') continue;
           const rest = toks.slice(tg.next, tg.next + 6);
+          const fallCtx = FORCE_PUSH.has(w) && [...sToks, ...(si > 0 ? sentToks[si - 1] : [])].some((t) => FALL_DANGER.has(t));
           const danger = rest.some((t) => DANGER.has(t)) && rest.slice(0, 4).some((t) => ['down', 'off', 'out', 'into', 'over', 'onto', 'from', 'through', 'against', 'in', 'inside', 'under', 'to', 'toward', 'towards'].includes(t));
           const jostle = rest.slice(0, 2).some((t) => JOSTLE.has(t)) || rest.slice(0, 4).join(' ').startsWith('out of the way');
           const trip = /^trip/.test(w);
@@ -320,8 +374,8 @@ export function analyzeIntent(text: string): IntentFinding[] {
           const tied = /^(tie|tying)/.test(w) && (toks[k + 1] === 'up' || rest[0] === 'up');
           const locked = /^(lock|trap)/.test(w) && ['in', 'inside', 'into'].includes(rest[0] ?? '');
           const thrown = THROW.has(w);
-          if (danger || trip || knock || downOnly || tied || locked || (thrown && !jostle)) {
-            if (jostle && !danger) continue;
+          if (danger || fallCtx || trip || knock || downOnly || tied || locked || (thrown && !jostle)) {
+            if (jostle && !danger && !fallCtx) continue;
             push({ rule: 'person_harm', actor: aName, intent: toks.slice(k, Math.min(toks.length, tg.next + 4)).join(' '), target: tg.name, object: null, sentence: si, evidence: clause });
           }
         }
@@ -350,7 +404,7 @@ function targetAt(toks: string[], k: number): { kind: 'person' | 'thing' | 'omit
   if (OBJ_PRON.has(t) || SUBJ_PRON.has(t)) return { kind: 'person', name: t, next: j + 1 };
   if (t === 'her' || t === 'his' || t === 'their') {
     const nx = toks[j + 1];
-    if (t === 'her' && (!nx || STOP.has(nx) || PERSON.has(nx))) return { kind: 'person', name: 'her', next: j + 1 };
+    if (t === 'her' && (!nx || STOP.has(nx) || PERSON.has(nx) || DET.has(nx) || JOSTLE.has(nx) || OBJ_PRON.has(nx))) return { kind: 'person', name: 'her', next: j + 1 };
     if (nx && BODY.has(nx)) return { kind: 'person', name: `${t} ${nx}`, next: j + 2 };
     return { kind: 'thing', name: `${t} ${nx ?? ''}`, next: j + 2 };
   }

@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-max-finds-a-switch-e5g-s4004",
+    "episodeSha256": "6929bd4212f0795bbfe8f54536dee3e0820be4fc3b1a35884ed9c654ec65a396",
+    "semanticSha256": "e3fb954f353a398edcba7f484d110c104a206529922cb4cd9c013cf3eef5a9b2",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 457,
+  "hashedFrames": 31,
+  "hashEvery": 15,
+  "frameHashesSha256": "2e081ed8ba6b219b082d1dca0add96ac7744771b5237685901b2818a886c4b9d",
+  "mp4": "out/bench-renders/run4-diag/HC04/gen-ooe-max-finds-a-switch-e5g-s4004.mp4",
+  "mp4Sha256": "53b92f97526573c6e0e68cd93c574d060bdbeaa46212cfccfb5b3a3395fe6a39",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

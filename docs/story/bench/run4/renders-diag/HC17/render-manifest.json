@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-after-gym-class-zapp-4sl-s4017",
+    "episodeSha256": "12d19317470e3a8f4018ba92bea0405a24b30c1a112f2ec2bf9de9f27147e077",
+    "semanticSha256": "5832d24f7cc468b1d76908d87175685b45c6cc5cdb9b3f5ff5b688bee8735790",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 483,
+  "hashedFrames": 33,
+  "hashEvery": 15,
+  "frameHashesSha256": "629415ba015be7abe90557fd90ca0882838a1be00e7ba66328792bafff7389c2",
+  "mp4": "out/bench-renders/run4-diag/HC17/gen-ooe-after-gym-class-zapp-4sl-s4017.mp4",
+  "mp4Sha256": "33884f89d55664b39ef276b16d2ffa03fff50c4da313dce18436dc8ef12d90ec",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

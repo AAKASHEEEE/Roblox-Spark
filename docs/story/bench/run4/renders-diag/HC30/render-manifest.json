@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-kira-presses-nothing-she-nwb-s4030",
+    "episodeSha256": "f4e2df01bca8212a19807016db037ba3cd65e49a017c3f21028be52bfbe45b8d",
+    "semanticSha256": "f35fc0989f19b1e2e3e1fd0200527159024070303908d3ab97849ec590c8ca7c",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "07ef60388924a5be3771445f2d84bee14cd17d112ab1751477ead7bcdfe978b3",
+  "mp4": "out/bench-renders/run4-diag/HC30/gen-ooe-kira-presses-nothing-she-nwb-s4030.mp4",
+  "mp4Sha256": "a7a30bbe24713534b3d852fccf78f752b1208f50b1f7a1cdbc11ed5c48492ed1",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}
