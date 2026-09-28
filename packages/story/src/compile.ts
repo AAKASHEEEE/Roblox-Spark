@@ -13,7 +13,28 @@ import type { StagingPlan } from './stage.ts';
 import { SLOT_SPECS } from './templates.ts';
 
 export interface KeyEvent { beatId: string; kind: string; t: number; actor?: string }
-export interface CompileOk { ok: true; episode: Episode; beatTimes: Record<string, [number, number]>; events: KeyEvent[]; notes: string[] }
+/**
+ * Fit knobs chosen by the profile-aware fit pass (fit.ts) from SAMPLED motion of the declared profile. They are part of
+ * the compiler input, so compile(req, idea, plan, staging, registry, knobs) stays a pure function. Absent = unfitted.
+ */
+export interface FitKnobs {
+  /** locomotion moves (`actor:kind:from->to#n`) whose heading is aligned by an in-place turn that ends at the move start */
+  preAlign: string[];
+  /** arc height (m) of the escalation prop's leap (default 1.5) */
+  hopHeight?: number;
+  /** actors whose held reaction (shock_recoil / cower) is kept through the leap takeoff instead of ending before it */
+  holdReaction?: string[];
+  /** locomotion moves started later by this many seconds (the actor holds its previous pose), keyed like preAlign */
+  moveDelay?: Record<string, number>;
+  /** camera parameter overrides per shot id, merged over the planned parameters */
+  shots: Record<string, Record<string, number | boolean>>;
+}
+export const DEFAULT_HOP_HEIGHT = 1.5;
+/** reactions that hold their final pose (engine `holds`) and may be kept through a leap takeoff (FitKnobs.holdReaction) */
+export const HELD_REACTIONS = new Set(['shock_recoil', 'cower']);
+/** how long after the leap takeoff a held reaction is kept (s): the prop is past a standing actor's head by then */
+export const TAKEOFF_HOLD = 0.3;
+export interface CompileOk { ok: true; episode: Episode; beatTimes: Record<string, [number, number]>; events: KeyEvent[]; notes: string[]; /** locomotion moves in order, with fit keys */ moves: Array<{ key: string; actor: string; kind: string; from: string; to: string; start: number }> }
 export interface CompileErr { ok: false; errors: RepairConstraint[]; notes: string[] }
 
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
@@ -21,7 +42,7 @@ const TAIL: Record<string, number> = { reversal: 2.3, payoff: 1.0, loop: 1.1 };
 const MIN: Record<string, number> = { premise: 0.9, notice: 1.0, foil_notice: 0.9, warn: 0.9, race: 1.2, attempt_fail: 1.4, press_reward: 1.25, reward_reveal: 0.9, celebrate: 1.3, smart_attempt: 3.2, escalate: 1.15, leap: 1.55, threat: 2.2, instant_loss: 2.25 };
 const ENGINE_ABBR: Record<string, string> = { ordinary_object_extreme: 'ooe', visible_secret_chase: 'vsc', apparent_win_instant_loss: 'awl', noob_vs_smart: 'nvs' };
 
-export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: VisualBeatPlan, st: StagingPlan, reg: Registry): CompileOk | CompileErr {
+export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: VisualBeatPlan, st: StagingPlan, reg: Registry, fit?: FitKnobs): CompileOk | CompileErr {
   const env: EnvironmentManifest = reg.environment;
   const errors: RepairConstraint[] = [];
   const notes: string[] = [];
@@ -47,7 +68,7 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
   const lo = (b: PlanBeat) => Math.max(MIN[b.slot] ?? 0.9, SLOT_SPECS[b.slot].duration[0] * 0.8);
   const hi = (b: PlanBeat) => b.slot === 'premise' ? 1.3 : Math.max(lo(b), SLOT_SPECS[b.slot].duration[1] * 1.3);
   // feasibility minimums from travel
-  const walkIn = st.walkIn[P] ? locoDur(P, 'walk', st.start[P], st.walkIn[P]!) : 0;
+  const walkIn0 = st.walkIn[P] ? locoDur(P, 'walk', st.start[P], st.walkIn[P]!) : 0;
   const need: Record<string, number> = {};
   if (st.raceTo[P]) need.race = Math.max(locoDur(P, 'run', st.start[P], st.raceTo[P]) + 0.2, locoDur(F, 'chase', st.start[F], st.raceTo[F]) + 0.35);
   {
@@ -58,6 +79,16 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
     else { need.leap = Math.max(1.55, 0.6 + back + 0.1); need.instant_loss = Math.max(2.25, 1.35 + back + 0.1); need.threat = 1.0 + run + 0.6; }
   }
   if (st.smartApproach) need.smart_attempt = Math.max(0.25 + 0.3 + locoDur(F, 'walk', st.start[F], st.smartApproach) + 0.1, 1.0) + 2.1;
+  // time the fit remedies need inside their beat (pre-align turn 0.3 s, move delays): budgeted here so a remedy never
+  // pushes a move past its beat (the stager's move list maps each move to its slot)
+  const remedyTime: Record<string, number> = {};
+  if (fit) for (const m of st.moves) {
+    const base = `${m.actor}:${m.kind}:${m.from}->${m.to}#`;
+    const extra = (fit.preAlign.some((k) => k.startsWith(base)) ? 0.3 : 0) + Math.max(0, ...Object.entries(fit.moveDelay ?? {}).filter(([k]) => k.startsWith(base)).map(([, v]) => v));
+    if (extra > 0) remedyTime[m.slot] = (remedyTime[m.slot] ?? 0) + extra;
+  }
+  for (const [slot, x] of Object.entries(remedyTime)) if (slot !== 'premise') need[slot] = (need[slot] ?? 0) + x;
+  const walkIn = walkIn0 ? walkIn0 + (remedyTime.premise ?? 0) : 0;
   const dur: Record<string, number> = {};
   for (const b of head) dur[b.id] = Math.max(need[b.slot] ?? 0, Math.min(hi(b), Math.max(lo(b), b.approxDuration)));
   for (let it = 0; it < 8; it++) {
@@ -108,14 +139,31 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
   const hold = (actor: string, action: string, start: number, target: string, expression?: string | null) => act(actor, action, start, D - start, { target, ...(expression ? { expression: expression as never } : {}) });
   // facing bookkeeping: after arriving, the next non-locomotion action turns the actor to the mark's facing
   const yawNow: Record<string, number> = {}, lastWasLoco: Record<string, boolean> = {};
+  const moveKeys: Array<{ key: string; actor: string; kind: string; from: string; to: string; start: number }> = [];
   const yawTo = (a: string, b: string) => Math.atan2(mark(b)[0] - mark(a)[0], mark(b)[2] - mark(a)[2]) * 180 / Math.PI;
   const wrap = (d: number) => ((d + 540) % 360) - 180;
-  /** locomotion with an in-place pre-turn when the heading change exceeds 50 deg (avoids planted-foot drag) */
+  /**
+   * locomotion with an in-place pre-turn when the heading change exceeds 50 deg (avoids planted-foot drag). A move the fit
+   * pass marked `preAlign` (its sampled onset envelope collided) also gets an in-place turn to the travel heading, ending
+   * exactly at the move start, so the onset starts facing the travel direction.
+   */
+  const locoSeen: Record<string, number> = {};
   const loco = (actor: string, kind: string, start: number, from: string, to: string, extra: Partial<EpisodeAction> = {}) => {
     const cur = lastWasLoco[actor] ? yawNow[actor] : env.marks[from]?.facingDeg ?? 0;
     const want = yawTo(from, to);
+    const base = `${actor}:${kind}:${from}->${to}`;
+    const key = `${base}#${(locoSeen[base] = (locoSeen[base] ?? 0) + 1)}`;
+    const delay = fit?.moveDelay?.[key] ?? 0;
+    if (delay > 0) { start = r3(start + delay); notes.push(`fit: delayed ${key} by ${delay}s`); }
     if (Math.abs(wrap(want - cur)) > 50 && kind !== 'dive_prone') { act(actor, 'turn_toward', start, 0.3, { target: to }); start += 0.3; }
-    const d = locoDur(actor, kind, from, to); act(actor, kind, start, d, { to, ...extra });
+    else if (kind !== 'dive_prone' && fit?.preAlign.includes(key)) {
+      const tt = act(actor, 'turn_toward', r3(Math.max(0, start - 0.3)), 0.3, { target: to });
+      start = Math.max(start, tt.start + tt.duration);
+      notes.push(`fit: pre-aligned heading before ${key}`);
+    }
+    const d = locoDur(actor, kind, from, to); const la = act(actor, kind, start, d, { to, ...extra });
+    moveKeys.push({ key, actor, kind, from, to, start: la.start });
+    start = la.start;
     yawNow[actor] = want; lastWasLoco[actor] = true;
     return start + d;
   };
@@ -261,7 +309,13 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
           fx('emote', s + 0.45, 0.6, V, { symbol: '!' });
           t0 = s + 0.8;
         }
-        prop('coin', 'hop_to', t0, 0.55, { to: st.giantSpot, params: { height: 1.5 } });
+        // fit knob: an actor who is idle at takeoff after a held reaction keeps that reaction pose until the prop has
+        // passed (TAKEOFF_HOLD after takeoff); the next action of the actor truncates it as usual
+        for (const a of fit?.holdReaction ?? []) {
+          const prev = last[a];
+          if (prev && HELD_REACTIONS.has(prev.action) && prev.start + prev.duration < t0 + TAKEOFF_HOLD - 1e-6) { prev.duration = r3(t0 + TAKEOFF_HOLD - prev.start); notes.push(`fit: ${a} holds ${prev.action} through the leap takeoff`); }
+        }
+        prop('coin', 'hop_to', t0, 0.55, { to: st.giantSpot, params: { height: fit?.hopHeight ?? DEFAULT_HOP_HEIGHT } });
         const land = t0 + 0.55;
         events.push({ beatId: b.id, kind: 'coin_land', t: land });
         sfx('sfx_whoosh', t0, -10, { pitch: 0.8 }); sfx('sfx_thud_small', land, -6, { sync: 'impact:coin:land' });
@@ -354,6 +408,7 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
   if (sp.errors.length) return { ok: false, errors: sp.errors, notes };
   const shots: Episode['shots'] = sp.shots.map((x, i) => ({ id: `s${String(i + 1).padStart(2, '0')}`, start: r3(x.from), end: r3(x.to), preset: x.preset as never, subjects: x.subjects, purpose: x.purpose.slice(0, 120), params: x.params }));
   shots[0].start = 0; shots[shots.length - 1].end = D;
+  if (fit) for (const sh of shots) if (fit.shots[sh.id]) { sh.params = { ...(sh.params ?? {}), ...fit.shots[sh.id] }; notes.push(`fit: ${sh.id} camera ${JSON.stringify(fit.shots[sh.id])}`); }
   // ---------- 4. assemble ----------
   const slug = req.idea.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 4).join('-') || 'idea';
   const idHash = (hashSeed(req.idea) % 46656).toString(36);
@@ -381,5 +436,5 @@ export function compileEpisode(req: StoryRequest, idea: NormalizedIdea, plan: Vi
     export: { container: 'mp4', videoCodec: 'h264', audioCodec: 'aac', videoBitrateKbps: 12000, audioBitrateKbps: 160 },
     safety: { familySafe: true, usesThirdPartyBrands: false, realMoneyOrGiveawayClaims: false, notes: `Generated from a user idea by the BlockSpark story pipeline; safety classification: ${idea.safety.classification}. Fictional in-world coins only.`.slice(0, 400) },
   };
-  return { ok: true, episode: ep, beatTimes, events, notes };
+  return { ok: true, episode: ep, beatTimes, events, notes, moves: moveKeys };
 }

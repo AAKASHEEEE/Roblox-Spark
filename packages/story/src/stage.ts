@@ -36,6 +36,14 @@ function colliders2d(env: EnvironmentManifest): Array<{ id: string; min: number[
   }
   return out;
 }
+/** actor root clearance a move must keep from a stationary actor's mark (fit pass PAD.actorMin) */
+const ACTOR_PATH_MIN = 0.55;
+/** distance from point p to segment a-b (xz) */
+function segPointDist(a: number[], b: number[], p: number[]): number {
+  const dx = b[0] - a[0], dz = b[1] - a[1], L2 = dx * dx + dz * dz;
+  const u = L2 < 1e-12 ? 0 : Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / L2));
+  return Math.hypot(a[0] + dx * u - p[0], a[1] + dz * u - p[1]);
+}
 /** min distance from segment a-b (xz) to an AABB, ignoring `slack` metres at both ends */
 function segClearance(a: number[], b: number[], box: { min: number[]; max: number[] }, slack: number): number {
   const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -100,6 +108,26 @@ export function stagePlan(plan: VisualBeatPlan, env: EnvironmentManifest): { sta
   const cols = colliders2d(env);
   const errors: RepairConstraint[] = [];
   const pos = (m: string) => { const x = env.marks[m]?.pos; if (!x) throw new Error(`stager: mark ${m} missing in ${env.id}@${env.version}`); return [x[0], x[2]]; };
+  // locomotion envelope vs STATIONARY actors: a move must pass every other actor's current mark with at least
+  // ACTOR_PATH_MIN (fit pass: PAD.actorMin 0.55 m; the onset pivot sways the root up to ~0.1 m off the straight line).
+  // The waiting mark of the non-moving actor is taken from its candidate list (first candidate that clears); the
+  // profile-aware fit pass re-checks the sampled motion (envelope.ts).
+  {
+    const where: Record<string, string> = { ...s.start };
+    const firstMove = (actor: string) => s.moves.findIndex((m) => m.actor === actor);
+    const alt: Record<string, string[]> = plan.engine === 'noob_vs_smart' ? { [F]: v === 1 ? ['watch_left', 'smart_wait'] : ['smart_wait', 'watch_left'] } : {};
+    for (const [actor, cands] of Object.entries(alt)) {
+      const fm = firstMove(actor);
+      const before = s.moves.slice(0, fm < 0 ? s.moves.length : fm).filter((m) => m.actor !== actor);
+      const ok = (mark: string) => before.every((m) => segPointDist(pos(m.from), pos(m.to), pos(mark)) >= ACTOR_PATH_MIN);
+      const pick = cands.find(ok);
+      if (pick && pick !== s.start[actor]) {
+        const old = s.start[actor];
+        s.start[actor] = pick; where[actor] = pick;
+        for (const m of s.moves) if (m.actor === actor && m.from === old && s.moves.indexOf(m) === fm) m.from = pick;
+      }
+    }
+  }
   for (const m of s.moves) {
     const a = pos(m.from), b = pos(m.to);
     // margin = clearance minus what this collider requires (negative = blocked)
