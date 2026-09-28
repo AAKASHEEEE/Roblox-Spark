@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-nvs-kira-presses-the-button-ox0-s4035",
+    "episodeSha256": "55329bfe7c9e10241c5653e9d122a9ce308702f504a49691b8eb85786f621daf",
+    "semanticSha256": "69145caad86096a13b50a6a83c64df946b560b450c11613485d4cc8e00088123",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 571,
+  "hashedFrames": 39,
+  "hashEvery": 15,
+  "frameHashesSha256": "a2f4c027f994b027c0686acc7926d6044f2893eeb1b02c8069e479fd5d4fdc75",
+  "mp4": "out/bench-renders/run4-diag/HC35/gen-nvs-kira-presses-the-button-ox0-s4035.mp4",
+  "mp4Sha256": "3c03f865c18e8ea9e36243b6dbc674c932900d713e7e222952231d04197d12a3",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

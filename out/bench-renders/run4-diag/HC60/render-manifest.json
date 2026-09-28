@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-kira-gives-the-classroom-d2e-s4060",
+    "episodeSha256": "85c6a401a78fe13bd7cf3b85e5d0ff0ad26a2f627ad21c2f34b38f5cabef6c66",
+    "semanticSha256": "e6775ac3c54c5e4fa2b0706013f68e5007eb54eb5378530e964b26120b823e5d",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "c7a20fe64eb965dd4e3840319cc1db91f6bfc6943e6cb55778490aaf2d087e11",
+  "mp4": "out/bench-renders/run4-diag/HC60/gen-ooe-kira-gives-the-classroom-d2e-s4060.mp4",
+  "mp4Sha256": "f80e14133f02401ed2b74f1a8de11853dd3b940534cc21955352eb0b43f8815c",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

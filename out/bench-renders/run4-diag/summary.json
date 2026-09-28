@@ -1,0 +1,1505 @@
+{
+  "run": "out/bench/run4-holdout3",
+  "scale": 0.25,
+  "profile": "diagnostic",
+  "selection": "all accepted",
+  "chosen": [
+    "HC01",
+    "HC02",
+    "HC03",
+    "HC04",
+    "HC05",
+    "HC06",
+    "HC07",
+    "HC08",
+    "HC09",
+    "HC10",
+    "HC11",
+    "HC12",
+    "HC13",
+    "HC14",
+    "HC15",
+    "HC16",
+    "HC17",
+    "HC18",
+    "HC19",
+    "HC20",
+    "HC21",
+    "HC22",
+    "HC23",
+    "HC24",
+    "HC25",
+    "HC26",
+    "HC27",
+    "HC28",
+    "HC29",
+    "HC30",
+    "HC31",
+    "HC32",
+    "HC33",
+    "HC34",
+    "HC35",
+    "HC36",
+    "HC37",
+    "HC38",
+    "HC39",
+    "HC40",
+    "HC42",
+    "HC44",
+    "HC47",
+    "HC50",
+    "HC51",
+    "HC55",
+    "HC59",
+    "HC60"
+  ],
+  "complete": true,
+  "rendered": 48,
+  "allGatesPassed": 47,
+  "wallSec": 778.742,
+  "parallel": 3,
+  "results": [
+    {
+      "id": "HC01",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 121.179,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC01/gen-ooe-zapp-slaps-the-big-vec-s4001.mp4"
+    },
+    {
+      "id": "HC02",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 133.891,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC02/gen-awl-kira-pokes-the-glowing-wo5-s4002.mp4"
+    },
+    {
+      "id": "HC03",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 133.831,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC03/gen-ooe-back-from-soccer-practice-u1x-s4003.mp4"
+    },
+    {
+      "id": "HC04",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 3,
+      "ok": true,
+      "wallSec": 109.521,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC04/gen-ooe-max-finds-a-switch-e5g-s4004.mp4"
+    },
+    {
+      "id": "HC05",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 137.738,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC05/gen-ooe-kira-smacks-the-buzzer-yy9-s4005.mp4"
+    },
+    {
+      "id": "HC06",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 124.753,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC06/gen-ooe-zapp-taps-the-button-swg-s4006.mp4"
+    },
+    {
+      "id": "HC07",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 118.273,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC07/gen-ooe-in-the-gym-between-6k7-s4007.mp4"
+    },
+    {
+      "id": "HC08",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 141.08,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC08/gen-ooe-zapp-can-t-stop-hmi-s4008.mp4"
+    },
+    {
+      "id": "HC09",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 130.397,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC09/gen-ooe-kira-hits-the-button-avl-s4009.mp4"
+    },
+    {
+      "id": "HC10",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 4,
+      "ok": true,
+      "wallSec": 116.843,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC10/gen-ooe-the-teacher-s-reward-4xi-s4010.mp4"
+    },
+    {
+      "id": "HC11",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 98.399,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC11/gen-vsc-kira-notices-a-secret-8rh-s4011.mp4"
+    },
+    {
+      "id": "HC12",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 100.17,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC12/gen-vsc-zapp-spots-the-hidden-yy8-s4012.mp4"
+    },
+    {
+      "id": "HC13",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 135.407,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC13/gen-ooe-during-dodgeball-warm-ups-9p9-s4013.mp4"
+    },
+    {
+      "id": "HC14",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 115.211,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC14/gen-vsc-kira-notices-a-glittering-unj-s4014.mp4"
+    },
+    {
+      "id": "HC15",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 139.388,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC15/gen-ooe-zapp-and-kira-both-mb5-s4015.mp4"
+    },
+    {
+      "id": "HC16",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 116.824,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC16/gen-vsc-kira-chases-zapp-all-caf-s4016.mp4"
+    },
+    {
+      "id": "HC17",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 3,
+      "ok": true,
+      "wallSec": 116.997,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC17/gen-ooe-after-gym-class-zapp-4sl-s4017.mp4"
+    },
+    {
+      "id": "HC18",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 141.982,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC18/gen-vsc-still-holding-her-tennis-p2m-s4018.mp4"
+    },
+    {
+      "id": "HC19",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 125.463,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC19/gen-vsc-zapp-waits-behind-the-ms0-s4019.mp4"
+    },
+    {
+      "id": "HC20",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 123.164,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC20/gen-ooe-kira-and-zapp-both-hgk-s4020.mp4"
+    },
+    {
+      "id": "HC21",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 112.776,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC21/gen-awl-zapp-presses-the-button-4l-s4021.mp4"
+    },
+    {
+      "id": "HC22",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 128.258,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC22/gen-awl-kira-taps-the-stubborn-9j8-s4022.mp4"
+    },
+    {
+      "id": "HC23",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 131.057,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC23/gen-awl-after-a-dozen-tries-5sq-s4023.mp4"
+    },
+    {
+      "id": "HC24",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 116.83,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC24/gen-awl-kira-wins-the-coin-96k-s4024.mp4"
+    },
+    {
+      "id": "HC25",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 131.96,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC25/gen-awl-zapp-finally-beats-the-x0z-s4025.mp4"
+    },
+    {
+      "id": "HC26",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 128.289,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC26/gen-awl-kira-hides-behind-her-1i8-s4026.mp4"
+    },
+    {
+      "id": "HC27",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 119.014,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC27/gen-awl-zapp-tries-the-button-rl2-s4027.mp4"
+    },
+    {
+      "id": "HC28",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 146.406,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC28/gen-awl-kira-jabs-the-button-9j8-s4028.mp4"
+    },
+    {
+      "id": "HC29",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 133.75,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC29/gen-ooe-between-tennis-serves-in-dlx-s4029.mp4"
+    },
+    {
+      "id": "HC30",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 123.885,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC30/gen-ooe-kira-presses-nothing-she-nwb-s4030.mp4"
+    },
+    {
+      "id": "HC31",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 129.577,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC31/gen-nvs-zapp-mashes-the-button-t1u-s4031.mp4"
+    },
+    {
+      "id": "HC32",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 143.763,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC32/gen-nvs-kira-thinks-she-has-a2v-s4032.mp4"
+    },
+    {
+      "id": "HC33",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 143.792,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC33/gen-nvs-max-hits-the-button-q3s-s4033.mp4"
+    },
+    {
+      "id": "HC34",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 130.3,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC34/gen-nvs-zapp-taps-the-button-eih-s4034.mp4"
+    },
+    {
+      "id": "HC35",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 139.018,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC35/gen-nvs-kira-presses-the-button-ox0-s4035.mp4"
+    },
+    {
+      "id": "HC36",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 138.949,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC36/gen-nvs-like-a-pro-gamer-49y-s4036.mp4"
+    },
+    {
+      "id": "HC37",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 122.224,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC37/gen-nvs-zapp-presses-the-button-o7o-s4037.mp4"
+    },
+    {
+      "id": "HC38",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": false,
+      "wallSec": 148.519,
+      "gates": "36/37",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G13"
+      ],
+      "mp4": "out/bench-renders/run4-diag/HC38/gen-nvs-kira-demonstrates-her-pro-1d2-s4038.mp4"
+    },
+    {
+      "id": "HC39",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 130.907,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC39/gen-ooe-kira-gets-her-coin-8tv-s4039.mp4"
+    },
+    {
+      "id": "HC40",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 134.352,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC40/gen-nvs-after-basketball-practice-kira-1de-s4040.mp4"
+    },
+    {
+      "id": "HC42",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 119.669,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC42/gen-ooe-zapp-has-a-baseball-fr9-s4042.mp4"
+    },
+    {
+      "id": "HC44",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 106.184,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC44/gen-ooe-zapp-waits-at-the-gqk-s4044.mp4"
+    },
+    {
+      "id": "HC47",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 113.974,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC47/gen-ooe-kira-fills-a-sock-ns3-s4047.mp4"
+    },
+    {
+      "id": "HC50",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 124.232,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC50/gen-ooe-zapp-throws-his-heavy-htj-s4050.mp4"
+    },
+    {
+      "id": "HC51",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 115.241,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC51/gen-ooe-zapp-dares-kira-to-9f6-s4051.mp4"
+    },
+    {
+      "id": "HC55",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 132.842,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC55/gen-ooe-zapp-uses-his-cricket-csk-s4055.mp4"
+    },
+    {
+      "id": "HC59",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 3,
+      "ok": true,
+      "wallSec": 125.984,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC59/gen-ooe-a-fortnite-style-victory-2kb-s4059.mp4"
+    },
+    {
+      "id": "HC60",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 121.136,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-diag/HC60/gen-ooe-kira-gives-the-classroom-d2e-s4060.mp4"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-awl-kira-wins-the-coin-96k-s4024",
+    "episodeSha256": "5201930f4f296f1a52c86371521e709616bc566b9acd6e60b6349690476734ba",
+    "semanticSha256": "d39c76872923aa6cea9ad89c77d644104752b692912896f515df15cfa2c79936",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 488,
+  "hashedFrames": 33,
+  "hashEvery": 15,
+  "frameHashesSha256": "1c98e6e82d2a21fae8149a50bcf8fce347511d27d261caa8c9e068ed5866c368",
+  "mp4": "out/bench-renders/run4-diag/HC24/gen-awl-kira-wins-the-coin-96k-s4024.mp4",
+  "mp4Sha256": "ea3f2a32e28d3ec544b4cb2cf533051e9e547af274296678b9a307d8670968b5",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-zapp-throws-his-heavy-htj-s4050",
+    "episodeSha256": "2b8863714e6e1e257b2bdd812213a27eedd0d7315b6ba1f6d83c8511d97c3509",
+    "semanticSha256": "0ddfc866b6e52e5800bd35bf40a068bbdd1bf6bdc7222b67b94017b2d2f5d0be",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "81dfaa8a608f6a105cd36dc95d434c364801233b2f2b1307b24abb7ac51afbab",
+  "mp4": "out/bench-renders/run4-diag/HC50/gen-ooe-zapp-throws-his-heavy-htj-s4050.mp4",
+  "mp4Sha256": "159315aff8f02736fc79dc69ef6d0ffd3ceec88bfbc7e0d0eff68136ce0cd011",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

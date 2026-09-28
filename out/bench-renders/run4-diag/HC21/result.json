@@ -1,0 +1,30 @@
+{
+  "id": "HC21",
+  "engine": "apparent_win_instant_loss",
+  "kind": "holdout3",
+  "repairs": 0,
+  "substitutions": 0,
+  "ok": true,
+  "wallSec": 112.776,
+  "gates": "37/37",
+  "groups": {
+    "core": {
+      "passed": 23,
+      "total": 23
+    },
+    "production": {
+      "passed": 2,
+      "total": 2
+    },
+    "motion": {
+      "passed": 1,
+      "total": 1
+    },
+    "story": {
+      "passed": 11,
+      "total": 11
+    }
+  },
+  "failed": [],
+  "mp4": "out/bench-renders/run4-diag/HC21/gen-awl-zapp-presses-the-button-4l-s4021.mp4"
+}

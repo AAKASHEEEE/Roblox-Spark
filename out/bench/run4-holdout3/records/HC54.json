@@ -1,0 +1,149 @@
+{
+ "item": {
+  "id": "HC54",
+  "engine": "noob_vs_smart",
+  "kind": "holdout3",
+  "expected": "reject",
+  "expectedRejectCategory": "unavailable",
+  "probes": [
+   "tool_use"
+  ],
+  "idea": "Kira grabs a ruler to press the button the smart way while Zapp uses his finger; the ruler trick backfires and the coin topples onto her.",
+  "request": {
+   "idea": "Kira grabs a ruler to press the button the smart way while Zapp uses his finger; the ruler trick backfires and the coin topples onto her.",
+   "durationTarget": 15,
+   "comedyEngine": null,
+   "seed": 4054
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Kira grabs a ruler to press the button the smart way while Zapp uses his finger; the ruler trick backfires and the coin topples onto her.",
+   "durationTarget": 15,
+   "comedyEngine": null,
+   "seed": 4054
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "unavailable",
+   "reason": "requires unregistered prop(s): ruler (no safe same-class substitute)"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "noob_vs_smart",
+   "protagonist": {
+    "id": "kira",
+    "mention": "kira"
+   },
+   "support": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "coin"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Kira is nearby.",
+   "goal": "Zapp wants to out-do Kira's simple win.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "support",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "kira",
+     "zapp"
+    ],
+    "props": [
+     "ruler",
+     "button",
+     "coin"
+    ],
+    "places": [],
+    "actions": [
+     "press",
+     "noobSmart",
+     "crush",
+     "carry",
+     "tool"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "carry/steal the object",
+     "used": "reach it first",
+     "kind": "action",
+     "reason": "engine v1 has no prop attachment; carrying is simplified to reaching/pressing"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "unavailable",
+    "reason": "requires unregistered prop(s): ruler (no safe same-class substitute)"
+   }
+  },
+  "plan": null,
+  "substitutions": [
+   {
+    "requested": "carry/steal the object",
+    "used": "reach it first",
+    "kind": "action",
+    "reason": "engine v1 has no prop attachment; carrying is simplified to reaching/pressing"
+   }
+  ],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "fitKnobs": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.512905999989016,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}
