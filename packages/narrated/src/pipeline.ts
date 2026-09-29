@@ -12,7 +12,8 @@ import { EMOTION_FACE, type Registry } from '../../story/src/registry.ts';
 import { CAPTION_PRESETS, CAPTION_STYLE, NARRATED_SCHEMA_VERSION, STORY_PATTERNS, forbiddenKeyPaths, validateNarratedStoryboard, type NarratedStoryboard, type NarratedPhrase, type StoryPattern, type StoryPurpose, type VocabIds } from './schema.ts';
 import { AUDIO_DURATION_LIMITS, type DecodedAudio } from './audio.ts';
 import { wordCount, type NarrationAligner, type AlignmentResult } from './align.ts';
-import { fitsCaption, planCaption } from './captions.ts';
+import { fitsCaption, planCaptionChunks } from './captions.ts';
+import { interpretPhrase, newSemanticState, PROP_DISPLAY, type PhraseSemantics } from './semantics.ts';
 
 export const NARRATED_REJECTIONS = ['invalid_input', 'unsafe', 'protected_ip', 'unavailable', 'story_incompatible', 'timeline_incompatible'] as const;
 export type NarratedRejectCategory = (typeof NARRATED_REJECTIONS)[number];
@@ -33,7 +34,7 @@ export interface AudioMeta { originalFilename: string; format: DecodedAudio['for
 export interface NarratedResult { status: 'accepted' | 'rejected'; rejection: NarratedRejection | null; storyboard: NarratedStoryboard | null; alignment: AlignmentResult | null }
 
 export function vocabIds(reg: Registry): VocabIds {
-  return { characters: reg.ids.characters, actions: reg.ids.actions, expressions: EXPRESSIONS, environments: reg.ids.environments, cameras: reg.cameras };
+  return { characters: reg.ids.characters, actions: reg.ids.actions, expressions: EXPRESSIONS, environments: reg.ids.environments, cameras: reg.cameras, props: reg.ids.props };
 }
 export function perCharacterVocab(reg: Registry): Record<string, { actions: string[]; expressions: string[] }> {
   return Object.fromEntries(Object.entries(reg.characters).map(([id, c]) => [id, { actions: c.allowedActions.filter((a) => reg.ids.actions.includes(a)), expressions: [...c.allowedExpressions] }]));
@@ -52,6 +53,9 @@ export function parseScript(script: string): Array<{ text: string; section: numb
   return out;
 }
 
+/** every item, or the first `n` followed by "and N more" (never a silent cut) */
+export const listAll = (xs: readonly string[], n = 20): string => xs.length <= n ? xs.join(', ') : `${xs.slice(0, n).join(', ')} and ${xs.length - n} more`;
+
 const BRAND_TERMS = new Set(BANNED_TERMS.slice(0, BANNED_TERMS.indexOf('free robux')).map((t) => t.trim()));
 function contentRejections(title: string, lines: string[]): Array<{ category: NarratedRejectCategory; reason: string }> {
   const out: Array<{ category: NarratedRejectCategory; reason: string }> = [];
@@ -65,8 +69,8 @@ function contentRejections(title: string, lines: string[]): Array<{ category: Na
     for (const x of s.ip) ip.add(x.name);
   }
   for (const b of findBannedTerms(texts)) (BRAND_TERMS.has(b) ? ip : unsafe).add(BRAND_TERMS.has(b) ? b : `banned term (${b})`);
-  if (unsafe.size) out.push({ category: 'unsafe', reason: `the script contains content that family-safe episodes cannot show: ${[...unsafe].slice(0, 6).join(', ')}` });
-  if (ip.size) out.push({ category: 'protected_ip', reason: `the script names protected brands, characters or real people that captions would display: ${[...ip].slice(0, 6).join(', ')}` });
+  if (unsafe.size) out.push({ category: 'unsafe', reason: `the script contains content that family-safe episodes cannot show: ${listAll([...unsafe], 8)}` });
+  if (ip.size) out.push({ category: 'protected_ip', reason: `the script names protected brands, characters or real people that captions would display: ${listAll([...ip], 8)}` });
   return out;
 }
 
@@ -86,27 +90,6 @@ const PURPOSE: Record<StoryPurpose, PurposeRule> = {
   punchline: { emotion: 'laugh', action: 'laugh', cameras: ['two_shot', 'reaction_punch_in'], support: 'shock', text: 'lands the punchline' },
   closing: { emotion: 'happy', action: 'turn_toward', cameras: ['final_loop', 'frontal_medium'], support: null, text: 'closes the story' },
 };
-/** verbs in the narration -> a registered action that demonstrates them (first match wins) */
-const VERBS: Array<[RegExp, string]> = [
-  [/\b(chas(e|es|ed|ing))\b/i, 'chase'], [/\b(run|runs|ran|running|rush(es|ed)?|sprint(s|ed)?|escape[sd]?)\b/i, 'run'],
-  [/\b(walk(s|ed|ing)?|go(es)?|went|head(s|ed)? to)\b/i, 'walk'], [/\b(jump(s|ed|ing)?|leap(s|t)?|bounce[sd]?)\b/i, 'jump'],
-  [/\b(fall(s|ing)?|fell|trip(s|ped)?|collapse[sd]?)\b/i, 'fall'], [/\b(press(es|ed)?|button)\b/i, 'press_button'],
-  [/\b(laugh(s|ed|ing)?|hilarious|funny)\b/i, 'laugh'], [/\b(celebrat(e|es|ed|ing)|win(s)?|won|party|perfect|amazing|awesome)\b/i, 'victory_pose'],
-  [/\b(scared|afraid|terrified|hide[sd]?|hiding)\b/i, 'cower'], [/\b(angry|mad|furious|scream(s|ed|ing)?|yell(s|ed)?|rage)\b/i, 'angry_stomp'],
-  [/\b(shock(ed)?|suddenly|gasp(s|ed)?)\b/i, 'shock_recoil'], [/\b(forgot|mistake|oops|facepalm|embarrass(ed|ing)?)\b/i, 'facepalm'],
-  [/\b(miss(es|ed|ing)?|regret(s|ted)?|sad|lonely|alone|cry|cries|cried)\b/i, 'regret_freeze'], [/\b(never|refuse[sd]?|nope)\b/i, 'head_shake'],
-  [/\b(imagine|wonder(s|ed)?|curious|think(s)?|thought)\b/i, 'curious_lean'], [/\b(point(s|ed)? at|blame[sd]?)\b/i, 'point'],
-  [/\b(look(s|ed)?|see[sn]?|saw|watch(es|ed)?|notice[sd]?|stare[sd]?)\b/i, 'look_at'], [/\b(wait(s|ed|ing)?|bored|unimpressed)\b/i, 'arms_crossed'],
-  [/\b(leave[sd]?|left|walk(s|ed)? away|exit(s|ed)?)\b/i, 'exit_frame'], [/\b(arrive[sd]?|enter(s|ed)?|show(s|ed)? up|come[s]? in)\b/i, 'enter_frame'],
-];
-/** things the script may describe that no rig/prop can show yet -> substitute (never invented) */
-const UNBUILT: Array<[RegExp, string, string, string]> = [
-  [/\b(drive|drives|drove|driving|car|cars)\b/i, 'driving', 'run', 'no vehicle asset exists; shown as running'],
-  [/\b(fly|flies|flew|flying)\b/i, 'flying', 'jump', 'no floating rig exists (hover unavailable); shown as a jump'],
-  [/\b(eat|eats|ate|eating|drink|drinks|drank|meal|meals|food)\b/i, 'eating/drinking', 'look_at', 'hand attachment and food props are not built; shown as a look'],
-  [/\b(hold|holds|holding|grab|grabs|grabbed|pick(s|ed)? up|throw|throws|threw|phone|phones)\b/i, 'holding an object', 'point', 'hand attachment is not built; shown as a point gesture'],
-  [/\b(sleep|sleeps|slept|asleep|nap)\b/i, 'sleeping', 'regret_freeze', 'no sleep animation exists; shown as a freeze'],
-];
 const TURN = /^(but|however|until|suddenly|unfortunately|except|then one day|one day|and then)\b|\b(but then|until one day|the worst part)\b/i;
 const ESCALATE = /\b(worst|even|more|again|bigger|every day|forever|keeps?)\b|!$/i;
 const VERB_TEXT: Record<string, string> = {
@@ -116,14 +99,15 @@ const VERB_TEXT: Record<string, string> = {
   angry_stomp: 'stomps angrily', jump: 'jumps', fall: 'falls over',
 };
 
-function purposes(pattern: StoryPattern, lines: Array<{ text: string; section: number }>): StoryPurpose[] {
-  const N = lines.length, sections = new Set(lines.map((l) => l.section)).size;
+function purposes(pattern: StoryPattern, lines: Array<{ text: string; section: number }>, sems: PhraseSemantics[], chars: readonly string[]): StoryPurpose[] {
+  const N = lines.length;
   let turned = false;
   return lines.map((l, k): StoryPurpose => {
     if (k === 0) return 'hook';
     if (k === N - 1 && N > 2) return pattern === 'narrated_comedy' ? 'punchline' : 'closing';
     const isTurn = TURN.test(l.text);
-    if (pattern === 'comparison') return isTurn && !turned ? ((turned = true), 'turn') : (sections > 1 ? l.section % 2 === 1 : k % 2 === 1) ? 'comparison-a' : 'comparison-b';
+    // comparison: the side follows the character the phrase is about (blank lines are only layout)
+    if (pattern === 'comparison') return isTurn && !turned ? ((turned = true), 'turn') : sems[k].actor === chars[0] ? 'comparison-a' : 'comparison-b';
     if (isTurn) { const first = !turned; turned = true; return first ? 'turn' : 'escalation'; }
     if (pattern === 'hypothetical') return turned ? (ESCALATE.test(l.text) ? 'escalation' : 'consequence') : k === 1 && /\b(imagine|what if|if you)\b/i.test(l.text) ? 'setup' : 'initial-benefit';
     if (pattern === 'escalating_consequence') return turned ? 'consequence' : k === 1 ? 'setup' : 'escalation';
@@ -131,45 +115,52 @@ function purposes(pattern: StoryPattern, lines: Array<{ text: string; section: n
   });
 }
 
-function planBeats(req: NarratedRequest, lines: Array<{ text: string; section: number }>, al: AlignmentResult, reg: Registry): NarratedPhrase[] {
+export function phraseSemantics(req: Pick<NarratedRequest, 'characters'>, lines: Array<{ text: string }>, reg: Registry): PhraseSemantics[] {
+  const st = newSemanticState();
+  return lines.map((l) => interpretPhrase(l.text, req.characters, reg.ids.characters, st));
+}
+
+function planBeats(req: NarratedRequest, lines: Array<{ text: string; section: number }>, al: AlignmentResult, reg: Registry, sems: PhraseSemantics[]): NarratedPhrase[] {
   const rand = rng((hashSeed(req.script) ^ req.seed) >>> 0);
-  const chars = req.characters, per = perCharacterVocab(reg), P = purposes(req.storyPattern, lines);
+  const chars = req.characters, per = perCharacterVocab(reg), P = purposes(req.storyPattern, lines, sems, chars);
   const face = (who: string, e: Emotion) => { const f = EMOTION_FACE[who]?.[e]; return f && per[who].expressions.includes(f) ? f : per[who].expressions[0]; };
   const name = (id: string) => reg.characters[id]?.displayName ?? id;
   let prevCam = '';
   return lines.map((l, k) => {
-    const a = al.phrases[k], purpose = P[k], rule = PURPOSE[purpose];
+    const a = al.phrases[k], s = sems[k], purpose = P[k], rule = PURPOSE[purpose], id = `p${String(k + 1).padStart(2, '0')}`;
     const warnings: Array<{ code: string; message: string }> = [], subs: NarratedPhrase['substitutions'] = [];
-    const actor = chars.length > 1 && (purpose === 'comparison-b' || purpose === 'reaction') ? chars[1] : chars[0];
-    const other = chars.find((c) => c !== actor) ?? null;
-    const supporting = other && rule.support ? other : null;
-    // action: narration verb > unbuilt substitution > purpose default; must be story-usable AND allowed for this rig
-    let action = rule.action;
-    const verb = VERBS.find(([re]) => re.test(l.text));
-    const unbuilt = UNBUILT.find(([re]) => re.test(l.text));
-    if (unbuilt && (!verb || unbuilt[0].exec(l.text)!.index <= verb[0].exec(l.text)!.index)) { action = unbuilt[2]; subs.push({ requested: unbuilt[1], used: unbuilt[2], reason: unbuilt[3] }); warnings.push({ code: 'ACTION_SUBSTITUTED', message: `"${unbuilt[1]}" is not available: ${unbuilt[3]}` }); }
-    else if (verb) action = verb[1];
+    const actor = s.actor;
+    const supporting = s.supporting ?? (rule.support ? chars.find((c) => c !== actor) ?? null : null);
+    // action: the phrase's own verb-object intent, else the purpose default; always story-usable AND allowed for this rig
+    let action = s.action ?? rule.action;
+    if (s.substitution) { subs.push(s.substitution); warnings.push({ code: 'ACTION_SUBSTITUTED', message: `"${s.substitution.requested}" is not available: ${s.substitution.reason}` }); }
     if (!per[actor].actions.includes(action)) { warnings.push({ code: 'ACTION_UNAVAILABLE', message: `${action} is not available for ${name(actor)}; using ${rule.action}` }); subs.push({ requested: action, used: rule.action, reason: 'action not available for this character' }); action = rule.action; }
     const target = action === 'facepalm' ? `${actor}.face` : action === 'press_button' ? 'button.press_surface'
-      : ['look_at', 'point', 'curious_lean', 'turn_toward'].includes(action) ? (action === 'turn_toward' ? 'camera' : other ?? 'board_center') : null;
+      : ['look_at', 'point', 'curious_lean', 'turn_toward'].includes(action) ? (action === 'turn_toward' ? 'camera' : s.target ?? supporting ?? 'board_center') : null;
     // environment: only the built classroom; other places are declared substitutions
     for (const p of scanIdea(l.text).places.filter((x) => x.kind !== 'classroom')) { subs.push({ requested: p.mention, used: reg.environment.id, reason: `no "${p.mention}" environment is built` }); warnings.push({ code: 'ENVIRONMENT_SUBSTITUTED', message: `no "${p.mention}" environment is built; staged in the ${reg.environment.id}` }); }
     for (const o of scanIdea(l.text).objects.filter((x) => x.kind === 'unavailable')) warnings.push({ code: 'PROP_UNAVAILABLE', message: `no "${o.mention}" prop exists; conveyed by gesture and caption only` });
+    for (const m of s.offscreen) warnings.push({ code: 'UNAVAILABLE_CHARACTER_OFFSCREEN', message: `"${m}" is not a built or selected character: kept off-screen, implied by the door direction, ${name(actor)}'s reaction and an off-screen sound cue; never drawn` });
     // camera: purpose candidates, seeded choice, never the same preset twice in a row (1-2 s visual-change grammar)
     const cams = rule.cameras.filter((c) => reg.cameras.includes(c) && c !== prevCam);
     const camera = (cams.length ? cams : reg.cameras.filter((c) => c !== prevCam))[Math.floor(rand() * (cams.length || reg.cameras.length - 1))];
     prevCam = camera;
-    const cap = planCaption(l.text, a.start, a.end);
+    const cap = planCaptionChunks(id, l.text, a.start, a.end);
     warnings.push(...cap.warnings);
     if (a.method === 'split-region' || a.method === 'word-proportional') warnings.push({ code: 'ALIGNMENT_ESTIMATED', message: `timing estimated by word count (${a.method}); no pause was detected for this phrase` });
     else if (a.confidence < 0.6) warnings.push({ code: 'ALIGNMENT_LOW_CONFIDENCE', message: `phrase timing confidence ${a.confidence}` });
-    const expression = face(actor, rule.emotion), supExpr = supporting ? face(supporting, rule.support!) : null;
+    const expression = face(actor, s.emotion ?? rule.emotion), supExpr = supporting ? face(supporting, rule.support ?? 'neutral') : null;
+    const bits = [`${name(actor)} ${VERB_TEXT[action] ?? action} (${expression})${s.actorRole === 'affected' && s.cause ? `, caused by the ${PROP_DISPLAY[s.cause]}` : ''}`];
+    if (s.propEvents.length) bits.push(`prop: ${s.propEvents.map((e) => `${PROP_DISPLAY[e.prop]} ${e.event.replace('_', ' ')}`).join(', ')}`);
+    if (supporting) bits.push(`${name(supporting)} reacts (${supExpr})`);
+    if (s.offscreen.length) bits.push(`${s.offscreen.join(', ')} off-screen (door direction, reaction, sound cue)`);
+    const intent = `${bits.join('; ')} — ${rule.text}.`;
     return {
-      id: `p${String(k + 1).padStart(2, '0')}`, section: l.section, text: l.text, words: wordCount(l.text), start: a.start, end: a.end,
-      alignmentMethod: a.method, alignmentConfidence: a.confidence, storyPurpose: purpose, actor, supportingCharacter: supporting,
-      semanticAction: action, target, expression, supportingExpression: supExpr, environment: reg.environment.id, cameraPreset: camera,
-      visualIntent: `${name(actor)} ${VERB_TEXT[action] ?? action} (${expression})${supporting ? `; ${name(supporting)} reacts (${supExpr})` : ''} — ${rule.text}.`,
-      substitutions: subs.slice(0, 6), caption: { lines: cap.lines, emphasisWords: cap.emphasisWords, wordsPerSecond: cap.wordsPerSecond }, warnings: warnings.slice(0, 12),
+      id, section: l.section, text: l.text, words: wordCount(l.text), start: a.start, end: a.end,
+      alignmentMethod: a.method, alignmentConfidence: a.confidence, storyPurpose: purpose, actor, actorRole: s.actorRole, supportingCharacter: supporting,
+      semanticAction: action, target, expression, supportingExpression: supExpr, cause: s.cause, propEvents: s.propEvents, offscreenCharacters: s.offscreen,
+      environment: reg.environment.id, cameraPreset: camera, visualIntent: intent.length > 200 ? `${intent.slice(0, 199)}…` : intent,
+      substitutions: subs.slice(0, 6), caption: { chunks: cap.chunks, wordsPerSecond: cap.wordsPerSecond }, warnings: warnings.slice(0, 12),
     };
   });
 }
@@ -198,13 +189,18 @@ export async function generateNarratedStoryboard(requestIn: unknown, audio: { me
   if (new Set(req.characters).size !== req.characters.length) reasons.push({ category: 'invalid_input', reason: 'characters must be distinct' });
   if (lines.length < 2) reasons.push({ category: 'story_incompatible', reason: 'the script needs at least two phrase lines (one caption phrase per line)' });
   if (lines.length > MAX_PHRASES) reasons.push({ category: 'story_incompatible', reason: `the script has ${lines.length} phrase lines (maximum ${MAX_PHRASES})` });
-  const long = lines.map((l, i) => ({ l, i })).filter(({ l }) => !fitsCaption(l.text) || !/[\p{L}\p{N}]/u.test(l.text));
-  if (long.length) reasons.push({ category: 'story_incompatible', reason: `line(s) ${long.map((x) => x.i + 1).slice(0, 8).join(', ')} cannot be shown as a two-line caption of at most ${CAPTION_STYLE.shorts_default.maxCharsPerLine} characters per line; split them into shorter lines` });
+  // long sentences are fine (timed caption chunks); only a single word wider than a caption line cannot be shown
+  const uncaptionable = lines.map((l, i) => ({ l, i })).filter(({ l }) => !fitsCaption(l.text) || !/[\p{L}\p{N}]/u.test(l.text));
+  if (uncaptionable.length) reasons.push({ category: 'story_incompatible', reason: `line(s) ${listAll(uncaptionable.map((x) => String(x.i + 1)))} contain a word longer than ${CAPTION_STYLE.shorts_default.maxCharsPerLine} characters (or no words) and cannot be captioned` });
+  // who acts: an unavailable person who must visibly act blocks that beat (never replaced by an owned character)
+  const sems = unknown.length || !lines.length ? null : phraseSemantics(req, lines, reg);
+  const blocked = (sems ?? []).map((x, i) => ({ x, i })).filter(({ x }) => x.blocking);
+  if (blocked.length) reasons.push({ category: 'unavailable', reason: `beat(s) need a character that is not available: ${listAll(blocked.map(({ x, i }) => `line ${i + 1}: ${x.blocking}`), 8)}` });
   if (audio && lines.length && audio.meta.durationSeconds < lines.length * 0.4) reasons.push({ category: 'timeline_incompatible', reason: `${lines.length} phrases cannot fit in ${audio.meta.durationSeconds.toFixed(2)} s of audio (minimum 0.4 s per phrase)` });
   if (reasons.length) return reject(rank(reasons));
 
   const al = await deps.aligner.align({ audioPath: audio!.path, audio: audio!.decoded, phrases: lines.map((l) => l.text), seed: req.seed });
-  const phrases = planBeats(req, lines, al, reg);
+  const phrases = planBeats(req, lines, al, reg, sems!);
   const warnings: Array<{ code: string; message: string }> = [];
   if (al.level === 'low') warnings.push({ code: 'ALIGNMENT_LOW_CONFIDENCE', message: `low alignment confidence (${al.confidence}): ${al.note}. Timings are estimates; check them against the audio.` });
   else if (al.level === 'medium') warnings.push({ code: 'ALIGNMENT_ESTIMATED', message: `medium alignment confidence (${al.confidence}): some phrases were merged or split. ${al.note}` });

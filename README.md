@@ -76,7 +76,7 @@ A second Studio mode. It takes a script and your uploaded voice-over and produce
 
 **Workflow**
 1. **Input.**
-   - Enter the title and the script, with **one narration/caption phrase per non-empty line**. Blank lines separate story sections.
+   - Enter the title and the script, with **one narration phrase per non-empty line**. A line may be a full sentence: it stays one beat, and its caption is split into timed chunks of at most 2 lines × 32 characters. Blank lines are only layout.
    - Upload the voice-over.
    - Choose registered characters (Zapp and/or Kira), a story pattern, a seed and the caption style.
    - Click **Generate Narrated Storyboard**.
@@ -93,7 +93,7 @@ A second Studio mode. It takes a script and your uploaded voice-over and produce
 - **Record a dry voice-over** (voice only, no music bed) and pause briefly (about 0.2 s or more) between script lines. Pauses are what the aligner detects; add music later.
 - Validation:
   - Maximum upload 30 MB; duration 1–300 s (35–60 s is the target and only warns).
-  - The file must be a safe plain filename, and its content must match its extension.
+  - The filename is display-only. Paths, `..`, leading dots and control characters are rejected; other punctuation (e.g. `;`) is replaced by `_`. The content must match the extension.
   - The codec reported by the decoder must be allowed; executables are rejected.
 - Uploads are stored content-addressed (SHA-256) in `.scratch/narrated-uploads/`. This folder is not in Git and not publicly served.
 
@@ -126,6 +126,12 @@ FFMPEG_PATH=/usr/bin/ffmpeg npm start     # optional: enable MP3/M4A (or just ha
 - **High**: detected pauses match the phrases one-to-one.
 - **Medium**: some regions had to be merged or split.
 - **Low**: timing is mostly estimated from word counts (for example, speech over a continuous music bed). A warning is shown; check the timings.
+
+**Storyboard rules** (schema 1.1, deterministic, no LLM)
+- The actor is the phrase's grammatical subject if it names a selected character. Otherwise it is a resolved pronoun (he/she), then a selected character named elsewhere in the phrase, then the current story subject. Alternation is only the last fallback.
+- The action comes from the phrase's verb and its object: "notices the button" is a look, "presses/slams/touches the button" is a press.
+- A prop as subject ("the button flashes", "the coin grows") gives a reaction plus `propEvents` metadata. "The coin flattens Zapp" makes Zapp `affected`, with the coin as `cause`.
+- People who are not built or not selected (e.g. a teacher) stay off-screen with an `UNAVAILABLE_CHARACTER_OFFSCREEN` warning. If such a person must visibly act, the storyboard is blocked as unavailable.
 
 **Known limitations**
 - Voice-overs with music or noise under the voice usually align with low confidence.

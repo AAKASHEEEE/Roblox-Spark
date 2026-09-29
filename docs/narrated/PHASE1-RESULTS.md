@@ -124,6 +124,23 @@ Results:
 - It found one bug, now fixed: the Visual Comedy step bar stayed visible in Narrated Story mode, because `#steps{display:flex}` overrode `hidden`. `index.html` now has `[hidden]{display:none !important}`.
 - **Dry voice-over check**: a 66.4 s dry TTS voice-over supplied for this checkpoint (MP3, 44.1 kHz mono; not committed) decoded through the committed path. It showed 17 speech regions, 41 dB contrast and pauses of 0.20–0.44 s: clean phrase boundaries for 1:1 alignment. It is longer than the 35–60 s target, which only warns.
 
+## Real-validation fixes (schema 1.1)
+The first real run (14 sentence-length lines, ElevenLabs MP3 `e;leven 1.mp3`) found these problems, now fixed. Each has a regression test in `tests/narrated-regressions.test.ts`:
+- **A:** 12 of 14 lines were rejected for caption width. Each line now stays one beat, and its caption becomes timed **chunks**, which:
+  - have at most 2 lines of 32 characters;
+  - are chosen by a dynamic-programming pass that prefers the fewest chunks, punctuation breaks, no orphan words and unsplit names;
+  - keep every word, in order;
+  - are timed by word count, contiguous from `phrase.start` to `phrase.end`.
+  
+  Too little time gives `READING_SPEED_HIGH`, not a rejection.
+- **B:** a `;` in the filename was rejected. Display names are now sanitized (`e_leven 1.mp3`); paths, `..`, and control or bidi characters are still rejected.
+- **C:** the rejection listed only the first 8 lines. It now lists every line, or the first N and "and N more".
+- **D1–D3:** `semantics.ts` replaces blank-line alternation and first-keyword verbs:
+  - actors come from subject, pronoun, object and story subject, in that order;
+  - actions come from verb and object;
+  - prop events come from props as subjects (`propEvents`, `cause`, `actorRole`);
+  - unavailable people stay off-screen with a warning, or block when they must act visibly.
+
 ## Phase 2 requires
 - A narrated episode compiler that turns a storyboard into an `Episode` (shots 1–2 s, actions timed to phrases). It must support 35–60 s, but the current schema allows only 14–22 s and 30 beats, so a schema version bump is needed.
 - Caption burn-in in the capture compositor, which can extend the existing debug overlay path. The uploaded voice-over must be muxed as the main audio track under a lowered music bed.

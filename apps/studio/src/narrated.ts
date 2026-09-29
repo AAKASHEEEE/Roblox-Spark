@@ -63,7 +63,9 @@ function timelineHtml(sb: any, regions: Array<{ start: number; end: number }>): 
     <p class="dim" style="font-size:12px">Top: phrase ranges (green high, yellow medium, red low confidence). Bottom: detected speech regions. 0–${f2(D)} s.</p>`;
 }
 const warnList = (ws: Array<{ code: string; message: string }>) => ws.length ? `<div class="warn" style="font-size:12.5px">${ws.map((w) => `⚠ ${esc(w.code)}: ${esc(w.message)}`).join('<br>')}</div>` : '<div class="dim" style="font-size:12.5px">No warnings</div>';
-const captionHtml = (p: any) => `<div style="background:#000;border-radius:6px;padding:6px 8px;margin:6px 0;text-align:center;font-weight:800">${p.caption.lines.map((l: string) => esc(l).replace(new RegExp(`\\b(${p.caption.emphasisWords.map((w: string) => w.replace(/[^\p{L}\p{N}]/gu, '')).filter(Boolean).join('|') || '(?!)'})\\b`, 'gu'), '<span style="color:var(--yellow)">$1</span>')).join('<br>')}</div>`;
+const hl = (line: string, words: string[]) => esc(line).replace(new RegExp(`\\b(${words.map((w) => w.replace(/[^\p{L}\p{N}]/gu, '')).filter(Boolean).join('|') || '(?!)'})\\b`, 'gu'), '<span style="color:var(--yellow)">$1</span>');
+/** the phrase's caption chunks, in playback order, each with its own time range and reading speed */
+const captionHtml = (p: any) => p.caption.chunks.map((c: any) => `<div style="margin:6px 0"><div class="dim" style="font-size:11.5px">${esc(c.id)} · ${f2(c.start)}–${f2(c.end)} s · ${esc(c.wordsPerSecond)} w/s</div><div style="background:#000;border-radius:6px;padding:6px 8px;text-align:center;font-weight:800">${c.lines.map((l: string) => hl(l, c.emphasisWords)).join('<br>')}</div></div>`).join('')
 function alignmentHtml(g: Gen): string {
   if (g.status !== 'accepted') return rejectionHtml(g);
   const sb = g.storyboard, al = sb.alignment, a = sb.audio;
@@ -73,7 +75,7 @@ function alignmentHtml(g: Gen): string {
     <div class="panel ${lvl}"><b>${esc(al.level.toUpperCase())} confidence.</b> ${esc(al.note)}. Timing is phrase-level only (no word-level timing).</div>
     ${sb.validation.warnings.length ? warnList(sb.validation.warnings) : ''}
     ${timelineHtml(sb, g.speechRegions)}
-    <div class="cards">${sb.script.phrases.map((p: any) => `<div class="card"><div class="t">${f2(p.start)}–${f2(p.end)} s <span>${esc(p.id)} · ${esc(p.alignmentMethod)}</span></div>${captionHtml(p)}<div>confidence <b>${esc(p.alignmentConfidence)}</b> · ${esc(p.caption.wordsPerSecond)} words/s</div><div class="dim">emphasis: ${esc(p.caption.emphasisWords.join(', ') || '—')}</div>${warnList(p.warnings.filter((w: any) => /ALIGN|READING|CAPTION/.test(w.code)))}</div>`).join('')}</div>
+    <div class="cards">${sb.script.phrases.map((p: any) => `<div class="card"><div class="t">${f2(p.start)}–${f2(p.end)} s <span>${esc(p.id)} · ${esc(p.alignmentMethod)}</span></div>${captionHtml(p)}<div>confidence <b>${esc(p.alignmentConfidence)}</b> · ${esc(p.caption.wordsPerSecond)} words/s · ${esc(p.caption.chunks.length)} caption chunk(s)</div><div class="dim">emphasis: ${esc(p.caption.chunks.flatMap((c: any) => c.emphasisWords).join(', ') || '—')}</div>${warnList(p.warnings.filter((w: any) => /ALIGN|READING|CAPTION/.test(w.code)))}</div>`).join('')}</div>
     <div class="actions"><button data-nact="back" class="ghost">Back to input</button><button data-nact="to-storyboard" class="primary">Continue to storyboard</button></div>`;
 }
 function storyboardHtml(g: Gen): string {
@@ -82,9 +84,9 @@ function storyboardHtml(g: Gen): string {
   return `<h2>Narrated storyboard — ${esc(sb.title)}</h2><p class="dim">${esc(sb.id)} · pattern ${esc(sb.storyPattern)} · seed ${esc(sb.seed)} · ${esc(sb.script.phrases.length)} beats · ${f2(sb.audio.durationSeconds)} s · validation ${esc(sb.validation.status)}</p>
     <div class="cards">${sb.script.phrases.map((p: any, i: number) => `<div class="card"><div class="t">${f2(p.start)}–${f2(p.end)} s <span>${esc(sb.timeline[i].beatId)} · ${esc(p.storyPurpose)}</span></div>
       <div style="font-style:italic">“${esc(p.text)}”</div>
-      <div class="who">${esc(p.actor)}${p.supportingCharacter ? ` <span class="dim">+ ${esc(p.supportingCharacter)} (${esc(p.supportingExpression)})</span>` : ''}</div>
+      <div class="who">${esc(p.actor)} <span class="dim">(${esc(p.actorRole)})</span>${p.supportingCharacter ? ` <span class="dim">+ ${esc(p.supportingCharacter)} (${esc(p.supportingExpression)})</span>` : ''}</div>
       <div>action: <b>${esc(p.semanticAction)}</b>${p.target ? ` -> ${esc(p.target)}` : ''} · face: ${esc(p.expression)}</div>
-      <div>environment: ${esc(p.environment)} · camera: ${esc(p.cameraPreset)}</div>
+      <div>environment: ${esc(p.environment)} · camera: ${esc(p.cameraPreset)}</div>${p.cause ? `<div>cause: ${esc(p.cause)}</div>` : ''}${p.propEvents.length ? `<div class="cue">prop events: ${p.propEvents.map((e: any) => esc(`${e.prop} ${e.event}`)).join(' · ')}</div>` : ''}${p.offscreenCharacters.length ? `<div class="warn">off-screen (not drawn): ${esc(p.offscreenCharacters.join(', '))}</div>` : ''}
       <div class="purpose">${esc(p.visualIntent)}</div>${captionHtml(p)}
       <div class="dim">confidence ${esc(p.alignmentConfidence)} (${esc(p.alignmentMethod)})</div>
       ${p.substitutions.length ? `<div class="cue">substituted: ${p.substitutions.map((s: any) => esc(`${s.requested} -> ${s.used}`)).join(' · ')}</div>` : ''}${warnList(p.warnings)}</div>`).join('')}</div>
@@ -123,7 +125,7 @@ async function upload(file: File | undefined): Promise<void> {
   if (r.status !== 200) { msg = `Rejected: ${d.error ?? `HTTP ${r.status}`}`; view(); return; }
   if (expectedHash && d.contentHash !== expectedHash) { msg = `This is a different file (SHA-256 ${String(d.contentHash).slice(0, 12)}… ≠ ${expectedHash.slice(0, 12)}…). Upload the same voice-over, or choose "Use a different voice-over instead".`; view(); return; }
   if (expectedHash && gen) gen = { ...gen, audioAvailable: true };
-  expectedHash = null; audio = d; msg = 'Voice-over validated.'; view();
+  expectedHash = null; audio = d; msg = d.displayNameSanitized ? `Voice-over validated (display name sanitized to "${d.originalFilename}").` : 'Voice-over validated.'; view();
 }
 async function generate(seed?: number): Promise<void> {
   if (seed !== undefined) form = { ...form, seed };

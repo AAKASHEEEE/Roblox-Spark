@@ -113,8 +113,8 @@ export function createNarratedApi(deps: NarratedApiDeps): ApiHandler {
       return true;
     }
     if (p === '/api/narrated/upload' && req.method === 'POST') {
-      let filename: string, format: AudioFormat;
-      try { ({ filename, format } = checkFilename(decodeURIComponent(String(req.headers['x-filename'] ?? '')))); } catch (e) { req.resume(); sendJson(res, 400, { error: e instanceof AudioRejection ? e.message : 'invalid filename', code: (e as AudioRejection).code ?? 'BAD_FILENAME' }); return true; }
+      let filename: string, format: AudioFormat, sanitized = false;
+      try { ({ filename, format, sanitized } = checkFilename(decodeURIComponent(String(req.headers['x-filename'] ?? '')))); } catch (e) { req.resume(); sendJson(res, 400, { error: e instanceof AudioRejection ? e.message : 'invalid filename', code: (e as AudioRejection).code ?? 'BAD_FILENAME' }); return true; }
       const buf = await readCapped(req, MAX_UPLOAD_BYTES);
       if (!buf) { req.resume(); sendJson(res, 413, { error: `the upload exceeds ${MAX_UPLOAD_BYTES / 1024 / 1024} MB`, code: 'TOO_LARGE' }); return true; }
       const h = sha256(buf), file = join(deps.uploadDir, `${h}.${format}`);
@@ -124,7 +124,7 @@ export function createNarratedApi(deps: NarratedApiDeps): ApiHandler {
         const a = await decodeAudioFile(file, format, ffmpeg);
         const meta: AudioMeta = { originalFilename: filename, format, codec: a.codec, durationSeconds: a.durationSeconds, sampleRate: a.sampleRate, channels: a.channels, contentHash: h };
         writeFileSync(metaFile(h), JSON.stringify(meta));
-        sendJson(res, 200, { ...meta, bytes: buf.length });
+        sendJson(res, 200, { ...meta, bytes: buf.length, displayNameSanitized: sanitized });
       } catch (e) {
         if (existsSync(file) && !existsSync(metaFile(h))) { try { unlinkSync(file); } catch { /* ignore */ } }
         sendJson(res, 422, { error: e instanceof AudioRejection ? e.message : 'the audio could not be validated', code: e instanceof AudioRejection ? e.code : 'NOT_DECODABLE' });

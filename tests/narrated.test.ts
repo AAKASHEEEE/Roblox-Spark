@@ -56,8 +56,8 @@ test('1. valid script + voice-over produce ordered, silence-guided phrase timing
   for (const p of ph) {
     assert.equal(p.alignmentMethod, 'silence-guided');
     assert.ok(p.alignmentConfidence >= 0.8);
-    assert.ok(p.caption.lines.length >= 1 && p.caption.lines.length <= 2 && p.caption.lines.every((l) => l.length <= 32));
-    assert.equal(p.caption.lines.join(' '), p.text, 'captions preserve the phrase text and punctuation');
+    assert.ok(p.caption.chunks.every((c) => c.lines.length >= 1 && c.lines.length <= 2 && c.lines.every((l) => l.length <= 32)));
+    assert.equal(p.caption.chunks.flatMap((c) => c.lines).join(' '), p.text, 'captions preserve the phrase text and punctuation');
   }
   // bursts start at 0.5 s and every 0.45 s pause is a boundary: starts match the generated fixture within one frame
   let t = 0.5;
@@ -140,7 +140,7 @@ test('7. unknown characters, actions, expressions, cameras and environments cann
   assert.equal(mutate((x) => { x.script.phrases[0].expression = 'smug'; }), false, 'zapp has no smug face');
   assert.equal(mutate((x) => { x.script.phrases[1].start = x.script.phrases[0].start; }), false, 'overlap');
   assert.equal(mutate((x) => { x.script.phrases.at(-1).end = x.audio.durationSeconds + 1; }), false, 'outside the audio');
-  assert.equal(mutate((x) => { x.script.phrases[0].caption.lines = ['']; }), false, 'empty caption');
+  assert.equal(mutate((x) => { x.script.phrases[0].caption.chunks[0].lines = ['']; }), false, 'empty caption');
   assert.equal(mutate((x) => { x.unknownKey = 1; }), false, 'unknown key');
   const u = await generateNarratedStoryboard(request(f.meta, { characters: ['zapp', 'bzztt'] }), f.audio, deps);
   assert.equal(u.rejection!.category, 'unavailable');

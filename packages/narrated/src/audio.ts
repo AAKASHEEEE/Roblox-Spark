@@ -12,14 +12,24 @@ export const ALLOWED_CODECS: Readonly<Record<AudioFormat, readonly string[]>> = 
 export interface DecodedAudio { format: AudioFormat; codec: string; sampleRate: number; channels: number; durationSeconds: number; /** mono analysis signal */ pcm: Float32Array; analysisRate: number }
 export class AudioRejection extends Error { code: string; constructor(code: string, message: string) { super(message); this.code = code; } }
 
-/** safe display filename (never used as a path): basename only, conservative charset, allowed extension */
-export function checkFilename(name: unknown): { filename: string; format: AudioFormat } {
-  if (typeof name !== 'string' || !name.length || name.length > 120) throw new AudioRejection('BAD_FILENAME', 'filename missing or longer than 120 characters');
-  if (/[\/\\]|\.\.|[\x00-\x1f\x7f]/.test(name) || name.startsWith('.')) throw new AudioRejection('BAD_FILENAME', 'filename must be a plain name (no path, "..", hidden or control characters)');
-  if (!/^[A-Za-z0-9 _()+,\-.]+$/.test(name)) throw new AudioRejection('BAD_FILENAME', 'filename may only contain letters, digits, spaces and _ ( ) + , - .');
-  const ext = name.toLowerCase().split('.').pop() ?? '';
-  if (!(AUDIO_FORMATS as readonly string[]).includes(ext)) throw new AudioRejection('BAD_EXTENSION', `unsupported file type ".${ext}" (allowed: ${AUDIO_FORMATS.join(', ')})`);
-  return { filename: name, format: ext as AudioFormat };
+/**
+ * Display filename (metadata only: storage uses the content hash, and the name never reaches a path or a command).
+ * Rejected: control/invisible-format characters (incl. NUL, bidi overrides), any "/" or "\" (a path, never silently
+ * stripped), ".." and leading dots, unsupported extensions. Sanitized: NFC, whitespace collapsed, and any other
+ * punctuation (e.g. ; $ | ` & < >) replaced by "_". The validated extension is kept as given.
+ */
+export function checkFilename(name: unknown): { filename: string; format: AudioFormat; sanitized: boolean } {
+  if (typeof name !== 'string' || !name.length || name.length > 255) throw new AudioRejection('BAD_FILENAME', 'filename missing or longer than 255 characters');
+  if (/[\p{Cc}\p{Cf}]/u.test(name)) throw new AudioRejection('BAD_FILENAME', 'filename contains control or invisible formatting characters');
+  if (/[\/\\]/.test(name)) throw new AudioRejection(name.split(/[\/\\]/).includes('..') ? 'PATH_TRAVERSAL' : 'BAD_FILENAME', 'filename must be a plain name, not a path');
+  const norm = name.normalize('NFC').trim().replace(/\s+/g, ' ');
+  if (norm.startsWith('.') || norm.includes('..')) throw new AudioRejection('PATH_TRAVERSAL', 'filename must not start with "." or contain ".."');
+  const dot = norm.lastIndexOf('.'), ext = dot > 0 ? norm.slice(dot + 1) : '';
+  if (!(AUDIO_FORMATS as readonly string[]).includes(ext.toLowerCase())) throw new AudioRejection('BAD_EXTENSION', `unsupported file type ".${ext}" (allowed: ${AUDIO_FORMATS.join(', ')})`);
+  const stem = norm.slice(0, dot).replace(/[^\p{L}\p{M}\p{N} _()+,\-.]/gu, '_').slice(0, 119 - ext.length).trim();
+  if (!stem) throw new AudioRejection('BAD_FILENAME', 'filename has no name before the extension');
+  const filename = `${stem}.${ext}`;
+  return { filename, format: ext.toLowerCase() as AudioFormat, sanitized: filename !== name };
 }
 
 const ascii = (b: Uint8Array, at: number, n: number) => String.fromCharCode(...b.subarray(at, at + n));

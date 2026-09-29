@@ -2,9 +2,9 @@
 // cannot express: timing order, overlaps, bounds inside the audio, registry membership, forbidden keys.
 // The storyboard is DATA ONLY: nothing in it is ever evaluated, and script text is never turned into code.
 import { v, type SchemaT, type Issue } from '../../schema/src/v.ts';
-import { CAMERA_PRESETS, EXPRESSIONS } from '../../schema/src/episode.ts';
+import { CAMERA_PRESETS, EXPRESSIONS, PROP_EVENTS } from '../../schema/src/episode.ts';
 
-export const NARRATED_SCHEMA_VERSION = '1.0';
+export const NARRATED_SCHEMA_VERSION = '1.1';
 export const STORY_PATTERNS = ['comparison', 'hypothetical', 'escalating_consequence', 'narrated_comedy'] as const;
 export type StoryPattern = (typeof STORY_PATTERNS)[number];
 export const CAPTION_PRESETS = ['shorts_default'] as const;
@@ -14,6 +14,8 @@ export const CONFIDENCE_LEVELS = ['high', 'medium', 'low'] as const;
 export const STORY_PURPOSES = ['hook', 'setup', 'initial-benefit', 'escalation', 'turn', 'consequence', 'reaction', 'comparison-a', 'comparison-b', 'punchline', 'closing'] as const;
 export type StoryPurpose = (typeof STORY_PURPOSES)[number];
 export const AUDIO_FORMATS = ['wav', 'mp3', 'm4a'] as const;
+/** how the beat's actor relates to the narration: subject doing it, affected by a cause, reacting to an event, overview, or fallback */
+export const ACTOR_ROLES = ['agent', 'affected', 'reactor', 'overview', 'fallback'] as const;
 /** keys that must never appear anywhere in a storyboard or request (prototype pollution) */
 export const FORBIDDEN_KEYS = ['__proto__', 'prototype', 'constructor'] as const;
 
@@ -22,7 +24,7 @@ export const CAPTION_STYLE = {
   shorts_default: { maxLines: 2, maxCharsPerLine: 32, anchor: 'lower_middle', centerY: 0.72, bottomSafe: 0.16, maxWordsPerSecond: 3.6 },
 } as const;
 
-export interface VocabIds { characters: readonly string[]; actions: readonly string[]; expressions: readonly string[]; environments: readonly string[]; cameras: readonly string[] }
+export interface VocabIds { characters: readonly string[]; actions: readonly string[]; expressions: readonly string[]; environments: readonly string[]; cameras: readonly string[]; props: readonly string[] }
 
 const finding = v.object({ code: v.string({ pattern: /^[A-Z][A-Z0-9_]*$/, max: 48 }), message: v.string({ max: 300 }) });
 export function narratedStoryboardSchema(ids: VocabIds) {
@@ -38,19 +40,27 @@ export function narratedStoryboardSchema(ids: VocabIds) {
     alignmentConfidence: v.number({ min: 0, max: 1 }),
     storyPurpose: v.enum(STORY_PURPOSES),
     actor: character,
+    actorRole: v.enum(ACTOR_ROLES),
     supportingCharacter: character.nullable(),
     semanticAction: v.enum(ids.actions as readonly string[]),
     target: v.string({ pattern: /^[a-z][a-z0-9_]*(\.[a-z0-9_]+)?$/, max: 48 }).nullable(),
     expression: v.enum(ids.expressions as readonly string[]),
     supportingExpression: v.enum(ids.expressions as readonly string[]).nullable(),
+    cause: v.enum(ids.props as readonly string[]).nullable(),
+    propEvents: v.array(v.object({ prop: v.enum(ids.props as readonly string[]), event: v.enum(PROP_EVENTS) }), { max: 6 }),
+    offscreenCharacters: v.array(v.string({ min: 1, max: 40 }), { max: 4 }),
     environment: v.enum(ids.environments as readonly string[]),
     cameraPreset: v.enum(ids.cameras as readonly string[]),
     visualIntent: v.string({ min: 1, max: 200 }),
     substitutions: v.array(v.object({ requested: v.string({ max: 60 }), used: v.string({ max: 60 }), reason: v.string({ max: 200 }) }), { max: 6 }),
     caption: v.object({
-      lines: v.array(v.string({ min: 1, max: CAPTION_STYLE.shorts_default.maxCharsPerLine }), { min: 1, max: CAPTION_STYLE.shorts_default.maxLines }),
-      emphasisWords: v.array(v.string({ min: 1, max: 40 }), { max: 3 }),
-      wordsPerSecond: v.number({ min: 0, max: 100 }),
+      chunks: v.array(v.object({
+        id: v.string({ pattern: /^p\d{2,3}-c\d{2}$/ }), start: time(), end: time(),
+        lines: v.array(v.string({ min: 1, max: CAPTION_STYLE.shorts_default.maxCharsPerLine }), { min: 1, max: CAPTION_STYLE.shorts_default.maxLines }),
+        emphasisWords: v.array(v.string({ min: 1, max: 40 }), { max: 3 }),
+        wordsPerSecond: v.number({ min: 0, max: 1000 }),
+      }), { min: 1, max: 12 }),
+      wordsPerSecond: v.number({ min: 0, max: 1000 }),
     }),
     warnings: v.array(finding, { max: 12 }),
   });
@@ -109,7 +119,17 @@ export function validateNarratedStoryboard(raw: unknown, ids: VocabIds, perChara
     if (!(p.end > p.start)) issues.push({ path: at, message: 'phrase end must be after start' });
     if (p.start < prevEnd - 1e-9) issues.push({ path: at, message: 'phrase overlaps the previous phrase' });
     if (p.end > D + 1e-9) issues.push({ path: at, message: 'phrase ends after the audio' });
-    if (!p.caption.lines.join('').trim()) issues.push({ path: `${at}.caption`, message: 'empty caption' });
+    const ch = p.caption.chunks;
+    if (!ch.every((c) => c.lines.join('').trim())) issues.push({ path: `${at}.caption`, message: 'empty caption' });
+    // chunks: sequential ids, contiguous from phrase.start to phrase.end, and exactly the phrase's words in order
+    ch.forEach((c, k) => {
+      if (c.id !== `${p.id}-c${String(k + 1).padStart(2, '0')}`) issues.push({ path: `${at}.caption.chunks[${k}].id`, message: 'chunk ids must be sequential' });
+      if (!(c.end > c.start)) issues.push({ path: `${at}.caption.chunks[${k}]`, message: 'chunk end must be after start' });
+      if (c.start !== (k ? ch[k - 1].end : p.start)) issues.push({ path: `${at}.caption.chunks[${k}]`, message: 'chunks must be contiguous from the phrase start' });
+    });
+    if (ch.length && ch[ch.length - 1].end !== p.end) issues.push({ path: `${at}.caption`, message: 'last chunk must end at the phrase end' });
+    if (ch.flatMap((c) => c.lines.join(' ').split(/\s+/)).join(' ') !== p.text.trim().split(/\s+/).join(' ')) issues.push({ path: `${at}.caption`, message: 'caption chunks must contain exactly the phrase words, in order' });
+    if (p.offscreenCharacters.some((m) => sb.characters.includes(m))) issues.push({ path: `${at}.offscreenCharacters`, message: 'a selected character cannot be off-screen-only' });
     if (p.supportingCharacter && p.supportingCharacter === p.actor) issues.push({ path: `${at}.supportingCharacter`, message: 'supporting character must differ from the actor' });
     if (!sb.characters.includes(p.actor) || (p.supportingCharacter && !sb.characters.includes(p.supportingCharacter))) issues.push({ path: at, message: 'character not selected for this storyboard' });
     const c = perCharacter?.[p.actor];
