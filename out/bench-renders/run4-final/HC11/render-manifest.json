@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-vsc-kira-notices-a-secret-8rh-s4011",
+    "episodeSha256": "282c192fb265e7657aa145b959f9b05491b201e972d2155f8694b5aa19ef90ec",
+    "semanticSha256": "7ad581ba6b32595bb8946a3a1c49ef01fde026e21a796b6791cb617d05e74390",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    1080,
+    1920
+  ],
+  "fps": 30,
+  "frames": 480,
+  "hashedFrames": 32,
+  "hashEvery": 15,
+  "frameHashesSha256": "bf5f0b1131e0c49895cc6cf8615d93d0244062d289b9972d375f2342bd67c7fd",
+  "mp4": "out/bench-renders/run4-final/HC11/gen-vsc-kira-notices-a-secret-8rh-s4011.mp4",
+  "mp4Sha256": "cdf4e75546536586c5af33b96113e57fb25d3f222d25d5bdc3534e55357c1dfe",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

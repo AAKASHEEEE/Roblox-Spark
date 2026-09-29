@@ -10,6 +10,8 @@ export interface CaptureConfig {
   codec: string; // e.g. avc1.640028 (High@4.0)
   /** SHA-256 of raw pixels every N frames (0 = off) for determinism checks */
   hashEvery: number;
+  /** DEBUG ONLY: burn a text label into frames (action reels). Never set for production renders. */
+  overlay?: Array<{ from: number; to: number; text: string }> | null;
 }
 
 export interface EncodedBatch {
@@ -40,7 +42,8 @@ export function fromB64(b64: string): Uint8Array {
   for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
   return u;
 }
-async function sha256Hex(data: Uint8Array): Promise<string> {
+/** SHA-256 of raw pixels: the SAME function the capture path uses for frame hashes (golden hashes depend on it) */
+export async function sha256Hex(data: Uint8Array): Promise<string> {
   const d = new Uint8Array(await crypto.subtle.digest('SHA-256', data as unknown as ArrayBuffer));
   return Array.from(d, (b) => b.toString(16).padStart(2, '0')).join('');
 }
@@ -76,6 +79,22 @@ export class FrameCapture {
     } as VideoEncoderConfig);
   }
 
+  private overlayCanvas: HTMLCanvasElement | null = null;
+  /** debug label compositing (monospace system font is acceptable here: debug reels only) */
+  private composite(i: number): HTMLCanvasElement {
+    const c = this.overlayCanvas ?? (this.overlayCanvas = Object.assign(document.createElement('canvas'), { width: this.cfg.width, height: this.cfg.height }));
+    const g = c.getContext('2d')!;
+    g.drawImage(this.canvas, 0, 0);
+    const t = i / this.cfg.fps;
+    const lab = this.cfg.overlay!.find((o) => t >= o.from && t < o.to);
+    if (lab) {
+      const px = Math.round(this.cfg.height / 40);
+      g.font = `bold ${px}px monospace`; g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillRect(0, 0, this.cfg.width, px * 1.8);
+      g.fillStyle = '#ffe44d'; g.fillText(lab.text, px * 0.5, px * 1.3);
+    }
+    return c;
+  }
+
   /** Render + encode frames [from, to). renderFrame must draw frame i synchronously into the canvas. */
   async encodeRange(from: number, to: number, renderFrame: (i: number) => void, final: boolean): Promise<EncodedBatch> {
     let renderMs = 0, encodeWaitMs = 0;
@@ -84,7 +103,8 @@ export class FrameCapture {
       const t0 = performance.now();
       renderFrame(i);
       if (this.cfg.hashEvery && i % this.cfg.hashEvery === 0) hashes.push([i, await sha256Hex(this.readPixels())]);
-      const frame = new VideoFrame(this.canvas, { timestamp: Math.round((i * 1e6) / this.cfg.fps), duration: Math.round(1e6 / this.cfg.fps) });
+      const src = this.cfg.overlay?.length ? this.composite(i) : this.canvas;
+      const frame = new VideoFrame(src, { timestamp: Math.round((i * 1e6) / this.cfg.fps), duration: Math.round(1e6 / this.cfg.fps) });
       renderMs += performance.now() - t0;
       this.encoder.encode(frame, { keyFrame: i % this.cfg.keyframeInterval === 0 });
       frame.close();

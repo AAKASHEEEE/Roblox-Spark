@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-zapp-taps-the-button-swg-s4006",
+    "episodeSha256": "cceb34b9973989f1512b7724823500c17dbd9768e685fa1f5899cdb3951d962b",
+    "semanticSha256": "93544a6c8c6c89fc34a30e1cb726614e76bfe4d58eb82a56c6bb0461a3a28bc5",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "7ad860265a05538225d1baab36cc780163270c75e7b509a1f3aa5a2a6d7723df",
+  "mp4": "out/bench-renders/run4-diag/HC06/gen-ooe-zapp-taps-the-button-swg-s4006.mp4",
+  "mp4Sha256": "1da3ba49ffd1326435c1186d8508f2ee248754672dbdb06749332921cac7cd7d",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

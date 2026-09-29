@@ -1,5 +1,7 @@
-// Dependency-free ISO-BMFF (MP4) muxer for H.264 (avc1/avcC) video + Opus (dOps) audio.
+// Dependency-free ISO-BMFF (MP4) muxer for H.264 (avc1/avcC) video + AAC-LC (mp4a/esds) or Opus (dOps) audio.
 // Writes a "fast-start" file (moov before mdat) with fully deterministic output (zeroed timestamps).
+// Production default is AAC-LC; Opus is retained only as a documented local fallback.
+import { PRODUCT } from '../../config/src/product.ts';
 
 export interface VideoSample { data: Uint8Array; duration: number; isKey: boolean }
 export interface AudioSample { data: Uint8Array; duration: number }
@@ -16,13 +18,31 @@ export interface MuxInput {
     samples: VideoSample[];
     color?: ColorInfo;
   };
-  audio?: {
-    sampleRate: number; // Opus is always 48000 in MP4
-    channels: number;
-    preSkip: number;
-    inputSampleRate: number;
-    samples: AudioSample[];
-  };
+  audio?: OpusTrack | AacTrack;
+  /** written into the avc1 sample entry (max 31 chars) */
+  compressorName?: string;
+}
+
+export interface OpusTrack {
+  codec?: 'opus';
+  sampleRate: number; // Opus is always 48000 in MP4
+  channels: number;
+  preSkip: number;
+  inputSampleRate: number;
+  samples: AudioSample[];
+}
+export interface AacTrack {
+  codec: 'aac';
+  sampleRate: number;
+  channels: number;
+  /** AudioSpecificConfig (2 bytes for AAC-LC) */
+  asc: Uint8Array;
+  /** encoder delay in samples, removed with an edit list */
+  priming: number;
+  /** number of real PCM samples (edit-list duration) */
+  inputSamples: number;
+  avgBitrate: number;
+  samples: AudioSample[];
 }
 
 const enc = new TextEncoder();
@@ -97,9 +117,9 @@ function tkhd(id: number, duration: number, width: number, height: number, audio
   return fullBox('tkhd', 0, 3, w.out());
 }
 
-function avc1(v: MuxInput['video']): Uint8Array {
+function avc1(v: MuxInput['video'] & { compressorName?: string }): Uint8Array {
   const w = new W().zeros(6).u16(1).zeros(16).u16(v.width).u16(v.height).u32(0x00480000).u32(0x00480000).u32(0).u16(1);
-  const name = 'RBLX SPARK H.264';
+  const name = (v.compressorName ?? `${PRODUCT.shortName} H.264`).slice(0, 31);
   w.u8(name.length).str(name).zeros(31 - name.length).u16(0x0018).i16(-1);
   const kids: Uint8Array[] = [box('avcC', v.avcC)];
   if (v.color) {
@@ -109,7 +129,22 @@ function avc1(v: MuxInput['video']): Uint8Array {
   kids.push(box('pasp', new W().u32(1).u32(1).out()));
   return box('avc1', w.out(), ...kids);
 }
-function opusEntry(a: NonNullable<MuxInput['audio']>): Uint8Array {
+/** MPEG-4 descriptor with 4-byte expandable size (as written by common muxers) */
+function desc(tag: number, ...payload: Uint8Array[]): Uint8Array {
+  const n = payload.reduce((a, p) => a + p.length, 0);
+  const w = new W().u8(tag).u8(0x80 | ((n >> 21) & 0x7f)).u8(0x80 | ((n >> 14) & 0x7f)).u8(0x80 | ((n >> 7) & 0x7f)).u8(n & 0x7f);
+  for (const p of payload) w.bytes(p);
+  return w.out();
+}
+function mp4aEntry(a: AacTrack): Uint8Array {
+  const w = new W().zeros(6).u16(1).zeros(8).u16(a.channels).u16(16).u16(0).u16(0).u32(a.sampleRate * 65536);
+  const maxFrame = a.samples.reduce((m, x) => Math.max(m, x.data.length), 0);
+  const peak = Math.round((maxFrame * 8 * a.sampleRate) / 1024);
+  const dcd = desc(0x04, new W().u8(0x40).u8((0x05 << 2) | 1).u8((maxFrame >> 16) & 255).u16(maxFrame & 0xffff).u32(peak).u32(a.avgBitrate).out(), desc(0x05, a.asc));
+  const es = desc(0x03, new W().u16(0).u8(0).out(), dcd, desc(0x06, new Uint8Array([0x02])));
+  return box('mp4a', w.out(), fullBox('esds', 0, 0, es));
+}
+function opusEntry(a: OpusTrack): Uint8Array {
   const w = new W().zeros(6).u16(1).zeros(8).u16(a.channels).u16(16).u16(0).u16(0).u32(a.sampleRate * 65536);
   const dOps = box('dOps', new W().u8(0).u8(a.channels).u16(a.preSkip).u32(a.inputSampleRate).i16(0).u8(0).out());
   return box('Opus', w.out(), dOps);
@@ -121,7 +156,9 @@ export function muxMp4(input: MuxInput): Uint8Array {
   const vDur = v.samples.reduce((s, x) => s + x.duration, 0);
   const aDur = a ? a.samples.reduce((s, x) => s + x.duration, 0) : 0;
   const vMovieDur = Math.round((vDur / v.timescale) * MOVIE_TS);
-  const aMovieDur = a ? Math.round(((aDur - a.preSkip) / a.sampleRate) * MOVIE_TS) : 0;
+  const isAac = !!a && a.codec === 'aac';
+  const skip = !a ? 0 : a.codec === 'aac' ? a.priming : a.preSkip;
+  const aMovieDur = !a ? 0 : a.codec === 'aac' ? Math.round((a.inputSamples / a.sampleRate) * MOVIE_TS) : Math.round(((aDur - a.preSkip) / a.sampleRate) * MOVIE_TS);
 
   const build = (mdatStart: number): Uint8Array => {
     // interleave-free layout: all video samples, then all audio samples
@@ -135,15 +172,15 @@ export function muxMp4(input: MuxInput): Uint8Array {
       tkhd(1, vMovieDur, v.width, v.height, false),
       box('mdia', mdhd(v.timescale, vDur), hdlr('vide', 'SparkVideo'),
         box('minf', fullBox('vmhd', 0, 1, new W().zeros(8).out()), dinf(),
-          box('stbl', fullBox('stsd', 0, 0, new W().u32(1).out(), avc1(v)), stts(v.samples), stss, stsc1(), stsz(v.samples), stco(vOff)))));
+          box('stbl', fullBox('stsd', 0, 0, new W().u32(1).out(), avc1({ ...v, compressorName: input.compressorName })), stts(v.samples), stss, stsc1(), stsz(v.samples), stco(vOff)))));
     const traks = [vTrak];
     if (a) {
-      const elst = box('edts', fullBox('elst', 0, 0, new W().u32(1).u32(aMovieDur).u32(a.preSkip).u16(1).u16(0).out()));
+      const elst = box('edts', fullBox('elst', 0, 0, new W().u32(1).u32(aMovieDur).u32(skip).u16(1).u16(0).out()));
       traks.push(box('trak',
         tkhd(2, aMovieDur, 0, 0, true), elst,
         box('mdia', mdhd(a.sampleRate, aDur), hdlr('soun', 'SparkAudio'),
           box('minf', fullBox('smhd', 0, 0, new W().u32(0).out()), dinf(),
-            box('stbl', fullBox('stsd', 0, 0, new W().u32(1).out(), opusEntry(a)), stts(a.samples), stsc1(), stsz(a.samples), stco(aOff))))));
+            box('stbl', fullBox('stsd', 0, 0, new W().u32(1).out(), isAac ? mp4aEntry(a as AacTrack) : opusEntry(a as OpusTrack)), stts(a.samples), stsc1(), stsz(a.samples), stco(aOff))))));
     }
     const mvhd = fullBox('mvhd', 0, 0, new W().u32(0).u32(0).u32(MOVIE_TS).u32(Math.max(vMovieDur, aMovieDur))
       .u32(0x00010000).u16(0x0100).zeros(10).bytes(MATRIX).zeros(24).u32(a ? 3 : 2).out());

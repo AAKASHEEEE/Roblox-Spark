@@ -1,0 +1,128 @@
+{
+ "item": {
+  "id": "HC56",
+  "engine": "ordinary_object_extreme",
+  "kind": "holdout3",
+  "expected": "reject",
+  "expectedRejectCategory": "unavailable",
+  "probes": [],
+  "idea": "Kira's hamster sneaks out of its cage and presses the free coins button.",
+  "request": {
+   "idea": "Kira's hamster sneaks out of its cage and presses the free coins button.",
+   "durationTarget": 17,
+   "comedyEngine": null,
+   "seed": 4056
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Kira's hamster sneaks out of its cage and presses the free coins button.",
+   "durationTarget": 17,
+   "comedyEngine": null,
+   "seed": 4056
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "unavailable",
+   "reason": "no rig for non-human character(s): hamster"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "kira",
+    "mention": "kira"
+   },
+   "support": {
+    "id": "zapp",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "coins"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Kira is nearby.",
+   "goal": "Kira wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Kira."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "kira",
+     "hamster"
+    ],
+    "props": [
+     "coins",
+     "button"
+    ],
+    "places": [],
+    "actions": [
+     "press"
+    ]
+   },
+   "substitutions": [],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "unavailable",
+    "reason": "no rig for non-human character(s): hamster"
+   }
+  },
+  "plan": null,
+  "substitutions": [],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "fitKnobs": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.8185930000036024,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

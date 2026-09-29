@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-kira-fills-a-sock-ns3-s4047",
+    "episodeSha256": "9e298e5205e34c595c24bf47f1f712ffdcb77af9e8423b016b9b8dc179d51b69",
+    "semanticSha256": "237940f6716dfc03557c7e05777b143cf350fb0104999e6bb015e76e54b39369",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 480,
+  "hashedFrames": 32,
+  "hashEvery": 15,
+  "frameHashesSha256": "6d92cfca67bde977a03333bf1f220a98e2d22bc8b8edf14405cedd7daff50cb1",
+  "mp4": "out/bench-renders/run4-diag/HC47/gen-ooe-kira-fills-a-sock-ns3-s4047.mp4",
+  "mp4Sha256": "a3f0697aa8e922a5300de5f4e643a53f539de613ae94cb4e70d130f41750522f",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

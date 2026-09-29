@@ -1,0 +1,30 @@
+{
+  "id": "HC09",
+  "engine": "ordinary_object_extreme",
+  "kind": "holdout3",
+  "repairs": 0,
+  "substitutions": 0,
+  "ok": true,
+  "wallSec": 130.397,
+  "gates": "37/37",
+  "groups": {
+    "core": {
+      "passed": 23,
+      "total": 23
+    },
+    "production": {
+      "passed": 2,
+      "total": 2
+    },
+    "motion": {
+      "passed": 1,
+      "total": 1
+    },
+    "story": {
+      "passed": 11,
+      "total": 11
+    }
+  },
+  "failed": [],
+  "mp4": "out/bench-renders/run4-diag/HC09/gen-ooe-kira-hits-the-button-avl-s4009.mp4"
+}

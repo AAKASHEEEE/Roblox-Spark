@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-nvs-zapp-mashes-the-button-t1u-s4031",
+    "episodeSha256": "f830e130d3344027ffb56a860065c84cec8ea6ebf283c9d08c4744abfd920050",
+    "semanticSha256": "496143a17de3d37a7f2682aaf260cfa4d424ce88d0869f62d98a54afd4a6ce1f",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    1080,
+    1920
+  ],
+  "fps": 30,
+  "frames": 511,
+  "hashedFrames": 35,
+  "hashEvery": 15,
+  "frameHashesSha256": "727595cb3a47478870f915a8323ee1f0e6e5db88b49b5ced2db9cc3b4351f8d6",
+  "mp4": "out/bench-renders/run4-final/HC31/gen-nvs-zapp-mashes-the-button-t1u-s4031.mp4",
+  "mp4Sha256": "8804ddd93514e556eac204e635549ff0632030b125d2a10037dc47f2108699df",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

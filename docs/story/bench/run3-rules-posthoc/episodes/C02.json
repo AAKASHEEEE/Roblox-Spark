@@ -1,0 +1,1227 @@
+{
+  "schemaVersion": "1.1",
+  "render": {
+    "rendererVersion": "1.0.0",
+    "motionProfile": "corrected-head-v2"
+  },
+  "episode": {
+    "id": "gen-awl-kira-finally-wins-a-wgr-s1028",
+    "title": "Winner Winner",
+    "logline": "Kira wants the reward. The reward coin grows far beyond reason. The giant coin topples onto Kira.",
+    "duration": 17.99,
+    "format": "vertical",
+    "resolution": [
+      1080,
+      1920
+    ],
+    "fps": 30,
+    "seed": 1028,
+    "comedyEngine": "too_good_to_be_true"
+  },
+  "environment": {
+    "id": "classroom",
+    "version": "1.1.0",
+    "lighting": "morning"
+  },
+  "cast": [
+    {
+      "id": "kira",
+      "version": "1.1.0",
+      "role": "protagonist",
+      "startMark": "enter_back_left",
+      "startExpression": "smug"
+    },
+    {
+      "id": "zapp",
+      "version": "1.0.0",
+      "role": "foil",
+      "startMark": "foil_spot",
+      "startExpression": "neutral"
+    }
+  ],
+  "props": [
+    {
+      "instance": "desk",
+      "id": "student_desk",
+      "version": "1.0.0",
+      "anchor": "hero_desk_spot",
+      "hero": false,
+      "visible": true,
+      "scale": 1
+    },
+    {
+      "instance": "button",
+      "id": "suspicious_button",
+      "version": "1.0.0",
+      "anchor": "button_spot",
+      "parent": "desk",
+      "hero": true,
+      "visible": true,
+      "scale": 1
+    },
+    {
+      "instance": "coin",
+      "id": "spark_coin",
+      "version": "1.0.0",
+      "anchor": "giant_spot",
+      "hero": false,
+      "visible": false,
+      "scale": 1
+    }
+  ],
+  "beats": [
+    {
+      "id": "b01",
+      "start": 0,
+      "end": 1.3,
+      "intent": "hook",
+      "summary": "A FREE COINS button flashes on a desk",
+      "informationChange": true
+    },
+    {
+      "id": "b02",
+      "start": 1.3,
+      "end": 2.591,
+      "intent": "setup",
+      "summary": "Kira looks at the button, curious",
+      "informationChange": true
+    },
+    {
+      "id": "b03",
+      "start": 2.591,
+      "end": 3.822,
+      "intent": "temptation",
+      "summary": "Zapp crosses arms and shakes head",
+      "informationChange": true
+    },
+    {
+      "id": "b04",
+      "start": 3.822,
+      "end": 5.436,
+      "intent": "cause",
+      "summary": "Button clicks, no coin",
+      "informationChange": true
+    },
+    {
+      "id": "b05",
+      "start": 5.436,
+      "end": 7.393,
+      "intent": "cause",
+      "summary": "Button clicks, no coin",
+      "informationChange": true
+    },
+    {
+      "id": "b06",
+      "start": 7.393,
+      "end": 8.774,
+      "intent": "cause",
+      "summary": "Hand hits the button; a coin pops out",
+      "informationChange": true
+    },
+    {
+      "id": "b07",
+      "start": 8.774,
+      "end": 10.378,
+      "intent": "celebrate",
+      "summary": "Kira cheers",
+      "informationChange": true
+    },
+    {
+      "id": "b08",
+      "start": 10.378,
+      "end": 13.59,
+      "intent": "escalate",
+      "summary": "Coin shoots up to giant size and leaps",
+      "informationChange": true
+    },
+    {
+      "id": "b09",
+      "start": 13.59,
+      "end": 15.89,
+      "intent": "reversal",
+      "summary": "Giant coin topples onto the victim",
+      "informationChange": true
+    },
+    {
+      "id": "b10",
+      "start": 15.89,
+      "end": 16.89,
+      "intent": "payoff",
+      "summary": "Kira's face pokes out from under the coin",
+      "informationChange": true
+    },
+    {
+      "id": "b11",
+      "start": 16.89,
+      "end": 17.99,
+      "intent": "loop",
+      "summary": "The button flashes FREE COINS again",
+      "informationChange": true
+    }
+  ],
+  "actions": [
+    {
+      "actor": "kira",
+      "action": "walk",
+      "start": 0,
+      "duration": 1.489,
+      "to": "press_spot"
+    },
+    {
+      "actor": "kira",
+      "action": "look_at",
+      "start": 1.489,
+      "duration": 1.102,
+      "target": "button",
+      "expression": "skeptical"
+    },
+    {
+      "actor": "kira",
+      "action": "curious_lean",
+      "start": 2.641,
+      "duration": 1.231,
+      "target": "button"
+    },
+    {
+      "actor": "zapp",
+      "action": "arms_crossed",
+      "start": 2.641,
+      "duration": 1.631,
+      "target": "kira",
+      "expression": "curious"
+    },
+    {
+      "actor": "zapp",
+      "action": "head_shake",
+      "start": 2.891,
+      "duration": 0.7
+    },
+    {
+      "actor": "kira",
+      "action": "press_button",
+      "start": 3.922,
+      "duration": 0.9,
+      "target": "button.press_surface",
+      "expression": "smug"
+    },
+    {
+      "actor": "kira",
+      "action": "look_at",
+      "start": 4.822,
+      "duration": 0.614,
+      "target": "button"
+    },
+    {
+      "actor": "kira",
+      "action": "press_button",
+      "start": 5.536,
+      "duration": 0.9,
+      "target": "button.press_surface",
+      "expression": "smug"
+    },
+    {
+      "actor": "kira",
+      "action": "look_at",
+      "start": 6.436,
+      "duration": 0.957,
+      "target": "button"
+    },
+    {
+      "actor": "kira",
+      "action": "press_button",
+      "start": 7.543,
+      "duration": 0.9,
+      "target": "button.press_surface",
+      "expression": "smug"
+    },
+    {
+      "actor": "kira",
+      "action": "look_at",
+      "start": 8.443,
+      "duration": 0.331,
+      "target": "coin"
+    },
+    {
+      "actor": "kira",
+      "action": "victory_pose",
+      "start": 8.824,
+      "duration": 1.2,
+      "expression": "laughing"
+    },
+    {
+      "actor": "zapp",
+      "action": "arms_crossed",
+      "start": 8.974,
+      "duration": 1.904,
+      "target": "coin",
+      "expression": "neutral"
+    },
+    {
+      "actor": "kira",
+      "action": "shock_recoil",
+      "start": 10.828,
+      "duration": 0.6,
+      "target": "coin",
+      "expression": "surprised"
+    },
+    {
+      "actor": "zapp",
+      "action": "shock_recoil",
+      "start": 10.878,
+      "duration": 0.45,
+      "target": "coin",
+      "expression": "shock"
+    },
+    {
+      "actor": "zapp",
+      "action": "run",
+      "start": 11.328,
+      "duration": 0.501,
+      "to": "observe_safe",
+      "expression": "shock"
+    },
+    {
+      "actor": "kira",
+      "action": "turn_toward",
+      "start": 11.478,
+      "duration": 0.3,
+      "target": "wp_desk_back_left"
+    },
+    {
+      "actor": "kira",
+      "action": "walk",
+      "start": 11.778,
+      "duration": 0.913,
+      "to": "wp_desk_back_left"
+    },
+    {
+      "actor": "zapp",
+      "action": "look_at",
+      "start": 11.849,
+      "duration": 3.491,
+      "target": "coin"
+    },
+    {
+      "actor": "kira",
+      "action": "look_at",
+      "start": 12.711,
+      "duration": 0.12,
+      "target": "look_up_point"
+    },
+    {
+      "actor": "kira",
+      "action": "run",
+      "start": 12.831,
+      "duration": 0.709,
+      "to": "giant_front",
+      "expression": "smug"
+    },
+    {
+      "actor": "kira",
+      "action": "cower",
+      "start": 13.59,
+      "duration": 0.9
+    },
+    {
+      "actor": "kira",
+      "action": "dive_prone",
+      "start": 14.49,
+      "duration": 0.7,
+      "to": "dive_end",
+      "params": {
+        "diveAt": 0.15
+      },
+      "expression": "surprised"
+    },
+    {
+      "actor": "zapp",
+      "action": "laugh",
+      "start": 15.34,
+      "duration": 2.65,
+      "expression": "neutral"
+    }
+  ],
+  "expressions": [
+    {
+      "actor": "kira",
+      "state": "surprised",
+      "at": 4.85
+    },
+    {
+      "actor": "zapp",
+      "state": "neutral",
+      "at": 4.9
+    },
+    {
+      "actor": "kira",
+      "state": "surprised",
+      "at": 6.464
+    },
+    {
+      "actor": "zapp",
+      "state": "neutral",
+      "at": 6.514
+    },
+    {
+      "actor": "zapp",
+      "state": "shock",
+      "at": 8.221
+    },
+    {
+      "actor": "kira",
+      "state": "surprised",
+      "at": 15.54
+    },
+    {
+      "actor": "kira",
+      "state": "surprised",
+      "at": 15.91
+    }
+  ],
+  "propEvents": [
+    {
+      "prop": "button",
+      "event": "flash",
+      "start": 0,
+      "duration": 3.802,
+      "params": {
+        "hz": 2.5
+      }
+    },
+    {
+      "prop": "button",
+      "event": "press",
+      "start": 4.272,
+      "duration": 0.5
+    },
+    {
+      "prop": "button",
+      "event": "flash",
+      "start": 4.3,
+      "duration": 0.5,
+      "params": {
+        "hz": 8
+      }
+    },
+    {
+      "prop": "button",
+      "event": "reset",
+      "start": 4.77,
+      "duration": 0.3
+    },
+    {
+      "prop": "button",
+      "event": "press",
+      "start": 5.886,
+      "duration": 0.5
+    },
+    {
+      "prop": "button",
+      "event": "flash",
+      "start": 5.914,
+      "duration": 0.5,
+      "params": {
+        "hz": 8
+      }
+    },
+    {
+      "prop": "button",
+      "event": "reset",
+      "start": 6.384,
+      "duration": 0.3
+    },
+    {
+      "prop": "button",
+      "event": "press",
+      "start": 7.893,
+      "duration": 0.5
+    },
+    {
+      "prop": "button",
+      "event": "flash",
+      "start": 7.921,
+      "duration": 0.5,
+      "params": {
+        "hz": 8
+      }
+    },
+    {
+      "prop": "coin",
+      "event": "spawn",
+      "start": 7.991,
+      "duration": 1,
+      "to": "desk.coin_spot",
+      "params": {
+        "from": "button.spawn_point",
+        "flight": 0.5,
+        "flips": 1
+      }
+    },
+    {
+      "prop": "button",
+      "event": "reset",
+      "start": 8.391,
+      "duration": 0.3
+    },
+    {
+      "prop": "coin",
+      "event": "flash",
+      "start": 9.676,
+      "duration": 0.4,
+      "params": {
+        "hz": 3
+      }
+    },
+    {
+      "prop": "coin",
+      "event": "stand_up",
+      "start": 10.428,
+      "duration": 0.3
+    },
+    {
+      "prop": "coin",
+      "event": "grow",
+      "start": 10.778,
+      "duration": 0.3,
+      "params": {
+        "scale": 6
+      }
+    },
+    {
+      "prop": "coin",
+      "event": "hop_to",
+      "start": 11.178,
+      "duration": 0.55,
+      "to": "giant_spot",
+      "params": {
+        "height": 1.5
+      }
+    },
+    {
+      "prop": "coin",
+      "event": "grow",
+      "start": 11.778,
+      "duration": 0.3,
+      "params": {
+        "scale": 11
+      }
+    },
+    {
+      "prop": "coin",
+      "event": "grow",
+      "start": 12.178,
+      "duration": 0.4,
+      "params": {
+        "scale": 16.7
+      }
+    },
+    {
+      "prop": "coin",
+      "event": "wobble",
+      "start": 12.831,
+      "duration": 1.739,
+      "params": {
+        "hz": 2.2,
+        "deg": 5
+      }
+    },
+    {
+      "prop": "coin",
+      "event": "tip_over",
+      "start": 14.59,
+      "duration": 0.65,
+      "params": {
+        "endDeg": 86
+      }
+    },
+    {
+      "prop": "button",
+      "event": "flash",
+      "start": 16.89,
+      "duration": 1.1,
+      "params": {
+        "hz": 2.727,
+        "endGlow": 1
+      }
+    }
+  ],
+  "shots": [
+    {
+      "id": "s01",
+      "start": 0,
+      "end": 1.3,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "purpose": "Hook: show the causal prop",
+      "params": {
+        "fill": 0.78,
+        "elev": 0.42,
+        "yaw": -12,
+        "push": 0.08,
+        "fov": 34
+      }
+    },
+    {
+      "id": "s02",
+      "start": 1.3,
+      "end": 2.591,
+      "preset": "frontal_medium",
+      "subjects": [
+        "kira"
+      ],
+      "purpose": "Kira notices the button",
+      "params": {
+        "dist": 2,
+        "bias": 0.35,
+        "solveAt": 1.7,
+        "push": 0.08
+      }
+    },
+    {
+      "id": "s03",
+      "start": 2.591,
+      "end": 3.822,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "zapp"
+      ],
+      "purpose": "Zapp warns against it",
+      "params": {
+        "dist": 1.75,
+        "fromDist": 2.3,
+        "bias": 0.65,
+        "solveAt": 2.941
+      }
+    },
+    {
+      "id": "s04",
+      "start": 3.822,
+      "end": 4.71,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "purpose": "Kira presses; nothing comes out (prop_ecu)",
+      "params": {
+        "fill": 0.26,
+        "elev": 0.12,
+        "lift": 3.2,
+        "fov": 44,
+        "push": 0.06,
+        "yaw": 8
+      }
+    },
+    {
+      "id": "s05",
+      "start": 4.71,
+      "end": 5.436,
+      "preset": "frontal_medium",
+      "subjects": [
+        "kira"
+      ],
+      "purpose": "Kira presses; nothing comes out (frontal_medium)",
+      "params": {
+        "dist": 2,
+        "bias": 0.35,
+        "solveAt": 5.11,
+        "push": 0.08
+      }
+    },
+    {
+      "id": "s06",
+      "start": 5.436,
+      "end": 6.512,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "purpose": "Kira presses; nothing comes out (prop_ecu)",
+      "params": {
+        "fill": 0.26,
+        "elev": 0.12,
+        "lift": 3.2,
+        "fov": 44,
+        "push": 0.06,
+        "yaw": 8
+      }
+    },
+    {
+      "id": "s07",
+      "start": 6.512,
+      "end": 7.393,
+      "preset": "frontal_medium",
+      "subjects": [
+        "kira"
+      ],
+      "purpose": "Kira presses; nothing comes out (frontal_medium)",
+      "params": {
+        "dist": 2,
+        "bias": 0.35,
+        "solveAt": 6.912,
+        "push": 0.08
+      }
+    },
+    {
+      "id": "s08",
+      "start": 7.393,
+      "end": 8.774,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "purpose": "Kira presses the button",
+      "params": {
+        "fill": 0.26,
+        "elev": 0.12,
+        "lift": 3.2,
+        "fov": 44,
+        "push": 0.06,
+        "yaw": 8
+      }
+    },
+    {
+      "id": "s09",
+      "start": 8.774,
+      "end": 10.378,
+      "preset": "two_shot",
+      "subjects": [
+        "kira",
+        "zapp"
+      ],
+      "purpose": "Kira celebrates",
+      "params": {
+        "fill": 0.82,
+        "push": 0.04
+      }
+    },
+    {
+      "id": "s10",
+      "start": 10.378,
+      "end": 11.178,
+      "preset": "low_angle_reveal",
+      "subjects": [
+        "coin"
+      ],
+      "purpose": "The prize instantly turns on its winner (low_angle_reveal)",
+      "params": {
+        "solveAt": 11.128,
+        "side": -0.35,
+        "height": 0.35,
+        "fill": 0.7,
+        "minDist": 2.4,
+        "aim": 0.4,
+        "fov": 44
+      }
+    },
+    {
+      "id": "s11",
+      "start": 11.178,
+      "end": 13.59,
+      "preset": "wide_environment",
+      "subjects": [
+        "coin",
+        "kira",
+        "zapp"
+      ],
+      "purpose": "The prize instantly turns on its winner (wide_environment)",
+      "params": {
+        "solveAt": 13.49,
+        "margin": 0.7,
+        "elev": 0.12,
+        "fov": 40,
+        "push": 0.03
+      }
+    },
+    {
+      "id": "s12",
+      "start": 13.59,
+      "end": 15.2,
+      "preset": "low_angle_reveal",
+      "subjects": [
+        "coin"
+      ],
+      "purpose": "Reversal: the prize flattens its winner (low_angle_reveal)",
+      "params": {
+        "side": 0.3,
+        "height": 0.25,
+        "fill": 0.95,
+        "minDist": 3.2,
+        "aim": 0.55,
+        "fov": 50,
+        "push": 0.05,
+        "solveAt": 13.59
+      }
+    },
+    {
+      "id": "s13",
+      "start": 15.2,
+      "end": 15.89,
+      "preset": "wide_environment",
+      "subjects": [
+        "coin",
+        "kira"
+      ],
+      "purpose": "Aftermath: flattened by the prize",
+      "params": {
+        "solveAt": 15.84,
+        "margin": 0.6,
+        "elev": 0.28,
+        "fov": 40,
+        "push": 0
+      }
+    },
+    {
+      "id": "s14",
+      "start": 15.89,
+      "end": 16.89,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "kira"
+      ],
+      "purpose": "Payoff: regret under the coin",
+      "params": {
+        "dist": 2,
+        "fromDist": 2.5,
+        "bias": 0.9,
+        "solveAt": 15.89
+      }
+    },
+    {
+      "id": "s15",
+      "start": 16.89,
+      "end": 17.99,
+      "preset": "final_loop",
+      "subjects": [
+        "button"
+      ],
+      "purpose": "Loop: the button resets for the next victim",
+      "params": {
+        "pullback": 0.12
+      }
+    }
+  ],
+  "vfx": [
+    {
+      "type": "glow_pulse",
+      "at": 0,
+      "duration": 3.802,
+      "target": "button.glow",
+      "params": {
+        "hz": 2.5,
+        "intensity": 0.6
+      }
+    },
+    {
+      "type": "emote",
+      "at": 1.55,
+      "duration": 0.8,
+      "target": "kira",
+      "params": {
+        "symbol": "?"
+      }
+    },
+    {
+      "type": "emote",
+      "at": 2.791,
+      "duration": 0.8,
+      "target": "zapp",
+      "params": {
+        "symbol": "..."
+      }
+    },
+    {
+      "type": "emote",
+      "at": 4.8,
+      "duration": 0.7,
+      "target": "kira",
+      "params": {
+        "symbol": "..."
+      }
+    },
+    {
+      "type": "emote",
+      "at": 6.414,
+      "duration": 0.7,
+      "target": "kira",
+      "params": {
+        "symbol": "..."
+      }
+    },
+    {
+      "type": "screen_flash",
+      "at": 7.921,
+      "duration": 0.16,
+      "params": {
+        "strength": 0.35
+      }
+    },
+    {
+      "type": "sparkle_burst",
+      "at": 7.991,
+      "duration": 0.5,
+      "target": "button.sparkle",
+      "params": {
+        "count": 24
+      }
+    },
+    {
+      "type": "sparkle_burst",
+      "at": 8.481,
+      "duration": 0.55,
+      "target": "desk.coin_spot",
+      "params": {
+        "count": 18,
+        "speed": 0.8,
+        "size": 0.03
+      }
+    },
+    {
+      "type": "confetti",
+      "at": 8.974,
+      "duration": 1.2,
+      "target": "kira.above_head",
+      "params": {
+        "count": 40
+      }
+    },
+    {
+      "type": "sparkle_burst",
+      "at": 9.676,
+      "duration": 0.35,
+      "target": "coin",
+      "params": {
+        "count": 8,
+        "speed": 0.5,
+        "size": 0.02
+      }
+    },
+    {
+      "type": "sparkle_burst",
+      "at": 10.778,
+      "duration": 0.45,
+      "target": "coin",
+      "params": {
+        "count": 26,
+        "speed": 1.7999999999999998,
+        "size": 0.05
+      }
+    },
+    {
+      "type": "emote",
+      "at": 10.828,
+      "duration": 0.6,
+      "target": "kira",
+      "params": {
+        "symbol": "!"
+      }
+    },
+    {
+      "type": "impact_ring",
+      "at": 11.728,
+      "duration": 0.4,
+      "target": "giant_spot",
+      "params": {
+        "size": 0.9
+      }
+    },
+    {
+      "type": "dust_puff",
+      "at": 11.728,
+      "duration": 0.6,
+      "target": "giant_spot",
+      "params": {
+        "radius": 0.9
+      }
+    },
+    {
+      "type": "screen_shake",
+      "at": 11.728,
+      "duration": 0.3,
+      "params": {
+        "strength": 0.03
+      }
+    },
+    {
+      "type": "sparkle_burst",
+      "at": 11.778,
+      "duration": 0.45,
+      "target": "coin",
+      "params": {
+        "count": 31,
+        "speed": 2.3,
+        "size": 0.06666666666666667
+      }
+    },
+    {
+      "type": "sparkle_burst",
+      "at": 12.178,
+      "duration": 0.45,
+      "target": "coin",
+      "params": {
+        "count": 37,
+        "speed": 2.87,
+        "size": 0.08566666666666667
+      }
+    },
+    {
+      "type": "screen_shake",
+      "at": 12.178,
+      "duration": 0.35,
+      "params": {
+        "strength": 0.04
+      }
+    },
+    {
+      "type": "shadow_looming",
+      "at": 12.228,
+      "duration": 3.062,
+      "params": {
+        "rampIn": 2.211999999999999,
+        "strength": 0.28,
+        "fadeOut": 0.35
+      }
+    },
+    {
+      "type": "screen_shake",
+      "at": 12.628,
+      "duration": 0.45,
+      "params": {
+        "strength": 0.06
+      }
+    },
+    {
+      "type": "screen_shake",
+      "at": 15.24,
+      "duration": 0.6,
+      "params": {
+        "strength": 0.12
+      }
+    },
+    {
+      "type": "screen_flash",
+      "at": 15.24,
+      "duration": 0.12,
+      "params": {
+        "strength": 0.25
+      }
+    },
+    {
+      "type": "dust_puff",
+      "at": 15.24,
+      "duration": 0.9,
+      "target": "coin",
+      "params": {
+        "radius": 2.2,
+        "count": 44,
+        "size": 0.3
+      }
+    },
+    {
+      "type": "impact_ring",
+      "at": 15.24,
+      "duration": 0.45,
+      "target": "coin",
+      "params": {
+        "size": 2
+      }
+    },
+    {
+      "type": "sparkle_burst",
+      "at": 16.94,
+      "duration": 0.6,
+      "target": "button.sparkle",
+      "params": {
+        "count": 16,
+        "speed": 0.9
+      }
+    }
+  ],
+  "audio": {
+    "cues": [
+      {
+        "sfx": "sfx_beep",
+        "at": 0.05,
+        "gainDb": -14
+      },
+      {
+        "sfx": "sfx_beep",
+        "at": 0.45,
+        "gainDb": -16
+      },
+      {
+        "sfx": "sfx_blip_question",
+        "at": 1.55,
+        "gainDb": -10
+      },
+      {
+        "sfx": "sfx_blip_dots",
+        "at": 2.791,
+        "gainDb": -12
+      },
+      {
+        "sfx": "sfx_click",
+        "at": 4.3,
+        "gainDb": -4,
+        "sync": "contact:kira:press_button"
+      },
+      {
+        "sfx": "sfx_beep",
+        "at": 4.42,
+        "gainDb": -18,
+        "pitch": 0.6
+      },
+      {
+        "sfx": "sfx_blip_dots",
+        "at": 4.8,
+        "gainDb": -13
+      },
+      {
+        "sfx": "sfx_click",
+        "at": 5.914,
+        "gainDb": -4,
+        "sync": "contact:kira:press_button"
+      },
+      {
+        "sfx": "sfx_beep",
+        "at": 6.034,
+        "gainDb": -18,
+        "pitch": 0.6
+      },
+      {
+        "sfx": "sfx_blip_dots",
+        "at": 6.414,
+        "gainDb": -13
+      },
+      {
+        "sfx": "sfx_whoosh",
+        "at": 7.443,
+        "gainDb": -14
+      },
+      {
+        "sfx": "sfx_click",
+        "at": 7.921,
+        "gainDb": -4,
+        "sync": "contact:kira:press_button"
+      },
+      {
+        "sfx": "sfx_coin_pop",
+        "at": 7.991,
+        "gainDb": -8
+      },
+      {
+        "sfx": "sfx_coin_ding",
+        "at": 8.481,
+        "gainDb": -6
+      },
+      {
+        "sfx": "sfx_tada",
+        "at": 8.924,
+        "gainDb": -8
+      },
+      {
+        "sfx": "sfx_whoosh",
+        "at": 10.428,
+        "gainDb": -16
+      },
+      {
+        "sfx": "sfx_boing",
+        "at": 10.778,
+        "gainDb": -7,
+        "pitch": 1.1
+      },
+      {
+        "sfx": "sfx_whoosh",
+        "at": 11.178,
+        "gainDb": -10,
+        "pitch": 0.8
+      },
+      {
+        "sfx": "sfx_thud_small",
+        "at": 11.728,
+        "gainDb": -6,
+        "sync": "impact:coin:land"
+      },
+      {
+        "sfx": "sfx_boing",
+        "at": 11.778,
+        "gainDb": -7,
+        "pitch": 0.75
+      },
+      {
+        "sfx": "sfx_boing",
+        "at": 12.178,
+        "gainDb": -7,
+        "pitch": 0.55
+      },
+      {
+        "sfx": "sfx_whoosh",
+        "at": 14.54,
+        "gainDb": -8,
+        "pitch": 0.6
+      },
+      {
+        "sfx": "sfx_thud_big",
+        "at": 15.24,
+        "gainDb": -1,
+        "sync": "impact:coin:tip_over"
+      },
+      {
+        "sfx": "sfx_coin_ding",
+        "at": 15.29,
+        "gainDb": -12,
+        "pitch": 0.5
+      },
+      {
+        "sfx": "sfx_deflate_slide",
+        "at": 15.94,
+        "gainDb": -12
+      },
+      {
+        "sfx": "sfx_ding_reset",
+        "at": 16.91,
+        "gainDb": -7
+      },
+      {
+        "sfx": "sfx_beep",
+        "at": 17.29,
+        "gainDb": -14
+      },
+      {
+        "sfx": "sfx_beep",
+        "at": 17.65,
+        "gainDb": -15
+      }
+    ],
+    "music": {
+      "id": "mus_spark_bounce",
+      "gainDb": -20
+    },
+    "ambience": {
+      "id": "amb_classroom",
+      "gainDb": -34
+    },
+    "loudnessLufs": -14,
+    "duckingDb": 6
+  },
+  "loop": {
+    "mode": "match_cut",
+    "firstShot": "s01",
+    "lastShot": "s15",
+    "matchWindow": 0.5
+  },
+  "export": {
+    "container": "mp4",
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "videoBitrateKbps": 12000,
+    "audioBitrateKbps": 160
+  },
+  "safety": {
+    "familySafe": true,
+    "usesThirdPartyBrands": false,
+    "realMoneyOrGiveawayClaims": false,
+    "notes": "Generated from a user idea by the BlockSpark story pipeline; safety classification: safe. Fictional in-world coins only."
+  }
+}

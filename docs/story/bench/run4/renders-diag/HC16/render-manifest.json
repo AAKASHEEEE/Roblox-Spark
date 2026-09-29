@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-vsc-kira-chases-zapp-all-caf-s4016",
+    "episodeSha256": "0b2d26a44560b9333add4db1412e9f260b2002cb939a7f90a73b12e7d6d78520",
+    "semanticSha256": "409a6b779d34e006d54ffdca8bd34566458a597a7f2bf0ad8fd3c06e9266ef78",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "f6d47f1f37402211d3f04507fce57c41815a10d75bb78a20a85db36f1f237d89",
+  "mp4": "out/bench-renders/run4-diag/HC16/gen-vsc-kira-chases-zapp-all-caf-s4016.mp4",
+  "mp4Sha256": "9ed7d61b6b127bbc731389ac0d723a45164c977d4b1a576f28e1d17f48eac573",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

@@ -1,0 +1,811 @@
+{
+  "run": "out/bench/run2-rules",
+  "scale": 0.25,
+  "profile": "diagnostic",
+  "rendered": 30,
+  "allGatesPassed": 20,
+  "wallSec": 1093.344,
+  "parallel": 4,
+  "results": [
+    {
+      "id": "A01",
+      "engine": "ordinary_object_extreme",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 142.347,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/A01/gen-ooe-zapp-presses-a-free-ub5-s1000.mp4"
+    },
+    {
+      "id": "A02",
+      "engine": "ordinary_object_extreme",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 128.72,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/A02/gen-ooe-kira-finds-a-button-b8w-s1001.mp4"
+    },
+    {
+      "id": "A03",
+      "engine": "ordinary_object_extreme",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 159.107,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/A03/gen-ooe-a-shiny-coin-pops-t2n-s1002.mp4"
+    },
+    {
+      "id": "A04",
+      "engine": "ordinary_object_extreme",
+      "kind": "ambiguous",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 141.852,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/A04/gen-ooe-something-small-turns-into-1cl-s1003.mp4"
+    },
+    {
+      "id": "A05",
+      "engine": "ordinary_object_extreme",
+      "kind": "substitution",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": false,
+      "wallSec": 148.017,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/A05/gen-ooe-zapp-pushes-a-big-j38-s1004.mp4"
+    },
+    {
+      "id": "A06",
+      "engine": "ordinary_object_extreme",
+      "kind": "substitution",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 139.619,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/A06/gen-ooe-max-presses-the-free-snt-s1005.mp4"
+    },
+    {
+      "id": "A07",
+      "engine": "ordinary_object_extreme",
+      "kind": "substitution",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": false,
+      "wallSec": 167.297,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/A07/gen-ooe-in-the-cafeteria-zapp-6jq-s1006.mp4"
+    },
+    {
+      "id": "A13",
+      "engine": "ordinary_object_extreme",
+      "kind": "staging_conflict",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 137.89,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/A13/gen-ooe-kira-stands-right-where-760-s1012.mp4"
+    },
+    {
+      "id": "A14",
+      "engine": "ordinary_object_extreme",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 150.859,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/A14/gen-ooe-kira-warns-zapp-not-ata-s1013.mp4"
+    },
+    {
+      "id": "B01",
+      "engine": "visible_secret_chase",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 139.866,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/B01/gen-vsc-zapp-spots-a-glowing-ooy-s1015.mp4"
+    },
+    {
+      "id": "B02",
+      "engine": "visible_secret_chase",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 130.527,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/B02/gen-vsc-kira-notices-the-secret-n7f-s1016.mp4"
+    },
+    {
+      "id": "B03",
+      "engine": "visible_secret_chase",
+      "kind": "ambiguous",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 136.062,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/B03/gen-vsc-both-of-them-want-r3y-s1017.mp4"
+    },
+    {
+      "id": "B04",
+      "engine": "visible_secret_chase",
+      "kind": "substitution",
+      "repairs": 1,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 136.78,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/B04/gen-vsc-zapp-sees-a-hidden-gf5-s1018.mp4"
+    },
+    {
+      "id": "B06",
+      "engine": "visible_secret_chase",
+      "kind": "substitution",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 147.222,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/B06/gen-vsc-ms-byte-spots-zapp-q36-s1020.mp4"
+    },
+    {
+      "id": "B11",
+      "engine": "visible_secret_chase",
+      "kind": "staging_conflict",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 132.443,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/B11/gen-vsc-zapp-and-kira-both-55j-s1025.mp4"
+    },
+    {
+      "id": "B12",
+      "engine": "visible_secret_chase",
+      "kind": "compatible",
+      "repairs": 1,
+      "substitutions": 0,
+      "ok": false,
+      "wallSec": 153.039,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/B12/gen-vsc-zapp-notices-the-flashing-hnp-s1026.mp4"
+    },
+    {
+      "id": "C01",
+      "engine": "apparent_win_instant_loss",
+      "kind": "compatible",
+      "repairs": 1,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 142.135,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/C01/gen-awl-zapp-presses-the-button-duv-s1027.mp4"
+    },
+    {
+      "id": "C02",
+      "engine": "apparent_win_instant_loss",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 158.16,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/C02/gen-awl-kira-finally-wins-a-wgr-s1028.mp4"
+    },
+    {
+      "id": "C03",
+      "engine": "apparent_win_instant_loss",
+      "kind": "ambiguous",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 129.761,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/C03/gen-awl-he-wins-then-he-4xv-s1029.mp4"
+    },
+    {
+      "id": "C04",
+      "engine": "apparent_win_instant_loss",
+      "kind": "substitution",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 139.947,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/C04/gen-awl-zapp-finally-wins-a-qkx-s1030.mp4"
+    },
+    {
+      "id": "C05",
+      "engine": "apparent_win_instant_loss",
+      "kind": "substitution",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 135.948,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/C05/gen-awl-on-the-school-bus-777-s1031.mp4"
+    },
+    {
+      "id": "C10",
+      "engine": "apparent_win_instant_loss",
+      "kind": "staging_conflict",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": false,
+      "wallSec": 166.954,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/C10/gen-awl-zapp-celebrates-his-coin-ndl-s1036.mp4"
+    },
+    {
+      "id": "C11",
+      "engine": "apparent_win_instant_loss",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 2,
+      "ok": false,
+      "wallSec": 135.657,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G08"
+      ],
+      "mp4": "out/bench-renders/diag/C11/gen-awl-zapp-yells-i-m-o2v-s1037.mp4"
+    },
+    {
+      "id": "D01",
+      "engine": "noob_vs_smart",
+      "kind": "compatible",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 144.337,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/D01/gen-ooe-zapp-presses-the-button-cfd-s1039.mp4"
+    },
+    {
+      "id": "D02",
+      "engine": "noob_vs_smart",
+      "kind": "compatible",
+      "repairs": 1,
+      "substitutions": 0,
+      "ok": false,
+      "wallSec": 148.933,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/D02/gen-nvs-kira-taps-the-button-1ea-s1040.mp4"
+    },
+    {
+      "id": "D03",
+      "engine": "noob_vs_smart",
+      "kind": "ambiguous",
+      "repairs": 1,
+      "substitutions": 1,
+      "ok": false,
+      "wallSec": 157.833,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/D03/gen-nvs-the-noob-way-works-p4s-s1041.mp4"
+    },
+    {
+      "id": "D04",
+      "engine": "noob_vs_smart",
+      "kind": "substitution",
+      "repairs": 1,
+      "substitutions": 2,
+      "ok": true,
+      "wallSec": 144.334,
+      "gates": "36/36",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/diag/D04/gen-nvs-zapp-gets-one-coin-c2t-s1042.mp4"
+    },
+    {
+      "id": "D08",
+      "engine": "noob_vs_smart",
+      "kind": "transform_ip",
+      "repairs": 1,
+      "substitutions": 2,
+      "ok": false,
+      "wallSec": 146.851,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/D08/gen-nvs-zapp-plays-like-a-4rs-s1046.mp4"
+    },
+    {
+      "id": "D09",
+      "engine": "noob_vs_smart",
+      "kind": "staging_conflict",
+      "repairs": 1,
+      "substitutions": 1,
+      "ok": false,
+      "wallSec": 99.042,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/D09/gen-nvs-zapp-and-kira-stand-43b-s1047.mp4"
+    },
+    {
+      "id": "D10",
+      "engine": "noob_vs_smart",
+      "kind": "compatible",
+      "repairs": 1,
+      "substitutions": 0,
+      "ok": false,
+      "wallSec": 81.642,
+      "gates": "35/36",
+      "groups": {
+        "core": {
+          "passed": 22,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [
+        "G03"
+      ],
+      "mp4": "out/bench-renders/diag/D10/gen-nvs-zapp-spam-clicks-the-7wy-s1048.mp4"
+    }
+  ]
+}

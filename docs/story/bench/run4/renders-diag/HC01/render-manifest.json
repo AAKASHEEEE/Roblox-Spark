@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-zapp-slaps-the-big-vec-s4001",
+    "episodeSha256": "2a3f0fac6c5c00ea312e89728234681f29f956177df4327dcffa97012c7ba11b",
+    "semanticSha256": "a0bdd383d2db4929e5a290a0a94297f5954189ba5c36a4c64db7899e633b3756",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 483,
+  "hashedFrames": 33,
+  "hashEvery": 15,
+  "frameHashesSha256": "5a2180f1e16c5bbf1f68998d7ce355375b13e2b938022e83225be1076fb9e349",
+  "mp4": "out/bench-renders/run4-diag/HC01/gen-ooe-zapp-slaps-the-big-vec-s4001.mp4",
+  "mp4Sha256": "c5e7478fa1822e797f30b5555452df24d74a159360738300d14d15d4b87e3861",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

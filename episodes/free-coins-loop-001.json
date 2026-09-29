@@ -1,5 +1,9 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
+  "render": {
+    "rendererVersion": "1.0.0",
+    "motionProfile": "legacy-head-v1"
+  },
   "episode": {
     "id": "free-coins-loop-001",
     "title": "Free Coins?",
@@ -125,14 +129,14 @@
     {
       "id": "b08",
       "start": 8.45,
-      "end": 10.0,
+      "end": 10,
       "intent": "escalate",
       "summary": "It leaps off the desk and becomes enormous. Kira backs away.",
       "informationChange": true
     },
     {
       "id": "b09",
-      "start": 10.0,
+      "start": 10,
       "end": 12.6,
       "intent": "climax",
       "summary": "Greedy Zapp runs to hug his prize. It wobbles above him.",
@@ -157,7 +161,7 @@
     {
       "id": "b12",
       "start": 15.9,
-      "end": 17.0,
+      "end": 17,
       "intent": "loop",
       "summary": "The button resets and flashes FREE COINS again.",
       "informationChange": true
@@ -167,7 +171,7 @@
     {
       "actor": "zapp",
       "action": "walk",
-      "start": 0.0,
+      "start": 0,
       "duration": 1.3,
       "to": "zapp_desk"
     },
@@ -175,7 +179,7 @@
       "actor": "zapp",
       "action": "look_at",
       "start": 1.3,
-      "duration": 1.0,
+      "duration": 1,
       "target": "button",
       "expression": "curious"
     },
@@ -220,7 +224,7 @@
       "actor": "zapp",
       "action": "shock_recoil",
       "start": 7.9,
-      "duration": 1.0,
+      "duration": 1,
       "target": "coin",
       "expression": "shock"
     },
@@ -266,7 +270,7 @@
     {
       "actor": "kira",
       "action": "look_at",
-      "start": 0.0,
+      "start": 0,
       "duration": 2.3,
       "target": "zapp"
     },
@@ -295,7 +299,7 @@
     {
       "actor": "kira",
       "action": "arms_crossed",
-      "start": 6.0,
+      "start": 6,
       "duration": 1.9,
       "target": "zapp",
       "expression": "smug"
@@ -334,7 +338,7 @@
     {
       "actor": "zapp",
       "state": "shock",
-      "at": 10.0
+      "at": 10
     },
     {
       "actor": "zapp",
@@ -351,7 +355,7 @@
     {
       "prop": "button",
       "event": "flash",
-      "start": 0.0,
+      "start": 0,
       "duration": 3.3,
       "params": {
         "hz": 2.5
@@ -382,7 +386,7 @@
       "prop": "coin",
       "event": "spawn",
       "start": 3.9,
-      "duration": 1.0,
+      "duration": 1,
       "to": "desk.coin_spot",
       "params": {
         "from": "button.spawn_point",
@@ -402,7 +406,7 @@
     {
       "prop": "coin",
       "event": "flash",
-      "start": 5.0,
+      "start": 5,
       "duration": 0.6,
       "params": {
         "hz": 3
@@ -426,7 +430,7 @@
     {
       "prop": "coin",
       "event": "grow",
-      "start": 8.0,
+      "start": 8,
       "duration": 0.3,
       "params": {
         "scale": 6
@@ -493,7 +497,7 @@
   "shots": [
     {
       "id": "s01",
-      "start": 0.0,
+      "start": 0,
       "end": 1.2,
       "preset": "prop_ecu",
       "subjects": [
@@ -518,7 +522,7 @@
       ],
       "purpose": "Zapp arrives and notices the button",
       "params": {
-        "dist": 2.0,
+        "dist": 2,
         "bias": 0.35,
         "solveAt": 1.6,
         "push": 0.08
@@ -610,7 +614,7 @@
     {
       "id": "s08",
       "start": 8.45,
-      "end": 10.0,
+      "end": 10,
       "preset": "wide_environment",
       "subjects": [
         "coin",
@@ -628,7 +632,7 @@
     },
     {
       "id": "s09",
-      "start": 10.0,
+      "start": 10,
       "end": 11.3,
       "preset": "reaction_punch_in",
       "subjects": [
@@ -698,7 +702,7 @@
     {
       "id": "s13",
       "start": 15.9,
-      "end": 17.0,
+      "end": 17,
       "preset": "final_loop",
       "subjects": [
         "button"
@@ -712,7 +716,7 @@
   "vfx": [
     {
       "type": "glow_pulse",
-      "at": 0.0,
+      "at": 0,
       "duration": 3.3,
       "target": "button.glow",
       "params": {
@@ -768,7 +772,7 @@
     },
     {
       "type": "confetti",
-      "at": 6.0,
+      "at": 6,
       "duration": 1.2,
       "target": "zapp.above_head",
       "params": {
@@ -796,7 +800,7 @@
     },
     {
       "type": "sparkle_burst",
-      "at": 8.0,
+      "at": 8,
       "duration": 0.5,
       "target": "coin",
       "params": {
@@ -807,7 +811,7 @@
     },
     {
       "type": "emote",
-      "at": 8.0,
+      "at": 8,
       "duration": 0.6,
       "target": "kira",
       "params": {
@@ -816,7 +820,7 @@
     },
     {
       "type": "impact_ring",
-      "at": 9.0,
+      "at": 9,
       "duration": 0.4,
       "target": "coin_floor",
       "params": {
@@ -825,7 +829,7 @@
     },
     {
       "type": "dust_puff",
-      "at": 9.0,
+      "at": 9,
       "duration": 0.6,
       "target": "coin_floor",
       "params": {
@@ -834,7 +838,7 @@
     },
     {
       "type": "screen_shake",
-      "at": 9.0,
+      "at": 9,
       "duration": 0.3,
       "params": {
         "strength": 0.03
@@ -869,7 +873,7 @@
     },
     {
       "type": "shadow_looming",
-      "at": 10.0,
+      "at": 10,
       "duration": 4.3,
       "params": {
         "rampIn": 3.4,
@@ -919,7 +923,7 @@
       "duration": 0.45,
       "target": "coin",
       "params": {
-        "size": 2.0
+        "size": 2
       }
     },
     {
@@ -991,7 +995,7 @@
       },
       {
         "sfx": "sfx_sparkle",
-        "at": 5.0,
+        "at": 5,
         "gainDb": -14
       },
       {
@@ -1015,9 +1019,9 @@
       },
       {
         "sfx": "sfx_boing",
-        "at": 8.0,
+        "at": 8,
         "gainDb": -7,
-        "pitch": 1.0,
+        "pitch": 1,
         "sync": "coin grow"
       },
       {
@@ -1029,7 +1033,7 @@
       },
       {
         "sfx": "sfx_thud_small",
-        "at": 9.0,
+        "at": 9,
         "gainDb": -6,
         "sync": "impact:coin:land"
       },
@@ -1049,7 +1053,7 @@
       },
       {
         "sfx": "sfx_rumble",
-        "at": 10.0,
+        "at": 10,
         "gainDb": -12,
         "sync": "shadow looming"
       },

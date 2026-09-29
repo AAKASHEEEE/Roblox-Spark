@@ -1,0 +1,135 @@
+{
+  "run": {
+    "provider": "faulty:0.5",
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "dataset": "bench/ideas.json",
+    "ideas": 50,
+    "compatible": 29,
+    "mustReject": 19,
+    "ipTransformable": 2,
+    "analyzer": true,
+    "date": "2026-09-27T13:26:37.678Z"
+  },
+  "m01_schemaValidResponseRate": 93.2,
+  "m01b_finalSchemaValidOrExplicitRejection": 84,
+  "m02_assetCompatibleFirstPlanRate": 80.6,
+  "m03_firstPassCompilerSuccess_compatible": 82.8,
+  "m04_firstPassValidatorAcceptance_compatible": 37.9,
+  "m05_acceptanceAfterRepair_compatible": 75.9,
+  "m06_avgRepairs_compatible": 1.14,
+  "m06b_avgRepairs_accepted": 0.57,
+  "m07_rejectionCorrectness_mustReject": 100,
+  "m07b_rejectionCategoryMatch": 94.7,
+  "m07c_unsafeRejected": 100,
+  "m07d_protectedIpRejectedOrTransformed": 80,
+  "m07e_falseRejections_compatible": [],
+  "m08_avgLatencyMs_all": 291,
+  "m08b_avgLatencyMs_accepted": 528,
+  "m09_cost": {
+    "modelTokensIn": 0,
+    "modelTokensOut": 0,
+    "modelCostUsd": 0,
+    "computeCostUsdPerIdea_at_0_35_per_hour": 0.000028,
+    "estimatedLlmPromptTokensPerIdea": {
+      "normalize": 1046,
+      "plan": 2132,
+      "note": "estimated from the real prompts (chars/4); output ~1.5-4k tokens per plan; repairs add ~1 plan-sized prompt each"
+    }
+  },
+  "m10_causeResultCompleteness": 100,
+  "m11_reversalPlacementCompliance": 100,
+  "m12_loopCompliance": 100,
+  "m13_mutedStoryHeuristicScore_mean": 98,
+  "m14_cameraQualityPass_firstCompiled": 95.8,
+  "m14b_cameraQualityPass_final": 100,
+  "m15_collisionQualityPass_firstCompiled": 91.7,
+  "m15b_collisionQualityPass_final": 95.8,
+  "m16_deterministicRecompilation": 100,
+  "zeroArbitraryCodeExecution": "by construction: provider output is parsed as data and schema-validated; no eval/Function/dynamic import/shell exists on the output path (tests/story.security.test.ts)",
+  "silentAssetInvention": 0,
+  "confusion": {
+    "compatible": {
+      "accepted": 22,
+      "rejected": 0,
+      "failed": 7
+    },
+    "mustReject": {
+      "rejected": 19,
+      "accepted": [],
+      "failed": []
+    },
+    "ipTransform": [
+      "A12: failed",
+      "D08: accepted (brand removed)"
+    ]
+  },
+  "perEngine": {
+    "ordinary_object_extreme": {
+      "compatible": 9,
+      "firstPass": 5,
+      "afterRepair": 7
+    },
+    "visible_secret_chase": {
+      "compatible": 7,
+      "firstPass": 1,
+      "afterRepair": 5
+    },
+    "apparent_win_instant_loss": {
+      "compatible": 7,
+      "firstPass": 5,
+      "afterRepair": 6
+    },
+    "noob_vs_smart": {
+      "compatible": 6,
+      "firstPass": 0,
+      "afterRepair": 4
+    }
+  },
+  "substitutionsDeclared": 44,
+  "failures": [
+    {
+      "id": "A03",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): TEMPLATE_GRAMMAR slot \"press_reward\" required 1x at position 4, found 0 | TEMPLATE_GRAMMAR slot \"escalate\" required 1x at position 5, found 0 | TEMPLATE_GRAMMAR slot \"leap\" required 1x at position 5, found 0 | TEMPLATE_GRAMMAR slot \"threat\" required 1x at position 5, found 0"
+    },
+    {
+      "id": "A04",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): CAUSE_LINK b03.causeBeatId b99 must reference an earlier beat | MISSING_CAUSE press_reward (b03) must be caused by a notice beat"
+    },
+    {
+      "id": "A12",
+      "expected": "reject_or_transform",
+      "reason": "not accepted after 3 repair(s): CAUSE_LINK b03.causeBeatId b99 must reference an earlier beat | MISSING_CAUSE press_reward (b03) must be caused by a notice beat"
+    },
+    {
+      "id": "B01",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): CAUSE_LINK b03.causeBeatId b99 must reference an earlier beat | MISSING_CAUSE foil_notice (b03) must be caused by a notice beat"
+    },
+    {
+      "id": "B12",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): BODY_PROP_INTERSECTION zapp head_-1_1_top 3.2 cm inside prop:coin (1 sampled frames in s08)"
+    },
+    {
+      "id": "C04",
+      "expected": "accept_with_substitution",
+      "reason": "not accepted after 3 repair(s): CAUSE_LINK b04.causeBeatId b99 must reference an earlier beat | MISSING_CAUSE attempt_fail (b04) must be caused by a notice beat"
+    },
+    {
+      "id": "D01",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): CAUSE_LINK b04.causeBeatId b99 must reference an earlier beat | MISSING_CAUSE press_reward (b04) must be caused by a notice beat"
+    },
+    {
+      "id": "D09",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): FACE_TURNED_AWAY zapp face turned away from camera (dot=0.14) (6 sampled frames in s02)"
+    }
+  ],
+  "determinism": {
+    "sameProcessAndFresh": "23/23",
+    "mismatches": []
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-awl-after-a-dozen-tries-5sq-s4023",
+    "episodeSha256": "cc93c486d25be7e9c48ce5930af0a522471b1fe070026046dc6eb8eb442074da",
+    "semanticSha256": "644676cc561a674115f93550a19b8903f28ea3c75dba127c7634f562510eeba2",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 540,
+  "hashedFrames": 36,
+  "hashEvery": 15,
+  "frameHashesSha256": "acf393751918d6ff1a804655357fa9a5c5ed1bb6cbef5068c154ff1a4d343969",
+  "mp4": "out/bench-renders/run4-diag/HC23/gen-awl-after-a-dozen-tries-5sq-s4023.mp4",
+  "mp4Sha256": "d83ec84d292f76211691f99af37c7897d8faf78d2570782cf9caf579cee9c061",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

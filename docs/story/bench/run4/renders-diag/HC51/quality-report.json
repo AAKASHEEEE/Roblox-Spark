@@ -1,0 +1,410 @@
+{
+  "profile": "diagnostic",
+  "summary": {
+    "total": 37,
+    "passed": 37,
+    "failed": [],
+    "notApplicable": [],
+    "validationProfile": "story-episode",
+    "durationTargetSec": [
+      14,
+      22
+    ],
+    "groups": {
+      "core": {
+        "passed": 23,
+        "total": 23
+      },
+      "production": {
+        "passed": 2,
+        "total": 2
+      },
+      "motion": {
+        "passed": 1,
+        "total": 1
+      },
+      "story": {
+        "passed": 11,
+        "total": 11
+      }
+    }
+  },
+  "gates": [
+    {
+      "id": "G01",
+      "name": "Playable MP4 produced automatically (no screen recording)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "Chromium decoded 90 frames in 2.96s real-time playback, 0 dropped; errors: none",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G02",
+      "name": "Resolution (diagnostic profile 270x480)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "container 270x480, decoded 270x480 — DIAGNOSTIC render, not a production output",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G03",
+      "name": "Duration within the channel production boundary 14-22 s",
+      "pass": true,
+      "kind": "measured",
+      "detail": "video 16.000s, audio presented 16.009s (edit list skips 1024 AAC priming samples)",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G04",
+      "name": "Stable frame rate",
+      "pass": true,
+      "kind": "measured",
+      "detail": "480 samples (expected 480), unique sample durations 1000 @ timescale 30000 => 30.000 fps constant",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G05",
+      "name": "Audio present, decodable, length matches video",
+      "pass": true,
+      "kind": "measured",
+      "detail": "codec mp4a, 2ch 48000 Hz; decoded 271132 bytes; |audio-video| = 9.0 ms",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G06",
+      "name": "Audio synchronised to visual events (<= 1 frame)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "synced cues are pinned to computed contact/impact times; repairs: none needed",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G07",
+      "name": "Premise (hero prop) visible within 1 s",
+      "pass": true,
+      "kind": "measured",
+      "detail": "opening shot s01 prop_ecu on \"button\" from t=0; hard framing issues in first second: 0",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G08",
+      "name": "Protagonist and hero prop identifiable",
+      "pass": true,
+      "kind": "measured",
+      "detail": "zapp is a framed subject in 7 shots; face/framing issues on zapp: 0",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G09",
+      "name": "No unexplained teleportation (actors/props)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "checked 480 consecutive frames: max plausible speed thresholds 7 m/s (actors) / 14 m/s (props)",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G10",
+      "name": "Cause -> effect: contact happens and triggers the event",
+      "pass": true,
+      "kind": "measured",
+      "detail": "zapp.press_button@2.956s hand-to-target 0.0 cm; press/spawn causality validated",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G11",
+      "name": "Facial change at every information-change beat",
+      "pass": true,
+      "kind": "static",
+      "detail": "every non-hook/loop information beat contains an expression change or emote",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G12",
+      "name": "Meaningful visual change every <= 1.5 s",
+      "pass": true,
+      "kind": "static",
+      "detail": "longest interval without a new cut/action/expression/prop/VFX event: 1.134s",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G13",
+      "name": "No shot > 3 s without a cut",
+      "pass": true,
+      "kind": "static",
+      "detail": "shot lengths: 1.13, 1.29, 1.25, 1.08, 1.31, 1.37, 1.59, 0.95, 1.63, 1.61, 0.69, 1.00, 1.10",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G14",
+      "name": "Largest physical reversal in the final 3 s",
+      "pass": true,
+      "kind": "measured",
+      "detail": "largest impact coin:tip_over strength 16.7 at 13.26s (window starts 13.009s)",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G15",
+      "name": "Ending loops into the opening",
+      "pass": true,
+      "kind": "measured",
+      "detail": "decoded last-vs-first frame mean abs diff 2.89% (a mid-episode control frame differs by 19.38%)",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G16",
+      "name": "Character identity locked (versioned manifests + hash lock)",
+      "pass": true,
+      "kind": "static",
+      "detail": "zapp@1.0.0 sha256 558834f42521; kira@1.1.0 sha256 a928effc30ff; episodes cannot contain appearance fields (strict schema)",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G17",
+      "name": "All assets licensed/owned with metadata",
+      "pass": true,
+      "kind": "static",
+      "detail": "every environment/character/prop/audio manifest carries license.source/author/license; all are original-procedural",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G18",
+      "name": "No protected branding or third-party IP",
+      "pass": true,
+      "kind": "static",
+      "detail": "banned-term scan clean; no external meshes/textures/sounds are loaded by the engine at all",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G19",
+      "name": "Family-safe (no gore/sexual/weapons/real-money giveaways)",
+      "pass": true,
+      "kind": "static",
+      "detail": "Generated from a user idea by the BlockSpark story pipeline; safety classification: safe. Fictional in-world coins only.",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G20",
+      "name": "Shot validation (screen-space bounds, face visibility, hand-vs-geometry penetration)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "160 sampled frames: hard issues 0, soft issues 0; {\"CAMERA_ADJUSTED\":32}",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G21",
+      "name": "Planted feet do not slide during locomotion",
+      "pass": true,
+      "kind": "measured",
+      "detail": "67 planted-foot samples while moving: median 0.003 m/s, p95 0.007 m/s vs root speed 1.2-2.7 m/s. Excluded: 9 touchdown frames (max 1.30 m/s) and 11 run flight-phase frames",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G22",
+      "name": "Loudness normalised, no clipping",
+      "pass": true,
+      "kind": "measured",
+      "detail": "integrated -14.1 LUFS (target -14), approx true peak -1.5 dBFS, limiter max GR -6.6 dB",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "G23",
+      "name": "Story readable while muted",
+      "pass": true,
+      "kind": "proxy",
+      "detail": "PROXY ONLY: every beat has a shot, causal chain is on screen, emotes/expressions carry the reactions and no dialogue is needed. A human viewing test is still required to confirm comprehension.",
+      "group": "core",
+      "status": "pass"
+    },
+    {
+      "id": "P01",
+      "name": "Production export profile via builtin (H.264 yuv420p, CFR 30, AAC-LC 48 kHz stereo, fast-start)",
+      "pass": true,
+      "kind": "measured",
+      "group": "production",
+      "detail": "ok container=mov,mp4,m4a,3gp,3g2,mj2; ok fast-start (moov before mdat)=true; ok exactly one video stream=1; ok exactly one audio stream=1; ok video codec=h264; ok pixel format=yuv420p; ok resolution=270x480; ok constant frame rate=30/1 (avg 30/1); ok duration=16.000; ok audio codec=aac; ok audio profile=LC; ok audio sample rate=48000; ok audio channels=2; ok A/V duration match=9.0 ms",
+      "status": "pass"
+    },
+    {
+      "id": "P02",
+      "name": "AAC decodes in an independent decoder and is sample-aligned with the source mix",
+      "pass": true,
+      "kind": "measured",
+      "group": "production",
+      "detail": "Chromium AAC decoder SNR 23.23/23.23 dB vs source mix; MP4 decode (edit list applied) offset 0 samples (0.00 ms), 768432 samples decoded",
+      "status": "pass"
+    },
+    {
+      "id": "M01",
+      "name": "Swept hand volume clear during locomotion onsets/arrivals (4 substeps per frame, 1 cm tolerance)",
+      "pass": true,
+      "kind": "measured",
+      "group": "motion",
+      "detail": "no hand point entered a prop or collider by more than 1 cm between or on video frames",
+      "status": "pass"
+    },
+    {
+      "id": "S01",
+      "name": "Opening readability (premise prop fills the first second)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "opening shot prop_ecu on button for 1.134s; button covers 38.9% of frame at t=0.40",
+      "group": "story",
+      "beatId": "b01",
+      "field": "shotHint",
+      "status": "pass"
+    },
+    {
+      "id": "S02",
+      "name": "Causal prop visible at every cause (press contact)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "2.96s s03 ok",
+      "group": "story",
+      "beatId": null,
+      "field": "shotHint",
+      "status": "pass"
+    },
+    {
+      "id": "S03",
+      "name": "Characters introduced before they matter",
+      "pass": true,
+      "kind": "static",
+      "detail": "protagonist zapp first framed at 1.13s (<= 3.0); foil kira at 4.76s (<= 7.20)",
+      "group": "story",
+      "beatId": "b05",
+      "field": "shotHint",
+      "status": "pass"
+    },
+    {
+      "id": "S04",
+      "name": "Every cause precedes its result (press->coin->growth->impact)",
+      "pass": true,
+      "kind": "static",
+      "detail": "press 2.96 -> spawn 3.03; spawn -> land 7.99 -> impact 13.26",
+      "group": "story",
+      "beatId": null,
+      "field": null,
+      "status": "pass"
+    },
+    {
+      "id": "S05",
+      "name": "Reaction within 0.9 s of every information change",
+      "pass": true,
+      "kind": "static",
+      "detail": "6 information events all followed by a reaction",
+      "group": "story",
+      "beatId": null,
+      "field": "reactor",
+      "status": "pass"
+    },
+    {
+      "id": "S06",
+      "name": "Largest reversal lands in the final 3 s (and before the payoff)",
+      "pass": true,
+      "kind": "static",
+      "detail": "impact 13.26s, window [13.01, 15.21]",
+      "group": "story",
+      "beatId": "b09",
+      "field": "approxDuration",
+      "status": "pass"
+    },
+    {
+      "id": "S07",
+      "name": "Final composition matches the opening (loop)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "last shot final_loop on button; camera position difference first/last analysed frame 0.1 cm",
+      "group": "story",
+      "beatId": "b11",
+      "field": "shotHint",
+      "status": "pass"
+    },
+    {
+      "id": "S08",
+      "name": "No long static interval (events <= 1.5 s apart, no frozen motion > 1 s)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "longest event gap 1.13s after t=0.00; longest fully static run 0.00s",
+      "group": "story",
+      "beatId": null,
+      "field": "approxDuration",
+      "status": "pass"
+    },
+    {
+      "id": "S09",
+      "name": "Shot variety (no repeated consecutive setup, >= 5 presets, none > 40%)",
+      "pass": true,
+      "kind": "static",
+      "detail": "13 shots, 7 presets, max share 23%",
+      "group": "story",
+      "beatId": null,
+      "field": "shotHint",
+      "status": "pass"
+    },
+    {
+      "id": "S10",
+      "name": "No excessive character travel (<= 10 m per actor)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "zapp 5.1 m, kira 0.8 m",
+      "group": "story",
+      "beatId": null,
+      "field": null,
+      "status": "pass"
+    },
+    {
+      "id": "S11",
+      "name": "Actions compatible with props (no carry/throw/drink without attachment)",
+      "pass": true,
+      "kind": "static",
+      "detail": "all actions registered and prop-compatible",
+      "group": "story",
+      "beatId": null,
+      "field": null,
+      "status": "pass"
+    }
+  ],
+  "frameIssues": {
+    "CAMERA_ADJUSTED": 32
+  },
+  "issuesByShot": {
+    "s07": {
+      "CAMERA_ADJUSTED": 16
+    },
+    "s10": {
+      "CAMERA_ADJUSTED": 16
+    }
+  },
+  "motion": {
+    "footSlipMedian": 0.002912724383092623,
+    "footSlipP95": 0.006823143529560482,
+    "samples": 67,
+    "teleports": []
+  },
+  "notes": [
+    "Gates marked \"proxy\" approximate creative judgement and need human review.",
+    "Frame issues are sampled every 3rd frame from the deterministic timeline before pixels are rendered."
+  ]
+}

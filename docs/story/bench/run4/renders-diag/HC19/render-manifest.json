@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-vsc-zapp-waits-behind-the-ms0-s4019",
+    "episodeSha256": "96275ff9f8e97020907d5d74a4488ea8aa1e38fd923a0c34fc487d8b2b7f11cc",
+    "semanticSha256": "28412a6dfbf5419a44f0fd33d61d0bb5652052d1cc66bd624541c934c1f861aa",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 540,
+  "hashedFrames": 36,
+  "hashEvery": 15,
+  "frameHashesSha256": "663601fa21eaf4f8be836864dfc9ba6711ec097cabc52625ecc91043b226426b",
+  "mp4": "out/bench-renders/run4-diag/HC19/gen-vsc-zapp-waits-behind-the-ms0-s4019.mp4",
+  "mp4Sha256": "19225b43319ece27dc6b7d3250aeeeb2b303ae05e82c5b9674d8f3dd5ddeda18",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

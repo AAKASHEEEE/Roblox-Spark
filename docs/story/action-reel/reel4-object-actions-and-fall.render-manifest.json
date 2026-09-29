@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "diag-reel4-object-actions-and-fall",
+    "episodeSha256": "b7b243eb03d520ddf701b953acad2426e4dbed51f234f56b40cdaf0c0ce8a9d1",
+    "semanticSha256": "96437cc87eaaa4f416276d11c69365323252f1241f66aa44126a48be9ae23c51",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    540,
+    960
+  ],
+  "fps": 30,
+  "frames": 549,
+  "hashedFrames": 37,
+  "hashEvery": 15,
+  "frameHashesSha256": "bcded6cddb3c0f2e504831627c7dd51674dde98dc27e03ef97d18d5053bb9178",
+  "mp4": "out/action-reel/reel4-object-actions-and-fall/diag-reel4-object-actions-and-fall.mp4",
+  "mp4Sha256": "9f84dff1f90ff2dae36f898b4d80d36d0ced0dfd77e5659ea5a80d25b0b27b9e",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

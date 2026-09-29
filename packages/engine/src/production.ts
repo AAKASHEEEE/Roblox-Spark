@@ -1,5 +1,6 @@
 // Production runtime: episode data + locked asset library -> deterministic frame state at any time t.
 import type { Episode, EpisodeShot } from '../../schema/src/episode.ts';
+import { LOCOMOTION_ACTIONS } from '../../schema/src/episode.ts';
 import type { CharacterManifest, EnvironmentManifest, PropManifest } from '../../schema/src/assets.ts';
 import { ActorTrack, solveArmIk, type PointResolver } from './animation/animator.ts';
 import { ACTION_DEFS } from './animation/actions.ts';
@@ -12,6 +13,7 @@ import { DEG, add, m4, m4Mul, m4TRS, m4TransformPoint, m4Invert, qEuler, qMul, s
 import { PropTrack, type PropState } from './props.ts';
 import { texture } from './textures.ts';
 import { evalVfx } from './vfx.ts';
+import { resolveRenderCompat, type MotionBehaviour, type RenderDeclaration } from '../../schema/src/render-compat.ts';
 
 export interface Library {
   characters: Record<string, CharacterManifest>; // key id@version
@@ -30,14 +32,21 @@ export class Production {
   readonly rigs = new Map<string, Rig>();
   readonly tracks = new Map<string, ActorTrack>();
   readonly props = new Map<string, { inst: PropInstance; track: PropTrack; parent?: string; anchorLocal: Vec3 }>();
-  private emoteNodes = new Map<string, Node>();
+  /** emote billboards per actor (read-only for QA / framing: position + visibility are set by evaluate()) */
+  readonly emoteNodes = new Map<string, Node>();
   private subjectCache = new Map<string, SubjectInfo>();
   readonly camEnv: CameraEnv;
   readonly firstShot: EpisodeShot;
 
   readonly ep: Episode;
   readonly lib: Library;
+  /** the episode's declared rendering compatibility (throws RenderCompatError when missing/unsupported: no fallback) */
+  readonly renderDecl: RenderDeclaration;
+  readonly renderKey: string;
+  readonly behaviour: MotionBehaviour;
   constructor(ep: Episode, lib: Library) { this.ep = ep; this.lib = lib;
+    const compat = resolveRenderCompat(ep);
+    this.renderDecl = compat.decl; this.renderKey = compat.key; this.behaviour = compat.behaviour;
     const envM = lib.environments[`${ep.environment.id}@${ep.environment.version}`];
     if (!envM) throw new Error(`environment ${ep.environment.id}@${ep.environment.version} missing`);
     this.env = buildEnvironment(envM);
@@ -82,7 +91,7 @@ export class Production {
       if (!mark) throw new Error(`${c.id}: start mark ${c.startMark} missing`);
       let yaw = mark.facingDeg;
       if (c.startFacing) { const p = this.point(c.startFacing, 0); if (p) yaw = Math.atan2(p[0] - mark.pos[0], p[2] - mark.pos[2]) / DEG; }
-      const track = new ActorTrack(c.id, rig, ep.actions, [mark.pos[0], 0, mark.pos[2]], yaw, res, ep.episode.seed, ep.episode.duration);
+      const track = new ActorTrack(c.id, rig, ep.actions, [mark.pos[0], 0, mark.pos[2]], yaw, res, ep.episode.seed, ep.episode.duration, this.behaviour);
       const ex = [{ at: 0, state: c.startExpression as string }];
       for (const e of ep.expressions) if (e.actor === c.id) ex.push({ at: e.at, state: e.state });
       for (const a of ep.actions) if (a.actor === c.id && a.expression) ex.push({ at: a.start, state: a.expression });
@@ -92,6 +101,18 @@ export class Production {
       em.billboard = true; em.castShadow = false; em.visible = false;
       this.root.add(em);
       this.emoteNodes.set(c.id, em);
+    }
+    // Declared profile only: a startFacing / turn target that is an actor cast LATER cannot resolve while the earlier
+    // tracks are being built (legacy-head-v1 keeps that behaviour: the turn is silently skipped). With laterCastTargets
+    // every track is re-resolved in cast order once all tracks exist (twice, so mutual references settle). The pass is
+    // idempotent: episodes without forward references resolve exactly as in the first pass.
+    if (this.behaviour.laterCastTargets) {
+      for (let pass = 0; pass < 2; pass++) for (const c of ep.cast) {
+        const mark = envM.marks[c.startMark];
+        let yaw = mark.facingDeg;
+        if (c.startFacing) { const p = this.point(c.startFacing, 0); if (p) yaw = Math.atan2(p[0] - mark.pos[0], p[2] - mark.pos[2]) / DEG; }
+        this.tracks.get(c.id)!.resolveYaw(yaw);
+      }
     }
     this.firstShot = [...ep.shots].sort((a, b) => a.start - b.start)[0];
   }
@@ -325,6 +346,181 @@ export class Production {
       }
     }
     return issues;
+  }
+
+  /**
+   * Windows where swept-hand QA runs: every locomotion action's onset (0.35 s before the start, which covers the
+   * previous pose's blend-out and the gait blend-in, through the first 1.0 s) and its arrival transition (0.3 s before
+   * to 0.4 s after the end: stop, settle and blend back). A dive covers its whole duration.
+   */
+  locomotionWindows(): Array<{ t0: number; t1: number; actor: string; action: string; start: number; kind: 'onset' | 'arrival' | 'dive' }> {
+    const out: Array<{ t0: number; t1: number; actor: string; action: string; start: number; kind: 'onset' | 'arrival' | 'dive' }> = [];
+    const D = this.ep.episode.duration;
+    for (const a of this.ep.actions) {
+      if (!LOCOMOTION_ACTIONS.includes(a.action)) continue;
+      const e = a.start + a.duration;
+      if (a.action === 'dive_prone') { out.push({ t0: Math.max(0, a.start - 0.35), t1: Math.min(D, e + 0.4), actor: a.actor, action: a.action, start: a.start, kind: 'dive' }); continue; }
+      out.push({ t0: Math.max(0, a.start - 0.35), t1: Math.min(D, a.start + Math.min(a.duration, 1.0)), actor: a.actor, action: a.action, start: a.start, kind: 'onset' });
+      out.push({ t0: Math.max(0, e - 0.3), t1: Math.min(D, e + 0.4), actor: a.actor, action: a.action, start: a.start, kind: 'arrival' });
+    }
+    return out;
+  }
+  /**
+   * QA: swept hand volume. Inside each window the scene is evaluated `substeps` times per frame and the path of each
+   * hand point (fingertip end and palm centre) between consecutive samples is tested at <= 1 cm spacing against every
+   * visible prop's collision shape and the environment colliders (floor excluded), as a capsule of `radius` metres.
+   * Reported when penetration (depth + radius) exceeds `tolerance`. radius 0 / tolerance 0.01 is the continuous-time
+   * version of handPenetrations(); the generator uses a padded radius/tolerance (docs/story/CLEARANCE_AND_FRAMING.md).
+   * Intentional contacts are exempt exactly as in handPenetrations(). QA only: rendering is unaffected.
+   */
+  sweptHandIssues(opts: { windows?: Array<{ t0: number; t1: number; actor?: string; action?: string; start?: number; kind?: string }>; substeps?: number; radius?: number; tolerance?: number } = {}): Array<FrameIssue & { depth: number; arm: 'l' | 'r'; what: string; window: string }> {
+    const fps = this.ep.episode.fps, sub = Math.max(1, Math.round(opts.substeps ?? 4)), dt = 1 / (fps * sub);
+    const radius = opts.radius ?? 0, tol = opts.tolerance ?? 0.01;
+    const env = this.env.colliders.filter((c) => c.id !== 'floor');
+    const worst = new Map<string, FrameIssue & { depth: number; arm: 'l' | 'r'; what: string; window: string }>();
+    // the reversal victim is exempt from the tipping prop once its tip_over starts (intended flattening, as in bodyIssues)
+    const tip = this.ep.propEvents.find((e) => e.event === 'tip_over');
+    const victim = this.ep.actions.find((a) => a.action === 'dive_prone')?.actor;
+    for (const w of opts.windows ?? this.locomotionWindows()) {
+      const wid = `${w.actor ?? '*'}:${w.action ?? '*'}@${w.start ?? w.t0}:${w.kind ?? 'window'}`;
+      const prev = new Map<string, Vec3>();
+      // canonical sample grid anchored at t=0 (overlapping windows share sample times -> identical results)
+      for (let k = Math.ceil(w.t0 / dt - 1e-9); k * dt <= w.t1 + 1e-9; k++) {
+        const t = k * dt;
+        this.evaluate(t);
+        const visible = [...this.props].filter(([, p]) => p.track.stateAt(t).visible).map(([key]) => key);
+        for (const [id, tr] of this.tracks) {
+          if (w.actor && w.actor !== id) continue;
+          const tgts = new Set(this.ep.actions.filter((a) => a.actor === id && a.target && t >= a.start && t < a.start + a.duration).map((a) => a.target!.split('.')[0]));
+          for (const arm of ['l', 'r'] as const) {
+            this.handPoints(tr.rig, arm).forEach((p, pi) => {
+              const key = `${id}:${arm}:${pi}`, p0 = prev.get(key) ?? p;
+              prev.set(key, p);
+              const n = Math.max(1, Math.ceil(Math.hypot(p[0] - p0[0], p[1] - p0[1], p[2] - p0[2]) / 0.01));
+              for (let j = 1; j <= n; j++) {
+                const q: Vec3 = [p0[0] + (p[0] - p0[0]) * (j / n), p0[1] + (p[1] - p0[1]) * (j / n), p0[2] + (p[2] - p0[2]) * (j / n)];
+                const hit = (d: number, what: string) => {
+                  if (d + radius <= tol) return;
+                  const wk = `${wid}:${id}:${arm}`, cur = worst.get(wk);
+                  if (!cur || d > cur.depth) worst.set(wk, { t, shot: this.shotAt(t).id, code: 'HAND_SWEEP_PENETRATION', message: `${id} ${arm} hand sweeps ${((d + radius) * 100).toFixed(1)} cm into ${what} (continuous ${sub}x/frame, ${w.kind ?? 'window'} of ${w.action ?? '?'}@${w.start ?? w.t0})`, subject: id, depth: d, arm, what, window: wid });
+                };
+                for (const inst of visible) {
+                  if (tr.lastIkArms.has(arm) && tgts.has(inst)) continue;
+                  if (tip && id === victim && inst === tip.prop && t >= tip.start) continue;
+                  hit(this.propDepth(inst, q, t), `prop:${inst}`);
+                }
+                for (const b of env) hit(Math.min(q[0] - b.min[0], b.max[0] - q[0], q[1] - b.min[1], b.max[1] - q[1], q[2] - b.min[2], b.max[2] - q[2]), `env:${b.id}`);
+              }
+            });
+          }
+        }
+      }
+    }
+    return [...worst.values()].sort((a, b) => a.t - b.t || (a.subject! < b.subject! ? -1 : 1));
+  }
+
+  // ---------- body / actor overlap (generated staging QA) ----------
+  /** Body probe points (head, torso corners, knees, feet) inside props or furniture, and actor-actor overlap.
+   *  The reversal victim is exempt from the escalation prop after its tip_over starts (intended cartoon flattening;
+   *  the buried-face check still guards the face). */
+  bodyIssues(t: number): FrameIssue[] {
+    const issues: FrameIssue[] = [];
+    const visible = [...this.props].filter(([, p]) => p.track.stateAt(t).visible).map(([k]) => k);
+    const env = this.env.colliders.filter((c) => c.id !== 'floor');
+    const tip = this.ep.propEvents.find((e) => e.event === 'tip_over');
+    const victim = this.ep.actions.find((a) => a.action === 'dive_prone')?.actor;
+    for (const [id, tr] of this.tracks) {
+      let worst: { d: number; what: string; probe: string } | undefined;
+      this.root.updateWorld();
+      for (const p of tr.rig.probes) {
+        if (p.name.startsWith('hand_')) continue;
+        const w = p.worldPos();
+        for (const inst of visible) {
+          if (tip && id === victim && inst === tip.prop && t >= tip.start) continue;
+          const d = this.partDepth(inst, w);
+          if (d > 0.03 && (!worst || d > worst.d)) worst = { d, what: `prop:${inst}`, probe: p.name };
+        }
+        for (const b of env) {
+          const d = Math.min(w[0] - b.min[0], b.max[0] - w[0], w[1] - b.min[1], b.max[1] - w[1], w[2] - b.min[2], b.max[2] - w[2]);
+          if (d > 0.03 && (!worst || d > worst.d)) worst = { d, what: `env:${b.id}`, probe: p.name };
+        }
+      }
+      if (worst) issues.push({ t, shot: this.shotAt(t).id, code: 'BODY_PROP_INTERSECTION', message: `${id} ${worst.probe.replace('probe:', '')} ${(worst.d * 100).toFixed(1)} cm inside ${worst.what}`, subject: id });
+    }
+    const ids = [...this.tracks.keys()];
+    for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+      const a = this.tracks.get(ids[i])!.rig.root.worldPos(), b = this.tracks.get(ids[j])!.rig.root.worldPos();
+      const d = Math.hypot(a[0] - b[0], a[2] - b[2]);
+      if (d < 0.45) issues.push({ t, shot: this.shotAt(t).id, code: 'ACTOR_OVERLAP', message: `${ids[i]} and ${ids[j]} only ${(d * 100).toFixed(0)} cm apart`, subject: ids[i] });
+    }
+    return issues;
+  }
+
+  /** depth (m) of a point inside the prop's actual part boxes (part-accurate; e.g. empty space under a tabletop is free) */
+  partDepth(inst: string, p: Vec3): number {
+    const pr = this.props.get(inst)!;
+    let best = -Infinity;
+    for (const n of Object.values(pr.inst.parts)) {
+      if (!n.geometry || n.decal) continue;
+      const w = n.world, sx = Math.hypot(w[0], w[1], w[2]);
+      if (sx < 0.02) continue;
+      const l = m4TransformPoint(m4Invert(w), p), h = n.geometry.half;
+      best = Math.max(best, Math.min(h[0] - Math.abs(l[0]), h[1] - Math.abs(l[1]), h[2] - Math.abs(l[2])) * sx);
+    }
+    return best;
+  }
+  /** first mesh (actor bodies/accessories, prop parts) hit by the segment from->to (OBB slab test), or undefined */
+  segmentOccluder(from: Vec3, to: Vec3, skip: (n: Node, owner: string) => boolean): string | undefined {
+    this.root.updateWorld();
+    const hit = (n: Node): number | null => {
+      const inv = m4Invert(n.world), a = m4TransformPoint(inv, from), b = m4TransformPoint(inv, to), h = n.geometry!.half;
+      let t0 = 0, t1 = 0.97;
+      for (let k = 0; k < 3; k++) {
+        const d = b[k] - a[k];
+        if (Math.abs(d) < 1e-9) { if (a[k] < -h[k] || a[k] > h[k]) return null; continue; }
+        let u0 = (-h[k] - a[k]) / d, u1 = (h[k] - a[k]) / d;
+        if (u0 > u1) [u0, u1] = [u1, u0];
+        t0 = Math.max(t0, u0); t1 = Math.min(t1, u1);
+        if (t0 > t1) return null;
+      }
+      return t0;
+    };
+    for (const [id, rig] of this.rigs) for (const n of rig.meshes) if (n.geometry && !skip(n, id) && hit(n) !== null) return `${id}:${n.name.replace('_mesh', '')}`;
+    for (const [inst, pr] of this.props) {
+      if (!pr.track.stateAt(0).visible && !pr.inst.root.visible) continue;
+      for (const n of Object.values(pr.inst.parts)) if (n.geometry && !n.decal && !skip(n, `prop:${inst}`) && Math.hypot(n.world[0], n.world[1], n.world[2]) > 0.02 && hit(n) !== null) return `prop:${inst}:${n.name}`;
+    }
+    return undefined;
+  }
+  /** hero-prop occlusion: is the line of sight from the camera to the prop's key anchor blocked by a body/accessory? */
+  propOcclusion(f: FrameState, inst: string, anchor: string): FrameIssue[] {
+    const p = this.props.get(inst);
+    if (!p || !p.track.stateAt(f.t).visible || !f.shot.subjects.includes(inst)) return [];
+    const target = this.propAnchor(inst, anchor, f.t);
+    if (!target) return [];
+    const pressing = new Set(this.ep.actions.filter((a) => a.action === 'press_button' && f.t >= a.start && f.t < a.start + a.duration).map((a) => a.actor));
+    const occ = this.segmentOccluder(f.cam.pos, target, (n, owner) => owner === `prop:${inst}` || owner === `prop:${p.parent ?? ''}` || (pressing.has(owner) && /(arm_r|forearm_r|hand_r|wristband_r|cuff_r)/.test(n.name)));
+    return occ ? [{ t: f.t, shot: f.shot.id, code: 'PROP_OCCLUDED', message: `${inst}.${anchor} hidden behind ${occ}`, subject: inst }] : [];
+  }
+
+  /** projected screen coverage of subjects (for readability gates) */
+  screenInfo(r: Renderer, f: FrameState, ids: string[]): Record<string, { area: number; cx: number; cy: number; visible: boolean }> {
+    const { vp } = r.viewProj(f.cam);
+    const out: Record<string, { area: number; cx: number; cy: number; visible: boolean }> = {};
+    for (const id of ids) {
+      const s = this.subject(id, f.t);
+      if (!s) continue;
+      const pts: Vec3[] = [];
+      for (const sx of [-1, 1]) for (const sy of [s.bottom[1], s.top[1]]) for (const sz of [-1, 1]) pts.push([s.center[0] + sx * s.radius, sy, s.center[2] + sz * s.radius]);
+      const pr = pts.map((p) => m4TransformPoint(vp, p)).filter((c) => c[3] > 0).map((c) => ({ x: (c[0] / c[3] + 1) / 2, y: 1 - (c[1] / c[3] + 1) / 2 }));
+      if (!pr.length) { out[id] = { area: 0, cx: -1, cy: -1, visible: false }; continue; }
+      const x0 = Math.max(0, Math.min(...pr.map((p) => p.x))), x1 = Math.min(1, Math.max(...pr.map((p) => p.x)));
+      const y0 = Math.max(0, Math.min(...pr.map((p) => p.y))), y1 = Math.min(1, Math.max(...pr.map((p) => p.y)));
+      const area = Math.max(0, x1 - x0) * Math.max(0, y1 - y0);
+      const hidden = this.props.has(id) && !this.props.get(id)!.track.stateAt(f.t).visible;
+      out[id] = { area: +area.toFixed(4), cx: +((x0 + x1) / 2).toFixed(3), cy: +((y0 + y1) / 2).toFixed(3), visible: area > 0.0005 && !hidden };
+    }
+    return out;
   }
 
   // ---------- screen-space shot validation ----------

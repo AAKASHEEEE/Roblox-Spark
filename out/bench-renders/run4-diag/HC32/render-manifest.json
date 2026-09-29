@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-nvs-kira-thinks-she-has-a2v-s4032",
+    "episodeSha256": "e4c6c2320485f528bc8eed82524580c58f178e5f0135532863e34fbb473962af",
+    "semanticSha256": "a83b1b405e83cb232fcd667b33b931a792e3afd0e874c807476c488dff59e884",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 555,
+  "hashedFrames": 37,
+  "hashEvery": 15,
+  "frameHashesSha256": "84c8a25b7edc77ac9892e9f78d8c9df0a67df5d29fe587d74e358617cc80a761",
+  "mp4": "out/bench-renders/run4-diag/HC32/gen-nvs-kira-thinks-she-has-a2v-s4032.mp4",
+  "mp4Sha256": "11c5449fb9e94a7ebee275334ab29814c424ef2d83c64de2f08f7e0d6beff4ef",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

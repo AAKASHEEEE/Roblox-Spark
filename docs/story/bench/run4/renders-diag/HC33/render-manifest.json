@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-nvs-max-hits-the-button-q3s-s4033",
+    "episodeSha256": "e631c39cc8c8e75364f29655d1d5e546cdecf75d1af404af39079935935de67f",
+    "semanticSha256": "7dfe55ff6c6c7a09900fc75f74c017b0e061e0c61e18758e637a80ad58a9b967",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 555,
+  "hashedFrames": 37,
+  "hashEvery": 15,
+  "frameHashesSha256": "322aa75d5f89c513b04171253b7bb9d59a30a0854eb6200d60db72b355464e25",
+  "mp4": "out/bench-renders/run4-diag/HC33/gen-nvs-max-hits-the-button-q3s-s4033.mp4",
+  "mp4Sha256": "6bdbabd09f040cab705f912a8904d00252a27cc6c192fd5203ce8aad4dda4e0f",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "diag-reel3-locomotion",
+    "episodeSha256": "7100a1d2b868d28601c5bcbb051a279e76bdce91dafd6a59f6dc9aa12a0399a0",
+    "semanticSha256": "acbba19203ba264e9465f66d2abcee75687e25f02b37ec452d46155088072f86",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    540,
+    960
+  ],
+  "fps": 30,
+  "frames": 474,
+  "hashedFrames": 32,
+  "hashEvery": 15,
+  "frameHashesSha256": "f5da30345c93c17b731b8bcf614cf81dd1cab258708de935e4f6a4f89cbf32c0",
+  "mp4": "out/action-reel/reel3-locomotion/diag-reel3-locomotion.mp4",
+  "mp4Sha256": "087baff995139d6432a8a7f4fcb2a8ff55037fa62d04f86b2232a1f040c4e7d2",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

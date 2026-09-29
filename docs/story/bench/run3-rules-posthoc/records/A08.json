@@ -1,0 +1,139 @@
+{
+ "item": {
+  "id": "A08",
+  "engine": "ordinary_object_extreme",
+  "kind": "reject_unavailable",
+  "expected": "reject",
+  "expectedRejectCategory": "unavailable",
+  "idea": "Zapp's slice of pizza grows until it squashes the whole class.",
+  "request": {
+   "idea": "Zapp's slice of pizza grows until it squashes the whole class.",
+   "durationTarget": 16,
+   "comedyEngine": null,
+   "seed": 1007
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Zapp's slice of pizza grows until it squashes the whole class.",
+   "durationTarget": 16,
+   "comedyEngine": null,
+   "seed": 1007
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "unavailable",
+   "reason": "requires unregistered prop(s): pizza (no safe same-class substitute)"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "(added)"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "(added)"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp"
+    ],
+    "props": [
+     "pizza"
+    ],
+    "places": [],
+    "actions": [
+     "grow",
+     "crush"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "(no trigger)",
+     "used": "suspicious_button",
+     "kind": "prop",
+     "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "unavailable",
+    "reason": "requires unregistered prop(s): pizza (no safe same-class substitute)"
+   }
+  },
+  "plan": null,
+  "substitutions": [
+   {
+    "requested": "(no trigger)",
+    "used": "suspicious_button",
+    "kind": "prop",
+    "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+   }
+  ],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 1.1890690000000177,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 2,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

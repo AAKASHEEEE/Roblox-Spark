@@ -1,19 +1,21 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, cpSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { loadLibrary } from '../apps/render-worker/lib/library.ts';
 import { ROOT } from './helpers.ts';
 
 test('editing a locked character without a version bump is detected', () => {
-  const f = join(ROOT, 'assets/characters/zapp@1.0.0.json');
-  const orig = readFileSync(f, 'utf8');
-  try {
-    const m = JSON.parse(orig); m.body.torsoColor = '#ff0000';
-    writeFileSync(f, JSON.stringify(m, null, 2));
-    const lib = loadLibrary();
-    assert.ok(lib.errors.some((e) => e.includes('characters/zapp@1.0.0') && e.includes('without a version bump')));
-  } finally { writeFileSync(f, orig); }
+  // edit a private COPY of the library: editing the repo file raced with other test files loading it in parallel
+  const root = mkdtempSync(join(tmpdir(), 'bs-assets-'));
+  cpSync(join(ROOT, 'assets'), join(root, 'assets'), { recursive: true });
+  const f = join(root, 'assets/characters/zapp@1.0.0.json');
+  const m = JSON.parse(readFileSync(f, 'utf8')); m.body.torsoColor = '#ff0000';
+  writeFileSync(f, JSON.stringify(m, null, 2));
+  const lib = loadLibrary({ root });
+  assert.ok(lib.errors.some((e) => e.includes('characters/zapp@1.0.0') && e.includes('without a version bump')));
+  rmSync(root, { recursive: true, force: true });
   assert.deepEqual(loadLibrary().errors, []);
 });
 test('locked cast matches the brief', () => {

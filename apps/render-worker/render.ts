@@ -1,5 +1,7 @@
-// RBLX SPARK render worker — one command from episode JSON to a verified 1080x1920 MP4 + reports.
+// BlockSpark Studio render worker — one command from episode JSON to a verified 1080x1920 MP4 + reports.
 //   node apps/render-worker/render.ts --episode episodes/free-coins-loop-001.json [--out out/<id>] [--scale 1] [--gpu]
+//        [--audio-codec aac|opus] (AAC-LC is the production default; Opus is a local fallback only)
+//        [--validation-profile story-episode|action-reel] [--duration-target 14-18 (explicit narrower test target)]
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -7,15 +9,37 @@ import os from 'node:os';
 import { launchBrowser, findChromium } from './lib/browser.ts';
 import { startServer, ROOT } from './lib/server.ts';
 import { loadLibrary, sha256, canonical } from './lib/library.ts';
-import { verifyPlayback, decodeCompare } from './lib/verify.ts';
+import { verifyPlayback, decodeCompare, mp4AudioAlignment } from './lib/verify.ts';
+import { aacRoundTrip } from './lib/aac-check.ts';
+import { probeFile } from './lib/probe-node.ts';
+import { checkProductionProfile, PRODUCTION_SPEC } from '../../packages/mp4/src/probe.ts';
+import { encodeAacLc } from '../../packages/audio/src/aac/encoder.ts';
+import { canonicalJson, renderKey, semanticContent } from '../../packages/schema/src/render-compat.ts';
 import { contactSheet } from './lib/sheet.ts';
-import { validateEpisode } from '../../packages/pipeline/src/validate.ts';
+import { validateEpisode, type ValidationProfile } from '../../packages/pipeline/src/validate.ts';
 import { buildQualityReport, qualityMarkdown } from '../../packages/pipeline/src/quality.ts';
 import { mix, interleave, wav16, type MixCue } from '../../packages/audio/src/mix.ts';
 import { muxMp4 } from '../../packages/mp4/src/mux.ts';
 import { inspectMp4 } from '../../packages/mp4/src/inspect.ts';
 
-export interface RenderOptions { analyzeOnly?: boolean; episode: string; out?: string; scale?: number; gpu?: boolean; verify?: boolean; hashEvery?: number; onProgress?: (p: { phase: string; done: number; total: number; msg?: string }) => void }
+export interface RenderOptions {
+  analyzeOnly?: boolean; episode: string; out?: string; scale?: number; gpu?: boolean; verify?: boolean; hashEvery?: number;
+  onProgress?: (p: { phase: string; done: number; total: number; msg?: string }) => void;
+  /** production default 'aac'; 'opus' is a documented local fallback */
+  audioCodec?: 'aac' | 'opus';
+  /** 'diagnostic' = low-resolution QA render (resolution gates check the diagnostic size) */
+  profile?: 'final' | 'diagnostic';
+  /** story-episode (default) or action-reel (diagnostic reels: story-structure findings and story-only gates are n/a) */
+  validationProfile?: ValidationProfile;
+  /** explicitly declared NARROWER duration target for this test case (G03); default = channel boundary 14-22 s */
+  durationTargetSec?: [number, number];
+  /** in-memory episode (e.g. action reels); written to <out>/episode.json */
+  episodeObject?: unknown;
+  /** debug-only text overlay per frame (action reel labels) */
+  overlay?: Array<{ from: number; to: number; text: string }>;
+  /** extra story/generation gates appended to the quality report */
+  extraGates?: (ctx: { ep: any; analysis: any[]; probes: any[]; playback: any; loopDiff: number[] }) => Array<{ id: string; name: string; pass: boolean; kind: 'measured' | 'proxy' | 'static'; detail: string; group: string }>;
+}
 
 function arg(name: string, def?: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -41,7 +65,9 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
   const log = (msg: string) => { const t = (Date.now() - T0) / 1000; logLines.push({ t, msg }); console.log(`[${t.toFixed(1)}s] ${msg}`); };
   const phase = (p: string, done: number, total: number, msg?: string) => o.onProgress?.({ phase: p, done, total, msg });
   const epPath = resolve(ROOT, o.episode);
-  const raw = JSON.parse(readFileSync(epPath, 'utf8'));
+  const raw = o.episodeObject ?? JSON.parse(readFileSync(epPath, 'utf8'));
+  const audioCodec = o.audioCodec ?? ((process.env.BLOCKSPARK_AUDIO_CODEC as 'aac' | 'opus' | undefined) ?? 'aac');
+  const profile = o.profile ?? ((o.scale ?? 1) === 1 ? 'final' : 'diagnostic');
   const id = raw?.episode?.id ?? 'episode';
   const outDir = resolve(ROOT, o.out ?? join('out', id));
   mkdirSync(outDir, { recursive: true });
@@ -53,7 +79,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
   const lib = loadLibrary();
   if (lib.errors.length) { writeFileSync(join(outDir, 'validation.json'), JSON.stringify({ ok: false, libraryErrors: lib.errors }, null, 2)); log('ASSET LIBRARY ERRORS:\n  ' + lib.errors.join('\n  ')); return { ok: false, outDir }; }
   // 2. validation + safe repairs
-  const v = validateEpisode(raw, lib, { repair: true });
+  const v = validateEpisode(raw, lib, { repair: true, profile: o.validationProfile ?? 'story-episode' });
   writeFileSync(join(outDir, 'validation.json'), JSON.stringify(v, null, 2));
   for (const f of v.findings) if (f.severity !== 'info') log(`${f.severity.toUpperCase()} ${f.code}: ${f.message}`);
   for (const r of v.repairs) log(`REPAIR ${r}`);
@@ -75,7 +101,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     const cdp = await page.context().newCDPSession(page);
     await cdp.send('Performance.enable');
     const info = await page.evaluate(([e, l, w, h]: any) => (window as any).__spark.load(e, l, w, h), [ep, lib, W, H]);
-    log(`renderer: ${info.renderer}; contacts: ${info.contacts.map((c: any) => `${c.actor}.${c.action}@${c.t.toFixed(3)}`).join(', ')}`);
+    log(`renderer: ${info.renderer}; declared renderer ${info.render.rendererVersion}, motion profile ${info.render.motionProfile}; contacts: ${info.contacts.map((c: any) => `${c.actor}.${c.action}@${c.t.toFixed(3)}`).join(', ')}`);
 
     // 3. analysis pass (no pixels): shot validation, contacts, motion probes
     phase('analyze', 0, 1);
@@ -87,6 +113,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     const aTimes = times.filter((_, i) => i % 3 === 0);
     for (let a = 0; a < aTimes.length; a += 60) analysis.push(...(await page.evaluate((ts: number[]) => (window as any).__spark.analyze(ts), aTimes.slice(a, a + 60))));
     const contactChecks = await page.evaluate((ts: number[]) => (window as any).__spark.analyze(ts), info.contacts.map((c: any) => c.t));
+    const sweep = await page.evaluate(() => (window as any).__spark.sweep({ substeps: 4 }));
     log(`analysis pass: ${N} probes + ${aTimes.length} shot validations in ${((Date.now() - t1) / 1000).toFixed(1)}s`);
     if (o.analyzeOnly) {
       const by: Record<string, Record<string, number>> = {};
@@ -112,18 +139,26 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     }
     log(`derived ${steps.length} footstep cues from foot contacts`);
 
-    // 5. audio mix + opus encode
+    // 5. audio mix + encode (AAC-LC production default; Opus local fallback)
     phase('audio', 0, 1);
     const t2 = Date.now();
     const audioAssets = Object.fromEntries(Object.values(lib.audio).map((a) => [a.id, a]));
     const m = mix({ duration: ep.episode.duration, cues: [...ep.audio.cues, ...steps], music: ep.audio.music, ambience: ep.audio.ambience, loudnessLufs: ep.audio.loudnessLufs, duckingDb: ep.audio.duckingDb, loop: true }, audioAssets);
     writeFileSync(join(outDir, 'mix.wav'), wav16(m.left, m.right));
-    const pcm = interleave(m.left, m.right);
-    const opus = await page.evaluate(([b, sr, ch, br]: any) => (window as any).__spark.encodeOpus(b, sr, ch, br), [Buffer.from(pcm.buffer).toString('base64'), 48000, 2, ep.export.audioBitrateKbps * 1000]);
-    log(`audio: ${m.report.integratedLufs} LUFS (target ${ep.audio.loudnessLufs}), peak ${m.report.truePeakDbfsApprox} dBFS, ${opus.sizes.length} opus packets, ${((Date.now() - t2) / 1000).toFixed(1)}s`);
+    const audioBitrate = Math.max(160, ep.export.audioBitrateKbps) * 1000;
+    let aac: ReturnType<typeof encodeAacLc> | null = null;
+    let opus: any = null;
+    if (audioCodec === 'aac') {
+      aac = encodeAacLc([m.left, m.right], audioBitrate);
+      log(`audio: ${m.report.integratedLufs} LUFS (target ${ep.audio.loudnessLufs}), peak ${m.report.truePeakDbfsApprox} dBFS, AAC-LC ${audioBitrate / 1000} kbps, ${aac.frames.length} access units (+${aac.priming} priming), ${((Date.now() - t2) / 1000).toFixed(1)}s`);
+    } else {
+      const pcm = interleave(m.left, m.right);
+      opus = await page.evaluate(([b, sr, ch, br]: any) => (window as any).__spark.encodeOpus(b, sr, ch, br), [Buffer.from(pcm.buffer).toString('base64'), 48000, 2, ep.export.audioBitrateKbps * 1000]);
+      log(`audio: ${m.report.integratedLufs} LUFS, Opus FALLBACK (not production-compatible), ${opus.sizes.length} packets`);
+    }
 
     // 6. frames -> H.264
-    await page.evaluate((cfg: any) => (window as any).__spark.initCapture(cfg), { bitrate: ep.export.videoBitrateKbps * 1000 * scale * scale, hashEvery: o.hashEvery ?? 15 });
+    await page.evaluate((cfg: any) => (window as any).__spark.initCapture(cfg), { bitrate: ep.export.videoBitrateKbps * 1000 * scale * scale, hashEvery: o.hashEvery ?? 15, overlay: o.overlay ?? null });
     const t3 = Date.now();
     const samples: { data: Uint8Array; duration: number; isKey: boolean }[] = [];
     const hashes: Array<[number, string]> = [];
@@ -149,22 +184,34 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     // 7. mux
     const cs = meta.colorSpace ?? {};
     const P: Record<string, number> = { bt709: 1, smpte170m: 6, bt470bg: 5 }, TR: Record<string, number> = { bt709: 1, smpte170m: 6, iec61966_2_1: 13 }, MX: Record<string, number> = { bt709: 1, smpte170m: 6, bt470bg: 5, rgb: 0 };
-    const opusBuf = Buffer.from(opus.b64, 'base64');
-    let ao = 0;
-    const aSamples = opus.sizes.map((s: number, k: number) => { const d = new Uint8Array(opusBuf.subarray(ao, ao + s)); ao += s; return { data: d, duration: opus.durations[k] }; });
-    const preSkip = opus.descB64 ? Buffer.from(opus.descB64, 'base64').readUInt16LE(10) : 312;
+    let audioTrack: any;
+    if (aac) {
+      audioTrack = { codec: 'aac', sampleRate: 48000, channels: 2, asc: aac.asc, priming: aac.priming, inputSamples: aac.inputSamples, avgBitrate: audioBitrate, samples: aac.frames.map((d) => ({ data: d, duration: 1024 })) };
+    } else {
+      const opusBuf = Buffer.from(opus.b64, 'base64');
+      let ao = 0;
+      const aSamples = opus.sizes.map((s: number, k: number) => { const d = new Uint8Array(opusBuf.subarray(ao, ao + s)); ao += s; return { data: d, duration: opus.durations[k] }; });
+      const preSkip = opus.descB64 ? Buffer.from(opus.descB64, 'base64').readUInt16LE(10) : 312;
+      audioTrack = { sampleRate: 48000, channels: 2, preSkip, inputSampleRate: 48000, samples: aSamples };
+    }
     const mp4 = muxMp4({
       video: { width: W, height: H, timescale: fps * 1000, avcC: new Uint8Array(Buffer.from(meta.avcCb64, 'base64')), samples, color: { primaries: P[cs.primaries] ?? 1, transfer: TR[cs.transfer] ?? 1, matrix: MX[cs.matrix] ?? 1, fullRange: !!cs.fullRange } },
-      audio: { sampleRate: 48000, channels: 2, preSkip, inputSampleRate: 48000, samples: aSamples },
+      audio: audioTrack,
     });
     const mp4Path = join(outDir, `${id}.mp4`);
     writeFileSync(mp4Path, mp4);
     const inspect = inspectMp4(mp4);
     const mp4Sha = sha256(mp4);
     log(`muxed ${relative(ROOT, mp4Path)} ${(mp4.length / 1e6).toFixed(2)} MB sha256 ${mp4Sha.slice(0, 16)}…`);
+    // production-compatibility probe (ffprobe when installed, built-in parser otherwise)
+    const probe = probeFile(mp4Path);
+    const spec = profile === 'final' ? PRODUCTION_SPEC : { ...PRODUCTION_SPEC, width: W, height: H };
+    const production = checkProductionProfile(probe, spec);
+    writeFileSync(join(outDir, 'probe.json'), JSON.stringify({ probe, production }, null, 2));
+    log(`production profile (${probe.tool}${profile === 'diagnostic' ? `, diagnostic ${W}x${H}` : ''}): ${production.ok ? 'PASS' : 'FAIL — ' + production.errors.join('; ')}`);
 
     // 8. independent decode verification + contact sheet + thumbnail + loop comparison
-    let playback: any = null, loopDiff: number[] = [], sheetFile = '', thumbFile = '';
+    let playback: any = null, loopDiff: number[] = [], sheetFile = '', thumbFile = '', aacCheck: any = null;
     if (o.verify !== false) {
       phase('verify', 0, 1);
       const rel = relative(ROOT, mp4Path);
@@ -173,6 +220,12 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
       const vpage = await browser.newPage();
       await vpage.goto(`${url}/apps/studio/blank.html`);
       loopDiff = await decodeCompare(vpage, `${url}/${rel}`, [[0, (N - 1) / fps], [0, 8.0]]);
+      if (aac) {
+        const rt = await aacRoundTrip(aac.frames, aac.asc, [m.left, m.right], aac.priming, vpage);
+        const al = await mp4AudioAlignment(vpage, `${url}/${rel}`, m.left);
+        aacCheck = { roundTrip: rt, containerAlignment: al };
+        log(`AAC check: decoder SNR ${rt.snrDb.join('/')} dB, codec delay ${rt.bestLag} samples; MP4 decode (edit list applied) offset ${al.lagSamples} samples = ${al.lagMs.toFixed(2)} ms, length ${al.decodedSamples}/${m.left.length}`);
+      }
       const urls = playback.frameFiles.map((f: string) => 'data:image/png;base64,' + readFileSync(f).toString('base64'));
       const sheet = await contactSheet(vpage, urls.slice(1), ep.shots.map((s) => `${s.id} ${s.preset}`), 5, 216);
       sheetFile = join(outDir, 'contact-sheet.png');
@@ -184,18 +237,27 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     }
 
     // 9. reports
+    const renderDecl = { rendererVersion: ep.render.rendererVersion, motionProfile: ep.render.motionProfile, key: renderKey(ep.render), ...(ep.render.upgradedFrom ? { upgradedFrom: ep.render.upgradedFrom } : {}) };
     const renderLog = {
-      episode: id, episodeSha256: sha256(canonical(ep)), assetHashes: lib.hashes, mp4: relative(ROOT, mp4Path), mp4Sha256: mp4Sha, bytes: mp4.length,
+      episode: id, episodeSha256: sha256(canonical(ep)), semanticSha256: sha256(canonicalJson(semanticContent(ep))), render: renderDecl, assetHashes: lib.hashes, mp4: relative(ROOT, mp4Path), mp4Sha256: mp4Sha, bytes: mp4.length,
       resolution: [W, H], fps, frames: N, frameHashes: hashes,
       timing: { totalSec: (Date.now() - T0) / 1000, encodeWallSec: encodeWall / 1000, msPerFrame: +(encodeWall / N).toFixed(1), renderOnlyMsPerFrame: +(renderMs / N).toFixed(1), realtimeFactor: +((encodeWall / 1000) / ep.episode.duration).toFixed(2) },
       memory: { peakPageJsHeapMB: +(peakJsHeap / 1e6).toFixed(1), workerRssMB: +(process.memoryUsage().rss / 1e6).toFixed(1), hostTotalGB: +(os.totalmem() / 1e9).toFixed(1) },
       host: { cpus: os.cpus().length, cpuModel: os.cpus()[0]?.model, platform: `${os.platform()} ${os.release()}`, node: process.version, chromium: findChromium(), glRenderer: info.renderer, gpu: !!o.gpu },
       drawStats: stats, encoder: meta, audio: m.report, mp4Inspect: { ...inspect, boxes: undefined, tracks: inspect.tracks.map((t) => ({ ...t, sampleDurations: [...new Set(t.sampleDurations)] })) },
-      playback, loopDiff, pageErrors, log: logLines,
+      playback, loopDiff, pageErrors, log: logLines, profile, audioCodec, probe: { tool: probe.tool, production }, aacCheck,
     };
     writeFileSync(join(outDir, 'render-log.json'), JSON.stringify(renderLog, null, 2));
-    writeFileSync(join(outDir, 'analysis.json'), JSON.stringify({ analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts }));
-    const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps });
+    // render manifest: the compact reproducibility contract of this output (what was declared, what came out)
+    const frameHashesSha256 = sha256(hashes.map(([i, h]) => `${i}:${h}`).join('\n'));
+    writeFileSync(join(outDir, 'render-manifest.json'), JSON.stringify({
+      manifest: 'blockspark.render-manifest/1', episode: { id, episodeSha256: renderLog.episodeSha256, semanticSha256: renderLog.semanticSha256, schemaVersion: ep.schemaVersion },
+      rendererVersion: renderDecl.rendererVersion, motionProfile: renderDecl.motionProfile, renderKey: renderDecl.key, ...(renderDecl.upgradedFrom ? { upgradedFrom: renderDecl.upgradedFrom } : {}),
+      resolution: [W, H], fps, frames: N, hashedFrames: hashes.length, hashEvery: o.hashEvery ?? 15, frameHashesSha256, mp4: relative(ROOT, mp4Path), mp4Sha256: mp4Sha, audioCodec,
+      assetLockSha256: sha256(canonical(lib.hashes)), host: { chromium: renderLog.host.chromium, glRenderer: info.renderer, gpu: !!o.gpu },
+    }, null, 2));
+    writeFileSync(join(outDir, 'analysis.json'), JSON.stringify({ analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, sweep }));
+    const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps, profile, resolution: [W, H], production, aacCheck, extraGates: o.extraGates?.({ ep, analysis, probes, playback, loopDiff }) ?? [], validationProfile: o.validationProfile ?? 'story-episode', durationTargetSec: o.durationTargetSec, sweep });
     writeFileSync(join(outDir, 'quality-report.json'), JSON.stringify(q, null, 2));
     writeFileSync(join(outDir, 'quality-report.md'), qualityMarkdown(q, ep, renderLog));
     log(`quality: ${q.summary.passed}/${q.summary.total} gates passed${q.summary.failed.length ? ' — FAILED: ' + q.summary.failed.join(', ') : ''}`);
@@ -209,7 +271,8 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const ep = arg('episode', 'episodes/free-coins-loop-001.json')!;
-  const res = await renderEpisode({ episode: ep, out: arg('out'), scale: Number(arg('scale', '1')), gpu: arg('gpu') === 'true', verify: arg('no-verify') !== 'true', analyzeOnly: arg('analyze-only') === 'true' });
+  const dt = arg('duration-target'); // e.g. 14-18: only for test cases that explicitly declare the narrower target
+  const res = await renderEpisode({ episode: ep, out: arg('out'), scale: Number(arg('scale', '1')), gpu: arg('gpu') === 'true', verify: arg('no-verify') !== 'true', analyzeOnly: arg('analyze-only') === 'true', audioCodec: (arg('audio-codec') as 'aac' | 'opus' | undefined), validationProfile: (arg('validation-profile') as ValidationProfile | undefined), durationTargetSec: dt ? (dt.split('-').map(Number) as [number, number]) : undefined });
   console.log(res.ok ? `\nOK -> ${res.mp4}` : `\nRENDER FINISHED WITH FAILURES (see ${res.outDir})`);
   process.exit(res.ok ? 0 : 1);
 }

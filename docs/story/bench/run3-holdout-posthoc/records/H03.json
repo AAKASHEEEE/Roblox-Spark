@@ -1,0 +1,127 @@
+{
+ "item": {
+  "id": "H03",
+  "engine": "ordinary_object_extreme",
+  "kind": "holdout",
+  "expected": "reject",
+  "expectedRejectCategory": "unavailable",
+  "idea": "Zapp's pet dog presses the button and the coin grows.",
+  "request": {
+   "idea": "Zapp's pet dog presses the button and the coin grows.",
+   "durationTarget": 18,
+   "comedyEngine": null,
+   "seed": 2002
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Zapp's pet dog presses the button and the coin grows.",
+   "durationTarget": 18,
+   "comedyEngine": null,
+   "seed": 2002
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "unavailable",
+   "reason": "no rig for non-human character(s): dog"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "coin"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp",
+     "dog"
+    ],
+    "props": [
+     "button",
+     "coin"
+    ],
+    "places": [],
+    "actions": [
+     "grow",
+     "press"
+    ]
+   },
+   "substitutions": [],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "unavailable",
+    "reason": "no rig for non-human character(s): dog"
+   }
+  },
+  "plan": null,
+  "substitutions": [],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.7842820000000756,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

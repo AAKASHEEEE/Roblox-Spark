@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-zapp-can-t-stop-hmi-s4008",
+    "episodeSha256": "2ae406cdc9e2232366a1ae75dcf027d162c821bc8fc04e60adcfef533222e9ac",
+    "semanticSha256": "8813a21825d5d13fac5e10c9b5dba4092b2297b5bdfbf0dfaafb64edd21dd9b9",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 600,
+  "hashedFrames": 40,
+  "hashEvery": 15,
+  "frameHashesSha256": "cb83acad05ef909e91d7f1643283d7801dcc276f5a7d0bbf9a07786767d8da59",
+  "mp4": "out/bench-renders/run4-diag/HC08/gen-ooe-zapp-can-t-stop-hmi-s4008.mp4",
+  "mp4Sha256": "9b17c0931372bc90fb97f3c91136b856827928b639cd384b629c7a1692fac2f8",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

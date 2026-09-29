@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-awl-zapp-presses-the-button-4l-s4021",
+    "episodeSha256": "f99ce3b1daf25abe839dc22609138f97601a5636e9dba9d15300fee2dcbc3719",
+    "semanticSha256": "748f0cda014fa9fe79ebb6741c803d1121f26871b8dd98e162cce22b869e6c5b",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    1080,
+    1920
+  ],
+  "fps": 30,
+  "frames": 486,
+  "hashedFrames": 33,
+  "hashEvery": 15,
+  "frameHashesSha256": "71ac02e952bd91e55915154025c0466f1b73a36a1d8493569a2b31ab811870e6",
+  "mp4": "out/bench-renders/run4-final/HC21/gen-awl-zapp-presses-the-button-4l-s4021.mp4",
+  "mp4Sha256": "7cea7a54e5f76fbf0cf7ed711dcf7a6c92abed374b4df704e9078f54f237335b",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

@@ -1,0 +1,138 @@
+{
+ "version": "1.0",
+ "purpose": "development set used while building the generator; NOT part of the benchmark",
+ "ideas": [
+  {
+   "id": "dev01",
+   "engine": "ordinary_object_extreme",
+   "idea": "Zapp taps the flashing button and his reward coin grows way too big.",
+   "request": {
+    "idea": "Zapp taps the flashing button and his reward coin grows way too big.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 500
+   }
+  },
+  {
+   "id": "dev02",
+   "engine": "ordinary_object_extreme",
+   "idea": "Kira gets a golden star from the button and it grows huge.",
+   "request": {
+    "idea": "Kira gets a golden star from the button and it grows huge.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 501
+   }
+  },
+  {
+   "id": "dev03",
+   "engine": "ordinary_object_extreme",
+   "idea": "Zapp's hamster grows huge after he presses the button.",
+   "request": {
+    "idea": "Zapp's hamster grows huge after he presses the button.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 502
+   }
+  },
+  {
+   "id": "dev04",
+   "engine": "visible_secret_chase",
+   "idea": "Kira spots the glowing button, sprints for it and her coin backfires on her.",
+   "request": {
+    "idea": "Kira spots the glowing button, sprints for it and her coin backfires on her.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 503
+   }
+  },
+  {
+   "id": "dev05",
+   "engine": "visible_secret_chase",
+   "idea": "In the hallway, Zapp and Kira race to a secret button.",
+   "request": {
+    "idea": "In the hallway, Zapp and Kira race to a secret button.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 504
+   }
+  },
+  {
+   "id": "dev06",
+   "engine": "visible_secret_chase",
+   "idea": "Zapp throws his backpack at the button to press it first.",
+   "request": {
+    "idea": "Zapp throws his backpack at the button to press it first.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 505
+   }
+  },
+  {
+   "id": "dev07",
+   "engine": "apparent_win_instant_loss",
+   "idea": "After three tries Zapp finally gets a coin and loses it right away.",
+   "request": {
+    "idea": "After three tries Zapp finally gets a coin and loses it right away.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 506
+   }
+  },
+  {
+   "id": "dev08",
+   "engine": "apparent_win_instant_loss",
+   "idea": "Zapp finally wins a cake and eats it in one bite.",
+   "request": {
+    "idea": "Zapp finally wins a cake and eats it in one bite.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 507
+   }
+  },
+  {
+   "id": "dev09",
+   "engine": "apparent_win_instant_loss",
+   "idea": "Kira keeps pressing until a coin comes out, cheers, and gets squashed.",
+   "request": {
+    "idea": "Kira keeps pressing until a coin comes out, cheers, and gets squashed.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 508
+   }
+  },
+  {
+   "id": "dev10",
+   "engine": "noob_vs_smart",
+   "idea": "Zapp does it the simple way; Kira does it the clever way and regrets it.",
+   "request": {
+    "idea": "Zapp does it the simple way; Kira does it the clever way and regrets it.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 509
+   }
+  },
+  {
+   "id": "dev11",
+   "engine": "noob_vs_smart",
+   "idea": "Max presses the switch once; Zapp presses it the pro way and gets crushed.",
+   "request": {
+    "idea": "Max presses the switch once; Zapp presses it the pro way and gets crushed.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 510
+   }
+  },
+  {
+   "id": "dev12",
+   "engine": "noob_vs_smart",
+   "idea": "Zapp pranks Kira by setting her desk on fire.",
+   "request": {
+    "idea": "Zapp pranks Kira by setting her desk on fire.",
+    "durationTarget": 17,
+    "comedyEngine": null,
+    "seed": 511
+   }
+  }
+ ]
+}

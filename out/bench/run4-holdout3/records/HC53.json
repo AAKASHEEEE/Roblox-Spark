@@ -1,0 +1,133 @@
+{
+ "item": {
+  "id": "HC53",
+  "engine": "ordinary_object_extreme",
+  "kind": "holdout3",
+  "expected": "reject",
+  "expectedRejectCategory": "protected_ip",
+  "probes": [],
+  "idea": "Shrek stomps into the classroom, presses the free coins button, and the coin lands on Zapp.",
+  "request": {
+   "idea": "Shrek stomps into the classroom, presses the free coins button, and the coin lands on Zapp.",
+   "durationTarget": 18,
+   "comedyEngine": null,
+   "seed": 4053
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Shrek stomps into the classroom, presses the free coins button, and the coin lands on Zapp.",
+   "durationTarget": 18,
+   "comedyEngine": null,
+   "seed": 4053
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "protected_ip",
+   "reason": "idea depends on protected IP (shrek); original cast only"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "classroom"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "coins"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp"
+    ],
+    "props": [
+     "coins",
+     "button",
+     "coin"
+    ],
+    "places": [
+     "classroom"
+    ],
+    "actions": [
+     "press",
+     "crush"
+    ]
+   },
+   "substitutions": [],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "protected_ip",
+    "categories": [
+     "protected_character"
+    ],
+    "notes": "scan: shrek"
+   },
+   "rejection": {
+    "category": "protected_ip",
+    "reason": "idea depends on protected IP (shrek); original cast only"
+   }
+  },
+  "plan": null,
+  "substitutions": [],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "fitKnobs": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.5383059999876423,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

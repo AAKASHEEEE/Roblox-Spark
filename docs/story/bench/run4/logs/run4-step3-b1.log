@@ -1,0 +1,207 @@
+[0.0s] episode out/bench/run4-holdout3/episodes/HC01.json -> out/bench-renders/run4-diag/HC01 (scale 0.25)
+[0.0s] episode out/bench/run4-holdout3/episodes/HC02.json -> out/bench-renders/run4-diag/HC02 (scale 0.25)
+[0.0s] episode out/bench/run4-holdout3/episodes/HC03.json -> out/bench-renders/run4-diag/HC03 (scale 0.25)
+[0.9s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@3.470
+[0.9s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: kira.press_button@4.441, kira.press_button@6.242
+[0.9s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@3.677
+[1.7s] analysis pass: 483 probes + 161 shot validations in 0.8s
+[1.7s] derived 11 footstep cues from foot contacts
+[5.5s] audio: -14.14 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 757 access units (+1024 priming), 3.8s
+[5.4s] analysis pass: 540 probes + 180 shot validations in 4.6s
+[5.4s] derived 11 footstep cues from foot contacts
+[9.5s] audio: -14.18 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 845 access units (+1024 priming), 4.1s
+[9.5s] analysis pass: 510 probes + 170 shot validations in 8.7s
+[9.5s] derived 12 footstep cues from foot contacts
+[13.3s] audio: -14.09 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 798 access units (+1024 priming), 3.8s
+[35.1s] frames 90/540 (242 ms/frame)
+[35.4s] frames 90/510 (245 ms/frame)
+[35.5s] frames 90/483 (246 ms/frame)
+[54.5s] frames 180/483 (229 ms/frame)
+[55.1s] frames 180/510 (232 ms/frame)
+[55.5s] frames 180/540 (234 ms/frame)
+[73.6s] frames 270/510 (223 ms/frame)
+[73.8s] frames 270/483 (224 ms/frame)
+[75.3s] frames 270/540 (230 ms/frame)
+[89.7s] frames 360/483 (212 ms/frame)
+[91.9s] frames 360/540 (218 ms/frame)
+[92.2s] frames 360/510 (219 ms/frame)
+[106.2s] frames 450/483 (206 ms/frame)
+[108.1s] frames 450/540 (211 ms/frame)
+[109.2s] frames 450/510 (213 ms/frame)
+[111.1s] frames 483/483 (202 ms/frame)
+[111.2s] muxed out/bench-renders/run4-diag/HC01/gen-ooe-zapp-slaps-the-big-vec-s4001.mp4 1.82 MB sha256 c5e7478fa1822e79…
+[111.2s] production profile (builtin, diagnostic 270x480): PASS
+[119.2s] frames 510/510 (208 ms/frame)
+[119.2s] muxed out/bench-renders/run4-diag/HC02/gen-awl-kira-pokes-the-glowing-wo5-s4002.mp4 1.92 MB sha256 6badecdf4532c6c1…
+[119.2s] production profile (builtin, diagnostic 270x480): PASS
+[120.5s] AAC check: decoder SNR 23.2/23.2 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 773424/773424
+[121.0s] decode check: OK 270x480 16.113s, audio bytes decoded 317876; loop first/last frame diff 2.92% (control mid-episode 19.35%)
+[121.1s] quality: 37/37 gates passed
+HC01 OK  37/37  121s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC04.json -> out/bench-renders/run4-diag/HC04 (scale 0.25)
+[121.9s] frames 540/540 (201 ms/frame)
+[122.0s] muxed out/bench-renders/run4-diag/HC03/gen-ooe-back-from-soccer-practice-u1x-s4003.mp4 2.02 MB sha256 1d0d8086c57680fe…
+[122.0s] production profile (builtin, diagnostic 270x480): PASS
+[1.0s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@2.570
+[1.6s] analysis pass: 457 probes + 153 shot validations in 0.6s
+[1.6s] derived 11 footstep cues from foot contacts
+[5.3s] audio: -14.11 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 716 access units (+1024 priming), 3.7s
+[131.9s] AAC check: decoder SNR 22.01/22.01 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 816000/815808
+[133.3s] AAC check: decoder SNR 23.15/23.16 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 864000/863952
+[133.7s] decode check: OK 270x480 18s, audio bytes decoded 286955; loop first/last frame diff 2.74% (control mid-episode 33.97%)
+[133.7s] quality: 37/37 gates passed
+[133.8s] decode check: OK 270x480 17s, audio bytes decoded 300589; loop first/last frame diff 3.23% (control mid-episode 23.40%)
+[133.8s] quality: 37/37 gates passed
+HC03 OK  37/37  134s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC05.json -> out/bench-renders/run4-diag/HC05 (scale 0.25)
+HC02 OK  37/37  134s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC06.json -> out/bench-renders/run4-diag/HC06 (scale 0.25)
+[1.1s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: kira.press_button@3.908
+[1.3s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@3.493
+[2.4s] analysis pass: 570 probes + 190 shot validations in 1.3s
+[2.4s] derived 11 footstep cues from foot contacts
+[6.9s] audio: -14.12 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 892 access units (+1024 priming), 4.5s
+[6.9s] analysis pass: 510 probes + 170 shot validations in 5.5s
+[6.9s] derived 11 footstep cues from foot contacts
+[10.6s] audio: -14.2 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 798 access units (+1024 priming), 3.7s
+[25.5s] frames 90/457 (224 ms/frame)
+[31.9s] frames 90/570 (236 ms/frame)
+[32.5s] frames 90/510 (243 ms/frame)
+[45.9s] frames 180/457 (226 ms/frame)
+[50.3s] frames 180/570 (220 ms/frame)
+[51.5s] frames 180/510 (227 ms/frame)
+[65.0s] frames 270/457 (221 ms/frame)
+[82.0s] frames 360/457 (213 ms/frame)
+[70.1s] frames 270/570 (220 ms/frame)
+[70.5s] frames 270/510 (222 ms/frame)
+[97.7s] frames 450/457 (205 ms/frame)
+[99.0s] frames 457/457 (205 ms/frame)
+[99.0s] muxed out/bench-renders/run4-diag/HC04/gen-ooe-max-finds-a-switch-e5g-s4004.mp4 1.71 MB sha256 53b92f97526573c6…
+[99.0s] production profile (builtin, diagnostic 270x480): PASS
+[86.6s] frames 360/510 (211 ms/frame)
+[88.1s] frames 360/570 (215 ms/frame)
+[108.8s] AAC check: decoder SNR 23.17/23.19 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 731616/731616
+[109.4s] decode check: OK 270x480 15.242s, audio bytes decoded 324118; loop first/last frame diff 2.59% (control mid-episode 19.84%)
+[109.4s] quality: 37/37 gates passed
+HC04 OK  37/37  110s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC07.json -> out/bench-renders/run4-diag/HC07 (scale 0.25)
+[1.4s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: kira.press_button@3.020
+[2.4s] analysis pass: 480 probes + 160 shot validations in 1.1s
+[2.4s] derived 11 footstep cues from foot contacts
+[6.7s] audio: -14.18 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 752 access units (+1024 priming), 4.3s
+[103.5s] frames 450/510 (206 ms/frame)
+[103.6s] frames 450/570 (206 ms/frame)
+[113.4s] frames 510/510 (202 ms/frame)
+[113.5s] muxed out/bench-renders/run4-diag/HC06/gen-ooe-zapp-taps-the-button-swg-s4006.mp4 1.91 MB sha256 1da3ba49ffd13264…
+[113.5s] production profile (builtin, diagnostic 270x480): PASS
+[120.2s] frames 540/570 (203 ms/frame)
+[25.6s] frames 90/480 (210 ms/frame)
+[124.1s] AAC check: decoder SNR 23.25/23.22 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 816000/815664
+[124.3s] frames 570/570 (199 ms/frame)
+[124.3s] muxed out/bench-renders/run4-diag/HC05/gen-ooe-kira-smacks-the-buzzer-yy9-s4005.mp4 2.13 MB sha256 a7a7ae09d9a7514f…
+[124.3s] production profile (builtin, diagnostic 270x480): PASS
+[124.6s] decode check: OK 270x480 17s, audio bytes decoded 320059; loop first/last frame diff 2.67% (control mid-episode 19.20%)
+[124.7s] quality: 37/37 gates passed
+HC06 OK  37/37  125s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC08.json -> out/bench-renders/run4-diag/HC08 (scale 0.25)
+[1.1s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@3.606
+[2.3s] analysis pass: 600 probes + 200 shot validations in 1.2s
+[2.3s] derived 11 footstep cues from foot contacts
+[7.1s] audio: -14.22 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 939 access units (+1024 priming), 4.8s
+[137.0s] AAC check: decoder SNR 23.19/23.18 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 912000/911664
+[137.6s] decode check: OK 270x480 19s, audio bytes decoded 286361; loop first/last frame diff 3.20% (control mid-episode 34.32%)
+[137.6s] quality: 37/37 gates passed
+HC05 OK  37/37  138s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC09.json -> out/bench-renders/run4-diag/HC09 (scale 0.25)
+[1.4s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: kira.press_button@3.442
+[2.6s] analysis pass: 540 probes + 180 shot validations in 1.3s
+[2.6s] derived 11 footstep cues from foot contacts
+[7.3s] audio: -14.17 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 845 access units (+1024 priming), 4.7s
+[48.2s] frames 180/480 (230 ms/frame)
+[26.9s] frames 90/600 (220 ms/frame)
+[68.2s] frames 270/480 (228 ms/frame)
+[28.3s] frames 90/540 (234 ms/frame)
+[45.1s] frames 180/600 (211 ms/frame)
+[86.7s] frames 360/480 (222 ms/frame)
+[46.8s] frames 180/540 (219 ms/frame)
+[64.9s] frames 270/600 (214 ms/frame)
+[103.7s] frames 450/480 (215 ms/frame)
+[108.0s] frames 480/480 (211 ms/frame)
+[108.1s] muxed out/bench-renders/run4-diag/HC07/gen-ooe-in-the-gym-between-6k7-s4007.mp4 1.80 MB sha256 b92a1818fd5f14c3…
+[108.1s] production profile (builtin, diagnostic 270x480): PASS
+[67.4s] frames 270/540 (223 ms/frame)
+[83.0s] frames 360/600 (211 ms/frame)
+[117.6s] AAC check: decoder SNR 23.23/23.26 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 768432/768432
+[118.1s] decode check: OK 270x480 16.009s, audio bytes decoded 273227; loop first/last frame diff 3.36% (control mid-episode 19.80%)
+[118.1s] quality: 37/37 gates passed
+HC07 OK  37/37  118s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC10.json -> out/bench-renders/run4-diag/HC10 (scale 0.25)
+[1.4s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: kira.press_button@2.994
+[2.6s] analysis pass: 510 probes + 170 shot validations in 1.2s
+[2.6s] derived 11 footstep cues from foot contacts
+[7.2s] audio: -14.16 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 799 access units (+1024 priming), 4.6s
+[84.6s] frames 360/540 (215 ms/frame)
+[99.9s] frames 450/600 (206 ms/frame)
+[101.5s] frames 450/540 (209 ms/frame)
+[26.4s] frames 90/510 (213 ms/frame)
+[117.0s] frames 540/600 (204 ms/frame)
+[128.0s] frames 600/600 (202 ms/frame)
+[128.1s] muxed out/bench-renders/run4-diag/HC08/gen-ooe-zapp-can-t-stop-hmi-s4008.mp4 2.25 MB sha256 9b17c0931372bc90…
+[128.1s] production profile (builtin, diagnostic 270x480): PASS
+[117.8s] frames 540/540 (205 ms/frame)
+[117.8s] muxed out/bench-renders/run4-diag/HC09/gen-ooe-kira-hits-the-button-avl-s4009.mp4 2.04 MB sha256 66d5040363d93856…
+[117.8s] production profile (builtin, diagnostic 270x480): PASS
+[42.8s] frames 180/510 (197 ms/frame)
+[138.7s] AAC check: decoder SNR 23.02/23.05 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 960000/959856
+[139.2s] decode check: OK 270x480 20s, audio bytes decoded 288910; loop first/last frame diff 2.73% (control mid-episode 25.30%)
+[139.2s] quality: 37/37 gates passed
+HC08 OK  37/37  141s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC11.json -> out/bench-renders/run4-diag/HC11 (scale 0.25)
+[129.8s] AAC check: decoder SNR 23.14/23.16 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 864000/864000
+[2.1s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: kira.press_button@5.674
+[130.3s] decode check: OK 270x480 18s, audio bytes decoded 291593; loop first/last frame diff 3.20% (control mid-episode 36.64%)
+[130.3s] quality: 37/37 gates passed
+HC09 OK  37/37  130s
+[0.0s] episode out/bench/run4-holdout3/episodes/HC12.json -> out/bench-renders/run4-diag/HC12 (scale 0.25)
+[3.1s] analysis pass: 480 probes + 160 shot validations in 1.1s
+[3.1s] derived 14 footstep cues from foot contacts
+[6.8s] audio: -14.13 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 752 access units (+1024 priming), 3.6s
+[4.5s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@5.866
+[57.6s] frames 270/510 (186 ms/frame)
+[5.8s] analysis pass: 510 probes + 170 shot validations in 1.3s
+[5.8s] derived 14 footstep cues from foot contacts
+[10.0s] audio: -14.09 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 799 access units (+1024 priming), 4.2s
+[78.2s] frames 360/510 (197 ms/frame)
+[27.6s] frames 90/480 (232 ms/frame)
+[28.9s] frames 90/510 (210 ms/frame)
+[95.0s] frames 450/510 (195 ms/frame)
+[45.2s] frames 180/480 (213 ms/frame)
+[45.7s] frames 180/510 (198 ms/frame)
+[105.8s] frames 510/510 (193 ms/frame)
+[105.8s] muxed out/bench-renders/run4-diag/HC10/gen-ooe-the-teacher-s-reward-4xi-s4010.mp4 1.91 MB sha256 77f1ca6a50d8c6fb…
+[105.9s] production profile (builtin, diagnostic 270x480): PASS
+[63.8s] frames 270/480 (211 ms/frame)
+[116.2s] AAC check: decoder SNR 23.22/23.23 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 816432/816432
+[116.7s] decode check: OK 270x480 17.009s, audio bytes decoded 354194; loop first/last frame diff 3.30% (control mid-episode 34.19%)
+[116.7s] quality: 37/37 gates passed
+HC10 OK  37/37  117s
+[63.9s] frames 270/510 (200 ms/frame)
+[75.4s] frames 360/480 (190 ms/frame)
+[75.8s] frames 360/510 (183 ms/frame)
+[86.8s] frames 450/480 (178 ms/frame)
+[87.4s] frames 450/510 (172 ms/frame)
+[90.0s] frames 480/480 (173 ms/frame)
+[90.0s] muxed out/bench-renders/run4-diag/HC11/gen-vsc-kira-notices-a-secret-8rh-s4011.mp4 1.81 MB sha256 d4f8abc50530caa1…
+[90.0s] production profile (builtin, diagnostic 270x480): PASS
+[92.5s] frames 510/510 (162 ms/frame)
+[92.5s] muxed out/bench-renders/run4-diag/HC12/gen-vsc-zapp-spots-the-hidden-yy8-s4012.mp4 1.92 MB sha256 77bea23f301d7f18…
+[92.5s] production profile (builtin, diagnostic 270x480): PASS
+[98.0s] AAC check: decoder SNR 21.74/21.82 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 768384/768384
+[98.3s] decode check: OK 270x480 16.008s, audio bytes decoded 242066; loop first/last frame diff 1.78% (control mid-episode 37.46%)
+[98.3s] quality: 37/37 gates passed
+HC11 OK  37/37  98s
+[99.7s] AAC check: decoder SNR 21.7/21.71 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 816192/816192
+[100.1s] decode check: OK 270x480 17.004s, audio bytes decoded 318412; loop first/last frame diff 1.81% (control mid-episode 24.66%)
+[100.1s] quality: 37/37 gates passed
+HC12 OK  37/37  100s
+{"rendered":12,"allGatesPassed":12,"wallSec":502.16}

@@ -1,7 +1,9 @@
-// Strict, versioned episode schema (v1.0). Episodes are DATA ONLY: no code, shaders or commands.
+// Strict, versioned episode schema (v1.1). Episodes are DATA ONLY: no code, shaders or commands.
+// 1.1 = 1.0 + a mandatory `render` block declaring the renderer version and motion profile (render-compat.ts).
 import { v, type SchemaT } from './v.ts';
+import { EPISODE_SCHEMA_VERSION, MOTION_PROFILE_IDS, RENDERER_VERSIONS } from './render-compat.ts';
 
-export const SCHEMA_VERSION = '1.0';
+export const SCHEMA_VERSION = EPISODE_SCHEMA_VERSION;
 
 export const ACTIONS = [
   'idle', 'walk', 'run', 'point', 'press_button', 'pick_up', 'hold', 'put_down', 'drink', 'throw', 'jump', 'fall',
@@ -40,6 +42,12 @@ const numericParams = v.record(v.union<number | string | boolean>(v.number(), v.
 
 export const EpisodeSchema = v.object({
   schemaVersion: v.literal(SCHEMA_VERSION),
+  // explicit rendering compatibility declaration: required, never defaulted (see docs/RENDERING_COMPATIBILITY.md)
+  render: v.object({
+    rendererVersion: v.enum(RENDERER_VERSIONS),
+    motionProfile: v.enum(MOTION_PROFILE_IDS),
+    upgradedFrom: v.object({ rendererVersion: v.enum(RENDERER_VERSIONS), motionProfile: v.enum(MOTION_PROFILE_IDS), sourceSha256: v.string({ pattern: /^[0-9a-f]{64}$/ }) }).optional(),
+  }),
   episode: v.object({
     id: v.id(),
     title: v.string({ min: 1, max: 80 }),

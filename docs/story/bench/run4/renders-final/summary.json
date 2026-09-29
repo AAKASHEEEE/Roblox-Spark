@@ -1,0 +1,139 @@
+{
+  "run": "out/bench/run4-holdout3",
+  "scale": 1,
+  "profile": "final",
+  "selection": "first-per-engine",
+  "chosen": [
+    "HC01",
+    "HC11",
+    "HC21",
+    "HC31"
+  ],
+  "complete": true,
+  "rendered": 4,
+  "allGatesPassed": 4,
+  "wallSec": 453.16,
+  "parallel": 2,
+  "results": [
+    {
+      "id": "HC01",
+      "engine": "ordinary_object_extreme",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 429.057,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-final/HC01/gen-ooe-zapp-slaps-the-big-vec-s4001.mp4"
+    },
+    {
+      "id": "HC11",
+      "engine": "visible_secret_chase",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 419.657,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-final/HC11/gen-vsc-kira-notices-a-secret-8rh-s4011.mp4"
+    },
+    {
+      "id": "HC21",
+      "engine": "apparent_win_instant_loss",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 0,
+      "ok": true,
+      "wallSec": 449.253,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-final/HC21/gen-awl-zapp-presses-the-button-4l-s4021.mp4"
+    },
+    {
+      "id": "HC31",
+      "engine": "noob_vs_smart",
+      "kind": "holdout3",
+      "repairs": 0,
+      "substitutions": 1,
+      "ok": true,
+      "wallSec": 453.147,
+      "gates": "37/37",
+      "groups": {
+        "core": {
+          "passed": 23,
+          "total": 23
+        },
+        "production": {
+          "passed": 2,
+          "total": 2
+        },
+        "motion": {
+          "passed": 1,
+          "total": 1
+        },
+        "story": {
+          "passed": 11,
+          "total": 11
+        }
+      },
+      "failed": [],
+      "mp4": "out/bench-renders/run4-final/HC31/gen-nvs-zapp-mashes-the-button-t1u-s4031.mp4"
+    }
+  ]
+}

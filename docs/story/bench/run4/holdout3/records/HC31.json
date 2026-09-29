@@ -1,0 +1,2268 @@
+{
+ "item": {
+  "id": "HC31",
+  "engine": "noob_vs_smart",
+  "kind": "holdout3",
+  "expected": "accept",
+  "expectedRejectCategory": null,
+  "probes": [],
+  "idea": "Zapp mashes the button like a total beginner, while Kira calmly presses it twice the smart way and gets buried by the prize.",
+  "request": {
+   "idea": "Zapp mashes the button like a total beginner, while Kira calmly presses it twice the smart way and gets buried by the prize.",
+   "durationTarget": 16,
+   "comedyEngine": null,
+   "seed": 4031
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Zapp mashes the button like a total beginner, while Kira calmly presses it twice the smart way and gets buried by the prize.",
+   "durationTarget": 16,
+   "comedyEngine": null,
+   "seed": 4031
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "accepted",
+  "rejection": null,
+  "failure": null,
+  "normalized": {
+   "engine": "noob_vs_smart",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "kira"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "prize"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Kira wants to out-do Zapp's simple win.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "support",
+    "description": "The giant coin topples onto Kira."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp",
+     "kira"
+    ],
+    "props": [
+     "button",
+     "prize"
+    ],
+    "places": [],
+    "actions": [
+     "press",
+     "win",
+     "noobSmart",
+     "crush"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "prize",
+     "used": "spark_coin",
+     "kind": "prop",
+     "reason": "same affordance class (collectible reward)"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": null
+  },
+  "plan": {
+   "engine": "noob_vs_smart",
+   "title": "The Smart Way",
+   "logline": "Kira wants to out-do Zapp's simple win. The reward coin grows far beyond reason. The giant coin topples onto Kira.",
+   "roles": {
+    "protagonist": "zapp",
+    "foil": "kira",
+    "victim": "kira"
+   },
+   "stagingVariant": 0,
+   "beats": [
+    {
+     "id": "b01",
+     "slot": "premise",
+     "purpose": "Hook: show the causal prop",
+     "visibleChange": "A FREE COINS button flashes on a desk",
+     "actor": "none",
+     "action": "none",
+     "target": null,
+     "propEffect": {
+      "prop": "button",
+      "effect": "flash",
+      "magnitude": null
+     },
+     "expressionBefore": null,
+     "expressionAfter": null,
+     "reactor": null,
+     "emote": null,
+     "viewerInference": "That button looks too good to be true.",
+     "approxDuration": 1.16,
+     "causeBeatId": null,
+     "resultBeatId": null,
+     "shotHint": "prop_ecu"
+    },
+    {
+     "id": "b02",
+     "slot": "notice",
+     "purpose": "Zapp notices the button",
+     "visibleChange": "Zapp looks at the button, curious",
+     "actor": "zapp",
+     "action": "look_at",
+     "target": "button",
+     "propEffect": null,
+     "expressionBefore": "neutral",
+     "expressionAfter": "curious",
+     "reactor": null,
+     "emote": "?",
+     "viewerInference": "Zapp is tempted.",
+     "approxDuration": 1.52,
+     "causeBeatId": null,
+     "resultBeatId": "b03",
+     "shotHint": "reaction_punch_in"
+    },
+    {
+     "id": "b03",
+     "slot": "press_reward",
+     "purpose": "Zapp presses the button",
+     "visibleChange": "Hand hits the button; a coin pops out",
+     "actor": "zapp",
+     "action": "press_button",
+     "target": "button.press_surface",
+     "propEffect": {
+      "prop": "coin",
+      "effect": "spawn",
+      "magnitude": "small"
+     },
+     "expressionBefore": "curious",
+     "expressionAfter": "determined",
+     "reactor": null,
+     "emote": null,
+     "viewerInference": "The press caused the coin.",
+     "approxDuration": 1.39,
+     "causeBeatId": "b02",
+     "resultBeatId": "b04",
+     "shotHint": "prop_ecu"
+    },
+    {
+     "id": "b04",
+     "slot": "celebrate",
+     "purpose": "Zapp celebrates",
+     "visibleChange": "Zapp cheers",
+     "actor": "zapp",
+     "action": "victory_pose",
+     "target": null,
+     "propEffect": null,
+     "expressionBefore": "determined",
+     "expressionAfter": "neutral",
+     "reactor": {
+      "actor": "kira",
+      "action": "arms_crossed",
+      "expression": "smug"
+     },
+     "emote": null,
+     "viewerInference": "Zapp thinks they won.",
+     "approxDuration": 1.26,
+     "causeBeatId": "b03",
+     "resultBeatId": "b05",
+     "shotHint": "two_shot"
+    },
+    {
+     "id": "b05",
+     "slot": "smart_attempt",
+     "purpose": "Kira tries the \"smart\" way",
+     "visibleChange": "Kira takes over and double-presses",
+     "actor": "kira",
+     "action": "press_button",
+     "target": "button.press_surface",
+     "propEffect": {
+      "prop": "coin",
+      "effect": "grow",
+      "magnitude": "big"
+     },
+     "expressionBefore": "smug",
+     "expressionAfter": "surprised",
+     "reactor": {
+      "actor": "zapp",
+      "action": "look_at",
+      "expression": "curious"
+     },
+     "emote": null,
+     "viewerInference": "Kira thinks there is a better way.",
+     "approxDuration": 3.75,
+     "causeBeatId": "b04",
+     "resultBeatId": "b06",
+     "shotHint": "prop_ecu"
+    },
+    {
+     "id": "b06",
+     "slot": "escalate",
+     "purpose": "The coin stands and grows",
+     "visibleChange": "Coin stands up and doubles, twice",
+     "actor": "none",
+     "action": "none",
+     "target": "coin",
+     "propEffect": {
+      "prop": "coin",
+      "effect": "grow",
+      "magnitude": "huge"
+     },
+     "expressionBefore": null,
+     "expressionAfter": null,
+     "reactor": {
+      "actor": "kira",
+      "action": "shock_recoil",
+      "expression": "surprised"
+     },
+     "emote": "!",
+     "viewerInference": "This is getting out of hand.",
+     "approxDuration": 1.37,
+     "causeBeatId": "b05",
+     "resultBeatId": "b07",
+     "shotHint": "low_angle_reveal"
+    },
+    {
+     "id": "b07",
+     "slot": "leap",
+     "purpose": "It leaps and becomes enormous",
+     "visibleChange": "Coin hops to the floor and fills the room",
+     "actor": "none",
+     "action": "none",
+     "target": "coin",
+     "propEffect": {
+      "prop": "coin",
+      "effect": "hop",
+      "magnitude": "giant"
+     },
+     "expressionBefore": null,
+     "expressionAfter": null,
+     "reactor": {
+      "actor": "zapp",
+      "action": "run",
+      "expression": "shock"
+     },
+     "emote": "!",
+     "viewerInference": "Way too big now.",
+     "approxDuration": 1.29,
+     "causeBeatId": "b06",
+     "resultBeatId": "b08",
+     "shotHint": "wide_environment"
+    },
+    {
+     "id": "b08",
+     "slot": "reversal",
+     "purpose": "Reversal: the prize flattens its winner",
+     "visibleChange": "Giant coin topples onto the victim",
+     "actor": "kira",
+     "action": "dive_prone",
+     "target": "coin",
+     "propEffect": {
+      "prop": "coin",
+      "effect": "tip_over",
+      "magnitude": "giant"
+     },
+     "expressionBefore": "surprised",
+     "expressionAfter": "surprised",
+     "reactor": {
+      "actor": "zapp",
+      "action": "laugh",
+      "expression": "neutral"
+     },
+     "emote": null,
+     "viewerInference": "The reward was the trap.",
+     "approxDuration": 2.3,
+     "causeBeatId": "b07",
+     "resultBeatId": "b09",
+     "shotHint": "wide_environment"
+    },
+    {
+     "id": "b09",
+     "slot": "payoff",
+     "purpose": "Payoff: regret under the coin",
+     "visibleChange": "Kira's face pokes out from under the coin",
+     "actor": "kira",
+     "action": "none",
+     "target": null,
+     "propEffect": null,
+     "expressionBefore": "surprised",
+     "expressionAfter": "surprised",
+     "reactor": null,
+     "emote": null,
+     "viewerInference": "Kira regrets everything.",
+     "approxDuration": 0.95,
+     "causeBeatId": "b08",
+     "resultBeatId": null,
+     "shotHint": "reaction_punch_in"
+    },
+    {
+     "id": "b10",
+     "slot": "loop",
+     "purpose": "Loop: the button resets for the next victim",
+     "visibleChange": "The button flashes FREE COINS again",
+     "actor": "none",
+     "action": "none",
+     "target": null,
+     "propEffect": {
+      "prop": "button",
+      "effect": "reset",
+      "magnitude": null
+     },
+     "expressionBefore": null,
+     "expressionAfter": null,
+     "reactor": null,
+     "emote": null,
+     "viewerInference": "It will happen again.",
+     "approxDuration": 0.99,
+     "causeBeatId": null,
+     "resultBeatId": null,
+     "shotHint": "final_loop"
+    }
+   ]
+  },
+  "substitutions": [
+   {
+    "requested": "prize",
+    "used": "spark_coin",
+    "kind": "prop",
+    "reason": "same affordance class (collectible reward)"
+   }
+  ],
+  "warnings": [
+   "duration 17.039s differs from target 16s (slot limits)"
+  ],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   },
+   {
+    "stage": "plan",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [
+   {
+    "n": 0,
+    "kind": "initial",
+    "plan": {
+     "engine": "noob_vs_smart",
+     "title": "The Smart Way",
+     "logline": "Kira wants to out-do Zapp's simple win. The reward coin grows far beyond reason. The giant coin topples onto Kira.",
+     "roles": {
+      "protagonist": "zapp",
+      "foil": "kira",
+      "victim": "kira"
+     },
+     "stagingVariant": 0,
+     "beats": [
+      {
+       "id": "b01",
+       "slot": "premise",
+       "purpose": "Hook: show the causal prop",
+       "visibleChange": "A FREE COINS button flashes on a desk",
+       "actor": "none",
+       "action": "none",
+       "target": null,
+       "propEffect": {
+        "prop": "button",
+        "effect": "flash",
+        "magnitude": null
+       },
+       "expressionBefore": null,
+       "expressionAfter": null,
+       "reactor": null,
+       "emote": null,
+       "viewerInference": "That button looks too good to be true.",
+       "approxDuration": 1.16,
+       "causeBeatId": null,
+       "resultBeatId": null,
+       "shotHint": "prop_ecu"
+      },
+      {
+       "id": "b02",
+       "slot": "notice",
+       "purpose": "Zapp notices the button",
+       "visibleChange": "Zapp looks at the button, curious",
+       "actor": "zapp",
+       "action": "look_at",
+       "target": "button",
+       "propEffect": null,
+       "expressionBefore": "neutral",
+       "expressionAfter": "curious",
+       "reactor": null,
+       "emote": "?",
+       "viewerInference": "Zapp is tempted.",
+       "approxDuration": 1.52,
+       "causeBeatId": null,
+       "resultBeatId": "b03",
+       "shotHint": "reaction_punch_in"
+      },
+      {
+       "id": "b03",
+       "slot": "press_reward",
+       "purpose": "Zapp presses the button",
+       "visibleChange": "Hand hits the button; a coin pops out",
+       "actor": "zapp",
+       "action": "press_button",
+       "target": "button.press_surface",
+       "propEffect": {
+        "prop": "coin",
+        "effect": "spawn",
+        "magnitude": "small"
+       },
+       "expressionBefore": "curious",
+       "expressionAfter": "determined",
+       "reactor": null,
+       "emote": null,
+       "viewerInference": "The press caused the coin.",
+       "approxDuration": 1.39,
+       "causeBeatId": "b02",
+       "resultBeatId": "b04",
+       "shotHint": "prop_ecu"
+      },
+      {
+       "id": "b04",
+       "slot": "celebrate",
+       "purpose": "Zapp celebrates",
+       "visibleChange": "Zapp cheers",
+       "actor": "zapp",
+       "action": "victory_pose",
+       "target": null,
+       "propEffect": null,
+       "expressionBefore": "determined",
+       "expressionAfter": "neutral",
+       "reactor": {
+        "actor": "kira",
+        "action": "arms_crossed",
+        "expression": "smug"
+       },
+       "emote": null,
+       "viewerInference": "Zapp thinks they won.",
+       "approxDuration": 1.26,
+       "causeBeatId": "b03",
+       "resultBeatId": "b05",
+       "shotHint": "two_shot"
+      },
+      {
+       "id": "b05",
+       "slot": "smart_attempt",
+       "purpose": "Kira tries the \"smart\" way",
+       "visibleChange": "Kira takes over and double-presses",
+       "actor": "kira",
+       "action": "press_button",
+       "target": "button.press_surface",
+       "propEffect": {
+        "prop": "coin",
+        "effect": "grow",
+        "magnitude": "big"
+       },
+       "expressionBefore": "smug",
+       "expressionAfter": "surprised",
+       "reactor": {
+        "actor": "zapp",
+        "action": "look_at",
+        "expression": "curious"
+       },
+       "emote": null,
+       "viewerInference": "Kira thinks there is a better way.",
+       "approxDuration": 3.75,
+       "causeBeatId": "b04",
+       "resultBeatId": "b06",
+       "shotHint": "prop_ecu"
+      },
+      {
+       "id": "b06",
+       "slot": "escalate",
+       "purpose": "The coin stands and grows",
+       "visibleChange": "Coin stands up and doubles, twice",
+       "actor": "none",
+       "action": "none",
+       "target": "coin",
+       "propEffect": {
+        "prop": "coin",
+        "effect": "grow",
+        "magnitude": "huge"
+       },
+       "expressionBefore": null,
+       "expressionAfter": null,
+       "reactor": {
+        "actor": "kira",
+        "action": "shock_recoil",
+        "expression": "surprised"
+       },
+       "emote": "!",
+       "viewerInference": "This is getting out of hand.",
+       "approxDuration": 1.37,
+       "causeBeatId": "b05",
+       "resultBeatId": "b07",
+       "shotHint": "low_angle_reveal"
+      },
+      {
+       "id": "b07",
+       "slot": "leap",
+       "purpose": "It leaps and becomes enormous",
+       "visibleChange": "Coin hops to the floor and fills the room",
+       "actor": "none",
+       "action": "none",
+       "target": "coin",
+       "propEffect": {
+        "prop": "coin",
+        "effect": "hop",
+        "magnitude": "giant"
+       },
+       "expressionBefore": null,
+       "expressionAfter": null,
+       "reactor": {
+        "actor": "zapp",
+        "action": "run",
+        "expression": "shock"
+       },
+       "emote": "!",
+       "viewerInference": "Way too big now.",
+       "approxDuration": 1.29,
+       "causeBeatId": "b06",
+       "resultBeatId": "b08",
+       "shotHint": "wide_environment"
+      },
+      {
+       "id": "b08",
+       "slot": "reversal",
+       "purpose": "Reversal: the prize flattens its winner",
+       "visibleChange": "Giant coin topples onto the victim",
+       "actor": "kira",
+       "action": "dive_prone",
+       "target": "coin",
+       "propEffect": {
+        "prop": "coin",
+        "effect": "tip_over",
+        "magnitude": "giant"
+       },
+       "expressionBefore": "surprised",
+       "expressionAfter": "surprised",
+       "reactor": {
+        "actor": "zapp",
+        "action": "laugh",
+        "expression": "neutral"
+       },
+       "emote": null,
+       "viewerInference": "The reward was the trap.",
+       "approxDuration": 2.3,
+       "causeBeatId": "b07",
+       "resultBeatId": "b09",
+       "shotHint": "wide_environment"
+      },
+      {
+       "id": "b09",
+       "slot": "payoff",
+       "purpose": "Payoff: regret under the coin",
+       "visibleChange": "Kira's face pokes out from under the coin",
+       "actor": "kira",
+       "action": "none",
+       "target": null,
+       "propEffect": null,
+       "expressionBefore": "surprised",
+       "expressionAfter": "surprised",
+       "reactor": null,
+       "emote": null,
+       "viewerInference": "Kira regrets everything.",
+       "approxDuration": 0.95,
+       "causeBeatId": "b08",
+       "resultBeatId": null,
+       "shotHint": "reaction_punch_in"
+      },
+      {
+       "id": "b10",
+       "slot": "loop",
+       "purpose": "Loop: the button resets for the next victim",
+       "visibleChange": "The button flashes FREE COINS again",
+       "actor": "none",
+       "action": "none",
+       "target": null,
+       "propEffect": {
+        "prop": "button",
+        "effect": "reset",
+        "magnitude": null
+       },
+       "expressionBefore": null,
+       "expressionAfter": null,
+       "reactor": null,
+       "emote": null,
+       "viewerInference": "It will happen again.",
+       "approxDuration": 0.99,
+       "causeBeatId": null,
+       "resultBeatId": null,
+       "shotHint": "final_loop"
+      }
+     ]
+    },
+    "compiled": true,
+    "constraints": [],
+    "validatorErrors": [],
+    "validatorWarnings": [],
+    "gates": [
+     {
+      "id": "S01",
+      "name": "Opening readability (premise prop fills the first second)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "opening shot prop_ecu on button for 0.9s; button covers 39.5% of frame at t=0.40",
+      "group": "story",
+      "beatId": "b01",
+      "field": "shotHint"
+     },
+     {
+      "id": "S02",
+      "name": "Causal prop visible at every cause (press contact)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "2.57s s03 ok; 6.71s s06 ok; 7.71s s06 ok",
+      "group": "story",
+      "beatId": null,
+      "field": "shotHint"
+     },
+     {
+      "id": "S03",
+      "name": "Characters introduced before they matter",
+      "pass": true,
+      "kind": "static",
+      "detail": "protagonist zapp first framed at 0.90s (<= 3.0); foil kira at 3.29s (<= 7.67)",
+      "group": "story",
+      "beatId": "b04",
+      "field": "shotHint"
+     },
+     {
+      "id": "S04",
+      "name": "Every cause precedes its result (press->coin->growth->impact)",
+      "pass": true,
+      "kind": "static",
+      "detail": "press 2.57 -> spawn 2.64; spawn -> land 10.43 -> impact 14.29",
+      "group": "story",
+      "beatId": null,
+      "field": null
+     },
+     {
+      "id": "S05",
+      "name": "Reaction within 0.9 s of every information change",
+      "pass": true,
+      "kind": "static",
+      "detail": "6 information events all followed by a reaction",
+      "group": "story",
+      "beatId": null,
+      "field": "reactor"
+     },
+     {
+      "id": "S06",
+      "name": "Largest reversal lands in the final 3 s (and before the payoff)",
+      "pass": true,
+      "kind": "static",
+      "detail": "impact 14.29s, window [14.04, 16.24]",
+      "group": "story",
+      "beatId": "b08",
+      "field": "approxDuration"
+     },
+     {
+      "id": "S07",
+      "name": "Final composition matches the opening (loop)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "last shot final_loop on button; camera position difference first/last analysed frame 0.1 cm",
+      "group": "story",
+      "beatId": "b10",
+      "field": "shotHint"
+     },
+     {
+      "id": "S08",
+      "name": "No long static interval (events <= 1.5 s apart, no frozen motion > 1 s)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "longest event gap 1.10s after t=3.49; longest fully static run 0.00s",
+      "group": "story",
+      "beatId": null,
+      "field": "approxDuration"
+     },
+     {
+      "id": "S09",
+      "name": "Shot variety (no repeated consecutive setup, >= 5 presets, none > 40%)",
+      "pass": true,
+      "kind": "static",
+      "detail": "12 shots, 6 presets, max share 25%",
+      "group": "story",
+      "beatId": null,
+      "field": "shotHint"
+     },
+     {
+      "id": "S10",
+      "name": "No excessive character travel (<= 10 m per actor)",
+      "pass": true,
+      "kind": "measured",
+      "detail": "zapp 3.9 m, kira 4.9 m",
+      "group": "story",
+      "beatId": null,
+      "field": null
+     },
+     {
+      "id": "S11",
+      "name": "Actions compatible with props (no carry/throw/drink without attachment)",
+      "pass": true,
+      "kind": "static",
+      "detail": "all actions registered and prop-compatible",
+      "group": "story",
+      "beatId": null,
+      "field": null
+     }
+    ],
+    "patchesApplied": [],
+    "patchesRejected": [],
+    "accepted": true,
+    "ms": 2210.04140300001,
+    "staging": {
+     "engine": "noob_vs_smart",
+     "variant": 0,
+     "start": {
+      "zapp": "enter_back_left",
+      "kira": "watch_left"
+     },
+     "pressMark": {
+      "zapp": "press_spot",
+      "kira": "press_spot"
+     },
+     "walkIn": {
+      "zapp": "press_spot",
+      "kira": null
+     },
+     "raceTo": {},
+     "smartApproach": "press_spot",
+     "victimBack": "wp_desk_back_left",
+     "giantFront": "giant_front",
+     "diveEnd": "dive_end",
+     "giantSpot": "giant_spot",
+     "observerEscape": [
+      "observe_safe"
+     ],
+     "screenDirection": "audience side only (+z); protagonist enters from screen-left, foil holds screen-right; giant prop lands screen-left and falls toward camera",
+     "contacts": [
+      {
+       "actor": "zapp",
+       "anchor": "button.press_surface"
+      },
+      {
+       "actor": "kira",
+       "anchor": "button.press_surface"
+      }
+     ],
+     "safetyMargins": {
+      "actorActor": 0.6,
+      "pathCollider": 0.3,
+      "endpointSlack": 0.35
+     },
+     "moves": [
+      {
+       "actor": "zapp",
+       "slot": "premise",
+       "from": "enter_back_left",
+       "to": "press_spot",
+       "kind": "walk",
+       "clearance": 0.645
+      },
+      {
+       "actor": "zapp",
+       "slot": "smart_attempt",
+       "from": "press_spot",
+       "to": "wp_desk_back_right",
+       "kind": "walk",
+       "clearance": 0.532
+      },
+      {
+       "actor": "kira",
+       "slot": "smart_attempt",
+       "from": "watch_left",
+       "to": "press_spot",
+       "kind": "walk",
+       "clearance": 0.437
+      },
+      {
+       "actor": "kira",
+       "slot": "leap",
+       "from": "press_spot",
+       "to": "wp_desk_back_left",
+       "kind": "walk",
+       "clearance": 0.469
+      },
+      {
+       "actor": "kira",
+       "slot": "leap",
+       "from": "wp_desk_back_left",
+       "to": "giant_front",
+       "kind": "run",
+       "clearance": 0.826
+      },
+      {
+       "actor": "kira",
+       "slot": "reversal",
+       "from": "giant_front",
+       "to": "dive_end",
+       "kind": "dive_prone",
+       "clearance": 1.62
+      },
+      {
+       "actor": "zapp",
+       "slot": "leap",
+       "from": "wp_desk_back_right",
+       "to": "observe_safe",
+       "kind": "run",
+       "clearance": 0.652
+      }
+     ],
+     "noobExit": "wp_desk_back_right"
+    },
+    "fit": {
+     "knobs": {
+      "preAlign": [
+       "kira:run:wp_desk_back_left->giant_front#1"
+      ],
+      "shots": {
+       "s02": {
+        "dist": 2.05,
+        "fromDist": 2.45,
+        "solveAt": 1.942,
+        "yaw": -12
+       },
+       "s06": {
+        "fill": 0.2
+       }
+      },
+      "hopHeight": 1.9
+     },
+     "decisions": [
+      "leap arc 1.5 -> 1.9 m: kira forearm_r 5.8 cm into prop:coin at 9.967s (prop_motion of coin.hop_to@9.877; padded)",
+      "pre-align kira:run:wp_desk_back_left->giant_front#1: kira forearm_r 8.8 cm into prop:coin at 11.683s (onset of run@11.58; padded)",
+      "framing s02 reaction_punch_in {\"dist\":2.05,\"fromDist\":2.45,\"solveAt\":1.942,\"yaw\":-12}: zapp face features leave the frame at 1.53s",
+      "framing s06 prop_ecu {\"fill\":0.2}: PROP_OCCLUDED button.press_surface hidden behind kira:cuff_r at 7.23s"
+     ],
+     "residual": [],
+     "warnings": 8,
+     "clearance": {
+      "enforced": 0,
+      "reported": 13
+     },
+     "framingFitted": [
+      "s02:reaction_punch_in",
+      "s06:prop_ecu"
+     ],
+     "ms": 1632
+    },
+    "analysis": {
+     "hardIssues": 0,
+     "softIssues": 0,
+     "frames": 172,
+     "byCode": {
+      "CAMERA_ADJUSTED": 28
+     },
+     "metrics": {
+      "footSlipMedian": 0.0031599433907994424,
+      "footSlipP95": 0.006134684705119448,
+      "handContactErrorCm": 0.000007693558270996144,
+      "teleports": 0,
+      "frames": 172
+     }
+    },
+    "episodeSha256": "68e0a9d3d4444e33ad8e0bacd794e0e8f9e3e8ce5ace6b17ffd0e03a68c6ff24"
+   }
+  ],
+  "repairs": 0,
+  "episode": {
+   "schemaVersion": "1.1",
+   "render": {
+    "rendererVersion": "1.0.0",
+    "motionProfile": "corrected-head-v2"
+   },
+   "episode": {
+    "id": "gen-nvs-zapp-mashes-the-button-t1u-s4031",
+    "title": "The Smart Way",
+    "logline": "Kira wants to out-do Zapp's simple win. The reward coin grows far beyond reason. The giant coin topples onto Kira.",
+    "duration": 17.039,
+    "format": "vertical",
+    "resolution": [
+     1080,
+     1920
+    ],
+    "fps": 30,
+    "seed": 4031,
+    "comedyEngine": "skeptic_reversal"
+   },
+   "environment": {
+    "id": "classroom",
+    "version": "1.1.0",
+    "lighting": "morning"
+   },
+   "cast": [
+    {
+     "id": "zapp",
+     "version": "1.0.0",
+     "role": "protagonist",
+     "startMark": "enter_back_left",
+     "startExpression": "neutral"
+    },
+    {
+     "id": "kira",
+     "version": "1.1.0",
+     "role": "foil",
+     "startMark": "watch_left",
+     "startExpression": "smug"
+    }
+   ],
+   "props": [
+    {
+     "instance": "desk",
+     "id": "student_desk",
+     "version": "1.0.0",
+     "anchor": "hero_desk_spot",
+     "hero": false,
+     "visible": true,
+     "scale": 1
+    },
+    {
+     "instance": "button",
+     "id": "suspicious_button",
+     "version": "1.0.0",
+     "anchor": "button_spot",
+     "parent": "desk",
+     "hero": true,
+     "visible": true,
+     "scale": 1
+    },
+    {
+     "instance": "coin",
+     "id": "spark_coin",
+     "version": "1.0.0",
+     "anchor": "giant_spot",
+     "hero": false,
+     "visible": false,
+     "scale": 1
+    }
+   ],
+   "beats": [
+    {
+     "id": "b01",
+     "start": 0,
+     "end": 0.9,
+     "intent": "hook",
+     "summary": "A FREE COINS button flashes on a desk",
+     "informationChange": true
+    },
+    {
+     "id": "b02",
+     "start": 0.9,
+     "end": 2.042,
+     "intent": "setup",
+     "summary": "Zapp looks at the button, curious",
+     "informationChange": true
+    },
+    {
+     "id": "b03",
+     "start": 2.042,
+     "end": 3.292,
+     "intent": "cause",
+     "summary": "Hand hits the button; a coin pops out",
+     "informationChange": true
+    },
+    {
+     "id": "b04",
+     "start": 3.292,
+     "end": 4.592,
+     "intent": "celebrate",
+     "summary": "Zapp cheers",
+     "informationChange": true
+    },
+    {
+     "id": "b05",
+     "start": 4.592,
+     "end": 8.727,
+     "intent": "cause",
+     "summary": "Kira takes over and double-presses",
+     "informationChange": true
+    },
+    {
+     "id": "b06",
+     "start": 8.727,
+     "end": 9.877,
+     "intent": "escalate",
+     "summary": "Coin stands up and doubles, twice",
+     "informationChange": true
+    },
+    {
+     "id": "b07",
+     "start": 9.877,
+     "end": 12.639,
+     "intent": "escalate",
+     "summary": "Coin hops to the floor and fills the room",
+     "informationChange": true
+    },
+    {
+     "id": "b08",
+     "start": 12.639,
+     "end": 14.939,
+     "intent": "reversal",
+     "summary": "Giant coin topples onto the victim",
+     "informationChange": true
+    },
+    {
+     "id": "b09",
+     "start": 14.939,
+     "end": 15.939,
+     "intent": "payoff",
+     "summary": "Kira's face pokes out from under the coin",
+     "informationChange": true
+    },
+    {
+     "id": "b10",
+     "start": 15.939,
+     "end": 17.039,
+     "intent": "loop",
+     "summary": "The button flashes FREE COINS again",
+     "informationChange": true
+    }
+   ],
+   "actions": [
+    {
+     "actor": "zapp",
+     "action": "walk",
+     "start": 0,
+     "duration": 1.442,
+     "to": "press_spot"
+    },
+    {
+     "actor": "zapp",
+     "action": "look_at",
+     "start": 1.442,
+     "duration": 0.6,
+     "target": "button",
+     "expression": "curious"
+    },
+    {
+     "actor": "zapp",
+     "action": "press_button",
+     "start": 2.192,
+     "duration": 0.9,
+     "target": "button.press_surface",
+     "expression": "determined"
+    },
+    {
+     "actor": "zapp",
+     "action": "look_at",
+     "start": 3.092,
+     "duration": 0.25,
+     "target": "coin"
+    },
+    {
+     "actor": "zapp",
+     "action": "victory_pose",
+     "start": 3.342,
+     "duration": 1.2,
+     "expression": "neutral"
+    },
+    {
+     "actor": "kira",
+     "action": "arms_crossed",
+     "start": 3.492,
+     "duration": 1.3,
+     "target": "coin"
+    },
+    {
+     "actor": "zapp",
+     "action": "turn_toward",
+     "start": 4.592,
+     "duration": 0.3,
+     "target": "wp_desk_back_right"
+    },
+    {
+     "actor": "kira",
+     "action": "walk",
+     "start": 4.842,
+     "duration": 1.385,
+     "to": "press_spot",
+     "expression": "smug"
+    },
+    {
+     "actor": "zapp",
+     "action": "walk",
+     "start": 4.892,
+     "duration": 0.807,
+     "to": "wp_desk_back_right",
+     "expression": "curious"
+    },
+    {
+     "actor": "zapp",
+     "action": "look_at",
+     "start": 5.719,
+     "duration": 0.5,
+     "target": "coin"
+    },
+    {
+     "actor": "zapp",
+     "action": "look_at",
+     "start": 6.249,
+     "duration": 2.478,
+     "target": "coin"
+    },
+    {
+     "actor": "kira",
+     "action": "press_button",
+     "start": 6.327,
+     "duration": 0.9,
+     "target": "button.press_surface",
+     "expression": "smug"
+    },
+    {
+     "actor": "kira",
+     "action": "press_button",
+     "start": 7.327,
+     "duration": 0.9,
+     "target": "button.press_surface",
+     "expression": "smug"
+    },
+    {
+     "actor": "kira",
+     "action": "shock_recoil",
+     "start": 8.247,
+     "duration": 0.48,
+     "target": "coin"
+    },
+    {
+     "actor": "kira",
+     "action": "shock_recoil",
+     "start": 9.427,
+     "duration": 0.75,
+     "target": "coin",
+     "expression": "surprised"
+    },
+    {
+     "actor": "zapp",
+     "action": "shock_recoil",
+     "start": 9.477,
+     "duration": 0.55,
+     "target": "coin",
+     "expression": "shock"
+    },
+    {
+     "actor": "zapp",
+     "action": "turn_toward",
+     "start": 10.027,
+     "duration": 0.3,
+     "target": "observe_safe"
+    },
+    {
+     "actor": "kira",
+     "action": "turn_toward",
+     "start": 10.177,
+     "duration": 0.3,
+     "target": "wp_desk_back_left"
+    },
+    {
+     "actor": "zapp",
+     "action": "run",
+     "start": 10.327,
+     "duration": 0.671,
+     "to": "observe_safe",
+     "expression": "shock"
+    },
+    {
+     "actor": "kira",
+     "action": "walk",
+     "start": 10.477,
+     "duration": 0.913,
+     "to": "wp_desk_back_left"
+    },
+    {
+     "actor": "zapp",
+     "action": "look_at",
+     "start": 11.018,
+     "duration": 3.371,
+     "target": "coin"
+    },
+    {
+     "actor": "kira",
+     "action": "look_at",
+     "start": 11.41,
+     "duration": 0.17,
+     "target": "look_up_point"
+    },
+    {
+     "actor": "kira",
+     "action": "turn_toward",
+     "start": 11.58,
+     "duration": 0.3,
+     "target": "giant_front"
+    },
+    {
+     "actor": "kira",
+     "action": "run",
+     "start": 11.88,
+     "duration": 0.709,
+     "to": "giant_front",
+     "expression": "smug"
+    },
+    {
+     "actor": "kira",
+     "action": "cower",
+     "start": 12.639,
+     "duration": 0.9
+    },
+    {
+     "actor": "kira",
+     "action": "dive_prone",
+     "start": 13.539,
+     "duration": 0.7,
+     "to": "dive_end",
+     "params": {
+      "diveAt": 0.15
+     },
+     "expression": "surprised"
+    },
+    {
+     "actor": "zapp",
+     "action": "laugh",
+     "start": 14.389,
+     "duration": 2.65,
+     "expression": "neutral"
+    }
+   ],
+   "expressions": [
+    {
+     "actor": "kira",
+     "state": "surprised",
+     "at": 2.87
+    },
+    {
+     "actor": "kira",
+     "state": "smug",
+     "at": 3.492
+    },
+    {
+     "actor": "kira",
+     "state": "surprised",
+     "at": 8.155
+    },
+    {
+     "actor": "kira",
+     "state": "surprised",
+     "at": 14.589
+    },
+    {
+     "actor": "kira",
+     "state": "surprised",
+     "at": 14.959
+    }
+   ],
+   "propEvents": [
+    {
+     "prop": "button",
+     "event": "flash",
+     "start": 0,
+     "duration": 2.072,
+     "params": {
+      "hz": 2.5
+     }
+    },
+    {
+     "prop": "button",
+     "event": "press",
+     "start": 2.542,
+     "duration": 0.5
+    },
+    {
+     "prop": "button",
+     "event": "flash",
+     "start": 2.57,
+     "duration": 0.5,
+     "params": {
+      "hz": 8
+     }
+    },
+    {
+     "prop": "coin",
+     "event": "spawn",
+     "start": 2.64,
+     "duration": 1,
+     "to": "desk.coin_spot",
+     "params": {
+      "from": "button.spawn_point",
+      "flight": 0.5,
+      "flips": 1
+     }
+    },
+    {
+     "prop": "button",
+     "event": "reset",
+     "start": 3.04,
+     "duration": 0.3
+    },
+    {
+     "prop": "button",
+     "event": "press",
+     "start": 6.677,
+     "duration": 0.5
+    },
+    {
+     "prop": "button",
+     "event": "flash",
+     "start": 6.705,
+     "duration": 0.5,
+     "params": {
+      "hz": 8
+     }
+    },
+    {
+     "prop": "coin",
+     "event": "stand_up",
+     "start": 6.805,
+     "duration": 0.3
+    },
+    {
+     "prop": "button",
+     "event": "reset",
+     "start": 7.175,
+     "duration": 0.3
+    },
+    {
+     "prop": "button",
+     "event": "press",
+     "start": 7.677,
+     "duration": 0.5
+    },
+    {
+     "prop": "button",
+     "event": "flash",
+     "start": 7.705,
+     "duration": 0.5,
+     "params": {
+      "hz": 8
+     }
+    },
+    {
+     "prop": "coin",
+     "event": "grow",
+     "start": 7.805,
+     "duration": 0.3,
+     "params": {
+      "scale": 3
+     }
+    },
+    {
+     "prop": "button",
+     "event": "reset",
+     "start": 8.175,
+     "duration": 0.3
+    },
+    {
+     "prop": "coin",
+     "event": "grow",
+     "start": 9.127,
+     "duration": 0.3,
+     "params": {
+      "scale": 6
+     }
+    },
+    {
+     "prop": "coin",
+     "event": "hop_to",
+     "start": 9.877,
+     "duration": 0.55,
+     "to": "giant_spot",
+     "params": {
+      "height": 1.9
+     }
+    },
+    {
+     "prop": "coin",
+     "event": "grow",
+     "start": 10.477,
+     "duration": 0.3,
+     "params": {
+      "scale": 11
+     }
+    },
+    {
+     "prop": "coin",
+     "event": "grow",
+     "start": 10.877,
+     "duration": 0.4,
+     "params": {
+      "scale": 16.7
+     }
+    },
+    {
+     "prop": "coin",
+     "event": "wobble",
+     "start": 11.88,
+     "duration": 1.739,
+     "params": {
+      "hz": 2.2,
+      "deg": 5
+     }
+    },
+    {
+     "prop": "coin",
+     "event": "tip_over",
+     "start": 13.639,
+     "duration": 0.65,
+     "params": {
+      "endDeg": 86
+     }
+    },
+    {
+     "prop": "button",
+     "event": "flash",
+     "start": 15.939,
+     "duration": 1.1,
+     "params": {
+      "hz": 2.727,
+      "endGlow": 1
+     }
+    }
+   ],
+   "shots": [
+    {
+     "id": "s01",
+     "start": 0,
+     "end": 0.9,
+     "preset": "prop_ecu",
+     "subjects": [
+      "button"
+     ],
+     "purpose": "Hook: show the causal prop",
+     "params": {
+      "fill": 0.78,
+      "elev": 0.42,
+      "yaw": -12,
+      "push": 0.08,
+      "fov": 34
+     }
+    },
+    {
+     "id": "s02",
+     "start": 0.9,
+     "end": 2.042,
+     "preset": "reaction_punch_in",
+     "subjects": [
+      "zapp"
+     ],
+     "purpose": "Zapp notices the button",
+     "params": {
+      "dist": 2.05,
+      "fromDist": 2.45,
+      "bias": 0.65,
+      "solveAt": 1.942,
+      "yaw": -12
+     }
+    },
+    {
+     "id": "s03",
+     "start": 2.042,
+     "end": 3.292,
+     "preset": "prop_ecu",
+     "subjects": [
+      "button"
+     ],
+     "purpose": "Zapp presses the button",
+     "params": {
+      "fill": 0.26,
+      "elev": 0.12,
+      "lift": 3.2,
+      "fov": 44,
+      "push": 0.06,
+      "yaw": 8
+     }
+    },
+    {
+     "id": "s04",
+     "start": 3.292,
+     "end": 4.592,
+     "preset": "two_shot",
+     "subjects": [
+      "zapp",
+      "kira"
+     ],
+     "purpose": "Zapp celebrates",
+     "params": {
+      "fill": 0.82,
+      "push": 0.04
+     }
+    },
+    {
+     "id": "s05",
+     "start": 4.592,
+     "end": 5.842,
+     "preset": "wide_environment",
+     "subjects": [
+      "kira",
+      "zapp",
+      "button"
+     ],
+     "purpose": "Kira tries the \"smart\" way (wide_environment)",
+     "params": {
+      "solveAt": 5.742,
+      "margin": 0.7,
+      "elev": 0.12,
+      "fov": 40,
+      "push": 0.03
+     }
+    },
+    {
+     "id": "s06",
+     "start": 5.842,
+     "end": 8.727,
+     "preset": "prop_ecu",
+     "subjects": [
+      "button"
+     ],
+     "purpose": "Kira tries the \"smart\" way (prop_ecu)",
+     "params": {
+      "fill": 0.2,
+      "elev": 0.12,
+      "lift": 3.2,
+      "fov": 44,
+      "push": 0.06,
+      "yaw": 8
+     }
+    },
+    {
+     "id": "s07",
+     "start": 8.727,
+     "end": 9.877,
+     "preset": "low_angle_reveal",
+     "subjects": [
+      "coin"
+     ],
+     "purpose": "The coin stands and grows",
+     "params": {
+      "solveAt": 9.827,
+      "side": -0.35,
+      "height": 0.35,
+      "fill": 0.7,
+      "minDist": 2.4,
+      "aim": 0.4,
+      "fov": 44
+     }
+    },
+    {
+     "id": "s08",
+     "start": 9.877,
+     "end": 12.639,
+     "preset": "wide_environment",
+     "subjects": [
+      "coin",
+      "kira",
+      "zapp"
+     ],
+     "purpose": "It leaps and becomes enormous",
+     "params": {
+      "solveAt": 12.539,
+      "margin": 0.7,
+      "elev": 0.12,
+      "fov": 40,
+      "push": 0.03
+     }
+    },
+    {
+     "id": "s09",
+     "start": 12.639,
+     "end": 14.249,
+     "preset": "low_angle_reveal",
+     "subjects": [
+      "coin"
+     ],
+     "purpose": "Reversal: the prize flattens its winner (low_angle_reveal)",
+     "params": {
+      "side": 0.3,
+      "height": 0.25,
+      "fill": 0.95,
+      "minDist": 3.2,
+      "aim": 0.55,
+      "fov": 50,
+      "push": 0.05,
+      "solveAt": 12.639
+     }
+    },
+    {
+     "id": "s10",
+     "start": 14.249,
+     "end": 14.939,
+     "preset": "wide_environment",
+     "subjects": [
+      "coin",
+      "kira"
+     ],
+     "purpose": "Aftermath: flattened by the prize",
+     "params": {
+      "solveAt": 14.889,
+      "margin": 0.6,
+      "elev": 0.28,
+      "fov": 40,
+      "push": 0
+     }
+    },
+    {
+     "id": "s11",
+     "start": 14.939,
+     "end": 15.939,
+     "preset": "reaction_punch_in",
+     "subjects": [
+      "kira"
+     ],
+     "purpose": "Payoff: regret under the coin",
+     "params": {
+      "dist": 2,
+      "fromDist": 2.5,
+      "bias": 0.9,
+      "solveAt": 14.939
+     }
+    },
+    {
+     "id": "s12",
+     "start": 15.939,
+     "end": 17.039,
+     "preset": "final_loop",
+     "subjects": [
+      "button"
+     ],
+     "purpose": "Loop: the button resets for the next victim",
+     "params": {
+      "pullback": 0.12
+     }
+    }
+   ],
+   "vfx": [
+    {
+     "type": "glow_pulse",
+     "at": 0,
+     "duration": 2.072,
+     "target": "button.glow",
+     "params": {
+      "hz": 2.5,
+      "intensity": 0.6
+     }
+    },
+    {
+     "type": "emote",
+     "at": 1.15,
+     "duration": 0.8,
+     "target": "zapp",
+     "params": {
+      "symbol": "?"
+     }
+    },
+    {
+     "type": "screen_flash",
+     "at": 2.57,
+     "duration": 0.16,
+     "params": {
+      "strength": 0.35
+     }
+    },
+    {
+     "type": "sparkle_burst",
+     "at": 2.64,
+     "duration": 0.5,
+     "target": "button.sparkle",
+     "params": {
+      "count": 24
+     }
+    },
+    {
+     "type": "sparkle_burst",
+     "at": 3.13,
+     "duration": 0.55,
+     "target": "desk.coin_spot",
+     "params": {
+      "count": 18,
+      "speed": 0.8,
+      "size": 0.03
+     }
+    },
+    {
+     "type": "confetti",
+     "at": 3.492,
+     "duration": 1.2,
+     "target": "zapp.above_head",
+     "params": {
+      "count": 40
+     }
+    },
+    {
+     "type": "sparkle_burst",
+     "at": 7.805,
+     "duration": 0.45,
+     "target": "coin",
+     "params": {
+      "count": 23,
+      "speed": 1.5,
+      "size": 0.04
+     }
+    },
+    {
+     "type": "emote",
+     "at": 8.055,
+     "duration": 0.6,
+     "target": "kira",
+     "params": {
+      "symbol": "!"
+     }
+    },
+    {
+     "type": "sparkle_burst",
+     "at": 9.127,
+     "duration": 0.45,
+     "target": "coin",
+     "params": {
+      "count": 26,
+      "speed": 1.7999999999999998,
+      "size": 0.05
+     }
+    },
+    {
+     "type": "emote",
+     "at": 9.377,
+     "duration": 0.75,
+     "target": "kira",
+     "params": {
+      "symbol": "!"
+     }
+    },
+    {
+     "type": "emote",
+     "at": 9.527,
+     "duration": 0.6,
+     "target": "zapp",
+     "params": {
+      "symbol": "!"
+     }
+    },
+    {
+     "type": "impact_ring",
+     "at": 10.427,
+     "duration": 0.4,
+     "target": "giant_spot",
+     "params": {
+      "size": 0.9
+     }
+    },
+    {
+     "type": "dust_puff",
+     "at": 10.427,
+     "duration": 0.6,
+     "target": "giant_spot",
+     "params": {
+      "radius": 0.9
+     }
+    },
+    {
+     "type": "screen_shake",
+     "at": 10.427,
+     "duration": 0.3,
+     "params": {
+      "strength": 0.03
+     }
+    },
+    {
+     "type": "sparkle_burst",
+     "at": 10.477,
+     "duration": 0.45,
+     "target": "coin",
+     "params": {
+      "count": 31,
+      "speed": 2.3,
+      "size": 0.06666666666666667
+     }
+    },
+    {
+     "type": "sparkle_burst",
+     "at": 10.877,
+     "duration": 0.45,
+     "target": "coin",
+     "params": {
+      "count": 37,
+      "speed": 2.87,
+      "size": 0.08566666666666667
+     }
+    },
+    {
+     "type": "screen_shake",
+     "at": 10.877,
+     "duration": 0.35,
+     "params": {
+      "strength": 0.04
+     }
+    },
+    {
+     "type": "shadow_looming",
+     "at": 10.927,
+     "duration": 3.412,
+     "params": {
+      "rampIn": 2.5619999999999985,
+      "strength": 0.28,
+      "fadeOut": 0.35
+     }
+    },
+    {
+     "type": "screen_shake",
+     "at": 11.327,
+     "duration": 0.45,
+     "params": {
+      "strength": 0.06
+     }
+    },
+    {
+     "type": "screen_shake",
+     "at": 14.289,
+     "duration": 0.6,
+     "params": {
+      "strength": 0.12
+     }
+    },
+    {
+     "type": "screen_flash",
+     "at": 14.289,
+     "duration": 0.12,
+     "params": {
+      "strength": 0.25
+     }
+    },
+    {
+     "type": "dust_puff",
+     "at": 14.289,
+     "duration": 0.9,
+     "target": "coin",
+     "params": {
+      "radius": 2.2,
+      "count": 44,
+      "size": 0.3
+     }
+    },
+    {
+     "type": "impact_ring",
+     "at": 14.289,
+     "duration": 0.45,
+     "target": "coin",
+     "params": {
+      "size": 2
+     }
+    },
+    {
+     "type": "sparkle_burst",
+     "at": 15.989,
+     "duration": 0.6,
+     "target": "button.sparkle",
+     "params": {
+      "count": 16,
+      "speed": 0.9
+     }
+    }
+   ],
+   "audio": {
+    "cues": [
+     {
+      "sfx": "sfx_beep",
+      "at": 0.05,
+      "gainDb": -14
+     },
+     {
+      "sfx": "sfx_beep",
+      "at": 0.45,
+      "gainDb": -16
+     },
+     {
+      "sfx": "sfx_blip_question",
+      "at": 1.15,
+      "gainDb": -10
+     },
+     {
+      "sfx": "sfx_whoosh",
+      "at": 2.092,
+      "gainDb": -14
+     },
+     {
+      "sfx": "sfx_click",
+      "at": 2.57,
+      "gainDb": -4,
+      "sync": "contact:zapp:press_button"
+     },
+     {
+      "sfx": "sfx_coin_pop",
+      "at": 2.64,
+      "gainDb": -8
+     },
+     {
+      "sfx": "sfx_coin_ding",
+      "at": 3.13,
+      "gainDb": -6
+     },
+     {
+      "sfx": "sfx_tada",
+      "at": 3.442,
+      "gainDb": -8
+     },
+     {
+      "sfx": "sfx_click",
+      "at": 6.705,
+      "gainDb": -4,
+      "sync": "contact:kira:press_button"
+     },
+     {
+      "sfx": "sfx_whoosh",
+      "at": 6.805,
+      "gainDb": -16
+     },
+     {
+      "sfx": "sfx_click",
+      "at": 7.705,
+      "gainDb": -4,
+      "sync": "contact:kira:press_button"
+     },
+     {
+      "sfx": "sfx_boing",
+      "at": 7.805,
+      "gainDb": -7,
+      "pitch": 1.3
+     },
+     {
+      "sfx": "sfx_boing",
+      "at": 9.127,
+      "gainDb": -7,
+      "pitch": 1.3
+     },
+     {
+      "sfx": "sfx_whoosh",
+      "at": 9.877,
+      "gainDb": -10,
+      "pitch": 0.8
+     },
+     {
+      "sfx": "sfx_thud_small",
+      "at": 10.427,
+      "gainDb": -6,
+      "sync": "impact:coin:land"
+     },
+     {
+      "sfx": "sfx_boing",
+      "at": 10.477,
+      "gainDb": -7,
+      "pitch": 0.75
+     },
+     {
+      "sfx": "sfx_boing",
+      "at": 10.877,
+      "gainDb": -7,
+      "pitch": 0.55
+     },
+     {
+      "sfx": "sfx_whoosh",
+      "at": 13.589,
+      "gainDb": -8,
+      "pitch": 0.6
+     },
+     {
+      "sfx": "sfx_thud_big",
+      "at": 14.289,
+      "gainDb": -1,
+      "sync": "impact:coin:tip_over"
+     },
+     {
+      "sfx": "sfx_coin_ding",
+      "at": 14.339,
+      "gainDb": -12,
+      "pitch": 0.5
+     },
+     {
+      "sfx": "sfx_deflate_slide",
+      "at": 14.989,
+      "gainDb": -12
+     },
+     {
+      "sfx": "sfx_ding_reset",
+      "at": 15.959,
+      "gainDb": -7
+     },
+     {
+      "sfx": "sfx_beep",
+      "at": 16.339,
+      "gainDb": -14
+     },
+     {
+      "sfx": "sfx_beep",
+      "at": 16.699,
+      "gainDb": -15
+     }
+    ],
+    "music": {
+     "id": "mus_spark_bounce",
+     "gainDb": -20
+    },
+    "ambience": {
+     "id": "amb_classroom",
+     "gainDb": -34
+    },
+    "loudnessLufs": -14,
+    "duckingDb": 6
+   },
+   "loop": {
+    "mode": "match_cut",
+    "firstShot": "s01",
+    "lastShot": "s12",
+    "matchWindow": 0.5
+   },
+   "export": {
+    "container": "mp4",
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "videoBitrateKbps": 12000,
+    "audioBitrateKbps": 160
+   },
+   "safety": {
+    "familySafe": true,
+    "usesThirdPartyBrands": false,
+    "realMoneyOrGiveawayClaims": false,
+    "notes": "Generated from a user idea by the BlockSpark story pipeline; safety classification: safe. Fictional in-world coins only."
+   }
+  },
+  "lastCompiled": null,
+  "episodeSha256": "68e0a9d3d4444e33ad8e0bacd794e0e8f9e3e8ce5ace6b17ffd0e03a68c6ff24",
+  "fitKnobs": {
+   "preAlign": [
+    "kira:run:wp_desk_back_left->giant_front#1"
+   ],
+   "shots": {
+    "s02": {
+     "dist": 2.05,
+     "fromDist": 2.45,
+     "solveAt": 1.942,
+     "yaw": -12
+    },
+    "s06": {
+     "fill": 0.2
+    }
+   },
+   "hopHeight": 1.9
+  },
+  "events": [
+   {
+    "beatId": "b03",
+    "kind": "press_contact",
+    "t": 2.57,
+    "actor": "zapp"
+   },
+   {
+    "beatId": "b03",
+    "kind": "coin_spawn",
+    "t": 2.6399999999999997
+   },
+   {
+    "beatId": "b05",
+    "kind": "press_contact",
+    "t": 6.705,
+    "actor": "kira"
+   },
+   {
+    "beatId": "b05",
+    "kind": "press_contact",
+    "t": 7.705,
+    "actor": "kira"
+   },
+   {
+    "beatId": "b05",
+    "kind": "grow_3",
+    "t": 8.105
+   },
+   {
+    "beatId": "b06",
+    "kind": "grow_6",
+    "t": 9.427000000000001
+   },
+   {
+    "beatId": "b07",
+    "kind": "coin_land",
+    "t": 10.427000000000001
+   },
+   {
+    "beatId": "b07",
+    "kind": "grow_11",
+    "t": 10.777000000000003
+   },
+   {
+    "beatId": "b07",
+    "kind": "grow_16.7",
+    "t": 11.277000000000001
+   },
+   {
+    "beatId": "b08",
+    "kind": "reversal_impact",
+    "t": 14.289
+   }
+  ],
+  "gates": [
+   {
+    "id": "S01",
+    "name": "Opening readability (premise prop fills the first second)",
+    "pass": true,
+    "kind": "measured",
+    "detail": "opening shot prop_ecu on button for 0.9s; button covers 39.5% of frame at t=0.40",
+    "group": "story",
+    "beatId": "b01",
+    "field": "shotHint"
+   },
+   {
+    "id": "S02",
+    "name": "Causal prop visible at every cause (press contact)",
+    "pass": true,
+    "kind": "measured",
+    "detail": "2.57s s03 ok; 6.71s s06 ok; 7.71s s06 ok",
+    "group": "story",
+    "beatId": null,
+    "field": "shotHint"
+   },
+   {
+    "id": "S03",
+    "name": "Characters introduced before they matter",
+    "pass": true,
+    "kind": "static",
+    "detail": "protagonist zapp first framed at 0.90s (<= 3.0); foil kira at 3.29s (<= 7.67)",
+    "group": "story",
+    "beatId": "b04",
+    "field": "shotHint"
+   },
+   {
+    "id": "S04",
+    "name": "Every cause precedes its result (press->coin->growth->impact)",
+    "pass": true,
+    "kind": "static",
+    "detail": "press 2.57 -> spawn 2.64; spawn -> land 10.43 -> impact 14.29",
+    "group": "story",
+    "beatId": null,
+    "field": null
+   },
+   {
+    "id": "S05",
+    "name": "Reaction within 0.9 s of every information change",
+    "pass": true,
+    "kind": "static",
+    "detail": "6 information events all followed by a reaction",
+    "group": "story",
+    "beatId": null,
+    "field": "reactor"
+   },
+   {
+    "id": "S06",
+    "name": "Largest reversal lands in the final 3 s (and before the payoff)",
+    "pass": true,
+    "kind": "static",
+    "detail": "impact 14.29s, window [14.04, 16.24]",
+    "group": "story",
+    "beatId": "b08",
+    "field": "approxDuration"
+   },
+   {
+    "id": "S07",
+    "name": "Final composition matches the opening (loop)",
+    "pass": true,
+    "kind": "measured",
+    "detail": "last shot final_loop on button; camera position difference first/last analysed frame 0.1 cm",
+    "group": "story",
+    "beatId": "b10",
+    "field": "shotHint"
+   },
+   {
+    "id": "S08",
+    "name": "No long static interval (events <= 1.5 s apart, no frozen motion > 1 s)",
+    "pass": true,
+    "kind": "measured",
+    "detail": "longest event gap 1.10s after t=3.49; longest fully static run 0.00s",
+    "group": "story",
+    "beatId": null,
+    "field": "approxDuration"
+   },
+   {
+    "id": "S09",
+    "name": "Shot variety (no repeated consecutive setup, >= 5 presets, none > 40%)",
+    "pass": true,
+    "kind": "static",
+    "detail": "12 shots, 6 presets, max share 25%",
+    "group": "story",
+    "beatId": null,
+    "field": "shotHint"
+   },
+   {
+    "id": "S10",
+    "name": "No excessive character travel (<= 10 m per actor)",
+    "pass": true,
+    "kind": "measured",
+    "detail": "zapp 3.9 m, kira 4.9 m",
+    "group": "story",
+    "beatId": null,
+    "field": null
+   },
+   {
+    "id": "S11",
+    "name": "Actions compatible with props (no carry/throw/drink without attachment)",
+    "pass": true,
+    "kind": "static",
+    "detail": "all actions registered and prop-compatible",
+    "group": "story",
+    "beatId": null,
+    "field": null
+   }
+  ],
+  "mutedStoryScore": 98,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 1.189630999986548,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   },
+   {
+    "stage": "plan",
+    "ms": 0.5310159999935422,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 2213,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

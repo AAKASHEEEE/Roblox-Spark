@@ -1,0 +1,50 @@
+# Quality report — The Smart Way (`gen-nvs-kira-taps-the-button-1ea-s1040`)
+
+**35/36 gates passed** (core 22/23, production 2/2, story 11/11). Failed: G03
+
+- Output: `out/bench-renders/final/D02/gen-nvs-kira-taps-the-button-1ea-s1040.mp4` — 25.13 MB, sha256 `cf38243fc6a9d4d866e363b1df7d9d4b0ccadccdcbf60e9404cf71a8bece431f`
+- 1080x1920 @ 30 fps, 545 frames; render 742.9 ms/frame (22.31x real-time), total 423.6 s
+- Renderer: WebKit WebGL; host 8x Intel(R) Xeon(R) Platinum 8488C; GPU: no (SwiftShader CPU); audio codec: aac
+
+| Gate | Group | Result | Kind | Evidence |
+|---|---|---|---|---|
+| G01 Playable MP4 produced automatically (no screen recording) | core | PASS | measured | Chromium decoded 90 frames in 2.96s real-time playback, 0 dropped; errors: none |
+| G02 Resolution 1080x1920 | core | PASS | measured | container 1080x1920, decoded 1080x1920 |
+| G03 Duration 14-18 s | core | **FAIL** | measured | video 18.167s, audio presented 18.151s (edit list skips 1024 AAC priming samples) |
+| G04 Stable frame rate | core | PASS | measured | 545 samples (expected 545), unique sample durations 1000 @ timescale 30000 => 30.000 fps constant |
+| G05 Audio present, decodable, length matches video | core | PASS | measured | codec mp4a, 2ch 48000 Hz; decoded 373175 bytes; /audio-video/ = 15.7 ms |
+| G06 Audio synchronised to visual events (<= 1 frame) | core | PASS | measured | synced cues are pinned to computed contact/impact times; repairs: none needed |
+| G07 Premise (hero prop) visible within 1 s | core | PASS | measured | opening shot s01 prop_ecu on "button" from t=0; hard framing issues in first second: 0 |
+| G08 Protagonist and hero prop identifiable | core | PASS | measured | kira is a framed subject in 5 shots; face/framing issues on kira: 0 |
+| G09 No unexplained teleportation (actors/props) | core | PASS | measured | checked 545 consecutive frames: max plausible speed thresholds 7 m/s (actors) / 14 m/s (props) |
+| G10 Cause -> effect: contact happens and triggers the event | core | PASS | measured | kira.press_button@2.617s hand-to-target 0.0 cm; zapp.press_button@6.708s hand-to-target 0.0 cm; zapp.press_button@7.708s hand-to-target 0.0 cm; press/spawn causality validated |
+| G11 Facial change at every information-change beat | core | PASS | static | every non-hook/loop information beat contains an expression change or emote |
+| G12 Meaningful visual change every <= 1.5 s | core | PASS | static | longest interval without a new cut/action/expression/prop/VFX event: 1.1s |
+| G13 No shot > 3 s without a cut | core | PASS | static | shot lengths: 0.90, 1.19, 1.25, 1.30, 1.25, 2.84, 1.15, 1.59, 0.95, 1.33, 1.61, 0.69, 1.00, 1.10 |
+| G14 Largest physical reversal in the final 3 s | core | PASS | measured | largest impact coin:tip_over strength 16.7 at 15.40s (window starts 15.151s) |
+| G15 Ending loops into the opening | core | PASS | measured | decoded last-vs-first frame mean abs diff 3.01% (a mid-episode control frame differs by 28.83%) |
+| G16 Character identity locked (versioned manifests + hash lock) | core | PASS | static | kira@1.1.0 sha256 a928effc30ff; zapp@1.0.0 sha256 558834f42521; episodes cannot contain appearance fields (strict schema) |
+| G17 All assets licensed/owned with metadata | core | PASS | static | every environment/character/prop/audio manifest carries license.source/author/license; all are original-procedural |
+| G18 No protected branding or third-party IP | core | PASS | static | banned-term scan clean; no external meshes/textures/sounds are loaded by the engine at all |
+| G19 Family-safe (no gore/sexual/weapons/real-money giveaways) | core | PASS | static | Generated from a user idea by the BlockSpark story pipeline; safety classification: safe. Fictional in-world coins only. |
+| G20 Shot validation (screen-space bounds, face visibility, hand-vs-geometry penetration) | core | PASS | measured | 182 sampled frames: hard issues 0, soft issues 0; {"CAMERA_ADJUSTED":32} |
+| G21 Planted feet do not slide during locomotion | core | PASS | measured | 103 planted-foot samples while moving: median 0.004 m/s, p95 0.109 m/s vs root speed 1.2-2.7 m/s. Excluded: 19 touchdown frames (max 2.13 m/s) and 12 run flight-phase frames |
+| G22 Loudness normalised, no clipping | core | PASS | measured | integrated -14.21 LUFS (target -14), approx true peak -1.5 dBFS, limiter max GR -6.95 dB |
+| G23 Story readable while muted | core | PASS | proxy | PROXY ONLY: every beat has a shot, causal chain is on screen, emotes/expressions carry the reactions and no dialogue is needed. A human viewing test is still required to confirm comprehension. |
+| P01 Production export profile via builtin (H.264 yuv420p, CFR 30, AAC-LC 48 kHz stereo, fast-start, 1080x1920) | production | PASS | measured | ok container=mov,mp4,m4a,3gp,3g2,mj2; ok fast-start (moov before mdat)=true; ok exactly one video stream=1; ok exactly one audio stream=1; ok video codec=h264; ok pixel format=yuv420p; ok resolution=1080x1920; ok constant frame rate=30/1 (avg 30/1); ok duration=18.167; ok audio codec=aac; ok audio profile=LC; ok audio sample rate=48000; ok audio channels=2; ok A/V duration match=15.7 ms |
+| P02 AAC decodes in an independent decoder and is sample-aligned with the source mix | production | PASS | measured | Chromium AAC decoder SNR 22.7/22.71 dB vs source mix; MP4 decode (edit list applied) offset 0 samples (0.00 ms), 871424 samples decoded |
+| S01 Opening readability (premise prop fills the first second) | story | PASS | measured | opening shot prop_ecu on button for 0.9s; button covers 39.5% of frame at t=0.40 |
+| S02 Causal prop visible at every cause (press contact) | story | PASS | measured | 2.62s s03 ok; 6.71s s06 ok; 7.71s s06 ok |
+| S03 Characters introduced before they matter | story | PASS | static | protagonist kira first framed at 0.90s (<= 3.0); foil zapp at 3.34s (<= 8.17) |
+| S04 Every cause precedes its result (press->coin->growth->impact) | story | PASS | static | press 2.62 -> spawn 2.69; spawn -> land 10.43 -> impact 15.40 |
+| S05 Reaction within 0.9 s of every information change | story | PASS | static | 6 information events all followed by a reaction |
+| S06 Largest reversal lands in the final 3 s (and before the payoff) | story | PASS | static | impact 15.40s, window [15.15, 17.35] |
+| S07 Final composition matches the opening (loop) | story | PASS | measured | last shot final_loop on button; camera position difference first/last analysed frame 0.0 cm |
+| S08 No long static interval (events <= 1.5 s apart, no frozen motion > 1 s) | story | PASS | measured | longest event gap 1.10s after t=3.54; longest fully static run 0.00s |
+| S09 Shot variety (no repeated consecutive setup, >= 5 presets, none > 40%) | story | PASS | static | 14 shots, 6 presets, max share 29% |
+| S10 No excessive character travel (<= 10 m per actor) | story | PASS | measured | kira 3.9 m, zapp 4.9 m |
+| S11 Actions compatible with props (no carry/throw/drink without attachment) | story | PASS | static | all actions registered and prop-compatible |
+
+## Notes
+- Gates marked "proxy" approximate creative judgement and need human review.
+- Frame issues are sampled every 3rd frame from the deterministic timeline before pixels are rendered.

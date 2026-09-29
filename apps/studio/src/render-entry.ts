@@ -2,7 +2,7 @@
 import type { Episode } from '../../../packages/schema/src/episode.ts';
 import { Renderer } from '../../../packages/engine/src/gl/renderer.ts';
 import { Production, type Library, type FrameIssue } from '../../../packages/engine/src/production.ts';
-import { FrameCapture, encodeOpus } from '../../../packages/engine/src/capture.ts';
+import { FrameCapture, encodeOpus, sha256Hex } from '../../../packages/engine/src/capture.ts';
 
 let prod: Production | null = null;
 let renderer: Renderer | null = null;
@@ -22,7 +22,16 @@ const api = {
     ensure(w, h);
     prod = new Production(ep, lib);
     fps = ep.episode.fps;
-    return { renderer: renderer!.gl.getParameter(renderer!.gl.RENDERER) as string, contacts: prod.contacts(), impacts: [...prod.props].flatMap(([id, p]) => p.track.impacts.map((i) => ({ prop: id, ...i }))) };
+    return { renderer: renderer!.gl.getParameter(renderer!.gl.RENDERER) as string, render: prod.renderDecl, renderKey: prod.renderKey, contacts: prod.contacts(), impacts: [...prod.props].flatMap(([id, p]) => p.track.impacts.map((i) => ({ prop: id, ...i }))) };
+  },
+  /**
+   * Golden-hash path: render frame i at t = i / fps and hash the raw RGBA exactly like FrameCapture does (same draw call,
+   * same readPixels, same SHA-256), without encoding. Random access: frames may be any subset in any order.
+   */
+  async hashFrames(frames: number[]): Promise<Array<[number, string]>> {
+    const out: Array<[number, string]> = [];
+    for (const i of frames) { prod!.render(renderer!, i / fps); out.push([i, await sha256Hex(renderer!.readPixels())]); }
+    return out;
   },
   /** Render one frame at time t and return it as PNG data URL (QA stills / thumbnails / contact sheets). */
   still(t: number): string {
@@ -31,13 +40,18 @@ const api = {
     return canvas!.toDataURL('image/png');
   },
   /** Evaluate (no draw) + validate a list of times; returns per-frame issues and hand contact errors. */
-  analyze(times: number[]) {
-    const out: Array<{ t: number; shot: string; issues: FrameIssue[]; handErrors: Record<string, number>; cam: number[] }> = [];
+  analyze(times: number[], opts: { body?: boolean; screen?: string[]; occlusion?: Array<[string, string]> } = {}) {
+    const out: Array<{ t: number; shot: string; issues: FrameIssue[]; handErrors: Record<string, number>; cam: number[]; screen?: Record<string, { area: number; cx: number; cy: number; visible: boolean }> }> = [];
     for (const t of times) {
       const f = prod!.evaluate(t);
-      out.push({ t, shot: f.shot.id, issues: [...prod!.validateFrame(renderer!, f), ...prod!.handPenetrations(t)], handErrors: f.handErrors, cam: [...f.cam.pos, ...f.cam.target] });
+      const issues = [...prod!.validateFrame(renderer!, f), ...prod!.handPenetrations(t), ...(opts.body ? prod!.bodyIssues(t) : []), ...(opts.occlusion ?? []).flatMap(([inst, anchor]) => prod!.propOcclusion(f, inst, anchor))];
+      out.push({ t, shot: f.shot.id, issues, handErrors: f.handErrors, cam: [...f.cam.pos, ...f.cam.target], ...(opts.screen ? { screen: prod!.screenInfo(renderer!, f, opts.screen) } : {}) });
     }
     return out;
+  },
+  /** QA: continuous-time swept hand volume in locomotion onset/arrival windows (default: unpadded, 1 cm tolerance) */
+  sweep(opts: { substeps?: number; radius?: number; tolerance?: number } = {}) {
+    return prod!.sweptHandIssues(opts).map((i) => ({ t: i.t, shot: i.shot, code: i.code, message: i.message, subject: i.subject, depth: i.depth, window: i.window }));
   },
   /** World-space probes for motion QA (foot slip, teleport detection). */
   probe(times: number[]) {
@@ -53,8 +67,8 @@ const api = {
       return { t, actors, props };
     });
   },
-  initCapture(cfg: { bitrate: number; hashEvery: number; keyframeInterval?: number }) {
-    cap = new FrameCapture({ width: renderer!.width, height: renderer!.height, fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery }, canvas!, () => renderer!.readPixels());
+  initCapture(cfg: { bitrate: number; hashEvery: number; keyframeInterval?: number; overlay?: Array<{ from: number; to: number; text: string }> | null }) {
+    cap = new FrameCapture({ width: renderer!.width, height: renderer!.height, fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery, overlay: cfg.overlay ?? null }, canvas!, () => renderer!.readPixels());
     return true;
   },
   encodeRange: (a: number, b: number, final: boolean) => cap!.encodeRange(a, b, (i) => { prod!.render(renderer!, i / fps); }, final),
@@ -62,6 +76,21 @@ const api = {
   stats: () => renderer!.stats,
   encodeOpus: (pcmB64: string, sr: number, ch: number, br: number) => encodeOpus(pcmB64, sr, ch, br),
   lastIssues: () => lastIssues,
+  /** action-reel QA: full pose summary of one actor at each time */
+  pose(times: number[], actor: string, target?: string) {
+    return times.map((t) => {
+      prod!.evaluate(t);
+      const rig = prod!.rigs.get(actor)!, tr = prod!.tracks.get(actor)!;
+      const w = rig.root.world, f = rig.face.world;
+      // same foot point as the probe API / G21: sole x,z with the lowest toe/heel height
+      const foot = (side: 'l' | 'r') => { const ys = rig.probes.filter((p) => p.name === `probe:toe_${side}` || p.name === `probe:heel_${side}`).map((p) => p.worldPos()[1]); const s = (side === 'l' ? rig.sole_l : rig.sole_r).worldPos(); return [s[0], Math.min(...ys), s[2]]; };
+      return { t, root: rig.root.worldPos(), footL: foot('l'), footR: foot('r'), yaw: Math.atan2(w[8], w[10]) * 180 / Math.PI, fwdY: w[9], head: rig.face.worldPos(), faceYaw: Math.atan2(f[8], f[10]) * 180 / Math.PI, faceFwd: [f[8], f[9], f[10]], gazeFrom: ((n) => [n[0], n[1] + rig.dims.headH * 0.5, n[2]])(rig.joints.neck.worldPos()), handL: rig.hand_l.worldPos(), handR: rig.hand_r.worldPos(), soleL: rig.sole_l.worldPos(), soleR: rig.sole_r.worldPos(), stance: tr.lastStance ?? null, target: target ? prod!.point(target, t) ?? null : null };
+    });
+  },
+  /** QA: an actor's compiled motion segments (yaw pass + synchronised-onset plans, when the profile uses them) */
+  segments(actor: string) {
+    return prod!.tracks.get(actor)!.segs.map((s) => ({ action: s.a.action, start: s.start, end: s.end, dist: s.dist, fromYaw: s.fromYaw, endYaw: s.endYaw, onset: s.onset ? { stance: s.onset.stance, cyc0: s.onset.cyc0, G: s.onset.G, sOn: s.onset.sOn, yaw0: s.onset.yaw0, yaw1: s.onset.yaw1, turn: s.onset.turn } : null, onsetSkip: s.onsetSkip ?? null }));
+  },
   /** QA: depth of samples along camera->face ray inside a prop */
   rayDebug(actor: string, inst: string, t: number) {
     const f = prod!.evaluate(t);

@@ -1,0 +1,152 @@
+{
+ "item": {
+  "id": "B07",
+  "engine": "visible_secret_chase",
+  "kind": "reject_impossible",
+  "expected": "reject",
+  "expectedRejectCategory": "impossible",
+  "idea": "Zapp sees a coin on the ceiling and flies up to grab it.",
+  "request": {
+   "idea": "Zapp sees a coin on the ceiling and flies up to grab it.",
+   "durationTarget": 20,
+   "comedyEngine": null,
+   "seed": 1021
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Zapp sees a coin on the ceiling and flies up to grab it.",
+   "durationTarget": 20,
+   "comedyEngine": null,
+   "seed": 1021
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "impossible",
+   "reason": "flight is not supported (no flying rig or flight-path effect)"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "zapp"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "(added)"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "coin"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "zapp"
+    ],
+    "props": [
+     "coin"
+    ],
+    "places": [],
+    "actions": [
+     "fly",
+     "notice",
+     "carry"
+    ]
+   },
+   "substitutions": [
+    {
+     "requested": "(no trigger)",
+     "used": "suspicious_button",
+     "kind": "prop",
+     "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+    },
+    {
+     "requested": "carry/steal the object",
+     "used": "reach it first",
+     "kind": "action",
+     "reason": "engine v1 has no prop attachment; carrying is simplified to reaching/pressing"
+    }
+   ],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "impossible",
+    "reason": "flight is not supported (no flying rig or flight-path effect)"
+   }
+  },
+  "plan": null,
+  "substitutions": [
+   {
+    "requested": "(no trigger)",
+    "used": "suspicious_button",
+    "kind": "prop",
+    "reason": "structure adaptation: the only loopable reward source is the FREE COINS button"
+   },
+   {
+    "requested": "carry/steal the object",
+    "used": "reach it first",
+    "kind": "action",
+    "reason": "engine v1 has no prop attachment; carrying is simplified to reaching/pressing"
+   }
+  ],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.5538079999987531,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

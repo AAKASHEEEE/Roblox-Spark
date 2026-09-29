@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-in-the-gym-between-6k7-s4007",
+    "episodeSha256": "86f80f1718127154ef6ab2083e01b2a1a8a19c05004e3cd0f98c99b8366452ce",
+    "semanticSha256": "4816d8dc2e329b2b501a3d366bb80203a2914ad0a827f9ce5e414a26606b8726",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 480,
+  "hashedFrames": 32,
+  "hashEvery": 15,
+  "frameHashesSha256": "15948d6f6d4856b9a4bce9ad17fe2b808e35003aa20e3396dc7e378207777196",
+  "mp4": "out/bench-renders/run4-diag/HC07/gen-ooe-in-the-gym-between-6k7-s4007.mp4",
+  "mp4Sha256": "b92a1818fd5f14c3ee4ddf2661af975095b9176408906a93031a5e62a4d91236",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-vsc-still-holding-her-tennis-p2m-s4018",
+    "episodeSha256": "261d066597d8cb05be0c53439c7b455bded2c54e6321706d964ddbe5cc3516a3",
+    "semanticSha256": "4f36fba94ffa4c1b0eb7e9bef1810cdfed8a437ad23198f5dad5ae89ef80de54",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 600,
+  "hashedFrames": 40,
+  "hashEvery": 15,
+  "frameHashesSha256": "f038b78228701e52b66edfc6a6ef47465a4ce99e11cff6e288843a92a8b3c2c6",
+  "mp4": "out/bench-renders/run4-diag/HC18/gen-vsc-still-holding-her-tennis-p2m-s4018.mp4",
+  "mp4Sha256": "0142531884f0d91e842874707d18f02fb9a76656c72ceb8b9b9240c7503e439a",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

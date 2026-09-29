@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "diag-reel1-gestures-at-desk",
+    "episodeSha256": "9d057199db19e320c9f72526d11cfd0544c5d2b2aad8cabab83fe8a6ca854e11",
+    "semanticSha256": "93501bef731604c36062f50b1352d28d16299579c993e586da7e831bff03df13",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    540,
+    960
+  ],
+  "fps": 30,
+  "frames": 525,
+  "hashedFrames": 35,
+  "hashEvery": 15,
+  "frameHashesSha256": "f349da6755cbc06de6164c6855d336240c87ad23648e8e76615264faebd36652",
+  "mp4": "out/action-reel/reel1-gestures-at-desk/diag-reel1-gestures-at-desk.mp4",
+  "mp4Sha256": "7686b81d3e6ce778d5c4c0dbf7365429f9285fe1ebc8488a8492e4a329c8fcb1",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

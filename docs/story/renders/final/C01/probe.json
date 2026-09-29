@@ -1,0 +1,132 @@
+{
+  "probe": {
+    "tool": "builtin",
+    "format": {
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "duration": "17.007000",
+      "size": "24403775",
+      "faststart": true,
+      "major_brand": "isom"
+    },
+    "streams": [
+      {
+        "index": 0,
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "nb_frames": "510",
+        "duration": "17.000000",
+        "profile": "High",
+        "pix_fmt": "yuv420p",
+        "level": 40,
+        "r_frame_rate": "30/1",
+        "avg_frame_rate": "30/1"
+      },
+      {
+        "index": 1,
+        "codec_type": "audio",
+        "codec_name": "aac",
+        "channels": 2,
+        "sample_rate": "48000",
+        "nb_frames": "799",
+        "duration": "17.007000",
+        "profile": "LC"
+      }
+    ],
+    "notes": [
+      "ffprobe not available: built-in ISO-BMFF/avcC/esds parser used"
+    ]
+  },
+  "production": {
+    "ok": true,
+    "tool": "builtin",
+    "errors": [],
+    "checks": [
+      {
+        "name": "container",
+        "ok": true,
+        "got": "mov,mp4,m4a,3gp,3g2,mj2",
+        "want": "mp4"
+      },
+      {
+        "name": "fast-start (moov before mdat)",
+        "ok": true,
+        "got": "true",
+        "want": "true"
+      },
+      {
+        "name": "exactly one video stream",
+        "ok": true,
+        "got": "1",
+        "want": "1"
+      },
+      {
+        "name": "exactly one audio stream",
+        "ok": true,
+        "got": "1",
+        "want": "1"
+      },
+      {
+        "name": "video codec",
+        "ok": true,
+        "got": "h264",
+        "want": "h264"
+      },
+      {
+        "name": "pixel format",
+        "ok": true,
+        "got": "yuv420p",
+        "want": "yuv420p"
+      },
+      {
+        "name": "resolution",
+        "ok": true,
+        "got": "1080x1920",
+        "want": "1080x1920"
+      },
+      {
+        "name": "constant frame rate",
+        "ok": true,
+        "got": "30/1 (avg 30/1)",
+        "want": "30/1"
+      },
+      {
+        "name": "duration",
+        "ok": true,
+        "got": "17.000",
+        "want": "14-22 s"
+      },
+      {
+        "name": "audio codec",
+        "ok": true,
+        "got": "aac",
+        "want": "aac"
+      },
+      {
+        "name": "audio profile",
+        "ok": true,
+        "got": "LC",
+        "want": "LC"
+      },
+      {
+        "name": "audio sample rate",
+        "ok": true,
+        "got": "48000",
+        "want": "48000"
+      },
+      {
+        "name": "audio channels",
+        "ok": true,
+        "got": "2",
+        "want": "2"
+      },
+      {
+        "name": "A/V duration match",
+        "ok": true,
+        "got": "7.0 ms",
+        "want": "<= 33.3 ms"
+      }
+    ]
+  }
+}

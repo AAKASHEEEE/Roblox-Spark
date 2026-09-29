@@ -1,8 +1,9 @@
 // Episode validation: strict schema + semantic checks + safe automatic repairs.
 // Never executes anything from the episode; the episode is inert data.
 import { EpisodeSchema, LOCOMOTION_ACTIONS, type Episode } from '../../schema/src/episode.ts';
+import { checkRenderDeclaration } from '../../schema/src/render-compat.ts';
 import type { AudioManifest, CharacterManifest, EnvironmentManifest, PropManifest } from '../../schema/src/assets.ts';
-import { ACTION_DEFS } from '../../engine/src/animation/actions.ts';
+import { ACTION_DEFS, ACTION_REQUIREMENTS, unmetRequirements } from '../../engine/src/animation/actions.ts';
 
 export interface Lib {
   characters: Record<string, CharacterManifest>;
@@ -12,7 +13,21 @@ export interface Lib {
 }
 export type Severity = 'error' | 'warning' | 'info';
 export interface Finding { severity: Severity; code: string; message: string; path?: string }
-export interface ValidationResult { ok: boolean; episode?: Episode; findings: Finding[]; repairs: string[]; metrics: Record<string, number> }
+export interface ValidationResult { ok: boolean; episode?: Episode; findings: Finding[]; repairs: string[]; metrics: Record<string, number>; profile?: ValidationProfile }
+
+/**
+ * Validation profiles.
+ *  - story-episode (default): every check, including story structure — for anything meant to be published.
+ *  - action-reel: diagnostic reels that exercise engine actions. Asset, reference, timeline, feasibility, causality,
+ *    audio-sync and safety checks all apply; story-structure checks are NOT applicable and are reported as info.
+ */
+export type ValidationProfile = 'story-episode' | 'action-reel';
+export const VALIDATION_PROFILES: readonly ValidationProfile[] = ['story-episode', 'action-reel'];
+/** findings that judge story structure / editing (not applicable to diagnostic action reels) */
+export const STORY_STRUCTURE_CODES: ReadonlySet<string> = new Set([
+  'HERO_PROP', 'PREMISE_NOT_VISIBLE', 'SLOW_OPENING', 'STALE_STRETCH', 'NO_FACIAL_REACTION', 'NO_REVERSAL', 'REVERSAL_TOO_EARLY',
+  'LOOP', 'BEAT_COVERAGE', 'SHOT_VARIETY', 'SHOT_TOO_SHORT', 'SHOT_TOO_LONG', 'UNUSED_PROP',
+]);
 
 /** Terms that must never appear (brand/trade-dress + platform-safety + family-safety). */
 export const BANNED_TERMS = [
@@ -36,13 +51,24 @@ export function findBannedTerms(texts: string[]): string[] {
 
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
-export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean } = {}): ValidationResult {
+/** maximum shot length without a cut (s): the ONE source of truth for the story validator (SHOT_TOO_LONG) and gate G13 */
+export const MAX_SHOT_SEC = 3.0;
+export const shotTooLong = (s: { start: number; end: number }): boolean => s.end - s.start > MAX_SHOT_SEC + 1e-9;
+export const longShots = <S extends { start: number; end: number }>(ep: { shots: readonly S[] }): S[] => ep.shots.filter(shotTooLong);
+
+export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean; profile?: ValidationProfile } = {}): ValidationResult {
+  const profile = opts.profile ?? 'story-episode';
+  if (!VALIDATION_PROFILES.includes(profile)) throw new Error(`unknown validation profile ${JSON.stringify(profile)}`);
   const findings: Finding[] = [];
   const repairs: string[] = [];
-  const err = (code: string, message: string, path?: string) => findings.push({ severity: 'error', code, message, path });
-  const warn = (code: string, message: string, path?: string) => findings.push({ severity: 'warning', code, message, path });
+  const na = (code: string) => profile === 'action-reel' && STORY_STRUCTURE_CODES.has(code);
+  const err = (code: string, message: string, path?: string) => findings.push(na(code) ? { severity: 'info', code, message: `[not applicable: validation profile action-reel] ${message}`, path } : { severity: 'error', code, message, path });
+  const warn = (code: string, message: string, path?: string) => findings.push(na(code) ? { severity: 'info', code, message: `[not applicable: validation profile action-reel] ${message}`, path } : { severity: 'warning', code, message, path });
   const info = (code: string, message: string) => findings.push({ severity: 'info', code, message });
 
+  // rendering compatibility first: a missing/unsupported declaration is reported with its own code, never defaulted
+  const compat = checkRenderDeclaration(raw);
+  if (!compat.ok) { err(compat.code, compat.message, compat.path); return { ok: false, findings, repairs, metrics: {} }; }
   const parsed = EpisodeSchema.parse(raw);
   if (!parsed.ok) {
     for (const i of parsed.issues) err('SCHEMA', i.message, i.path);
@@ -117,6 +143,12 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
     if (!m.allowedActions.includes(a.action)) err('INVALID_ACTION', `${a.actor} is not allowed to ${a.action}`);
     if (a.expression && !m.allowedExpressions.includes(a.expression)) err('INVALID_EXPRESSION', `${a.actor} cannot use expression ${a.expression}`);
     if (a.start + a.duration > D + 1e-6) err('TIMELINE_OVERFLOW', `actions[${i}] ${a.actor}.${a.action} ends at ${r3(a.start + a.duration)} > ${D}`);
+    // stories may not rely on actions whose engine features do not exist yet (reels exercise their poses on purpose)
+    const unmet = unmetRequirements(a.action);
+    if (unmet.length) {
+      const msg = `actions[${i}] ${a.actor}.${a.action}: ${ACTION_REQUIREMENTS[a.action]!.reason} (requires: ${unmet.join(', ')})`;
+      if (profile === 'action-reel') info('ACTION_UNAVAILABLE', `[allowed in action-reel: pose exercised without the feature] ${msg}`); else err('ACTION_UNAVAILABLE', msg);
+    }
     if (['press_button', 'pick_up', 'point', 'turn_toward', 'look_at'].includes(a.action) && !a.target) err('MISSING_TARGET', `actions[${i}] ${a.action} needs a target`);
     if (LOCOMOTION_ACTIONS.includes(a.action) && !a.to) err('MISSING_TARGET', `actions[${i}] ${a.action} needs "to"`);
     if (!def?.layer) byActor.set(a.actor, [...(byActor.get(a.actor) ?? []), a]);
@@ -191,7 +223,7 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
   for (const s of shots) {
     const len = s.end - s.start;
     if (len < 0.4) warn('SHOT_TOO_SHORT', `${s.id} lasts ${r3(len)}s (< 0.4 s reads as a glitch)`);
-    if (len > 3.0) warn('SHOT_TOO_LONG', `${s.id} lasts ${r3(len)}s (> 3 s without a cut)`);
+    if (shotTooLong(s)) err('SHOT_TOO_LONG', `${s.id} lasts ${r3(len)}s (> ${MAX_SHOT_SEC} s without a cut) @${s.start}`);
   }
   info('SHOT_STATS', `${shots.length} shots, ${presets.size} distinct presets: ${[...presets].join(', ')}`);
 
@@ -240,7 +272,7 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
     if (c.at > D) err('TIMELINE_OVERFLOW', `audio.cues[${i}] after end`);
     const m = c.sync?.match(/^contact:([a-z0-9_]+):([a-z_]+)$/);
     let want: number | undefined;
-    if (m) want = contacts.find((x) => x.a.actor === m[1] && x.a.action === m[2])?.t;
+    if (m) { const cands = contacts.filter((x) => x.a.actor === m[1] && x.a.action === m[2]); want = cands.length ? cands.reduce((b, x) => (Math.abs(x.t - c.at) < Math.abs(b.t - c.at) ? x : b)).t : undefined; }
     else if (c.sync && impactTimes[c.sync] !== undefined) want = impactTimes[c.sync];
     if (want !== undefined && Math.abs(want - c.at) > frame) {
       if (opts.repair) { repairs.push(`moved cue ${c.sfx} ${c.at} -> ${r3(want)} (sync ${c.sync})`); c.at = r3(want); }
@@ -255,5 +287,5 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
 
   const metrics = { shots: shots.length, distinctPresets: presets.size, maxStaleGap: r3(maxGap), actions: ep.actions.length, cues: ep.audio.cues.length, reversalAt: r3(lastImpact) };
   const ok = !findings.some((f) => f.severity === 'error');
-  return { ok, episode: ep, findings, repairs, metrics };
+  return { ok, episode: ep, findings, repairs, metrics, profile };
 }

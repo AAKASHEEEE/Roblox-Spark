@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-vsc-zapp-spots-the-hidden-yy8-s4012",
+    "episodeSha256": "622e9013dbe28e4b0c0c4b8d5c6eea4a459fbd763d1ff73d184f5bfec5ebcdb5",
+    "semanticSha256": "e69901f63b8d0ffba7457be772c433594d8cbf061e33c739b2277a70363156d8",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "306245c1662dee11de681aed5fdabca45817426ae042115dafbce377e5003ff3",
+  "mp4": "out/bench-renders/run4-diag/HC12/gen-vsc-zapp-spots-the-hidden-yy8-s4012.mp4",
+  "mp4Sha256": "77bea23f301d7f18931ad4f81125a16363e3b69d4a76fe6802c7f215890da7ea",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

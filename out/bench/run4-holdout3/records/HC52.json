@@ -1,0 +1,129 @@
+{
+ "item": {
+  "id": "HC52",
+  "engine": "visible_secret_chase",
+  "kind": "holdout3",
+  "expected": "reject",
+  "expectedRejectCategory": "protected_ip",
+  "probes": [],
+  "idea": "Mario and Luigi race each other to a secret button in the classroom.",
+  "request": {
+   "idea": "Mario and Luigi race each other to a secret button in the classroom.",
+   "durationTarget": 17,
+   "comedyEngine": null,
+   "seed": 4052
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Mario and Luigi race each other to a secret button in the classroom.",
+   "durationTarget": 17,
+   "comedyEngine": null,
+   "seed": 4052
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "protected_ip",
+   "reason": "idea depends on protected IP (mario, luigi); original cast only"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "visible_secret_chase",
+   "protagonist": {
+    "id": "zapp",
+    "mention": "(default)"
+   },
+   "support": {
+    "id": "kira",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "classroom"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "(added)"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Zapp is nearby.",
+   "goal": "Zapp wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Zapp."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [],
+    "props": [
+     "button"
+    ],
+    "places": [
+     "classroom"
+    ],
+    "actions": [
+     "notice",
+     "race"
+    ]
+   },
+   "substitutions": [],
+   "requiresDialogue": false,
+   "requiresReadableText": false,
+   "safety": {
+    "classification": "protected_ip",
+    "categories": [
+     "protected_character"
+    ],
+    "notes": "scan: mario, luigi"
+   },
+   "rejection": {
+    "category": "protected_ip",
+    "reason": "idea depends on protected IP (mario, luigi); original cast only"
+   }
+  },
+  "plan": null,
+  "substitutions": [],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "fitKnobs": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.9371649999957299,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

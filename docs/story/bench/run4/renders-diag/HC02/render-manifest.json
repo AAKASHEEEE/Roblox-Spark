@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-awl-kira-pokes-the-glowing-wo5-s4002",
+    "episodeSha256": "809d2c1ed5b8ce354f278508290607e097a89740d37f9dccf95e0378765ef992",
+    "semanticSha256": "1f2a3ec018846123f1506d1f00de926c81b53187467af6bc298e66d52f900057",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "80bf6a865e282abc4231df5954ed5be9119b7dd6e455bfeb4971d41df595a60c",
+  "mp4": "out/bench-renders/run4-diag/HC02/gen-awl-kira-pokes-the-glowing-wo5-s4002.mp4",
+  "mp4Sha256": "6badecdf4532c6c1a50996b25323ceb4c148fead16210cbe697d6c115ae81135",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

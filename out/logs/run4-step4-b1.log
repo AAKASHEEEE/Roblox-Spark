@@ -1,0 +1,35 @@
+[0.0s] episode out/bench/run4-holdout3/episodes/HC01.json -> out/bench-renders/run4-final/HC01 (scale 1)
+[0.0s] episode out/bench/run4-holdout3/episodes/HC11.json -> out/bench-renders/run4-final/HC11 (scale 1)
+[0.8s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@3.470
+[0.8s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: kira.press_button@5.674
+[1.4s] analysis pass: 483 probes + 161 shot validations in 0.7s
+[1.4s] derived 11 footstep cues from foot contacts
+[5.2s] audio: -14.14 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 757 access units (+1024 priming), 3.8s
+[5.2s] analysis pass: 480 probes + 160 shot validations in 4.5s
+[5.2s] derived 14 footstep cues from foot contacts
+[8.9s] audio: -14.13 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 752 access units (+1024 priming), 3.7s
+[102.7s] frames 90/480 (1042 ms/frame)
+[112.9s] frames 90/483 (1155 ms/frame)
+[175.1s] frames 180/480 (923 ms/frame)
+[194.5s] frames 180/483 (1031 ms/frame)
+[254.2s] frames 270/480 (908 ms/frame)
+[262.9s] frames 270/483 (941 ms/frame)
+[306.6s] frames 360/480 (827 ms/frame)
+[331.2s] frames 360/483 (895 ms/frame)
+[380.1s] frames 450/480 (825 ms/frame)
+[399.4s] frames 450/483 (868 ms/frame)
+[404.2s] frames 480/480 (823 ms/frame)
+[404.2s] muxed out/bench-renders/run4-final/HC11/gen-vsc-kira-notices-a-secret-8rh-s4011.mp4 20.87 MB sha256 cdf4e75546536586…
+[404.3s] production profile (builtin): PASS
+[418.3s] AAC check: decoder SNR 21.74/21.82 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 768384/768384
+[418.6s] frames 483/483 (848 ms/frame)
+[418.7s] muxed out/bench-renders/run4-final/HC01/gen-ooe-zapp-slaps-the-big-vec-s4001.mp4 21.72 MB sha256 896219e669d31e9b…
+[418.7s] production profile (builtin): PASS
+[419.6s] decode check: OK 1080x1920 16.008s, audio bytes decoded 242485; loop first/last frame diff 1.67% (control mid-episode 37.88%)
+[419.6s] quality: 37/37 gates passed
+HC11 OK  37/37  420s
+[427.8s] AAC check: decoder SNR 23.2/23.2 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 773424/773424
+[429.0s] decode check: OK 1080x1920 16.113s, audio bytes decoded 317876; loop first/last frame diff 2.76% (control mid-episode 19.91%)
+[429.0s] quality: 37/37 gates passed
+HC01 OK  37/37  429s
+{"rendered":2,"allGatesPassed":2,"wallSec":429.057}

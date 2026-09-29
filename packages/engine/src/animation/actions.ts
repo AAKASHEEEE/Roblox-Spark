@@ -17,7 +17,7 @@ export interface ActionCtx {
   target?: Vec3; // resolved world target (prop anchor, actor head, mark)
   params: Record<string, number | string | boolean>;
   /** locomotion state supplied by the track compiler */
-  loco?: { dist: number; speed: number; run: boolean; legLen: number; total: number };
+  loco?: { dist: number; speed: number; run: boolean; legLen: number; total: number; /** gait phase at dist 0 (default 0.25 = left mid-stance) */ phase0?: number; /** whole stances over total (default: rounded from total) */ stances?: number };
 }
 
 export interface ActionDef {
@@ -55,13 +55,13 @@ function locomotion(c: ActionCtx): ActionPose {
   let S = run ? 0.62 : 0.4; // foot travel per stance (m)
   // stride fitting: arrive at mid-stance (feet under the body) so the stop needs no foot correction
   // start and finish at mid-stance (planted foot under the hip): whole number of stances over the path
-  if (total > 0.05) { const n = Math.max(1, Math.round(total / S)); S = total / n; }
+  if (total > 0.05) { const n = c.loco?.stances ?? Math.max(1, Math.round(total / S)); S = total / n; }
   const dist = c.loco?.dist ?? 0;
   const speed = c.loco?.speed ?? 0;
   // phase is driven purely by distance travelled; when speed -> 0 the legs freeze in place (no snap)
   const moving = total > 0.05 ? 1 : 0; // legs: distance-driven, never faded (feet stay planted)
   const amp = Math.min(1, speed / (run ? 1.2 : 0.7)); // upper body: settles as the character decelerates
-  const cyc = 0.25 + dist / (2 * S);
+  const cyc = (c.loco?.phase0 ?? 0.25) + dist / (2 * S);
   const leg = (p: number): { hip: number; knee: number } => {
     const f = p - Math.floor(p);
     let z: number, knee: number;
@@ -373,4 +373,24 @@ D.drink = {
 D.hover = { holds: true, blendIn: 0.1, pose: (c) => ({ joints: {}, lift: 0.08 * Math.sin(c.lt * 6) }) };
 
 export const ACTION_DEFS = D as Record<ActionName, ActionDef>;
+
+/**
+ * Engine features some actions need before they are USABLE in stories (their poses exist either way and are exercised by
+ * the action reel). Flip a feature to true only when it is implemented and tested; availability follows automatically.
+ */
+export const ENGINE_FEATURES = { handAttachment: false, floatingRig: false } as const;
+export type EngineFeature = keyof typeof ENGINE_FEATURES;
+const HAND = 'the held object must follow the hand; engine 1.0 has no prop-to-hand attachment, so the object would stay behind';
+export const ACTION_REQUIREMENTS: Partial<Record<ActionName, { features: EngineFeature[]; reason: string }>> = {
+  pick_up: { features: ['handAttachment'], reason: HAND },
+  hold: { features: ['handAttachment'], reason: HAND },
+  put_down: { features: ['handAttachment'], reason: HAND },
+  throw: { features: ['handAttachment'], reason: `${HAND}; a thrown object also needs release + flight` },
+  drink: { features: ['handAttachment'], reason: `${HAND}; no drinkable prop exists either` },
+  hover: { features: ['floatingRig'], reason: 'only floating rigs can hover and none is built (BZTT is unbuilt)' },
+};
+/** features an action still needs (empty = available) */
+export function unmetRequirements(action: ActionName, features: Record<EngineFeature, boolean> = ENGINE_FEATURES): EngineFeature[] {
+  return (ACTION_REQUIREMENTS[action]?.features ?? []).filter((f) => !features[f]);
+}
 export const IMPLEMENTED_ACTIONS = Object.keys(D) as ActionName[];

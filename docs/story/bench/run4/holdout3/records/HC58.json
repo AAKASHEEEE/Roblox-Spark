@@ -1,0 +1,127 @@
+{
+ "item": {
+  "id": "HC58",
+  "engine": "ordinary_object_extreme",
+  "kind": "holdout3",
+  "expected": "reject",
+  "expectedRejectCategory": "requires_text",
+  "probes": [],
+  "idea": "Kira reads the tiny print on the button, laughs, and presses it anyway.",
+  "request": {
+   "idea": "Kira reads the tiny print on the button, laughs, and presses it anyway.",
+   "durationTarget": 20,
+   "comedyEngine": null,
+   "seed": 4058
+  }
+ },
+ "record": {
+  "request": {
+   "idea": "Kira reads the tiny print on the button, laughs, and presses it anyway.",
+   "durationTarget": 20,
+   "comedyEngine": null,
+   "seed": 4058
+  },
+  "provider": {
+   "name": "rules",
+   "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)"
+  },
+  "status": "rejected",
+  "rejection": {
+   "category": "requires_text",
+   "reason": "the joke depends on reading text on screen; stories must read without text"
+  },
+  "failure": null,
+  "normalized": {
+   "engine": "ordinary_object_extreme",
+   "protagonist": {
+    "id": "kira",
+    "mention": "kira"
+   },
+   "support": {
+    "id": "zapp",
+    "mention": "(default)"
+   },
+   "environment": {
+    "id": "classroom",
+    "mention": "(default)"
+   },
+   "causalProp": {
+    "id": "suspicious_button",
+    "mention": "button"
+   },
+   "escalationProp": {
+    "id": "spark_coin",
+    "mention": "(added)"
+   },
+   "initialSituation": "A suspicious FREE COINS button flashes on a classroom desk; Kira is nearby.",
+   "goal": "Kira wants the reward.",
+   "escalation": "The reward coin grows far beyond reason.",
+   "reversal": {
+    "kind": "topple_onto",
+    "victim": "protagonist",
+    "description": "The giant coin topples onto Kira."
+   },
+   "loopMechanism": "button_resets",
+   "requested": {
+    "characters": [
+     "kira"
+    ],
+    "props": [
+     "button"
+    ],
+    "places": [],
+    "actions": [
+     "needsText",
+     "press"
+    ]
+   },
+   "substitutions": [],
+   "requiresDialogue": false,
+   "requiresReadableText": true,
+   "safety": {
+    "classification": "safe",
+    "categories": [],
+    "notes": "no unsafe or protected terms found"
+   },
+   "rejection": {
+    "category": "requires_text",
+    "reason": "the joke depends on reading text on screen; stories must read without text"
+   }
+  },
+  "plan": null,
+  "substitutions": [],
+  "warnings": [],
+  "schemaEvents": [
+   {
+    "stage": "normalize",
+    "ok": true,
+    "issues": []
+   }
+  ],
+  "attempts": [],
+  "repairs": 0,
+  "episode": null,
+  "lastCompiled": null,
+  "episodeSha256": null,
+  "fitKnobs": null,
+  "events": [],
+  "gates": [],
+  "mutedStoryScore": null,
+  "calls": [
+   {
+    "stage": "normalize",
+    "ms": 0.3374079999921378,
+    "tokensIn": 0,
+    "tokensOut": 0,
+    "ok": true,
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "attempts": 1
+   }
+  ],
+  "latencyMs": 1,
+  "tokens": {
+   "in": 0,
+   "out": 0
+  }
+ }
+}

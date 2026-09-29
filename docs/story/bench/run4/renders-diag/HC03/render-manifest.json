@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-ooe-back-from-soccer-practice-u1x-s4003",
+    "episodeSha256": "e4418352e49f2e697eda99cfad65c675d2e4bae6f317f8c27100677e4cd859dd",
+    "semanticSha256": "838aaa5d690f4fca8096a50a5eb73b2afabb5df73fef8370c2cc5b9677b7f2fe",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 540,
+  "hashedFrames": 36,
+  "hashEvery": 15,
+  "frameHashesSha256": "8575e864125efbb2422ec298e7a5c8c7c2a2965cf710ea87e52e31527f87dc00",
+  "mp4": "out/bench-renders/run4-diag/HC03/gen-ooe-back-from-soccer-practice-u1x-s4003.mp4",
+  "mp4Sha256": "1d0d8086c57680fe80ea0156c0c88f77eceaff3932cd08189ddd773ab09d7a54",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-awl-kira-hides-behind-her-1i8-s4026",
+    "episodeSha256": "a35f56811cb9904d4bb615d5e5da5b4d30bb1a34430142a418d9a919a335071d",
+    "semanticSha256": "39ad3028724a433e21c8474700144b672473af13eff77295d06da16424131f9e",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "454e7f7a81ba1e3e950f92d3dc6dec249e82703385d43479c7ba3c7dcb882a80",
+  "mp4": "out/bench-renders/run4-diag/HC26/gen-awl-kira-hides-behind-her-1i8-s4026.mp4",
+  "mp4Sha256": "a2e364c16776c68512cfc66b90327af2a1dfbaee0829c9c4956894a04d713d65",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

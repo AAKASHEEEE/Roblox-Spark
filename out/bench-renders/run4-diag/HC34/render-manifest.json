@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-nvs-zapp-taps-the-button-eih-s4034",
+    "episodeSha256": "11bdd0a7375b2a6201dfec70d89440e397b6b9de95c0861d5e1c270c690e1b5f",
+    "semanticSha256": "04605ea5e872618c0f800ebc700bd89e77a5274532db08d0a46766d69f3b0496",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 555,
+  "hashedFrames": 37,
+  "hashEvery": 15,
+  "frameHashesSha256": "e6cfb2988bead11f13dad157cfacfe0d2c459b9c6f8025faeccc653ce5f4e645",
+  "mp4": "out/bench-renders/run4-diag/HC34/gen-nvs-zapp-taps-the-button-eih-s4034.mp4",
+  "mp4Sha256": "ccba15e3df9d4cc7f5508e26f267b3cc1a8e5887cc35f97f6342969a140bc40e",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}

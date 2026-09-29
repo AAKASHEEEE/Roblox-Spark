@@ -1,0 +1,145 @@
+# Benchmark results — provider `rules`
+
+Dataset `bench/holdout2-ideas.json` (17 ideas). Analyzer: on.
+
+```json
+{
+  "run": {
+    "provider": "rules",
+    "model": "rules-v1 (deterministic keyword slot-filler, not an LLM)",
+    "dataset": "bench/holdout2-ideas.json",
+    "ideas": 17,
+    "compatible": 12,
+    "mustReject": 5,
+    "ipTransformable": 0,
+    "analyzer": true,
+    "date": "2026-09-27T18:33:00.524Z"
+  },
+  "m01_schemaValidResponseRate": 100,
+  "m01b_finalSchemaValidOrExplicitRejection": 70.6,
+  "m02_assetCompatibleFirstPlanRate": 100,
+  "m03_firstPassCompilerSuccess_compatible": 100,
+  "m04_firstPassValidatorAcceptance_compatible": 58.3,
+  "m05_acceptanceAfterRepair_compatible": 58.3,
+  "m06_avgRepairs_compatible": 1.25,
+  "m06b_avgRepairs_accepted": 0,
+  "m07_rejectionCorrectness_mustReject": 80,
+  "m07b_rejectionCategoryMatch": 60,
+  "m07c_unsafeRejected": 66.7,
+  "m07d_protectedIpRejectedOrTransformed": 100,
+  "m07e_falseRejections_compatible": [],
+  "m08_avgLatencyMs_all": 733,
+  "m08b_avgLatencyMs_accepted": 531,
+  "m09_cost": {
+    "modelTokensIn": 0,
+    "modelTokensOut": 0,
+    "modelCostUsd": 0,
+    "computeCostUsdPerIdea_at_0_35_per_hour": 0.000071,
+    "estimatedLlmPromptTokensPerIdea": {
+      "normalize": 1098,
+      "plan": 2188,
+      "note": "estimated from the real prompts (chars/4); output ~1.5-4k tokens per plan; repairs add ~1 plan-sized prompt each"
+    }
+  },
+  "m10_causeResultCompleteness": 100,
+  "m11_reversalPlacementCompliance": 100,
+  "m12_loopCompliance": 100,
+  "m13_mutedStoryHeuristicScore_mean": 98,
+  "m14_cameraQualityPass_firstCompiled": 75,
+  "m14b_cameraQualityPass_final": 75,
+  "m15_collisionQualityPass_firstCompiled": 58.3,
+  "m15b_collisionQualityPass_final": 83.3,
+  "m16_deterministicRecompilation": 100,
+  "zeroArbitraryCodeExecution": "by construction: provider output is parsed as data and schema-validated; no eval/Function/dynamic import/shell exists on the output path (tests/story.security.test.ts)",
+  "silentAssetInvention": 0,
+  "confusion": {
+    "compatible": {
+      "accepted": 7,
+      "rejected": 0,
+      "failed": 5
+    },
+    "mustReject": {
+      "rejected": 4,
+      "accepted": [
+        "HB17"
+      ],
+      "failed": []
+    },
+    "ipTransform": []
+  },
+  "perEngine": {
+    "ordinary_object_extreme": {
+      "compatible": 3,
+      "firstPass": 1,
+      "afterRepair": 1
+    },
+    "visible_secret_chase": {
+      "compatible": 3,
+      "firstPass": 3,
+      "afterRepair": 3
+    },
+    "apparent_win_instant_loss": {
+      "compatible": 3,
+      "firstPass": 3,
+      "afterRepair": 3
+    },
+    "noob_vs_smart": {
+      "compatible": 3,
+      "firstPass": 0,
+      "afterRepair": 0
+    }
+  },
+  "substitutionsDeclared": 16,
+  "failures": [
+    {
+      "id": "HB02",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): HAND_PENETRATION zapp r hand 1.6 cm inside prop:coin (1 sampled frames in s08)"
+    },
+    {
+      "id": "HB03",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): HAND_PENETRATION zapp r hand 2.2 cm inside prop:coin (1 sampled frames in s09)"
+    },
+    {
+      "id": "HB10",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): FACE_OUT_OF_FRAME zapp face not in frame (5 sampled frames in s02)"
+    },
+    {
+      "id": "HB11",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): FACE_OUT_OF_FRAME kira face not in frame (4 sampled frames in s02)"
+    },
+    {
+      "id": "HB12",
+      "expected": "accept",
+      "reason": "not accepted after 3 repair(s): FACE_TURNED_AWAY kira face turned away from camera (dot=-0.21) (16 sampled frames in s04) | PROP_OCCLUDED button.press_surface hidden behind kira:cuff_r (1 sampled frames in s06)"
+    }
+  ],
+  "determinism": {
+    "sameProcessAndFresh": "8/8",
+    "mismatches": []
+  }
+}
+```
+
+| id | kind | expected | result | repairs | subs | reject category | reason |
+|---|---|---|---|---|---|---|---|
+| HB01 | holdout2 | accept | **accepted** | 0 | 0 |  |  |
+| HB02 | holdout2 | accept | **failed** | 3 | 1 |  | not accepted after 3 repair(s): HAND_PENETRATION zapp r hand 1.6 cm inside prop:coin (1 sampled frames in s08) |
+| HB03 | holdout2 | accept | **failed** | 3 | 2 |  | not accepted after 3 repair(s): HAND_PENETRATION zapp r hand 2.2 cm inside prop:coin (1 sampled frames in s09) |
+| HB04 | holdout2 | accept | **accepted** | 0 | 1 |  |  |
+| HB05 | holdout2 | accept | **accepted** | 0 | 0 |  |  |
+| HB06 | holdout2 | accept | **accepted** | 0 | 2 |  |  |
+| HB07 | holdout2 | accept | **accepted** | 0 | 1 |  |  |
+| HB08 | holdout2 | accept | **accepted** | 0 | 1 |  |  |
+| HB09 | holdout2 | accept | **accepted** | 0 | 1 |  |  |
+| HB10 | holdout2 | accept | **failed** | 3 | 1 |  | not accepted after 3 repair(s): FACE_OUT_OF_FRAME zapp face not in frame (5 sampled frames in s02) |
+| HB11 | holdout2 | accept | **failed** | 3 | 1 |  | not accepted after 3 repair(s): FACE_OUT_OF_FRAME kira face not in frame (4 sampled frames in s02) |
+| HB12 | holdout2 | accept | **failed** | 3 | 1 |  | not accepted after 3 repair(s): FACE_TURNED_AWAY kira face turned away from camera (dot=-0.21) (16 sampled frames in s04 |
+| HB13 | holdout2 | reject | **rejected** | 0 | 0 | unsafe | unsafe content (violence: ""chair" throws at kira") |
+| HB14 | holdout2 | reject | **rejected** | 0 | 1 | unavailable | requires unregistered prop(s): door (no safe same-class substitute) |
+| HB15 | holdout2 | reject | **rejected** | 0 | 2 | protected_ip | idea depends on protected IP (sonic); original cast only |
+| HB16 | holdout2 | reject | **rejected** | 0 | 1 | unavailable | no rig for non-human character(s): cat |
+| HB17 | holdout2 | reject | **accepted** | 0 | 0 |  |  |

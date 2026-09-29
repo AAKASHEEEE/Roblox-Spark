@@ -1,0 +1,35 @@
+[0.0s] episode out/bench/run4-holdout3/episodes/HC21.json -> out/bench-renders/run4-final/HC21 (scale 1)
+[0.0s] episode out/bench/run4-holdout3/episodes/HC31.json -> out/bench-renders/run4-final/HC31 (scale 1)
+[0.7s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@3.464, zapp.press_button@4.864, zapp.press_button@6.314
+[0.7s] renderer: WebKit WebGL; declared renderer 1.0.0, motion profile corrected-head-v2; contacts: zapp.press_button@2.570, kira.press_button@6.705, kira.press_button@7.705
+[1.4s] analysis pass: 486 probes + 162 shot validations in 0.7s
+[1.4s] derived 11 footstep cues from foot contacts
+[5.2s] audio: -14.15 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 761 access units (+1024 priming), 3.8s
+[5.2s] analysis pass: 511 probes + 171 shot validations in 4.4s
+[5.2s] derived 19 footstep cues from foot contacts
+[9.0s] audio: -14.14 LUFS (target -14), peak -1.5 dBFS, AAC-LC 160 kbps, 800 access units (+1024 priming), 3.8s
+[107.8s] frames 90/511 (1097 ms/frame)
+[111.9s] frames 90/486 (1144 ms/frame)
+[176.9s] frames 180/511 (933 ms/frame)
+[198.4s] frames 180/486 (1052 ms/frame)
+[261.6s] frames 270/511 (936 ms/frame)
+[278.6s] frames 270/486 (999 ms/frame)
+[323.0s] frames 360/511 (872 ms/frame)
+[331.1s] frames 360/486 (895 ms/frame)
+[385.7s] frames 450/511 (837 ms/frame)
+[403.9s] frames 450/486 (878 ms/frame)
+[434.5s] frames 486/486 (876 ms/frame)
+[434.5s] muxed out/bench-renders/run4-final/HC21/gen-awl-zapp-presses-the-button-4l-s4021.mp4 23.28 MB sha256 7cea7a54e5f76fbf…
+[434.6s] production profile (builtin): PASS
+[442.0s] frames 511/511 (847 ms/frame)
+[442.0s] muxed out/bench-renders/run4-final/HC31/gen-nvs-zapp-mashes-the-button-t1u-s4031.mp4 24.36 MB sha256 8804ddd93514e556…
+[442.1s] production profile (builtin): PASS
+[447.5s] AAC check: decoder SNR 21.85/21.88 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 777600/777456
+[449.1s] decode check: OK 1080x1920 16.2s, audio bytes decoded 311668; loop first/last frame diff 2.59% (control mid-episode 24.13%)
+[449.1s] quality: 37/37 gates passed
+HC21 OK  37/37  449s
+[451.9s] AAC check: decoder SNR 21.88/21.9 dB, codec delay 1024 samples; MP4 decode (edit list applied) offset 0 samples = 0.00 ms, length 817872/817872
+[453.0s] decode check: OK 1080x1920 17.039s, audio bytes decoded 356414; loop first/last frame diff 2.67% (control mid-episode 27.89%)
+[453.0s] quality: 37/37 gates passed
+HC31 OK  37/37  453s
+{"rendered":4,"allGatesPassed":4,"wallSec":453.16}

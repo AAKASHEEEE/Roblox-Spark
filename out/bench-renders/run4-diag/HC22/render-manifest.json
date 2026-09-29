@@ -1,0 +1,30 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "gen-awl-kira-taps-the-stubborn-9j8-s4022",
+    "episodeSha256": "97b61b57626f62348bb0891ef3a20b58d0b718d6fb85786deb3a0269e3904cbf",
+    "semanticSha256": "dfeb7c58da4a5b8729cea3329f680f5e8aee5bb8d2c45ce46f44d8fdddb5bce6",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    270,
+    480
+  ],
+  "fps": 30,
+  "frames": 510,
+  "hashedFrames": 34,
+  "hashEvery": 15,
+  "frameHashesSha256": "bff171eda61ddbad3fc818bd7986f5c09e43b841a9f6b23a4bd763c5f2f50926",
+  "mp4": "out/bench-renders/run4-diag/HC22/gen-awl-kira-taps-the-stubborn-9j8-s4022.mp4",
+  "mp4Sha256": "d284cd2ffaf849b5e5d3682ecdabc16f55bb7db1925ba83a350d191e00450832",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  }
+}
