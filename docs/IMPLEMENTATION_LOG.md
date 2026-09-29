@@ -67,3 +67,8 @@ On this sandbox, every command ran with `unset NODE_OPTIONS` first: the host inj
   - the MP4 appeared in the UI in 85 s;
   - screenshot: `docs/poc/studio-ui.png`.
 - `npm test`: 24/24 pass.
+
+## Phase 5 — Narrated Story, phase 1 (storyboard only)
+- New `packages/narrated` (schema, audio validation, offline aligner, captions, rules planner), `apps/studio/narrated-api.ts`, `apps/studio/src/narrated.ts`, and a mode selector in the Studio.
+- No rendering, no speech model, no new assets. Details: `docs/narrated/PHASE1-RESULTS.md`; reference study: `docs/narrated/REFERENCE-GRAMMAR.md`.
+- `tests/narrated.test.ts`: 8/8 pass. The fast suite (excluding render/integration and bench tests): 130 pass, 1 skipped. Typecheck clean.

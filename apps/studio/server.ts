@@ -22,6 +22,7 @@ import { analyzeIntent } from '../../packages/story/src/safety.ts';
 import { scanIdea } from '../../packages/story/src/lexicon.ts';
 import { CHANNEL_DURATION_SEC, PRODUCT } from '../../packages/config/src/product.ts';
 import { DEFAULT_MOTION_PROFILE } from '../../packages/schema/src/render-compat.ts';
+import { createNarratedApi } from './narrated-api.ts';
 
 type Library = ReturnType<typeof loadLibrary>;
 export interface StudioDeps {
@@ -32,6 +33,8 @@ export interface StudioDeps {
   render: typeof renderEpisode;
   /** state directory relative to ROOT; inside out/ so outputs are served statically */
   stateDir: string;
+  /** Narrated Story voice-over store (content-addressed; outside the statically served tree). Default .scratch/narrated-uploads */
+  uploadDir?: string;
 }
 interface Job {
   id: string; source: 'episode' | 'approved'; episode: string; scale: number; state: 'queued' | 'running' | 'done' | 'failed'; phase: string; done: number; total: number;
@@ -84,6 +87,7 @@ export function createStudioApi(deps: StudioDeps): ApiHandler {
   const jobsFile = S('jobs.json');
   const jobs: Job[] = existsSync(jobsFile) ? JSON.parse(readFileSync(jobsFile, 'utf8')) : [];
   for (const j of jobs) if (j.state === 'queued' || j.state === 'running') { j.state = 'failed'; j.phase = 'failed'; j.error = 'interrupted: the studio server stopped during this render — press Retry'; }
+  const narrated = createNarratedApi({ registry: reg, stateDir: S(), uploadDir: deps.uploadDir ?? join(ROOT, '.scratch', 'narrated-uploads') });
   const saveJobs = () => writeFileSync(jobsFile, JSON.stringify(jobs, null, 1));
   let running = false;
   let genChain: Promise<unknown> = Promise.resolve();
@@ -211,6 +215,8 @@ export function createStudioApi(deps: StudioDeps): ApiHandler {
 
   return async (req, res, u) => {
     const p = u.pathname;
+    // ---------- narrated story (phase 1: storyboard only; no rendering) ----------
+    if (p.startsWith('/api/narrated/')) return narrated(req, res, u);
     // ---------- supervised workflow ----------
     if (p === '/api/story/options') {
       sendJson(res, 200, { product: PRODUCT.name, deprecatedNames: PRODUCT.deprecatedNames, ...UI_TEXT, engines: ENGINES.map((e) => ({ id: e, title: TEMPLATES[e].title })), duration: { min: CHANNEL_DURATION_SEC[0], max: CHANNEL_DURATION_SEC[1], default: 17 }, motionProfile: DEFAULT_MOTION_PROFILE });

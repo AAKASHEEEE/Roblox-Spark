@@ -67,6 +67,53 @@ The form and the current storyboard, approval and render job survive a browser r
 - `out/studio/` is never cleaned automatically.
 - The previous episode player is at `/apps/studio/player.html` (developer use).
 
+## Narrated Storyboard — Phase 1
+
+A second Studio mode. It takes a script and your uploaded voice-over and produces phrase-timed captions and a constrained storyboard, downloadable as JSON. **Narrated Story rendering is not implemented yet**: this mode produces no MP4. Visual Comedy is unchanged.
+
+**Start:** `npm start`, open http://localhost:5173, then choose **Narrated Story** in the header.
+
+**Workflow**
+1. **Input.**
+   - Enter the title and the script, with **one narration/caption phrase per non-empty line**. Blank lines separate story sections.
+   - Upload the voice-over.
+   - Choose registered characters (Zapp and/or Kira), a story pattern, a seed and the caption style.
+   - Click **Generate Narrated Storyboard**.
+2. **Alignment review.** Shows the file facts, the number of phrases and detected speech regions, the project confidence, a timeline, and each phrase's caption, time range, confidence, words per second, emphasis words and warnings.
+3. **Storyboard.**
+   - One beat card per phrase: narration, time range, actor (plus supporting character), action, face, environment, camera, visual intent, caption, confidence and warnings.
+   - Buttons: **Back to input**, **Regenerate with same seed**, **Generate with new seed**.
+   - **Download Narrated Storyboard JSON** (`/api/narrated/generations/<id>/storyboard.json`).
+
+**Audio**
+- Accepted formats:
+  - **WAV** (PCM 16/24/32-bit or float 32), decoded natively.
+  - **MP3** and **M4A** (AAC/ALAC), only when FFmpeg is on `PATH` or set in `FFMPEG_PATH`.
+- Validation:
+  - Maximum upload 30 MB; duration 1–300 s (35–60 s is the target and only warns).
+  - The file must be a safe plain filename, and its content must match its extension.
+  - The codec reported by the decoder must be allowed; executables are rejected.
+- Uploads are stored content-addressed (SHA-256) in `.scratch/narrated-uploads/`. This folder is not in Git and not publicly served.
+
+**How alignment works** (offline and deterministic; no speech model):
+- Speech/silence regions are detected from 20 ms energy frames with an adaptive threshold.
+- Script phrases are mapped to those regions in order by a monotone dynamic-programming pass that compares each region's duration with the phrase's share of the words. Adjacent regions can be merged, or one region split by word count.
+- With no usable pauses, phrase timing is distributed by word count.
+- Timing is **phrase-level only**; no word-level accuracy is claimed. The seed changes the visual choices, never the timings.
+
+**Confidence**
+- **High**: detected pauses match the phrases one-to-one.
+- **Medium**: some regions had to be merged or split.
+- **Low**: timing is mostly estimated from word counts (for example, speech over a continuous music bed). A warning is shown; check the timings.
+
+**Known limitations**
+- Voice-overs with music or noise under the voice usually align with low confidence.
+- There is no manual timestamp editing.
+- There is only one environment (the classroom). Places, vehicles and handheld objects in the script become declared substitutions or warnings.
+- There is one caption preset. Captions are not burned in.
+- The mode is single-user and local.
+- Only the metadata and hash of the voice-over are remembered across a refresh. If the file is gone, the UI asks you to re-upload the same file and verifies its hash.
+
 ## Documents
 - [VALIDATION_REPORT](docs/VALIDATION_REPORT.md) — results, measurements, limitations, recommendation
 - [DECISION_MATRIX](docs/DECISION_MATRIX.md) — Roblox Studio vs web vs Blender vs hybrid

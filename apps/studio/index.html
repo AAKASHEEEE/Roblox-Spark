@@ -31,14 +31,18 @@
   ol.stages li.done{color:var(--good)} ol.stages li.on{background:var(--cyan);color:#111;font-weight:700} ol.stages li.bad{background:var(--bad);color:#111}
   progress{width:360px;height:14px;accent-color:var(--cyan)} .result{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
   video{height:min(72vh,640px);aspect-ratio:9/16;background:#000;border-radius:10px} table{border-collapse:collapse} td{padding:4px 14px 4px 0;border-bottom:1px solid var(--line)}
+  #modes{display:flex;gap:4px} #modes button{padding:6px 12px;font-size:13px;background:var(--panel);color:var(--dim)} #modes button.on{background:var(--cyan);color:#111}
+  #n-steps{display:flex;gap:6px;margin:0 0 12px} #n-steps span{padding:4px 10px;border-radius:14px;background:var(--panel);color:var(--dim);font-size:13px} #n-steps span.on{background:var(--yellow);color:#111;font-weight:700}
   td:first-child{color:var(--dim)} .remind{background:rgba(25,211,230,.1);color:var(--cyan);padding:9px 12px;border-radius:8px}
 </style></head>
 <body>
 <header><h1 id="product">BlockSpark Studio</h1>
+  <nav id="modes" aria-label="Mode"><button type="button" data-mode="visual" class="on">Visual Comedy</button><button type="button" data-mode="narrated">Narrated Story</button></nav>
   <nav id="steps"><span data-s="create">1 Idea</span><span data-s="storyboard">2 Storyboard</span><span data-s="approved">3 Approve</span><span data-s="render">4 Render</span></nav>
   <a class="dev" href="/apps/studio/player.html">developer episode player</a></header>
 <div id="error" class="banner err" hidden></div>
 <main>
+<div id="mode-visual">
   <section id="create">
     <p class="label" id="label">Experimental constrained generator — review the storyboard before rendering.</p>
     <label>Idea<textarea id="idea" rows="4" maxlength="400"></textarea></label>
@@ -53,6 +57,15 @@
   <section id="storyboard" hidden></section>
   <section id="approved" hidden></section>
   <section id="render" hidden></section>
+</div>
+<div id="mode-narrated" hidden>
+  <nav id="n-steps"><span data-s="input">1 Script + voice-over</span><span data-s="alignment">2 Alignment review</span><span data-s="storyboard">3 Storyboard</span></nav>
+  <p class="remind" id="n-notice"></p>
+  <section id="n-input"></section>
+  <section id="n-alignment" hidden></section>
+  <section id="n-storyboard" hidden></section>
+</div>
 </main>
 <script type="module" src="/dist/apps/studio/src/app.js"></script>
+<script type="module" src="/dist/apps/studio/src/narrated.js"></script>
 </body></html>
