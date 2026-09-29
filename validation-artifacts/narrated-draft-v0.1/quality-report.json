@@ -1,0 +1,137 @@
+{
+  "report": "blockspark.narrated-draft-quality/1",
+  "summary": {
+    "total": 18,
+    "passed": 18,
+    "failed": []
+  },
+  "gates": [
+    {
+      "id": "N01",
+      "name": "duration matches the voice-over",
+      "pass": true,
+      "detail": "video 69.167 s, audio 69.167 s, voice-over 69.146 s"
+    },
+    {
+      "id": "N02",
+      "name": "captions inside the lower-middle safe area",
+      "pass": true,
+      "detail": "block centre 0.72, bottom 0.764 <= 0.84; <= 2 lines x 32 chars"
+    },
+    {
+      "id": "N03",
+      "name": "caption chunks in order, no overlap",
+      "pass": true,
+      "detail": "26 chunks"
+    },
+    {
+      "id": "N04",
+      "name": "captions exactly on their planned intervals and text",
+      "pass": true,
+      "detail": "26 planned / 26 burned"
+    },
+    {
+      "id": "N05",
+      "name": "actor or causal prop visible in every beat",
+      "pass": true,
+      "detail": "14/14 beats"
+    },
+    {
+      "id": "N06",
+      "name": "only registered assets and actions (narrated-draft validation)",
+      "pass": true,
+      "detail": "17 actions, 13 prop events, 2 cast"
+    },
+    {
+      "id": "N07",
+      "name": "no unavailable (off-screen) character instantiated",
+      "pass": true,
+      "detail": "off-screen only: teacher (3 cues)"
+    },
+    {
+      "id": "N08",
+      "name": "no visual shot longer than 3 s",
+      "pass": true,
+      "detail": "39 shots, longest 2.47 s"
+    },
+    {
+      "id": "N09",
+      "name": "a visual change at every caption chunk",
+      "pass": true,
+      "detail": "26/26"
+    },
+    {
+      "id": "N10",
+      "name": "audio codec AAC-LC",
+      "pass": true,
+      "detail": "aac"
+    },
+    {
+      "id": "N11",
+      "name": "video codec H.264",
+      "pass": true,
+      "detail": "h264"
+    },
+    {
+      "id": "N12",
+      "name": "resolution 540x960",
+      "pass": true,
+      "detail": "540x960"
+    },
+    {
+      "id": "N13",
+      "name": "constant 30 fps",
+      "pass": true,
+      "detail": "30/1 (avg 30/1)"
+    },
+    {
+      "id": "N14",
+      "name": "audio 48 kHz",
+      "pass": true,
+      "detail": "48000 Hz, 2 ch"
+    },
+    {
+      "id": "N15",
+      "name": "loudness -16..-14 LUFS, true peak <= -1.5 dBTP",
+      "pass": true,
+      "detail": "-15.07 LUFS, -1.85 dBTP (4x oversampled), SFX ducked 10 dB"
+    },
+    {
+      "id": "N16",
+      "name": "approved audio hash = render input",
+      "pass": true,
+      "detail": "d97fd8656d7c…"
+    },
+    {
+      "id": "N17",
+      "name": "timeline and manifest carry schema/version information",
+      "pass": true,
+      "detail": "blockspark.narrated-timeline/1, storyboard 1.1, episode 1.1"
+    },
+    {
+      "id": "N18",
+      "name": "independent decode of the MP4 (video + audio)",
+      "pass": true,
+      "detail": "540x960 69.167s"
+    }
+  ],
+  "audio": {
+    "integratedLufs": -15.07,
+    "truePeakDbtp": -1.85,
+    "samplePeakDbfs": -2,
+    "gainAppliedDb": 6.02,
+    "limiterReductionDb": 5.66,
+    "sfxCues": 17,
+    "missing": [],
+    "durationSec": 69.16666666666667,
+    "sampleRate": 48000,
+    "truePeakDbfsApprox": -1.85
+  },
+  "timing": {
+    "totalSec": 279.736,
+    "encodeWallSec": 256.032,
+    "msPerFrame": 123.4,
+    "renderOnlyMsPerFrame": 16.4,
+    "realtimeFactor": 3.7
+  }
+}

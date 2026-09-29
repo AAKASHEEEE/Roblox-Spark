@@ -1,0 +1,1301 @@
+{
+  "schema": "blockspark.narrated-timeline/1",
+  "storyboardSchemaVersion": "1.1",
+  "storyboardId": "nr-b8757cf22e2c",
+  "storyboardSha256": "76a6b5f26af5f9e0f1bcf635677f8c9f7a79f16d9f1bfc48575f3e0be2985856",
+  "audioHash": "d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2",
+  "duration": 69.146,
+  "videoDuration": 69.167,
+  "seed": 17,
+  "export": {
+    "width": 540,
+    "height": 960,
+    "scale": 0.5,
+    "fps": 30,
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "sampleRate": 48000,
+    "channels": 2,
+    "loudnessLufs": -15,
+    "truePeakDbtpMax": -1.5,
+    "label": "Draft Preview — Not Final Quality"
+  },
+  "shots": [
+    {
+      "id": "s001",
+      "start": 0,
+      "end": 1.696,
+      "preset": "frontal_medium",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p01",
+      "chunkId": "p01-c01"
+    },
+    {
+      "id": "s002",
+      "start": 1.696,
+      "end": 3.391,
+      "preset": "over_shoulder",
+      "subjects": [
+        "kira",
+        "zapp"
+      ],
+      "phraseId": "p01",
+      "chunkId": "p01-c01"
+    },
+    {
+      "id": "s003",
+      "start": 3.391,
+      "end": 4.6,
+      "preset": "two_shot",
+      "subjects": [
+        "zapp",
+        "kira"
+      ],
+      "phraseId": "p01",
+      "chunkId": "p01-c02"
+    },
+    {
+      "id": "s004",
+      "start": 4.6,
+      "end": 6.415,
+      "preset": "frontal_medium",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p02",
+      "chunkId": "p02-c01"
+    },
+    {
+      "id": "s005",
+      "start": 6.415,
+      "end": 7.998,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p02",
+      "chunkId": "p02-c02"
+    },
+    {
+      "id": "s006",
+      "start": 7.998,
+      "end": 9.58,
+      "preset": "frontal_medium",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p02",
+      "chunkId": "p02-c02"
+    },
+    {
+      "id": "s007",
+      "start": 9.58,
+      "end": 11.609,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p03",
+      "chunkId": "p03-c01"
+    },
+    {
+      "id": "s008",
+      "start": 11.609,
+      "end": 13.637,
+      "preset": "frontal_medium",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p03",
+      "chunkId": "p03-c01"
+    },
+    {
+      "id": "s009",
+      "start": 13.637,
+      "end": 15.68,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p03",
+      "chunkId": "p03-c02"
+    },
+    {
+      "id": "s010",
+      "start": 15.68,
+      "end": 17.207,
+      "preset": "frontal_medium",
+      "subjects": [
+        "kira"
+      ],
+      "phraseId": "p04",
+      "chunkId": "p04-c01"
+    },
+    {
+      "id": "s011",
+      "start": 17.207,
+      "end": 19.084,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "kira"
+      ],
+      "phraseId": "p04",
+      "chunkId": "p04-c02"
+    },
+    {
+      "id": "s012",
+      "start": 19.084,
+      "end": 20.96,
+      "preset": "frontal_medium",
+      "subjects": [
+        "kira"
+      ],
+      "phraseId": "p04",
+      "chunkId": "p04-c02"
+    },
+    {
+      "id": "s013",
+      "start": 20.96,
+      "end": 22.514,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "phraseId": "p05",
+      "chunkId": "p05-c01"
+    },
+    {
+      "id": "s014",
+      "start": 22.514,
+      "end": 24.067,
+      "preset": "over_shoulder",
+      "subjects": [
+        "zapp",
+        "button"
+      ],
+      "phraseId": "p05",
+      "chunkId": "p05-c01"
+    },
+    {
+      "id": "s015",
+      "start": 24.067,
+      "end": 25.94,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "phraseId": "p05",
+      "chunkId": "p05-c02"
+    },
+    {
+      "id": "s016",
+      "start": 25.94,
+      "end": 27.832,
+      "preset": "two_shot",
+      "subjects": [
+        "kira",
+        "zapp"
+      ],
+      "phraseId": "p06",
+      "chunkId": "p06-c01"
+    },
+    {
+      "id": "s017",
+      "start": 27.832,
+      "end": 29.724,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "kira"
+      ],
+      "phraseId": "p06",
+      "chunkId": "p06-c01"
+    },
+    {
+      "id": "s018",
+      "start": 29.724,
+      "end": 31.52,
+      "preset": "two_shot",
+      "subjects": [
+        "kira",
+        "zapp"
+      ],
+      "phraseId": "p06",
+      "chunkId": "p06-c02"
+    },
+    {
+      "id": "s019",
+      "start": 31.52,
+      "end": 33.36,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "phraseId": "p07",
+      "chunkId": "p07-c01"
+    },
+    {
+      "id": "s020",
+      "start": 33.36,
+      "end": 35.2,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p07",
+      "chunkId": "p07-c01"
+    },
+    {
+      "id": "s021",
+      "start": 35.2,
+      "end": 36.634,
+      "preset": "frontal_medium",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p08",
+      "chunkId": "p08-c01"
+    },
+    {
+      "id": "s022",
+      "start": 36.634,
+      "end": 38.068,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p08",
+      "chunkId": "p08-c01"
+    },
+    {
+      "id": "s023",
+      "start": 38.068,
+      "end": 40.24,
+      "preset": "frontal_medium",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p08",
+      "chunkId": "p08-c02"
+    },
+    {
+      "id": "s024",
+      "start": 40.24,
+      "end": 42.23,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "phraseId": "p09",
+      "chunkId": "p09-c01"
+    },
+    {
+      "id": "s025",
+      "start": 42.23,
+      "end": 44.22,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p09",
+      "chunkId": "p09-c01"
+    },
+    {
+      "id": "s026",
+      "start": 44.22,
+      "end": 45.804,
+      "preset": "frontal_medium",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p10",
+      "chunkId": "p10-c01"
+    },
+    {
+      "id": "s027",
+      "start": 45.804,
+      "end": 47.388,
+      "preset": "prop_ecu",
+      "subjects": [
+        "coin"
+      ],
+      "phraseId": "p10",
+      "chunkId": "p10-c01"
+    },
+    {
+      "id": "s028",
+      "start": 47.388,
+      "end": 49.86,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "zapp"
+      ],
+      "phraseId": "p10",
+      "chunkId": "p10-c02"
+    },
+    {
+      "id": "s029",
+      "start": 49.86,
+      "end": 51.473,
+      "preset": "two_shot",
+      "subjects": [
+        "zapp",
+        "kira"
+      ],
+      "phraseId": "p11",
+      "chunkId": "p11-c01"
+    },
+    {
+      "id": "s030",
+      "start": 51.473,
+      "end": 53.267,
+      "preset": "over_shoulder",
+      "subjects": [
+        "kira",
+        "zapp"
+      ],
+      "phraseId": "p11",
+      "chunkId": "p11-c02"
+    },
+    {
+      "id": "s031",
+      "start": 53.267,
+      "end": 55.06,
+      "preset": "two_shot",
+      "subjects": [
+        "zapp",
+        "kira"
+      ],
+      "phraseId": "p11",
+      "chunkId": "p11-c02"
+    },
+    {
+      "id": "s032",
+      "start": 55.06,
+      "end": 56.718,
+      "preset": "wide_environment",
+      "subjects": [
+        "coin",
+        "zapp"
+      ],
+      "phraseId": "p12",
+      "chunkId": "p12-c01"
+    },
+    {
+      "id": "s033",
+      "start": 56.718,
+      "end": 58.375,
+      "preset": "low_angle_reveal",
+      "subjects": [
+        "coin"
+      ],
+      "phraseId": "p12",
+      "chunkId": "p12-c01"
+    },
+    {
+      "id": "s034",
+      "start": 58.375,
+      "end": 59.86,
+      "preset": "wide_environment",
+      "subjects": [
+        "coin",
+        "zapp"
+      ],
+      "phraseId": "p12",
+      "chunkId": "p12-c02"
+    },
+    {
+      "id": "s035",
+      "start": 59.86,
+      "end": 61.423,
+      "preset": "frontal_medium",
+      "subjects": [
+        "kira"
+      ],
+      "phraseId": "p13",
+      "chunkId": "p13-c01"
+    },
+    {
+      "id": "s036",
+      "start": 61.423,
+      "end": 63.362,
+      "preset": "reaction_punch_in",
+      "subjects": [
+        "kira"
+      ],
+      "phraseId": "p13",
+      "chunkId": "p13-c02"
+    },
+    {
+      "id": "s037",
+      "start": 63.362,
+      "end": 65.3,
+      "preset": "low_angle_reveal",
+      "subjects": [
+        "coin"
+      ],
+      "phraseId": "p13",
+      "chunkId": "p13-c02"
+    },
+    {
+      "id": "s038",
+      "start": 65.3,
+      "end": 67.568,
+      "preset": "prop_ecu",
+      "subjects": [
+        "button"
+      ],
+      "phraseId": "p14",
+      "chunkId": "p14-c01"
+    },
+    {
+      "id": "s039",
+      "start": 67.568,
+      "end": 69.167,
+      "preset": "low_angle_reveal",
+      "subjects": [
+        "coin"
+      ],
+      "phraseId": "p14",
+      "chunkId": "p14-c02"
+    }
+  ],
+  "captions": [
+    {
+      "chunkId": "p01-c01",
+      "phraseId": "p01",
+      "start": 0.06,
+      "end": 3.391,
+      "lines": [
+        "This is the difference between",
+        "Zapp and Kira when the teacher"
+      ],
+      "emphasisWords": [
+        "difference"
+      ]
+    },
+    {
+      "chunkId": "p01-c02",
+      "phraseId": "p01",
+      "start": 3.391,
+      "end": 4.3,
+      "lines": [
+        "leaves the classroom."
+      ],
+      "emphasisWords": [
+        "classroom"
+      ]
+    },
+    {
+      "chunkId": "p02-c01",
+      "phraseId": "p02",
+      "start": 4.6,
+      "end": 6.415,
+      "lines": [
+        "The second the door closes,"
+      ],
+      "emphasisWords": [
+        "closes"
+      ]
+    },
+    {
+      "chunkId": "p02-c02",
+      "phraseId": "p02",
+      "start": 6.415,
+      "end": 9.32,
+      "lines": [
+        "Zapp thinks the entire",
+        "classroom belongs to him."
+      ],
+      "emphasisWords": [
+        "classroom"
+      ]
+    },
+    {
+      "chunkId": "p03-c01",
+      "phraseId": "p03",
+      "start": 9.58,
+      "end": 13.637,
+      "lines": [
+        "He jumps up, celebrates,",
+        "and starts acting like he"
+      ],
+      "emphasisWords": [
+        "celebrates"
+      ]
+    },
+    {
+      "chunkId": "p03-c02",
+      "phraseId": "p03",
+      "start": 13.637,
+      "end": 15.44,
+      "lines": [
+        "just escaped school forever."
+      ],
+      "emphasisWords": [
+        "forever"
+      ]
+    },
+    {
+      "chunkId": "p04-c01",
+      "phraseId": "p04",
+      "start": 15.68,
+      "end": 17.207,
+      "lines": [
+        "Kira stays at her desk"
+      ],
+      "emphasisWords": []
+    },
+    {
+      "chunkId": "p04-c02",
+      "phraseId": "p04",
+      "start": 17.207,
+      "end": 20.26,
+      "lines": [
+        "because she knows the teacher",
+        "could return at any moment."
+      ],
+      "emphasisWords": [
+        "because"
+      ]
+    },
+    {
+      "chunkId": "p05-c01",
+      "phraseId": "p05",
+      "start": 20.96,
+      "end": 24.067,
+      "lines": [
+        "Then Zapp notices a suspicious",
+        "free-coins button sitting"
+      ],
+      "emphasisWords": [
+        "free-coins"
+      ]
+    },
+    {
+      "chunkId": "p05-c02",
+      "phraseId": "p05",
+      "start": 24.067,
+      "end": 25.62,
+      "lines": [
+        "on the front desk."
+      ],
+      "emphasisWords": []
+    },
+    {
+      "chunkId": "p06-c01",
+      "phraseId": "p06",
+      "start": 25.94,
+      "end": 29.724,
+      "lines": [
+        "Kira tells him not to touch it,",
+        "which obviously makes him want"
+      ],
+      "emphasisWords": [
+        "obviously"
+      ]
+    },
+    {
+      "chunkId": "p06-c02",
+      "phraseId": "p06",
+      "start": 29.724,
+      "end": 31.3,
+      "lines": [
+        "to press it even more."
+      ],
+      "emphasisWords": []
+    },
+    {
+      "chunkId": "p07-c01",
+      "phraseId": "p07",
+      "start": 31.52,
+      "end": 34.9,
+      "lines": [
+        "He slams the button,",
+        "and one shiny coin appears."
+      ],
+      "emphasisWords": [
+        "appears"
+      ]
+    },
+    {
+      "chunkId": "p08-c01",
+      "phraseId": "p08",
+      "start": 35.2,
+      "end": 38.068,
+      "lines": [
+        "Zapp celebrates so loudly",
+        "that he completely forgets"
+      ],
+      "emphasisWords": [
+        "celebrates"
+      ]
+    },
+    {
+      "chunkId": "p08-c02",
+      "phraseId": "p08",
+      "start": 38.068,
+      "end": 39.86,
+      "lines": [
+        "why the classroom is empty."
+      ],
+      "emphasisWords": [
+        "classroom"
+      ]
+    },
+    {
+      "chunkId": "p09-c01",
+      "phraseId": "p09",
+      "start": 40.24,
+      "end": 43.96,
+      "lines": [
+        "Then the button flashes again,",
+        "and the coin begins growing."
+      ],
+      "emphasisWords": [
+        "flashes"
+      ]
+    },
+    {
+      "chunkId": "p10-c01",
+      "phraseId": "p10",
+      "start": 44.22,
+      "end": 47.388,
+      "lines": [
+        "It gets taller than the desk,",
+        "wider than Zapp,"
+      ],
+      "emphasisWords": [
+        "taller"
+      ]
+    },
+    {
+      "chunkId": "p10-c02",
+      "phraseId": "p10",
+      "start": 47.388,
+      "end": 49.5,
+      "lines": [
+        "and almost fills",
+        "the entire room."
+      ],
+      "emphasisWords": [
+        "almost"
+      ]
+    },
+    {
+      "chunkId": "p11-c01",
+      "phraseId": "p11",
+      "start": 49.86,
+      "end": 51.473,
+      "lines": [
+        "Zapp tries to look confident,"
+      ],
+      "emphasisWords": [
+        "confident"
+      ]
+    },
+    {
+      "chunkId": "p11-c02",
+      "phraseId": "p11",
+      "start": 51.473,
+      "end": 54.7,
+      "lines": [
+        "but Kira has already moved",
+        "safely out of the way."
+      ],
+      "emphasisWords": [
+        "already"
+      ]
+    },
+    {
+      "chunkId": "p12-c01",
+      "phraseId": "p12",
+      "start": 55.06,
+      "end": 58.375,
+      "lines": [
+        "The giant coin tips forward",
+        "and flattens Zapp against"
+      ],
+      "emphasisWords": [
+        "giant"
+      ]
+    },
+    {
+      "chunkId": "p12-c02",
+      "phraseId": "p12",
+      "start": 58.375,
+      "end": 59.48,
+      "lines": [
+        "the classroom floor."
+      ],
+      "emphasisWords": [
+        "classroom"
+      ]
+    },
+    {
+      "chunkId": "p13-c01",
+      "phraseId": "p13",
+      "start": 59.86,
+      "end": 61.423,
+      "lines": [
+        "At that exact moment,"
+      ],
+      "emphasisWords": [
+        "moment"
+      ]
+    },
+    {
+      "chunkId": "p13-c02",
+      "phraseId": "p13",
+      "start": 61.423,
+      "end": 64.94,
+      "lines": [
+        "the teacher returns and sees",
+        "Kira sitting perfectly still."
+      ],
+      "emphasisWords": [
+        "perfectly"
+      ]
+    },
+    {
+      "chunkId": "p14-c01",
+      "phraseId": "p14",
+      "start": 65.3,
+      "end": 67.568,
+      "lines": [
+        "And the free-coins",
+        "button quietly resets"
+      ],
+      "emphasisWords": [
+        "free-coins"
+      ]
+    },
+    {
+      "chunkId": "p14-c02",
+      "phraseId": "p14",
+      "start": 67.568,
+      "end": 69.08,
+      "lines": [
+        "for its next victim."
+      ],
+      "emphasisWords": [
+        "victim"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "actor": "zapp",
+      "action": "look_at",
+      "start": 0.11,
+      "duration": 0.8,
+      "target": "enter_back_left",
+      "phraseId": "p01"
+    },
+    {
+      "actor": "zapp",
+      "action": "curious_lean",
+      "start": 0.96,
+      "duration": 1.3,
+      "target": "kira",
+      "phraseId": "p01"
+    },
+    {
+      "actor": "zapp",
+      "action": "curious_lean",
+      "start": 4.65,
+      "duration": 1.3,
+      "target": "kira",
+      "phraseId": "p02"
+    },
+    {
+      "actor": "zapp",
+      "action": "jump",
+      "start": 9.63,
+      "duration": 0.9,
+      "phraseId": "p03"
+    },
+    {
+      "actor": "kira",
+      "action": "look_at",
+      "start": 15.73,
+      "duration": 0.8,
+      "target": "enter_back_left",
+      "phraseId": "p04"
+    },
+    {
+      "actor": "kira",
+      "action": "arms_crossed",
+      "start": 16.58,
+      "duration": 1.8,
+      "phraseId": "p04"
+    },
+    {
+      "actor": "zapp",
+      "action": "look_at",
+      "start": 21.01,
+      "duration": 1.2,
+      "target": "button.press_surface",
+      "phraseId": "p05"
+    },
+    {
+      "actor": "kira",
+      "action": "head_shake",
+      "start": 25.99,
+      "duration": 0.9,
+      "phraseId": "p06"
+    },
+    {
+      "actor": "zapp",
+      "action": "press_button",
+      "start": 31.57,
+      "duration": 0.9,
+      "target": "button.press_surface",
+      "phraseId": "p07"
+    },
+    {
+      "actor": "zapp",
+      "action": "victory_pose",
+      "start": 35.25,
+      "duration": 1.3,
+      "phraseId": "p08"
+    },
+    {
+      "actor": "zapp",
+      "action": "shock_recoil",
+      "start": 40.29,
+      "duration": 1,
+      "phraseId": "p09"
+    },
+    {
+      "actor": "zapp",
+      "action": "shock_recoil",
+      "start": 44.27,
+      "duration": 1,
+      "phraseId": "p10"
+    },
+    {
+      "actor": "zapp",
+      "action": "arms_crossed",
+      "start": 49.91,
+      "duration": 1.8,
+      "phraseId": "p11"
+    },
+    {
+      "actor": "zapp",
+      "action": "fall",
+      "start": 55.11,
+      "duration": 1.4,
+      "phraseId": "p12"
+    },
+    {
+      "actor": "kira",
+      "action": "look_at",
+      "start": 59.91,
+      "duration": 0.8,
+      "target": "enter_back_left",
+      "phraseId": "p13"
+    },
+    {
+      "actor": "kira",
+      "action": "arms_crossed",
+      "start": 60.76,
+      "duration": 1.8,
+      "phraseId": "p13"
+    },
+    {
+      "actor": "zapp",
+      "action": "look_at",
+      "start": 65.35,
+      "duration": 1.2,
+      "target": "button.press_surface",
+      "phraseId": "p14"
+    }
+  ],
+  "expressions": [
+    {
+      "actor": "zapp",
+      "state": "curious",
+      "at": 0.06,
+      "phraseId": "p01"
+    },
+    {
+      "actor": "kira",
+      "state": "smug",
+      "at": 0.46,
+      "phraseId": "p01"
+    },
+    {
+      "actor": "zapp",
+      "state": "curious",
+      "at": 4.6,
+      "phraseId": "p02"
+    },
+    {
+      "actor": "zapp",
+      "state": "neutral",
+      "at": 9.58,
+      "phraseId": "p03"
+    },
+    {
+      "actor": "kira",
+      "state": "smug",
+      "at": 15.68,
+      "phraseId": "p04"
+    },
+    {
+      "actor": "zapp",
+      "state": "curious",
+      "at": 20.96,
+      "phraseId": "p05"
+    },
+    {
+      "actor": "kira",
+      "state": "skeptical",
+      "at": 25.94,
+      "phraseId": "p06"
+    },
+    {
+      "actor": "zapp",
+      "state": "shock",
+      "at": 26.34,
+      "phraseId": "p06"
+    },
+    {
+      "actor": "zapp",
+      "state": "determined",
+      "at": 31.52,
+      "phraseId": "p07"
+    },
+    {
+      "actor": "zapp",
+      "state": "neutral",
+      "at": 35.2,
+      "phraseId": "p08"
+    },
+    {
+      "actor": "zapp",
+      "state": "shock",
+      "at": 40.24,
+      "phraseId": "p09"
+    },
+    {
+      "actor": "zapp",
+      "state": "shock",
+      "at": 44.22,
+      "phraseId": "p10"
+    },
+    {
+      "actor": "zapp",
+      "state": "neutral",
+      "at": 49.86,
+      "phraseId": "p11"
+    },
+    {
+      "actor": "kira",
+      "state": "skeptical",
+      "at": 50.26,
+      "phraseId": "p11"
+    },
+    {
+      "actor": "zapp",
+      "state": "shock",
+      "at": 55.06,
+      "phraseId": "p12"
+    },
+    {
+      "actor": "kira",
+      "state": "smug",
+      "at": 59.86,
+      "phraseId": "p13"
+    },
+    {
+      "actor": "zapp",
+      "state": "regret",
+      "at": 65.3,
+      "phraseId": "p14"
+    }
+  ],
+  "propEvents": [
+    {
+      "prop": "button",
+      "event": "press",
+      "start": 31.948,
+      "duration": 0.5,
+      "phraseId": "p07"
+    },
+    {
+      "prop": "button",
+      "event": "flash",
+      "start": 31.978,
+      "duration": 0.5,
+      "params": {
+        "hz": 8
+      },
+      "phraseId": "p07"
+    },
+    {
+      "prop": "coin",
+      "event": "spawn",
+      "start": 32.048,
+      "duration": 1,
+      "to": "desk.coin_spot",
+      "params": {
+        "from": "button.spawn_point",
+        "flight": 0.5,
+        "flips": 1
+      },
+      "phraseId": "p07"
+    },
+    {
+      "prop": "button",
+      "event": "flash",
+      "start": 40.29,
+      "duration": 1.2,
+      "params": {
+        "hz": 3
+      },
+      "phraseId": "p09"
+    },
+    {
+      "prop": "coin",
+      "event": "stand_up",
+      "start": 40.29,
+      "duration": 0.3,
+      "phraseId": "p09"
+    },
+    {
+      "prop": "coin",
+      "event": "grow",
+      "start": 40.64,
+      "duration": 0.35,
+      "params": {
+        "scale": 3
+      },
+      "phraseId": "p09"
+    },
+    {
+      "prop": "coin",
+      "event": "grow",
+      "start": 41.09,
+      "duration": 0.35,
+      "params": {
+        "scale": 6
+      },
+      "phraseId": "p09"
+    },
+    {
+      "prop": "coin",
+      "event": "hop_to",
+      "start": 44.27,
+      "duration": 0.55,
+      "to": "coin_floor",
+      "params": {
+        "height": 1.2
+      },
+      "phraseId": "p10"
+    },
+    {
+      "prop": "coin",
+      "event": "grow",
+      "start": 44.87,
+      "duration": 0.35,
+      "params": {
+        "scale": 11
+      },
+      "phraseId": "p10"
+    },
+    {
+      "prop": "coin",
+      "event": "grow",
+      "start": 45.32,
+      "duration": 0.35,
+      "params": {
+        "scale": 16.7
+      },
+      "phraseId": "p10"
+    },
+    {
+      "prop": "coin",
+      "event": "tip_over",
+      "start": 55.11,
+      "duration": 0.65,
+      "params": {
+        "endDeg": 86
+      },
+      "phraseId": "p12"
+    },
+    {
+      "prop": "button",
+      "event": "reset",
+      "start": 65.35,
+      "duration": 0.3,
+      "phraseId": "p14"
+    },
+    {
+      "prop": "button",
+      "event": "flash",
+      "start": 65.7,
+      "duration": 1,
+      "params": {
+        "hz": 2.7273,
+        "endGlow": 1
+      },
+      "phraseId": "p14"
+    }
+  ],
+  "offscreenCues": [
+    {
+      "phraseId": "p01",
+      "mention": "teacher",
+      "at": 0.06,
+      "cue": "door_sound_and_look",
+      "lookAt": "enter_back_left"
+    },
+    {
+      "phraseId": "p04",
+      "mention": "teacher",
+      "at": 15.68,
+      "cue": "door_sound_and_look",
+      "lookAt": "enter_back_left"
+    },
+    {
+      "phraseId": "p13",
+      "mention": "teacher",
+      "at": 59.86,
+      "cue": "door_sound_and_look",
+      "lookAt": "enter_back_left"
+    }
+  ],
+  "audio": {
+    "voiceOver": {
+      "contentHash": "d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2",
+      "start": 0,
+      "duration": 69.146,
+      "gainDb": 0
+    },
+    "sfx": [
+      {
+        "sfx": "sfx_creak",
+        "at": 0.06,
+        "gainDb": -24,
+        "sync": "offscreen:teacher"
+      },
+      {
+        "sfx": "sfx_boing",
+        "at": 9.73,
+        "gainDb": -24,
+        "sync": "action:zapp:jump"
+      },
+      {
+        "sfx": "sfx_creak",
+        "at": 15.68,
+        "gainDb": -24,
+        "sync": "offscreen:teacher"
+      },
+      {
+        "sfx": "sfx_click",
+        "at": 31.948,
+        "gainDb": -18,
+        "sync": "prop:button:press"
+      },
+      {
+        "sfx": "sfx_beep",
+        "at": 31.978,
+        "gainDb": -26,
+        "sync": "prop:button:flash"
+      },
+      {
+        "sfx": "sfx_coin_pop",
+        "at": 32.048,
+        "gainDb": -20,
+        "sync": "prop:coin:spawn"
+      },
+      {
+        "sfx": "sfx_sparkle",
+        "at": 35.35,
+        "gainDb": -26,
+        "sync": "action:zapp:victory_pose"
+      },
+      {
+        "sfx": "sfx_beep",
+        "at": 40.29,
+        "gainDb": -26,
+        "sync": "prop:button:flash"
+      },
+      {
+        "sfx": "sfx_rumble",
+        "at": 40.64,
+        "gainDb": -24,
+        "sync": "prop:coin:grow"
+      },
+      {
+        "sfx": "sfx_rumble",
+        "at": 41.09,
+        "gainDb": -24,
+        "sync": "prop:coin:grow"
+      },
+      {
+        "sfx": "sfx_rumble",
+        "at": 44.87,
+        "gainDb": -24,
+        "sync": "prop:coin:grow"
+      },
+      {
+        "sfx": "sfx_rumble",
+        "at": 45.32,
+        "gainDb": -24,
+        "sync": "prop:coin:grow"
+      },
+      {
+        "sfx": "sfx_thud_big",
+        "at": 55.11,
+        "gainDb": -18,
+        "sync": "prop:coin:tip_over"
+      },
+      {
+        "sfx": "sfx_thud_small",
+        "at": 55.95,
+        "gainDb": -22,
+        "sync": "action:zapp:fall"
+      },
+      {
+        "sfx": "sfx_creak",
+        "at": 59.86,
+        "gainDb": -24,
+        "sync": "offscreen:teacher"
+      },
+      {
+        "sfx": "sfx_ding_reset",
+        "at": 65.35,
+        "gainDb": -22,
+        "sync": "prop:button:reset"
+      },
+      {
+        "sfx": "sfx_beep",
+        "at": 65.7,
+        "gainDb": -26,
+        "sync": "prop:button:flash"
+      }
+    ],
+    "duckingDb": 10
+  },
+  "warnings": [
+    {
+      "phraseId": "p01",
+      "code": "UNAVAILABLE_CHARACTER_OFFSCREEN",
+      "message": "\"teacher\" stays off-screen (not instantiated)"
+    },
+    {
+      "phraseId": "p04",
+      "code": "UNAVAILABLE_CHARACTER_OFFSCREEN",
+      "message": "\"teacher\" stays off-screen (not instantiated)"
+    },
+    {
+      "phraseId": "p13",
+      "code": "UNAVAILABLE_CHARACTER_OFFSCREEN",
+      "message": "\"teacher\" stays off-screen (not instantiated)"
+    }
+  ]
+}

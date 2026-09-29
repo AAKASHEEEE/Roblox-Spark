@@ -1,0 +1,53 @@
+{
+  "at": "2026-09-29T20:47:43.675Z",
+  "upload": "Voice-over validated (display name sanitized to \"e_leven 1.mp3\").",
+  "cards": 14,
+  "approvedScreen": "ApprovedThis exact storyboard, voice-over hash, timing, caption chunks, actors/actions, cameras and seed are frozen. Editing the input does not change it; a different voice-over needs a new approval. Episode IDnr-b8757cf22e2cAudio hashd97fd8656d7c427e…Phrase count14Caption chunks26Duration69.15 sSeed17Schema version1.1Motion profilecorrected-head-v2Approval hash76a6b5f26af5f9e0…Approvalna-76a6b5f26af5f9e0Approved at2026-09-29T20:47:45.049Z 69.146 s exceeds the preferred 35-60 s publishing range Render Draft Preview (540×960) Download Approved Narrated JSON Back to storyboard (discard this approval)",
+  "renderWallSec": 283.2,
+  "stagesSeen": [
+    "Preparing",
+    "Compiling timeline",
+    "Encoding captions/audio",
+    "Rendering",
+    "Validating",
+    "done"
+  ],
+  "job": {
+    "id": "nj1",
+    "approvalId": "na-76a6b5f26af5f9e0",
+    "state": "done",
+    "stage": "complete",
+    "done": 1,
+    "total": 1,
+    "outputs": {
+      "approvedJson": "/out/studio/narrated-renders/na-76a6b5f26af5f9e0/nj1/approved-narrated.json",
+      "timelineJson": "/out/studio/narrated-renders/na-76a6b5f26af5f9e0/nj1/render-timeline.json",
+      "mp4": "/out/studio/narrated-renders/na-76a6b5f26af5f9e0/nj1/draft-540x960.mp4",
+      "manifest": "/out/studio/narrated-renders/na-76a6b5f26af5f9e0/nj1/render-manifest.json",
+      "quality": "/out/studio/narrated-renders/na-76a6b5f26af5f9e0/nj1/quality-report.json",
+      "contactSheet": "/out/studio/narrated-renders/na-76a6b5f26af5f9e0/nj1/contact-sheet.png",
+      "validation": "/out/studio/narrated-renders/na-76a6b5f26af5f9e0/nj1/validation.json",
+      "approvedJsonApi": "/api/narrated/approved/na-76a6b5f26af5f9e0/storyboard.json"
+    },
+    "error": null,
+    "quality": {
+      "passed": 18,
+      "total": 18,
+      "failed": []
+    },
+    "startedAt": 1790714865166,
+    "finishedAt": 1790715146953
+  },
+  "approvalId": "na-76a6b5f26af5f9e0",
+  "renderLog": {
+    "totalSec": 279.736,
+    "encodeWallSec": 256.032,
+    "msPerFrame": 123.4,
+    "renderOnlyMsPerFrame": 16.4,
+    "realtimeFactor": 3.7
+  },
+  "pageErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

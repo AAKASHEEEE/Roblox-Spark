@@ -1,0 +1,42 @@
+{
+  "manifest": "blockspark.render-manifest/1",
+  "episode": {
+    "id": "nr-b8757cf22e2c",
+    "episodeSha256": "a18ea6085d8c738882fe5153fb3f2d04b4d5e6b210d4ff5398d981bc7cdaae5d",
+    "semanticSha256": "3cec85faeefb63f4992960473353ecea88159b56d5fc5c917dc118c400b92998",
+    "schemaVersion": "1.1"
+  },
+  "rendererVersion": "1.0.0",
+  "motionProfile": "corrected-head-v2",
+  "renderKey": "1.0.0__corrected-head-v2",
+  "resolution": [
+    540,
+    960
+  ],
+  "fps": 30,
+  "frames": 2075,
+  "hashedFrames": 139,
+  "hashEvery": 15,
+  "frameHashesSha256": "2ba42470c5c6eba2d389afe47f463367cf9558b9fb0562c9f09bb4f1bb013e5b",
+  "mp4": "out/studio/narrated-renders/na-76a6b5f26af5f9e0/nj1/draft-540x960.mp4",
+  "mp4Sha256": "8c52721e493ddec1faaad6a7ad710782f414f3cbaf318d63909f410b5ef0a1f9",
+  "audioCodec": "aac",
+  "assetLockSha256": "a3ffd44d64c0b7df36c73051cec8a1e5ade83fa94715db1e7faa60269d490704",
+  "host": {
+    "chromium": "/opt/playwright/chromium-1232/chrome-linux64/chrome",
+    "glRenderer": "WebKit WebGL",
+    "gpu": false
+  },
+  "narrated": {
+    "label": "Draft Preview — Not Final Quality",
+    "timelineSchema": "blockspark.narrated-timeline/1",
+    "storyboardSchemaVersion": "1.1",
+    "storyboardId": "nr-b8757cf22e2c",
+    "storyboardSha256": "76a6b5f26af5f9e0f1bcf635677f8c9f7a79f16d9f1bfc48575f3e0be2985856",
+    "approvalId": "na-76a6b5f26af5f9e0",
+    "audioContentHash": "d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2",
+    "seed": 17,
+    "captionChunks": 26,
+    "shots": 39
+  }
+}
