@@ -101,14 +101,28 @@ Results:
 | Existing fast tests (`studio-workflow`, `story-stages`, `security`, `schema`, `registry`) | 23/23 pass |
 | All fast tests except render/integration and bench smoke | 131: 130 pass, 1 skipped, 0 fail |
 | `npm run typecheck` | Clean |
-| Manual HTTP smoke on a 43.9 s voice-over, uploaded as WAV, MP3 and M4A | WAV, MP3 (FFmpeg 7.0.2) and M4A accepted; MP3-named-`.wav`, fake executable, traversal name and shell-metacharacter name rejected; 14-phrase script aligned at **high** confidence (0.904) |
+| Manual HTTP smoke on a 43.9 s voice-over, uploaded as WAV, MP3 and M4A | WAV, MP3 and M4A accepted (FFmpeg 7.0.2 static build given via `FFMPEG_PATH`; a temporary copy outside the repo, never committed or referenced by code); MP3-named-`.wav`, fake executable, traversal name and shell-metacharacter name rejected; 14-phrase script aligned at **high** confidence (0.904) |
 
 ## Known limitations
 - Phrase-level timing only; there is no word timing and no lip-sync.
 - Speech over a continuous music bed, like all three references, usually falls back to low-confidence word-count timing. The UI says so honestly, but it cannot fix it.
 - The planner uses rules and keywords. It demonstrates narration with the 23 story-usable actions of two characters in one classroom, so many scripts produce substitution warnings.
 - There is no manual timestamp editing and one caption preset. MP3/M4A need FFmpeg.
-- The browser UI was type-checked and served, but not exercised in a real browser here, because no Chromium is installed and the dependency limit rules out downloading one.
+- The browser UI has had an **automated** headless smoke test (see below) but no manual review by a person.
+- Best results need a **dry voice-over**: voice only, with short pauses between script lines.
+
+## Reproducibility checkpoint
+- **FFmpeg** (MP3/M4A only) is resolved explicitly by `ffmpegStatus()` in `apps/studio/narrated-api.ts`, using the same convention as the existing `FFPROBE_PATH`:
+  - `FFMPEG_PATH`, which must be an absolute path to a runnable FFmpeg (no silent fallback);
+  - otherwise `ffmpeg` on `PATH`.
+- It is never installed or bundled. Without it, the UI shows *WAV only* with setup steps, and MP3/M4A uploads get HTTP 422 `DECODER_UNAVAILABLE` with the same text. WAV needs no FFmpeg.
+- **UI smoke test**: 16/16 checks in the preinstalled Chrome for Testing 151 (`/opt/playwright`, found by the project's `findChromium()`), via `launchBrowser()`. It covered:
+  - mode switch; the WAV-only notice and MP3 setup error;
+  - WAV upload, alignment review (HIGH), storyboard (6 cards, render notice, no Render button) and JSON download;
+  - refresh after the stored audio was removed: storyboard restored, re-upload message shown, a different file refused, the same file accepted;
+  - Visual Comedy still shown, and no page errors.
+- It found one bug, now fixed: the Visual Comedy step bar stayed visible in Narrated Story mode, because `#steps{display:flex}` overrode `hidden`. `index.html` now has `[hidden]{display:none !important}`.
+- **Dry voice-over check**: a 66.4 s dry TTS voice-over supplied for this checkpoint (MP3, 44.1 kHz mono; not committed) decoded through the committed path. It showed 17 speech regions, 41 dB contrast and pauses of 0.20–0.44 s: clean phrase boundaries for 1:1 alignment. It is longer than the 35–60 s target, which only warns.
 
 ## Phase 2 requires
 - A narrated episode compiler that turns a storyboard into an `Episode` (shots 1–2 s, actions timed to phrases). It must support 35–60 s, but the current schema allows only 14–22 s and 30 beats, so a schema version bump is needed.

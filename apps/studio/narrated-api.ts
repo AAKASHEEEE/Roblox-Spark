@@ -27,10 +27,24 @@ const REJECT_TITLE: Record<string, string> = {
 const PATTERN_TITLE: Record<string, string> = { comparison: 'Comparison', hypothetical: 'Hypothetical ("imagine if…")', escalating_consequence: 'Escalating consequence', narrated_comedy: 'Narrated comedy' };
 const HASH = /^[0-9a-f]{64}$/;
 
-export function ffmpegPath(): string | null {
-  const env = process.env.FFMPEG_PATH;
-  const cand = env && isAbsolute(env) && existsSync(env) ? env : 'ffmpeg';
-  try { execFileSync(cand, ['-hide_banner', '-version'], { stdio: 'ignore', timeout: 5000 }); return cand; } catch { return null; }
+/** shown whenever MP3/M4A cannot be decoded; the Studio never installs FFmpeg itself */
+export const FFMPEG_SETUP = 'MP3 and M4A voice-overs need FFmpeg: install it so that `ffmpeg` is on PATH, or start the Studio with FFMPEG_PATH=/absolute/path/to/ffmpeg, then restart the Studio. WAV voice-overs work without FFmpeg.';
+export interface FfmpegStatus { available: boolean; path: string | null; source: 'FFMPEG_PATH' | 'PATH'; version: string | null; problem: string | null }
+/**
+ * Explicit FFmpeg resolution (same convention as FFPROBE_PATH in apps/render-worker/lib/probe-node.ts):
+ * FFMPEG_PATH, when set, must be an absolute path to a runnable FFmpeg (no silent fallback); otherwise `ffmpeg` on PATH.
+ * The check runs `<bin> -version` via execFile (argument array, no shell) and requires an "ffmpeg version" banner.
+ */
+export function ffmpegStatus(env: Record<string, string | undefined> = process.env): FfmpegStatus {
+  const set = env.FFMPEG_PATH, source = set ? 'FFMPEG_PATH' as const : 'PATH' as const;
+  const no = (problem: string): FfmpegStatus => ({ available: false, path: null, source, version: null, problem });
+  if (set && (!isAbsolute(set) || !existsSync(set))) return no(`FFMPEG_PATH is set to "${set}", which is not an absolute path to an existing file`);
+  const bin = set ?? 'ffmpeg';
+  try {
+    const out = execFileSync(bin, ['-hide_banner', '-version'], { encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'] });
+    const version = /^ffmpeg version (\S+)/.exec(out)?.[1] ?? null;
+    return version ? { available: true, path: bin, source, version, problem: null } : no(`${set ? 'FFMPEG_PATH' : '`ffmpeg` on PATH'} is not an FFmpeg executable`);
+  } catch { return no(set ? `FFMPEG_PATH (${set}) could not be run` : 'FFmpeg was not found on PATH'); }
 }
 
 /** decode + validate an uploaded file already stored at `file` (our own content-addressed path) */
@@ -40,7 +54,7 @@ export async function decodeAudioFile(file: string, format: AudioFormat, ffmpeg:
   let a: DecodedAudio;
   if (format === 'wav') a = decodeWav(bytes);
   else {
-    if (!ffmpeg) throw new AudioRejection('DECODER_UNAVAILABLE', `${format.toUpperCase()} needs FFmpeg on PATH (or FFMPEG_PATH); upload a WAV file instead`);
+    if (!ffmpeg) throw new AudioRejection('DECODER_UNAVAILABLE', `FFmpeg is not available on this Studio server, so ${format.toUpperCase()} cannot be decoded. ${FFMPEG_SETUP}`);
     const rate = 16000;
     const { stdout, stderr } = await new Promise<{ stdout: Buffer; stderr: string }>((ok, fail) => execFile(ffmpeg,
       ['-hide_banner', '-nostdin', '-protocol_whitelist', 'file', '-f', format === 'mp3' ? 'mp3' : 'mov', '-i', file, '-map', '0:a:0', '-vn', '-sn', '-dn', '-t', '310', '-ac', '1', '-ar', String(rate), '-f', 's16le', '-acodec', 'pcm_s16le', 'pipe:1'],
@@ -66,7 +80,9 @@ async function readCapped(req: IncomingMessage, max: number): Promise<Buffer | n
 
 export interface NarratedApiDeps { registry: Registry; stateDir: string; uploadDir: string; ffmpeg?: string | null }
 export function createNarratedApi(deps: NarratedApiDeps): ApiHandler {
-  const reg = deps.registry, ffmpeg = deps.ffmpeg === undefined ? ffmpegPath() : deps.ffmpeg;
+  const reg = deps.registry;
+  const ff: FfmpegStatus = deps.ffmpeg === undefined ? ffmpegStatus() : { available: !!deps.ffmpeg, path: deps.ffmpeg, source: 'FFMPEG_PATH', version: null, problem: deps.ffmpeg ? null : 'FFmpeg disabled by configuration' };
+  const ffmpeg = ff.path;
   mkdirSync(deps.uploadDir, { recursive: true }); mkdirSync(join(deps.stateDir, 'narrated'), { recursive: true });
   const metaFile = (h: string) => join(deps.uploadDir, `${h}.json`);
   let chain: Promise<unknown> = Promise.resolve();
@@ -91,6 +107,7 @@ export function createNarratedApi(deps: NarratedApiDeps): ApiHandler {
       sendJson(res, 200, {
         characters: reg.ids.characters.map((id) => ({ id, name: reg.characters[id].displayName })), patterns: STORY_PATTERNS.map((id) => ({ id, title: PATTERN_TITLE[id] })),
         captionPresets: CAPTION_PRESETS.map((id) => ({ id, title: 'Shorts default (lower-middle, 2 lines)' })), formats: ffmpeg ? ['wav', 'mp3', 'm4a'] : ['wav'],
+        ffmpeg: { available: ff.available, source: ff.source, version: ff.version, problem: ff.problem }, ffmpegSetup: FFMPEG_SETUP,
         maxUploadMB: MAX_UPLOAD_BYTES / 1024 / 1024, ...NARRATED_UI_TEXT,
       });
       return true;

@@ -4,7 +4,7 @@
 type NScreen = 'input' | 'alignment' | 'storyboard';
 interface AudioMeta { originalFilename: string; format: string; codec: string; durationSeconds: number; sampleRate: number; channels: number; contentHash: string }
 interface Form { title: string; script: string; characters: string[]; storyPattern: string; seed: number; captionPreset: string }
-interface Options { characters: Array<{ id: string; name: string }>; patterns: Array<{ id: string; title: string }>; captionPresets: Array<{ id: string; title: string }>; formats: string[]; maxUploadMB: number; renderNotice: string; reupload: string }
+interface Options { characters: Array<{ id: string; name: string }>; patterns: Array<{ id: string; title: string }>; captionPresets: Array<{ id: string; title: string }>; formats: string[]; ffmpeg: { available: boolean; source: string; version: string | null; problem: string | null }; ffmpegSetup: string; maxUploadMB: number; renderNotice: string; reupload: string }
 interface Gen { generationId: string; status: 'accepted' | 'rejected'; rejection: { category: string; title: string; reason: string; also: Array<{ category: string; reason: string }> } | null; storyboard: any; speechRegions: Array<{ start: number; end: number }>; renderNotice: string; audioAvailable: boolean }
 
 const KEY = 'blockspark.narrated.v1';
@@ -39,9 +39,9 @@ function inputHtml(): string {
     <label>Episode title<input id="n-title" maxlength="80" value="${esc(form.title)}"></label>
     <label style="margin-top:12px">Script — one narration/caption phrase per line; blank lines separate sections<textarea id="n-script" rows="9" maxlength="6000" placeholder="Imagine if you actually lived inside a block game.&#10;At first, everything would feel perfect.">${esc(form.script)}</textarea></label>
     <div class="row">
-      <label>Voice-over (${esc(opt.formats.map((x) => x.toUpperCase()).join(', '))}, max ${esc(opt.maxUploadMB)} MB)<input id="n-file" type="file" accept="${esc(opt.formats.map((x) => '.' + x).join(','))}"></label>
+      <label>Voice-over (${esc(opt.formats.map((x) => x.toUpperCase()).join(', '))}, max ${esc(opt.maxUploadMB)} MB)<input id="n-file" type="file" accept=".wav,.mp3,.m4a"></label>
       <span id="n-upload" class="dim">${esc(msg)}</span>
-    </div>${audioInfo}
+    </div>${opt.ffmpeg.available ? '' : `<p class="warn" style="font-size:12.5px">WAV only on this server: ${esc(opt.ffmpeg.problem ?? 'FFmpeg unavailable')}. ${esc(opt.ffmpegSetup)}</p>`}${audioInfo}
     <div class="row">
       <fieldset style="border:1px solid var(--line);border-radius:8px"><legend class="dim">Characters (registered only)</legend>${opt.characters.map((c) => `<label style="flex-direction:row;align-items:center"><input type="checkbox" name="n-char" value="${esc(c.id)}" ${form.characters.includes(c.id) ? 'checked' : ''}> ${esc(c.name)}</label>`).join('')}</fieldset>
       <label>Story pattern<select id="n-pattern">${opt.patterns.map((p) => `<option value="${esc(p.id)}" ${p.id === form.storyPattern ? 'selected' : ''}>${esc(p.title)}</option>`).join('')}</select></label>
@@ -114,7 +114,8 @@ function bind(): void {
 async function upload(file: File | undefined): Promise<void> {
   if (!file) return;
   const ext = file.name.toLowerCase().split('.').pop() ?? '';
-  if (!opt.formats.includes(ext)) { msg = `Unsupported file type .${ext}`; view(); return; }
+  if ((ext === 'mp3' || ext === 'm4a') && !opt.ffmpeg.available) { msg = `FFmpeg setup required: ${opt.ffmpeg.problem ?? 'FFmpeg unavailable'}. ${opt.ffmpegSetup}`; view(); return; }
+  if (!opt.formats.includes(ext)) { msg = `Unsupported file type .${ext} (allowed: ${opt.formats.join(', ')})`; view(); return; }
   if (file.size > opt.maxUploadMB * 1024 * 1024) { msg = `File is larger than ${opt.maxUploadMB} MB`; view(); return; }
   msg = 'Uploading and validating…'; $('n-upload').textContent = msg;
   const r = await fetch('/api/narrated/upload', { method: 'POST', headers: { 'content-type': 'application/octet-stream', 'x-filename': encodeURIComponent(file.name) }, body: file });

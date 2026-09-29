@@ -11,7 +11,8 @@ Original, blocky-style, vertical (1080×1920) comedy shorts. The pipeline goes f
 - Node **22.18 or newer** (runs `.ts` natively).
 - TypeScript **5.8 or newer**.
 - `playwright-core` plus a Chromium build.
-- **No** GPU, FFmpeg or Python is needed.
+- **No** GPU or Python is needed.
+- FFmpeg is **optional**. Only Narrated Story MP3/M4A voice-overs need it (see *Narrated Storyboard — Phase 1*). Everything else, including WAV voice-overs, works without it.
 
 ## Setup
 ```bash
@@ -88,12 +89,32 @@ A second Studio mode. It takes a script and your uploaded voice-over and produce
 **Audio**
 - Accepted formats:
   - **WAV** (PCM 16/24/32-bit or float 32), decoded natively.
-  - **MP3** and **M4A** (AAC/ALAC), only when FFmpeg is on `PATH` or set in `FFMPEG_PATH`.
+  - **MP3** and **M4A** (AAC/ALAC), only when FFmpeg is available (see *FFmpeg* below).
+- **Record a dry voice-over** (voice only, no music bed) and pause briefly (about 0.2 s or more) between script lines. Pauses are what the aligner detects; add music later.
 - Validation:
   - Maximum upload 30 MB; duration 1–300 s (35–60 s is the target and only warns).
   - The file must be a safe plain filename, and its content must match its extension.
   - The codec reported by the decoder must be allowed; executables are rejected.
 - Uploads are stored content-addressed (SHA-256) in `.scratch/narrated-uploads/`. This folder is not in Git and not publicly served.
+
+**FFmpeg (MP3/M4A only)**
+- The Studio never installs FFmpeg and has no bundled copy. It uses exactly one of these:
+  - `FFMPEG_PATH=/absolute/path/to/ffmpeg npm start`. If `FFMPEG_PATH` is set but not an absolute path to a runnable FFmpeg, MP3/M4A stay disabled; there is no fallback.
+  - Otherwise, `ffmpeg` on `PATH`, e.g. from `apt install ffmpeg`, `dnf install ffmpeg` or `brew install ffmpeg`.
+- The build needs the `mp3` and `mov` demuxers and the `mp3`/`aac` decoders; standard builds include them. Tested with FFmpeg 7.0.2.
+- FFmpeg is checked once at Studio start (`ffmpeg -version`); restart the Studio after installing it.
+- Without FFmpeg, the Narrated Story screen says *WAV only* and shows these setup steps. MP3/M4A uploads are refused with the same message (API code `DECODER_UNAVAILABLE`).
+- FFmpeg runs with an argument list (never a shell) on the Studio's own hash-named copy of the upload. The input format is forced and only file access is allowed.
+
+**Fresh machine**
+```bash
+npm install                               # Node >= 22.18; installs typescript + playwright-core only
+npm run typecheck                         # tsc --noEmit
+node --test tests/narrated.test.ts        # the 8 Narrated Story tests (in-memory WAV fixtures; no FFmpeg or browser)
+npm test                                  # the fast suite; render integration tests need Chromium (see Setup)
+npm start                                 # Studio at http://localhost:5173 (Narrated Story needs no server-side browser)
+FFMPEG_PATH=/usr/bin/ffmpeg npm start     # optional: enable MP3/M4A (or just have ffmpeg on PATH)
+```
 
 **How alignment works** (offline and deterministic; no speech model):
 - Speech/silence regions are detected from 20 ms energy frames with an adaptive threshold.

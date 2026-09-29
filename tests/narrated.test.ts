@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { lib, ROOT } from './helpers.ts';
 import { startServer } from '../apps/render-worker/lib/server.ts';
 import { createStudioApi } from '../apps/studio/server.ts';
+import { ffmpegStatus } from '../apps/studio/narrated-api.ts';
 import { buildRegistry } from '../packages/story/src/registry.ts';
 import { decodeWav, encodeWav16 } from '../packages/narrated/src/audio.ts';
 import { SilenceGuidedAligner, alignPhrases } from '../packages/narrated/src/align.ts';
@@ -169,5 +170,17 @@ test('8. Studio: Visual Comedy is unchanged and Narrated Story validates uploads
     assert.match(dl.headers.get('content-disposition') ?? '', /attachment; filename="nr-[0-9a-f]{12}\.json"/);
     assert.equal(JSON.stringify(await dl.json()), JSON.stringify(g.storyboard));
     assert.equal((await fetch(`${base}/api/narrated/audio/${'0'.repeat(64)}`)).status, 404, 'unknown audio must be re-uploaded');
+    // FFmpeg is resolved explicitly (FFMPEG_PATH or PATH, never installed); without it MP3/M4A get a setup error
+    const nopt = await (await fetch(`${base}/api/narrated/options`)).json();
+    assert.equal(ffmpegStatus({ FFMPEG_PATH: 'relative/ffmpeg' }).available, false);
+    assert.match(String(ffmpegStatus({ FFMPEG_PATH: '/nonexistent/bin/ffmpeg' }).problem), /absolute path to an existing file/);
+    const mp3 = await up('voice-over.mp3', new Uint8Array([0x49, 0x44, 0x33, 4, 0, 0, 0, 0, 0, 0, 0xff, 0xfb, 0x90, 0x64, 0, 0]));
+    assert.equal(mp3.status, 422);
+    if (!nopt.ffmpeg.available) {
+      assert.deepEqual(nopt.formats, ['wav']);
+      const e = await mp3.json();
+      assert.equal(e.code, 'DECODER_UNAVAILABLE');
+      assert.match(e.error, /FFMPEG_PATH/);
+    }
   } finally { s.server.close(); rmSync(join(ROOT, STATE), { recursive: true, force: true }); rmSync(UP, { recursive: true, force: true }); }
 });
