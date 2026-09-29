@@ -11,11 +11,12 @@ import type { Vec3 } from '../../packages/engine/src/math.ts';
 import type { ActionPose, JointPose } from '../../packages/engine/src/animation/pose.ts';
 import {
   actionPose, applyMotionFrame, blendPoses, blendWindow, bodySamplePoints, braceLayer, fallPose, gaitPose, hasProceduralAction, jumpPose, neutralUpperBodyPose, pronePose,
-  smoothstep, transitionWeight, LOOK_BLEND_SEC, MIN_BLEND_SEC, RELEASE_BLEND_SEC,
+  smoothstep, transitionWeight, MIN_BLEND_SEC, RELEASE_BLEND_SEC, fallHeadDrive, filterHeadDrive, lookAnglesInRoot, type HeadDrive,
 } from '../../packages/engine/src/animation/narrated-motion.ts';
-import { ACTION_DEFS, IDLE_POSE } from '../../packages/engine/src/animation/actions.ts';
+import { ACTION_DEFS, IDLE_POSE, idleLayer } from '../../packages/engine/src/animation/actions.ts';
 import { applyButtonState, applyPropTransform, discLowestPoint, discSignedDistance, discWorldSize, measuredPropTransform } from '../../packages/engine/src/prop-transform.ts';
-import type { WorldPlan, WorldState, ActorState, Posture } from '../../packages/narrated/src/world.ts';
+import { sampleWorld, type WorldPlan, type WorldState, type Posture } from '../../packages/narrated/src/world.ts';
+import type { Quat } from '../../packages/engine/src/math.ts';
 
 export const ADAPTER_SCHEMA = 'blockspark.narrated-engine-adapter/1';
 /** body/coin penetration beyond this depth (m) is blocking */
@@ -31,7 +32,7 @@ export interface AdapterOptions { /** world prop id -> engine prop instance id *
 export interface AdapterWarning { code: string; entity: string; message: string }
 export interface ActorApplied {
   plannedRoot: Vec3; appliedRoot: Vec3; rootDeviationM: number; yawDeg: number; pitchDeg: number; groundOffsetM: number;
-  posture: Posture; poseSource: string; stance: 'l' | 'r' | null; soleL: Vec3; soleR: Vec3; headTop: Vec3; lookTarget: string | null; expression: string;
+  posture: Posture; poseSource: string; stance: 'l' | 'r' | null; soleL: Vec3; soleR: Vec3; headTop: Vec3; headLocal: Vec3[]; headQuatLocal: Quat; lookTarget: string | null; expression: string;
   gaitDistanceM: number | null; framing: { waist_up_required: boolean }; contacts: string[];
 }
 export interface PropApplied { visible: boolean; pos: Vec3; scale: number; rotDeg: Vec3; phase: string; measuredPos: Vec3; measuredScale: number; lowestPoint: Vec3 | null; thicknessM: number | null; radiusM: number | null; capDepth?: number; glow?: number }
@@ -73,7 +74,6 @@ const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
 const r6v = (v: readonly number[]): Vec3 => [r6(v[0]), r6(v[1]), r6(v[2])];
 const d3 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const d2 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[2] - b[2]);
-const lerp3 = (a: Vec3, b: Vec3, u: number): Vec3 => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
 const idle = (): ActionPose => ({ joints: { ...IDLE_POSE } });
 const HEAD_Y = 1.7;
 
@@ -83,6 +83,8 @@ export class NarratedEngineAdapter implements NarratedWorldAdapter {
   private opts: AdapterOptions;
   private segs = new Map<string, MSeg[]>();
   private memoEnd = new Map<string, ActionPose>();
+  /** raw head drive per time (pure values; order of filling can never change a result) */
+  private driveCache = new Map<number, Record<string, HeadDrive>>();
   private warned = new Map<string, AdapterWarning>();
   private missing: string[] = [];
   constructor(opts: AdapterOptions = {}) { this.opts = opts; }
@@ -103,7 +105,7 @@ export class NarratedEngineAdapter implements NarratedWorldAdapter {
     for (const w of plan.warnings) if (w.code === SEATED_WARNING) this.warn(SEATED_WARNING, w.message.split(' ')[0], `${w.message} (engine: closest safe upper-body pose; no seated animation is claimed)`);
   }
 
-  reset(): void { this.plan = null; this.segs.clear(); this.memoEnd.clear(); this.warned.clear(); this.missing = []; this.last = null; }
+  reset(): void { this.plan = null; this.segs.clear(); this.memoEnd.clear(); this.driveCache.clear(); this.warned.clear(); this.missing = []; this.last = null; }
 
   private warn(code: string, entity: string, message: string) { const k = `${code}:${entity}`; if (!this.warned.has(k)) this.warned.set(k, { code, entity, message }); }
 
@@ -216,16 +218,40 @@ export class NarratedEngineAdapter implements NarratedWorldAdapter {
     return p;
   }
 
-  private lookFor(actor: string, a: ActorState, w: WorldState, gait: boolean): { at: Vec3 | null; weight: number } {
-    const looks = this.plan!.actors[actor].looks;
-    let i = -1;
-    for (let q = 0; q < looks.length; q++) { if (looks[q].t > w.t + 1e-9) break; i = q; }
-    const cur = this.lookPoint(a.lookTarget, w), base = gait ? 0.5 : 1;
-    if (i < 0 || w.t - looks[i].t >= LOOK_BLEND_SEC || looks[i].v !== a.lookTarget) return { at: cur, weight: cur ? base : 0 };
-    const u = smoothstep((w.t - looks[i].t) / LOOK_BLEND_SEC), prev = i > 0 ? this.lookPoint(looks[i - 1].v, w) : null;
-    if (cur && prev) return { at: lerp3(prev, cur, u), weight: base };
-    if (cur) return { at: cur, weight: base * u };
-    return { at: prev, weight: prev ? base * (1 - u) : 0 };
+  /** the body pose the snapshot dictates for an actor (shared by the scene application and the head drive) */
+  private bodyPose(id: string, w: WorldState, rig: Rig, unbraced = false) {
+    const a = w.actors[id], k = this.segIndex(id, w.t), s = k >= 0 ? this.segs.get(id)![k] : null;
+    const f = s ? (unbraced ? this.fullUnbraced : this.full).call(this, id, k, w.t, w, rig, a.bodyPitchDeg) : { pose: idle(), layers: [] as JointPose[], weight: 1 };
+    // the snapshot posture is authoritative: after prone, nothing but a get-up (none exists) may stand the actor up
+    let pose = f.pose, source = s?.label ?? 'idle';
+    if (a.posture === 'prone' && s?.kind !== 'prone' && s?.kind !== 'fall') { pose = pronePose(); source = 'prone(forced by world posture)'; }
+    return { pose, layers: f.layers, source, seg: s, gait: s?.kind === 'gait' && a.posture === 'walking', idleAmt: pose.still || a.posture === 'prone' ? 0.15 : 1 };
+  }
+  /** filtered head drive at t (pure function of t); the pre-contact flinch rides on top of the filter, never delayed */
+  private headAt(id: string, t: number, scene: EngineScene): HeadDrive {
+    const head = filterHeadDrive((tt) => this.driveAt(id, tt, scene), t);
+    const k = this.segIndex(id, t), bw = k >= 0 ? this.braceWeight(id, t, this.segs.get(id)![k].kind) : 0;
+    if (bw <= 0) return head;
+    const j = braceLayer({ joints: { spine: head.spine, neck: head.neck } }, bw).joints;
+    return { ...head, spine: j.spine!, neck: j.neck! };
+  }
+  /** unfiltered head drive at time t for every actor (pure function of t; cached by time) */
+  private driveAt(actor: string, t: number, scene: EngineScene): HeadDrive {
+    let c = this.driveCache.get(t);
+    if (!c) {
+      c = {};
+      const w = sampleWorld(this.plan!, t);
+      for (const [id, a] of Object.entries(w.actors)) {
+        const rig = scene.rigs.get(this.rigId(id));
+        if (!rig || !this.segs.has(id)) continue;
+        const b = this.bodyPose(id, w, rig, true), il = idleLayer(t, this.plan!.seed % 1000, b.idleAmt);
+        const add3 = (x?: Vec3, y?: Vec3): Vec3 => [(x?.[0] ?? 0) + (y?.[0] ?? 0), (x?.[1] ?? 0) + (y?.[1] ?? 0), (x?.[2] ?? 0) + (y?.[2] ?? 0)];
+        const pt = this.lookPoint(a.lookTarget, w), ang = pt ? lookAnglesInRoot(a.pos, a.yawDeg, HEAD_Y, pt) : { yaw: 0, pitch: 0 };
+        c[id] = { spine: add3(b.pose.joints.spine, il.spine), neck: add3(b.pose.joints.neck, il.neck), lookYaw: ang.yaw, lookPitch: ang.pitch, lookWeight: pt ? (b.gait ? 0.5 : 1) * (1 - smoothstep(Math.abs(a.bodyPitchDeg) / 25)) : 0, hasLook: !!pt, direct: a.posture === 'falling' || a.posture === 'prone', layerNeck: b.layers.reduce<Vec3>((acc, l) => add3(acc, l.neck), [0, 0, 0]) };
+      }
+      this.driveCache.set(t, c);
+    }
+    return c[actor];
   }
 
   /** pure evaluation + application of one snapshot (the only function that writes scene transforms) */
@@ -235,23 +261,19 @@ export class NarratedEngineAdapter implements NarratedWorldAdapter {
     for (const [id, a] of Object.entries(w.actors)) {
       const rig = scene.rigs.get(this.rigId(id));
       if (!rig || !this.segs.has(id)) { missing.push(`actor:${id}`); continue; }
-      const k = this.segIndex(id, w.t), s = k >= 0 ? this.segs.get(id)![k] : null;
-      const pitch = a.bodyPitchDeg;
-      const f = s ? this.full(id, k, w.t, w, rig, pitch) : { pose: idle(), layers: [], weight: 1 };
-      // the snapshot posture is authoritative: after prone, nothing but a get-up (none exists) may stand the actor up
-      let pose = f.pose, source = s?.label ?? 'idle';
-      if (a.posture === 'prone' && s?.kind !== 'prone' && s?.kind !== 'fall') { pose = pronePose(); source = 'prone(forced by world posture)'; }
-      const gait = s?.kind === 'gait' && a.posture === 'walking';
-      const look = this.lookFor(id, a, w, gait);
+      const pitch = a.bodyPitchDeg, b = this.bodyPose(id, w, rig), s = b.seg, pose = b.pose, source = b.source;
+      // spine / neck / look come from the deterministic, rate-limited head filter (root untouched)
+      // during the world-timed fall the head travels from its state at the contact instant to prone at constant speed
+      const head = s?.kind === 'fall' && a.posture === 'falling' ? fallHeadDrive(this.headAt(id, s.t0 - 1e-4, scene), pitch) : this.headAt(id, w.t, scene);
       const ground = a.posture === 'falling' || a.posture === 'prone' ? 'all' : 'feet';
-      const res = applyMotionFrame(rig, { t: w.t, seed: this.plan.seed, root: [...a.pos] as Vec3, yawDeg: a.yawDeg, pitchDeg: pitch, pose, layers: f.layers, lookAt: look.at, lookWeight: look.weight, idle: pose.still || a.posture === 'prone' ? 0.15 : 1, ground, expression: a.expression });
+      const res = applyMotionFrame(rig, { t: w.t, seed: this.plan.seed, root: [...a.pos] as Vec3, yawDeg: a.yawDeg, pitchDeg: pitch, pose, layers: b.layers, head, idle: b.idleAmt, ground, expression: a.expression });
       if (!res.expressionApplied) this.warn('EXPRESSION_UNAVAILABLE', id, `${id} has no face state ${a.expression}`);
       const seated = a.posture === 'implied_seated';
       if (seated) this.warn(SEATED_WARNING, id, `${id} is implied_seated at ${a.mark ?? 'its mark'}: closest safe upper-body pose used; framing must be waist-up`);
       const p = s?.plan?.path, dist = s?.kind === 'gait' && p ? Math.min(p.len, Math.max(0, (w.t - p.tw0) * p.speed)) : null;
       actors[id] = {
         plannedRoot: r6v(a.pos), appliedRoot: r6v(res.rootWorld), rootDeviationM: r6(d3([res.rootWorld[0], res.rootWorld[1] - res.groundOffset, res.rootWorld[2]], a.pos)), yawDeg: r6(a.yawDeg), pitchDeg: r6(pitch), groundOffsetM: r6(res.groundOffset),
-        posture: a.posture, poseSource: source, stance: res.stance ?? null, soleL: r6v(res.soleL), soleR: r6v(res.soleR), headTop: r6v(rig.headTop.worldPos()), lookTarget: a.lookTarget, expression: a.expression,
+        posture: a.posture, poseSource: source, stance: res.stance ?? null, soleL: r6v(res.soleL), soleR: r6v(res.soleR), headTop: r6v(rig.headTop.worldPos()), headLocal: res.headLocal.map(r6v), headQuatLocal: res.headQuatLocal.map(r6) as Quat, lookTarget: a.lookTarget, expression: a.expression,
         gaitDistanceM: dist === null ? null : r6(dist), framing: { waist_up_required: seated }, contacts: [...a.contacts],
       };
     }

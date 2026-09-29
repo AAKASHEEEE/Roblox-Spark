@@ -246,3 +246,87 @@ test('21. pose transitions blend (no 0.12-0.15 s snaps) and all required procedu
   }
   console.log(JSON.stringify({ worstHeadStep: worst, summary, contactT, fall: [fall.t0, fall.t1], finalGap: D[D.length - 1].penetration, transitions: tr.length, warnings: D[D.length - 1].warnings.map((w) => w.code) }));
 });
+
+// ---------- head / look-target smoothing (follow-up: deterministic, rate-limited head filter) ----------
+const localStep = (a: { headLocal: number[][] }, b: { headLocal: number[][] }) => Math.max(...a.headLocal.map((p, k) => d3(p, b.headLocal[k])));
+const angStep = (a: { headQuatLocal: number[] }, b: { headQuatLocal: number[] }) => { const q = a.headQuatLocal, r = b.headQuatLocal; return (2 * Math.acos(Math.min(1, Math.abs(q[0] * r[0] + q[1] * r[1] + q[2] * r[2] + q[3] * r[3]))) * 180) / Math.PI; };
+const series = (id: string, t0: number, t1: number) => { const out: Array<{ t: number; step: number; ang: number; q: number[] }> = []; for (let i = 1; i < D.length; i++) { const t = i / plan.fps; if (t >= t0 - 1e-9 && t <= t1 + 1e-9) out.push({ t, step: localStep(D[i].actors[id], D[i - 1].actors[id]), ang: angStep(D[i].actors[id], D[i - 1].actors[id]), q: D[i].actors[id].headQuatLocal }); } return out; };
+const qAngle = (q: number[], r: number[]) => (2 * Math.acos(Math.min(1, Math.abs(q[0] * r[0] + q[1] * r[1] + q[2] * r[2] + q[3] * r[3]))) * 180) / Math.PI;
+const HEAD_MAX_M = 0.08;
+const lookEvent = (id: string, v: string, near: number) => plan.actors[id].looks.filter((l) => l.v === v).sort((a, b) => Math.abs(a.t - near) - Math.abs(b.t - near))[0].t;
+
+test('22. look-target change around 21.2 s: responds on the next frame, eases, never snaps, settles', () => {
+  const te = lookEvent('zapp', 'button', 21.2);
+  assert.ok(Math.abs(te - 21.01) < 1e-6);
+  const S = series('zapp', te, te + 2.0), first = S[0];
+  assert.ok(first.ang > 0.5, `responds immediately (${first.ang} deg on the first frame)`);
+  for (const s of S) assert.ok(s.step <= HEAD_MAX_M && s.ang <= 6, `${s.t}: ${s.step} m, ${s.ang} deg`);
+  const final = S[S.length - 1].q, total = qAngle(D[Math.round((te - 1 / plan.fps) * plan.fps)].actors.zapp.headQuatLocal, final);
+  assert.ok(total > 60, `a large gaze change (${total} deg)`);
+  const settled = S.find((s) => qAngle(s.q, final) <= 2)!;
+  assert.ok(settled && settled.t - te <= 1.5, `settles within 1.5 s (${settled?.t - te})`);
+  const half = S.find((s) => qAngle(s.q, final) <= total / 2)!;
+  assert.ok(half.t - te <= 0.7, `half-way by ${half.t - te} s`);
+});
+
+test('23. shock reaction around 40.4 s: starts on the event frame, lands within ~0.3 s, no head snap', () => {
+  const te = lookEvent('zapp', 'coin', 40.4);
+  assert.ok(Math.abs(te - 40.29) < 1e-6);
+  const S = series('zapp', te, te + 1.2);
+  assert.ok(S[0].ang > 0.5, `responds immediately (${S[0].ang} deg)`);
+  for (const s of S) assert.ok(s.step <= HEAD_MAX_M, `${s.t}: ${s.step} m`);
+  const before = D[Math.floor(te * plan.fps)].actors.zapp.headQuatLocal, final = S[S.length - 1].q, total = qAngle(before, final);
+  const reached = (f: number) => S.find((s) => qAngle(before, s.q) >= f * total)!.t - te;
+  assert.ok(reached(0.3) <= 0.3, `30 % of the reaction by ${reached(0.3)} s`);
+  assert.ok(reached(0.9) <= 1.0, `90 % by ${reached(0.9)} s`);
+  // the recoil body pose is not delayed by the head filter: the spine reacts on the event frames
+  assert.equal(D[Math.round((te + 0.1) * plan.fps)].actors.zapp.poseSource, 'shock_recoil');
+});
+
+test('24. local head displacement (root frame) <= 0.08 m per frame everywhere; walking root travel is not counted', () => {
+  const all: number[] = [], ang: number[] = [];
+  for (let i = 1; i < D.length; i++) for (const id of ['zapp', 'kira']) { all.push(localStep(D[i].actors[id], D[i - 1].actors[id])); ang.push(angStep(D[i].actors[id], D[i - 1].actors[id])); }
+  const sorted = [...all].sort((a, b) => a - b), max = sorted[sorted.length - 1], p95 = sorted[Math.floor(sorted.length * 0.95)];
+  assert.ok(max <= HEAD_MAX_M, `max ${max} m`);
+  assert.ok(p95 <= 0.04, `p95 ${p95} m`);
+  assert.ok(Math.max(...ang) <= 12, `max angular change ${Math.max(...ang)} deg/frame`);
+  // walking: the root travels ~3.7 cm per frame while the head barely moves in the root frame
+  const w = D.filter((d, i) => i > 0 && d.actors.kira.posture === 'walking' && D[i - 1].actors.kira.posture === 'walking');
+  const wi = w.map((d) => D.indexOf(d));
+  assert.ok(Math.max(...wi.map((i) => d2(D[i].actors.kira.appliedRoot, D[i - 1].actors.kira.appliedRoot))) > 0.03);
+  assert.ok(Math.max(...wi.map((i) => localStep(D[i].actors.kira, D[i - 1].actors.kira))) < 0.05);
+  console.log(JSON.stringify({ headLocalMaxM: max, headLocalP95M: p95, maxAngDegPerFrame: Math.max(...ang) }));
+});
+
+test('25. direct-time sampling equals sequential playback (no mutable history)', () => {
+  const frames = [630, 636, 1209, 1212, 1215, 1678, 1679, 1685, 1690, 1695, 2074, 0, 44, 780, 1500];
+  for (const order of [frames, [...frames].reverse()]) {
+    const scene = makeScene(), ad = new NarratedEngineAdapter();
+    ad.initialize(plan, scene);
+    for (const i of order) {
+      const d = ad.applySnapshot(sampleWorld(plan, i / plan.fps), null, scene);
+      assert.equal(JSON.stringify(d.actors), JSON.stringify(D[i].actors), `frame ${i}`);
+      assert.equal(JSON.stringify(d.props), JSON.stringify(D[i].props), `frame ${i}`);
+    }
+  }
+  // reset() + replay gives the same result as a fresh adapter
+  BASE.ad.reset(); BASE.ad.initialize(plan, BASE.scene);
+  assert.equal(JSON.stringify(BASE.ad.applySnapshot(sampleWorld(plan, 1212 / plan.fps), null, BASE.scene).actors), JSON.stringify(D[1212].actors));
+});
+
+test('26. contact and fall timing are unchanged by the head filter', () => {
+  assert.deepEqual(D.filter((d) => d.contacts.onsetThisFrame).map((d) => d.t), [1678 / plan.fps]);
+  assert.deepEqual(D.filter((d) => d.contacts.fallStartedThisFrame).map((d) => d.t), [1678 / plan.fps]);
+  assert.equal(D[1677].actors.zapp.posture, 'standing'); assert.equal(D[1678].actors.zapp.posture, 'falling');
+  assert.ok(Math.abs(contactT - 55.918) < 1e-9 && Math.abs(fall.t0 - 55.918) < 1e-3 && Math.abs(fall.t1 - 56.518) < 1e-3);
+  for (const d of D.filter((d) => d.t >= fall.t1 + 1e-9)) assert.equal(d.actors.zapp.posture, 'prone');
+  for (const d of D) assert.deepEqual(d.blocking, []);
+});
+
+test('27. root and prop transforms are unchanged (golden hashes from the PR #7 baseline, commit ecb9d59)', () => {
+  const h = (x: unknown) => sha(JSON.stringify(x)).slice(0, 16);
+  const planned = D.map((d) => Object.fromEntries(Object.entries(d.actors).map(([k, a]) => [k, [a.plannedRoot, a.yawDeg, a.pitchDeg, a.posture, a.rootDeviationM]])));
+  assert.equal(h(planned), '247c20d71b23fa27', 'planned roots, yaw, pitch, posture and root deviation');
+  assert.equal(h(D.map((d) => d.props)), 'e0b908e63bc2a159', 'every prop transform');
+  for (const d of D) for (const a of Object.values(d.actors)) assert.ok(a.rootDeviationM <= 1e-6);
+});
