@@ -11,7 +11,9 @@ export const MAX_DRAFT_SHOT_SEC = 2.8;
 export const DRAFT_EXPORT = { width: 540, height: 960, scale: 0.5, fps: 30, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000, channels: 2, loudnessLufs: -15, truePeakDbtpMax: -1.5, label: 'Draft Preview — Not Final Quality' } as const;
 export interface DraftAssets { characters: Record<string, string>; environment: { id: string; version: string }; props: { button: string; coin: string; desk: string }; motionProfile: string; rendererVersion: string }
 export interface TimelineShot { id: string; start: number; end: number; preset: string; subjects: string[]; phraseId: string; chunkId: string }
-export interface CaptionEvent { chunkId: string; phraseId: string; start: number; end: number; lines: string[]; emphasisWords: string[] }
+/** caption chunk; `placement` (block centre, fraction of frame height, fixed for the whole chunk) is set only by the
+ *  integrated camera/caption pass (apps/render-worker/narrated-integration.ts) — the compiler never sets it */
+export interface CaptionEvent { chunkId: string; phraseId: string; start: number; end: number; lines: string[]; emphasisWords: string[]; placement?: { centerY: number } }
 export interface SfxCue { sfx: string; at: number; gainDb: number; sync: string }
 export interface NarratedTimeline {
   schema: typeof TIMELINE_SCHEMA; storyboardSchemaVersion: string; storyboardId: string; storyboardSha256: string; audioHash: string;

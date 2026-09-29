@@ -14,8 +14,35 @@ import { decodeWav, type AudioFormat } from '../../packages/narrated/src/audio.t
 import type { NarratedStoryboard } from '../../packages/narrated/src/schema.ts';
 import { compileNarratedTimeline, draftEpisode, DRAFT_EXPORT, TIMELINE_SCHEMA, type NarratedTimeline } from '../../packages/narrated/src/timeline.ts';
 import { mixVoiceOver, resampleTo48k } from '../../packages/narrated/src/mixdown.ts';
+import { buildWorldPlan, worldAssets } from '../../packages/narrated/src/world.ts';
+import { validateEpisode } from '../../packages/pipeline/src/validate.ts';
+import { headlessEngine } from '../../packages/engine/src/headless.ts';
+import { integrateNarrated } from '../render-worker/narrated-integration.ts';
 
 export const NARRATED_DRAFT_DURATION: [number, number] = [35, 75];
+
+/** the draft Episode for the approved storyboard (existing engine; validation profile narrated-draft) */
+export function draftEpisodeFor(sb: NarratedStoryboard, tl: NarratedTimeline, lib: ReturnType<typeof loadLibrary>): Record<string, unknown> {
+  const reg = buildRegistry(lib as never);
+  return draftEpisode(sb, tl, { characters: Object.fromEntries(Object.entries(reg.characters).map(([k, c]) => [k, c.version])), environment: { id: reg.environment.id, version: reg.environment.version }, props: { button: reg.props.button.version, coin: reg.props.coin.version, desk: reg.props.desk.version }, motionProfile: DEFAULT_MOTION_PROFILE, rendererVersion: CURRENT_RENDERER_VERSION });
+}
+
+/**
+ * Continuity Checkpoint 2 integration (analysis only, no pixels): approved storyboard -> timeline -> WorldPlan ->
+ * adapter-posed engine scene -> safe cameras -> stable caption placements -> blocking gates. The render path consumes
+ * `integrated` verbatim; it must not start when `analysis.summary.blocking` is true.
+ */
+export function prepareIntegration(sb: NarratedStoryboard, sbSha: string, lib: ReturnType<typeof loadLibrary>, onProgress?: (stage: string, done: number, total: number) => void) {
+  const tl = compileNarratedTimeline(sb, sbSha);
+  const raw = draftEpisodeFor(sb, tl, lib);
+  const v = validateEpisode(raw, lib as never, { repair: true, profile: 'narrated-draft' });
+  if (!v.ok || !v.episode) throw new Error(`draft episode failed validation: ${v.findings.filter((f) => f.severity === 'error').map((f) => f.code).join(', ')}`);
+  const plan = buildWorldPlan(sb, worldAssets(lib as never));
+  if (plan.status !== 'ok') throw new Error(`WORLD_PLAN_UNAVAILABLE: ${plan.errors.map((e) => `${e.code} ${e.message}`).join('; ')}`);
+  const { prod } = headlessEngine(v.episode, lib as never, DRAFT_EXPORT.width, DRAFT_EXPORT.height);
+  const r = integrateNarrated({ sb, tl, plan, prod, width: DRAFT_EXPORT.width, height: DRAFT_EXPORT.height, onProgress });
+  return { tl, episode: v.episode, plan, integrated: r.timeline, analysis: r.analysis };
+}
 export interface DraftJobInput { storyboard: NarratedStoryboard; storyboardSha256: string; approvalId: string; audioFile: string; audioFormat: AudioFormat; jobDir: string; ffmpeg: string | null; onStage: (stage: string, done?: number, total?: number) => void }
 export interface DraftJobResult { ok: boolean; outputs: Record<string, string>; error?: string; quality?: { passed: number; total: number; failed: string[] } | null; media?: Record<string, string | number> | null }
 export type DraftRenderer = (i: DraftJobInput) => Promise<DraftJobResult>;
@@ -79,11 +106,18 @@ export const renderNarratedDraft: DraftRenderer = async (i) => {
     if (D < NARRATED_DRAFT_DURATION[0] || D > NARRATED_DRAFT_DURATION[1]) throw new Error(`narrated drafts need a ${NARRATED_DRAFT_DURATION.join('-')} s voice-over (got ${D} s)`);
     const vo = await decodeForRender(copy, i.audioFormat, i.ffmpeg);
     i.onStage('compiling');
-    const lib = loadLibrary(), reg = buildRegistry(lib as never);
-    const tl = compileNarratedTimeline(i.storyboard, i.storyboardSha256);
-    const ep = draftEpisode(i.storyboard, tl, { characters: Object.fromEntries(Object.entries(reg.characters).map(([k, c]) => [k, c.version])), environment: { id: reg.environment.id, version: reg.environment.version }, props: { button: reg.props.button.version, coin: reg.props.coin.version, desk: reg.props.desk.version }, motionProfile: DEFAULT_MOTION_PROFILE, rendererVersion: CURRENT_RENDERER_VERSION });
+    const lib = loadLibrary();
+    // Continuity Checkpoint 2: WorldState -> posed scene -> safe cameras -> stable captions -> blocking gates (no pixels)
+    const pre = prepareIntegration(i.storyboard, i.storyboardSha256, lib, (st, d, t) => i.onStage('analyzing', d, t));
+    const tl = pre.tl, ep = draftEpisodeFor(i.storyboard, tl, lib);
     writeFileSync(join(i.jobDir, 'approved-narrated.json'), JSON.stringify(i.storyboard, null, 2)); outputs.approvedJson = url('approved-narrated.json');
-    writeFileSync(join(i.jobDir, 'render-timeline.json'), JSON.stringify(tl, null, 2)); outputs.timelineJson = url('render-timeline.json');
+    writeFileSync(join(i.jobDir, 'render-timeline.json'), JSON.stringify({ timeline: tl, integrated: pre.integrated }, null, 2)); outputs.timelineJson = url('render-timeline.json');
+    writeFileSync(join(i.jobDir, 'analysis-report.json'), JSON.stringify(pre.analysis, null, 2)); outputs.analysis = url('analysis-report.json');
+    if (pre.analysis.summary.blocking) {
+      // a render must not start while any blocking continuity / camera / caption / semantic gate fails
+      rmSync(input, { recursive: true, force: true });
+      return { ok: false, outputs, quality: { passed: pre.analysis.summary.passed, total: pre.analysis.summary.total, failed: pre.analysis.summary.failed }, error: `blocking analysis gates failed (render not started): ${pre.analysis.summary.failed.join(', ')}` };
+    }
     writeFileSync(join(i.jobDir, 'draft-episode.json'), JSON.stringify(ep, null, 2));
     // voice-over first: padded (never cut) to whole frames; SFX low and ducked; loudness-normalised
     const N = Math.round(tl.videoDuration * 30), padded = new Float32Array(N * 1600);
@@ -95,9 +129,9 @@ export const renderNarratedDraft: DraftRenderer = async (i) => {
       episode: relative(ROOT, join(i.jobDir, 'draft-episode.json')), episodeObject: ep, out: relative(ROOT, i.jobDir), scale: DRAFT_EXPORT.scale, profile: 'diagnostic', audioCodec: 'aac', validationProfile: 'narrated-draft',
       onProgress: (p) => i.onStage(stageOf[p.phase] ?? 'rendering', p.done, p.total),
       narrated: {
-        left: mixed.left, right: mixed.right, audioReport: { ...mixed.report, truePeakDbfsApprox: mixed.report.truePeakDbtp }, captions: tl.captions, captionStyle: { centerY: i.storyboard.captionStyle.centerY, bottomSafe: i.storyboard.captionStyle.bottomSafe },
+        left: mixed.left, right: mixed.right, audioReport: { ...mixed.report, truePeakDbfsApprox: mixed.report.truePeakDbtp }, captions: pre.integrated.captions, integrated: { storyboard: i.storyboard, timeline: pre.integrated }, captionStyle: { centerY: i.storyboard.captionStyle.centerY, bottomSafe: i.storyboard.captionStyle.bottomSafe },
         durationRange: [NARRATED_DRAFT_DURATION[0], NARRATED_DRAFT_DURATION[1] + 0.05],
-        gates: (c) => narratedGates(i.storyboard, tl, c.ep, mixed.report, jobHash, c),
+        gates: (c) => [...narratedGates(i.storyboard, tl, c.ep, mixed.report, jobHash, c).filter((g) => g.id !== 'N05'), ...pre.analysis.gates.map((g) => ({ id: g.id, name: `[${g.group}] ${g.name}`, pass: g.pass, detail: g.detail }))],
       },
     });
     const q = r.report as { summary: { passed: number; total: number; failed: string[] } } | undefined;

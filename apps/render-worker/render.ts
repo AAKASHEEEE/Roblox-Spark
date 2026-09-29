@@ -43,8 +43,11 @@ export interface RenderOptions {
    *  chunks are burned in, and the narrated gates (not the Visual Comedy report) decide success. */
   narrated?: {
     left: Float32Array; right: Float32Array; audioReport: Record<string, unknown>;
-    captions: Array<{ start: number; end: number; lines: string[]; emphasisWords: string[] }>; captionStyle: { centerY: number; bottomSafe: number };
+    captions: Array<{ start: number; end: number; lines: string[]; emphasisWords: string[]; placement?: { centerY: number } }>; captionStyle: { centerY: number; bottomSafe: number };
     durationRange: [number, number];
+    /** Continuity Checkpoint 2: WorldState-driven narrated scene + integrated safe cameras (Visual Comedy never sets this).
+     *  The Node-side analysis-only pass already validated every frame; the page poses through the adapter only. */
+    integrated?: { storyboard: unknown; timeline: unknown };
     gates: (ctx: { ep: any; analysis: any[]; probe: any; production: any; playback: any; aacCheck: any; mp4: string; frames: number; fps: number; resolution: [number, number] }) => Array<{ id: string; name: string; pass: boolean; detail: string }>;
   };
 }
@@ -110,19 +113,28 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     await cdp.send('Performance.enable');
     const info = await page.evaluate(([e, l, w, h]: any) => (window as any).__spark.load(e, l, w, h), [ep, lib, W, H]);
     log(`renderer: ${info.renderer}; declared renderer ${info.render.rendererVersion}, motion profile ${info.render.motionProfile}; contacts: ${info.contacts.map((c: any) => `${c.actor}.${c.action}@${c.t.toFixed(3)}`).join(', ')}`);
+    const integrated = o.narrated?.integrated;
+    if (integrated) {
+      const ni = await page.evaluate(([sb, itl]: any) => (window as any).__spark.loadNarrated(sb, itl), [integrated.storyboard, integrated.timeline]);
+      log(`narrated integrated scene: WorldState adapter, ${ni.shots} safe camera shots, ${ni.captions} placed caption chunks`);
+    }
 
-    // 3. analysis pass (no pixels): shot validation, contacts, motion probes
+    // 3. analysis pass (no pixels): shot validation, contacts, motion probes. The integrated narrated path was analysed
+    //    frame-by-frame in Node on the adapter-posed scene; the legacy ActorTrack probes would read stale geometry.
     phase('analyze', 0, 1);
     const t1 = Date.now();
     const times = Array.from({ length: N }, (_, i) => i / fps);
     const probes: any[] = [];
-    for (let a = 0; a < N; a += 60) probes.push(...(await page.evaluate((ts: number[]) => (window as any).__spark.probe(ts), times.slice(a, a + 60))));
     const analysis: any[] = [];
-    const aTimes = times.filter((_, i) => i % 3 === 0);
-    for (let a = 0; a < aTimes.length; a += 60) analysis.push(...(await page.evaluate((ts: number[]) => (window as any).__spark.analyze(ts), aTimes.slice(a, a + 60))));
-    const contactChecks = await page.evaluate((ts: number[]) => (window as any).__spark.analyze(ts), info.contacts.map((c: any) => c.t));
-    const sweep = await page.evaluate(() => (window as any).__spark.sweep({ substeps: 4 }));
-    log(`analysis pass: ${N} probes + ${aTimes.length} shot validations in ${((Date.now() - t1) / 1000).toFixed(1)}s`);
+    let contactChecks: any[] = [], sweep: any[] = [];
+    if (!integrated) {
+      for (let a = 0; a < N; a += 60) probes.push(...(await page.evaluate((ts: number[]) => (window as any).__spark.probe(ts), times.slice(a, a + 60))));
+      const aTimes = times.filter((_, i) => i % 3 === 0);
+      for (let a = 0; a < aTimes.length; a += 60) analysis.push(...(await page.evaluate((ts: number[]) => (window as any).__spark.analyze(ts), aTimes.slice(a, a + 60))));
+      contactChecks = await page.evaluate((ts: number[]) => (window as any).__spark.analyze(ts), info.contacts.map((c: any) => c.t));
+      sweep = await page.evaluate(() => (window as any).__spark.sweep({ substeps: 4 }));
+    }
+    log(`analysis pass: ${probes.length} probes + ${analysis.length} shot validations in ${((Date.now() - t1) / 1000).toFixed(1)}s${integrated ? ' (integrated narrated: Node analysis-only pass is authoritative)' : ''}`);
     if (o.analyzeOnly) {
       const by: Record<string, Record<string, number>> = {};
       for (const a of analysis) for (const i of a.issues) { const m = (by[a.shot] ??= {}); const k = i.code + (i.subject ? ':' + i.subject : ''); m[k] = (m[k] ?? 0) + 1; }
