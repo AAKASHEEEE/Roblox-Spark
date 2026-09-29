@@ -39,6 +39,14 @@ export interface RenderOptions {
   overlay?: Array<{ from: number; to: number; text: string }>;
   /** extra story/generation gates appended to the quality report */
   extraGates?: (ctx: { ep: any; analysis: any[]; probes: any[]; playback: any; loopDiff: number[] }) => Array<{ id: string; name: string; pass: boolean; kind: 'measured' | 'proxy' | 'static'; detail: string; group: string }>;
+  /** Narrated draft (validation profile narrated-draft): the approved voice-over mix replaces the episode mix, caption
+   *  chunks are burned in, and the narrated gates (not the Visual Comedy report) decide success. */
+  narrated?: {
+    left: Float32Array; right: Float32Array; audioReport: Record<string, unknown>;
+    captions: Array<{ start: number; end: number; lines: string[]; emphasisWords: string[] }>; captionStyle: { centerY: number; bottomSafe: number };
+    durationRange: [number, number];
+    gates: (ctx: { ep: any; analysis: any[]; probe: any; production: any; playback: any; aacCheck: any; mp4: string; frames: number; fps: number; resolution: [number, number] }) => Array<{ id: string; name: string; pass: boolean; detail: string }>;
+  };
 }
 
 function arg(name: string, def?: string): string | undefined {
@@ -143,14 +151,16 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     phase('audio', 0, 1);
     const t2 = Date.now();
     const audioAssets = Object.fromEntries(Object.values(lib.audio).map((a) => [a.id, a]));
-    const m = mix({ duration: ep.episode.duration, cues: [...ep.audio.cues, ...steps], music: ep.audio.music, ambience: ep.audio.ambience, loudnessLufs: ep.audio.loudnessLufs, duckingDb: ep.audio.duckingDb, loop: true }, audioAssets);
+    const m = o.narrated ? { left: o.narrated.left, right: o.narrated.right, report: o.narrated.audioReport as any }
+      : mix({ duration: ep.episode.duration, cues: [...ep.audio.cues, ...steps], music: ep.audio.music, ambience: ep.audio.ambience, loudnessLufs: ep.audio.loudnessLufs, duckingDb: ep.audio.duckingDb, loop: true }, audioAssets);
+    if (o.narrated && m.left.length !== N * 1600) throw new Error(`narrated audio has ${m.left.length} samples; ${N} frames need ${N * 1600} (48 kHz)`);
     writeFileSync(join(outDir, 'mix.wav'), wav16(m.left, m.right));
     const audioBitrate = Math.max(160, ep.export.audioBitrateKbps) * 1000;
     let aac: ReturnType<typeof encodeAacLc> | null = null;
     let opus: any = null;
     if (audioCodec === 'aac') {
       aac = encodeAacLc([m.left, m.right], audioBitrate);
-      log(`audio: ${m.report.integratedLufs} LUFS (target ${ep.audio.loudnessLufs}), peak ${m.report.truePeakDbfsApprox} dBFS, AAC-LC ${audioBitrate / 1000} kbps, ${aac.frames.length} access units (+${aac.priming} priming), ${((Date.now() - t2) / 1000).toFixed(1)}s`);
+      log(`audio: ${m.report.integratedLufs} LUFS (target ${ep.audio.loudnessLufs}), peak ${m.report.truePeakDbfsApprox ?? m.report.truePeakDbtp} dB, AAC-LC ${audioBitrate / 1000} kbps, ${aac.frames.length} access units (+${aac.priming} priming), ${((Date.now() - t2) / 1000).toFixed(1)}s`);
     } else {
       const pcm = interleave(m.left, m.right);
       opus = await page.evaluate(([b, sr, ch, br]: any) => (window as any).__spark.encodeOpus(b, sr, ch, br), [Buffer.from(pcm.buffer).toString('base64'), 48000, 2, ep.export.audioBitrateKbps * 1000]);
@@ -158,7 +168,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     }
 
     // 6. frames -> H.264
-    await page.evaluate((cfg: any) => (window as any).__spark.initCapture(cfg), { bitrate: ep.export.videoBitrateKbps * 1000 * scale * scale, hashEvery: o.hashEvery ?? 15, overlay: o.overlay ?? null });
+    await page.evaluate((cfg: any) => (window as any).__spark.initCapture(cfg), { bitrate: ep.export.videoBitrateKbps * 1000 * scale * scale, hashEvery: o.hashEvery ?? 15, overlay: o.overlay ?? null, captions: o.narrated?.captions ?? null, captionStyle: o.narrated?.captionStyle ?? null });
     const t3 = Date.now();
     const samples: { data: Uint8Array; duration: number; isKey: boolean }[] = [];
     const hashes: Array<[number, string]> = [];
@@ -205,7 +215,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     log(`muxed ${relative(ROOT, mp4Path)} ${(mp4.length / 1e6).toFixed(2)} MB sha256 ${mp4Sha.slice(0, 16)}…`);
     // production-compatibility probe (ffprobe when installed, built-in parser otherwise)
     const probe = probeFile(mp4Path);
-    const spec = profile === 'final' ? PRODUCTION_SPEC : { ...PRODUCTION_SPEC, width: W, height: H };
+    const spec = { ...(profile === 'final' ? PRODUCTION_SPEC : { ...PRODUCTION_SPEC, width: W, height: H }), ...(o.narrated ? { durationRange: o.narrated.durationRange } : {}) };
     const production = checkProductionProfile(probe, spec);
     writeFileSync(join(outDir, 'probe.json'), JSON.stringify({ probe, production }, null, 2));
     log(`production profile (${probe.tool}${profile === 'diagnostic' ? `, diagnostic ${W}x${H}` : ''}): ${production.ok ? 'PASS' : 'FAIL — ' + production.errors.join('; ')}`);
@@ -215,7 +225,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
     if (o.verify !== false) {
       phase('verify', 0, 1);
       const rel = relative(ROOT, mp4Path);
-      const mids = ep.shots.map((s) => +((s.start + s.end) / 2).toFixed(3));
+      const mids = (o.narrated ? ep.shots.filter((_, k) => k % 3 === 0) : ep.shots).map((s) => +((s.start + s.end) / 2).toFixed(3));
       playback = await verifyPlayback(url, rel, [0.5, ...mids], join(outDir, 'decoded'), 3);
       const vpage = await browser.newPage();
       await vpage.goto(`${url}/apps/studio/blank.html`);
@@ -227,7 +237,7 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
         log(`AAC check: decoder SNR ${rt.snrDb.join('/')} dB, codec delay ${rt.bestLag} samples; MP4 decode (edit list applied) offset ${al.lagSamples} samples = ${al.lagMs.toFixed(2)} ms, length ${al.decodedSamples}/${m.left.length}`);
       }
       const urls = playback.frameFiles.map((f: string) => 'data:image/png;base64,' + readFileSync(f).toString('base64'));
-      const sheet = await contactSheet(vpage, urls.slice(1), ep.shots.map((s) => `${s.id} ${s.preset}`), 5, 216);
+      const sheet = await contactSheet(vpage, urls.slice(1), (o.narrated ? ep.shots.filter((_, k) => k % 3 === 0) : ep.shots).map((s) => `${s.id} ${s.preset}`), 5, 216);
       sheetFile = join(outDir, 'contact-sheet.png');
       writeFileSync(sheetFile, Buffer.from(sheet.split(',')[1], 'base64'));
       thumbFile = join(outDir, 'thumbnail.png');
@@ -257,6 +267,15 @@ export async function renderEpisode(o: RenderOptions): Promise<{ ok: boolean; ou
       assetLockSha256: sha256(canonical(lib.hashes)), host: { chromium: renderLog.host.chromium, glRenderer: info.renderer, gpu: !!o.gpu },
     }, null, 2));
     writeFileSync(join(outDir, 'analysis.json'), JSON.stringify({ analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, sweep }));
+    if (o.narrated) {
+      const gates = o.narrated.gates({ ep, analysis, probe, production, playback, aacCheck, mp4: mp4Path, frames: N, fps, resolution: [W, H] });
+      const failed = gates.filter((g) => !g.pass).map((g) => g.id);
+      const nq = { report: 'blockspark.narrated-draft-quality/1', summary: { total: gates.length, passed: gates.length - failed.length, failed }, gates, audio: m.report, timing: renderLog.timing };
+      writeFileSync(join(outDir, 'quality-report.json'), JSON.stringify(nq, null, 2));
+      log(`narrated draft quality: ${nq.summary.passed}/${nq.summary.total} gates passed${failed.length ? ' — FAILED: ' + failed.join(', ') : ''}`);
+      phase('done', 1, 1);
+      return { ok: failed.length === 0 && (!playback || playback.ok), outDir, mp4: mp4Path, report: nq };
+    }
     const q = buildQualityReport({ ep, validation: v, analysis, contactChecks, probes, contacts: info.contacts, impacts: info.impacts, inspect, playback, loopDiff, audio: m.report, lib, timing: renderLog.timing, fps, profile, resolution: [W, H], production, aacCheck, extraGates: o.extraGates?.({ ep, analysis, probes, playback, loopDiff }) ?? [], validationProfile: o.validationProfile ?? 'story-episode', durationTargetSec: o.durationTargetSec, sweep });
     writeFileSync(join(outDir, 'quality-report.json'), JSON.stringify(q, null, 2));
     writeFileSync(join(outDir, 'quality-report.md'), qualityMarkdown(q, ep, renderLog));

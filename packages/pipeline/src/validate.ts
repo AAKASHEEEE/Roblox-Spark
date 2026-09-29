@@ -1,6 +1,6 @@
 // Episode validation: strict schema + semantic checks + safe automatic repairs.
 // Never executes anything from the episode; the episode is inert data.
-import { EpisodeSchema, LOCOMOTION_ACTIONS, type Episode } from '../../schema/src/episode.ts';
+import { EpisodeSchema, NarratedEpisodeSchema, LOCOMOTION_ACTIONS, type Episode } from '../../schema/src/episode.ts';
 import { checkRenderDeclaration } from '../../schema/src/render-compat.ts';
 import type { AudioManifest, CharacterManifest, EnvironmentManifest, PropManifest } from '../../schema/src/assets.ts';
 import { ACTION_DEFS, ACTION_REQUIREMENTS, unmetRequirements } from '../../engine/src/animation/actions.ts';
@@ -21,8 +21,8 @@ export interface ValidationResult { ok: boolean; episode?: Episode; findings: Fi
  *  - action-reel: diagnostic reels that exercise engine actions. Asset, reference, timeline, feasibility, causality,
  *    audio-sync and safety checks all apply; story-structure checks are NOT applicable and are reported as info.
  */
-export type ValidationProfile = 'story-episode' | 'action-reel';
-export const VALIDATION_PROFILES: readonly ValidationProfile[] = ['story-episode', 'action-reel'];
+export type ValidationProfile = 'story-episode' | 'action-reel' | 'narrated-draft';
+export const VALIDATION_PROFILES: readonly ValidationProfile[] = ['story-episode', 'action-reel', 'narrated-draft'];
 /** findings that judge story structure / editing (not applicable to diagnostic action reels) */
 export const STORY_STRUCTURE_CODES: ReadonlySet<string> = new Set([
   'HERO_PROP', 'PREMISE_NOT_VISIBLE', 'SLOW_OPENING', 'STALE_STRETCH', 'NO_FACIAL_REACTION', 'NO_REVERSAL', 'REVERSAL_TOO_EARLY',
@@ -61,15 +61,16 @@ export function validateEpisode(raw: unknown, lib: Lib, opts: { repair?: boolean
   if (!VALIDATION_PROFILES.includes(profile)) throw new Error(`unknown validation profile ${JSON.stringify(profile)}`);
   const findings: Finding[] = [];
   const repairs: string[] = [];
-  const na = (code: string) => profile === 'action-reel' && STORY_STRUCTURE_CODES.has(code);
-  const err = (code: string, message: string, path?: string) => findings.push(na(code) ? { severity: 'info', code, message: `[not applicable: validation profile action-reel] ${message}`, path } : { severity: 'error', code, message, path });
-  const warn = (code: string, message: string, path?: string) => findings.push(na(code) ? { severity: 'info', code, message: `[not applicable: validation profile action-reel] ${message}`, path } : { severity: 'warning', code, message, path });
+  // narrated drafts: Visual Comedy story structure (loop, reversal, hero prop...) is n/a, but a shot may still never exceed 3 s
+  const na = (code: string) => (profile === 'action-reel' && STORY_STRUCTURE_CODES.has(code)) || (profile === 'narrated-draft' && STORY_STRUCTURE_CODES.has(code) && code !== 'SHOT_TOO_LONG');
+  const err = (code: string, message: string, path?: string) => findings.push(na(code) ? { severity: 'info', code, message: `[not applicable: validation profile ${profile}] ${message}`, path } : { severity: 'error', code, message, path });
+  const warn = (code: string, message: string, path?: string) => findings.push(na(code) ? { severity: 'info', code, message: `[not applicable: validation profile ${profile}] ${message}`, path } : { severity: 'warning', code, message, path });
   const info = (code: string, message: string) => findings.push({ severity: 'info', code, message });
 
   // rendering compatibility first: a missing/unsupported declaration is reported with its own code, never defaulted
   const compat = checkRenderDeclaration(raw);
   if (!compat.ok) { err(compat.code, compat.message, compat.path); return { ok: false, findings, repairs, metrics: {} }; }
-  const parsed = EpisodeSchema.parse(raw);
+  const parsed = (profile === 'narrated-draft' ? NarratedEpisodeSchema : EpisodeSchema).parse(raw);
   if (!parsed.ok) {
     for (const i of parsed.issues) err('SCHEMA', i.message, i.path);
     return { ok: false, findings, repairs, metrics: {} };

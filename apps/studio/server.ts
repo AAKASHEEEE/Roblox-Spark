@@ -35,6 +35,8 @@ export interface StudioDeps {
   stateDir: string;
   /** Narrated Story voice-over store (content-addressed; outside the statically served tree). Default .scratch/narrated-uploads */
   uploadDir?: string;
+  /** Narrated draft renderer (tests inject a mock); default = apps/studio/narrated-draft.ts */
+  renderDraft?: import('./narrated-draft.ts').DraftRenderer;
 }
 interface Job {
   id: string; source: 'episode' | 'approved'; episode: string; scale: number; state: 'queued' | 'running' | 'done' | 'failed'; phase: string; done: number; total: number;
@@ -87,7 +89,7 @@ export function createStudioApi(deps: StudioDeps): ApiHandler {
   const jobsFile = S('jobs.json');
   const jobs: Job[] = existsSync(jobsFile) ? JSON.parse(readFileSync(jobsFile, 'utf8')) : [];
   for (const j of jobs) if (j.state === 'queued' || j.state === 'running') { j.state = 'failed'; j.phase = 'failed'; j.error = 'interrupted: the studio server stopped during this render — press Retry'; }
-  const narrated = createNarratedApi({ registry: reg, stateDir: S(), uploadDir: deps.uploadDir ?? join(ROOT, '.scratch', 'narrated-uploads') });
+  const narrated = createNarratedApi({ registry: reg, stateDir: S(), uploadDir: deps.uploadDir ?? join(ROOT, '.scratch', 'narrated-uploads'), renderDraft: deps.renderDraft });
   const saveJobs = () => writeFileSync(jobsFile, JSON.stringify(jobs, null, 1));
   let running = false;
   let genChain: Promise<unknown> = Promise.resolve();

@@ -13,10 +13,13 @@ import type { Registry } from '../../packages/story/src/registry.ts';
 import { AudioRejection, MAX_UPLOAD_BYTES, checkContainer, checkDecoded, checkFilename, decodeWav, type AudioFormat, type DecodedAudio } from '../../packages/narrated/src/audio.ts';
 import { SilenceGuidedAligner } from '../../packages/narrated/src/align.ts';
 import { generateNarratedStoryboard, type AudioMeta, type NarratedResult } from '../../packages/narrated/src/pipeline.ts';
-import { CAPTION_PRESETS, STORY_PATTERNS } from '../../packages/narrated/src/schema.ts';
+import { CAPTION_PRESETS, STORY_PATTERNS, NARRATED_SCHEMA_VERSION } from '../../packages/narrated/src/schema.ts';
+import { DEFAULT_MOTION_PROFILE } from '../../packages/schema/src/render-compat.ts';
+import { NARRATED_DRAFT_DURATION, type DraftRenderer } from './narrated-draft.ts';
 
 export const NARRATED_UI_TEXT = {
-  renderNotice: 'Narrated rendering will be added after audio alignment and storyboard timing are validated.',
+  renderNotice: 'Approve the storyboard to render a low-resolution draft. Draft Preview — Not Final Quality (540x960); final-quality narrated rendering is not implemented yet.',
+  draftLabel: 'Draft Preview — Not Final Quality',
   reupload: 'Re-upload the same voice-over file to continue.',
 };
 const REJECT_TITLE: Record<string, string> = {
@@ -78,7 +81,8 @@ async function readCapped(req: IncomingMessage, max: number): Promise<Buffer | n
   return Buffer.concat(chunks);
 }
 
-export interface NarratedApiDeps { registry: Registry; stateDir: string; uploadDir: string; ffmpeg?: string | null }
+export interface NarratedApiDeps { registry: Registry; stateDir: string; uploadDir: string; ffmpeg?: string | null; /** draft renderer (tests inject a mock); default = the real 540x960 draft render */ renderDraft?: DraftRenderer }
+interface DraftJob { id: string; approvalId: string; state: 'queued' | 'running' | 'done' | 'failed'; stage: string; done: number; total: number; startedAt?: number; finishedAt?: number; outputs: Record<string, string>; error: string | null; quality: { passed: number; total: number; failed: string[] } | null }
 export function createNarratedApi(deps: NarratedApiDeps): ApiHandler {
   const reg = deps.registry;
   const ff: FfmpegStatus = deps.ffmpeg === undefined ? ffmpegStatus() : { available: !!deps.ffmpeg, path: deps.ffmpeg, source: 'FFMPEG_PATH', version: null, problem: deps.ffmpeg ? null : 'FFmpeg disabled by configuration' };
@@ -99,6 +103,42 @@ export function createNarratedApi(deps: NarratedApiDeps): ApiHandler {
     rejection: r.rejection ? { category: r.rejection.category, title: REJECT_TITLE[r.rejection.category] ?? r.rejection.category, reason: r.rejection.reason, also: r.rejection.also } : null,
     storyboard: r.storyboard, speechRegions: r.alignment?.speechRegions ?? [], renderNotice: NARRATED_UI_TEXT.renderNotice,
   });
+  // ---- approvals (content-addressed, written once) + draft jobs (one at a time; interrupted jobs need a manual retry) ----
+  const AP = (...p: string[]) => join(deps.stateDir, 'narrated-approved', ...p);
+  const jobsFile = join(deps.stateDir, 'narrated-jobs.json');
+  const jobs: DraftJob[] = existsSync(jobsFile) ? JSON.parse(readFileSync(jobsFile, 'utf8')) : [];
+  for (const j of jobs) if (j.state === 'queued' || j.state === 'running') { j.state = 'failed'; j.stage = 'failed'; j.error = 'interrupted: the Studio stopped during this draft render — press Retry'; }
+  const saveJobs = () => { mkdirSync(deps.stateDir, { recursive: true }); writeFileSync(jobsFile, JSON.stringify(jobs, null, 1)); };
+  let running = false;
+  function readApproval(aid: string) {
+    if (!/^na-[0-9a-f]{16}$/.test(aid) || !existsSync(AP(aid, 'approval.json'))) return null;
+    const meta = JSON.parse(readFileSync(AP(aid, 'approval.json'), 'utf8'));
+    const intact = existsSync(AP(aid, 'storyboard.json')) && sha256(readFileSync(AP(aid, 'storyboard.json'), 'utf8')) === meta.storyboardSha256;
+    return { ...meta, intact, audioAvailable: !!storedAudio(meta.audioHash) };
+  }
+  async function pump(): Promise<void> {
+    if (running) return;
+    const job = jobs.find((j) => j.state === 'queued');
+    if (!job) return;
+    running = true; job.state = 'running'; job.stage = 'preparing'; job.startedAt = Date.now(); saveJobs();
+    try {
+      const ap = readApproval(job.approvalId);
+      if (!ap?.intact) throw new Error('the approved storyboard on disk no longer matches its approval hash');
+      const audio = storedAudio(ap.audioHash);
+      if (!audio) throw new Error(`${NARRATED_UI_TEXT.reupload} (approved audio ${String(ap.audioHash).slice(0, 12)}… is not in the store or no longer matches its hash)`);
+      const sbText = readFileSync(AP(job.approvalId, 'storyboard.json'), 'utf8');
+      const jobDir = join(deps.stateDir, 'narrated-renders', job.approvalId, job.id);
+      mkdirSync(jobDir, { recursive: true });
+      let saved = 0;
+      const render = deps.renderDraft ?? (await import('./narrated-draft.ts')).renderNarratedDraft;
+      const r = await render({ storyboard: JSON.parse(sbText), storyboardSha256: ap.storyboardSha256, approvalId: job.approvalId, audioFile: audio.file, audioFormat: audio.meta.format, jobDir, ffmpeg,
+        onStage: (stage, done = 0, total = 0) => { job.stage = stage; job.done = done; job.total = total; if (Date.now() - saved > 2000) { saved = Date.now(); saveJobs(); } } });
+      job.outputs = { ...r.outputs, approvedJsonApi: `/api/narrated/approved/${job.approvalId}/storyboard.json` }; job.quality = r.quality ?? null;
+      if (r.ok) { job.state = 'done'; job.stage = 'complete'; } else { job.state = 'failed'; job.stage = 'failed'; job.error = r.error ?? 'draft render failed'; }
+    } catch (e) { job.state = 'failed'; job.stage = 'failed'; job.error = String((e as Error)?.message ?? e).slice(0, 400); }
+    job.finishedAt = Date.now(); running = false; saveJobs();
+    void pump();
+  }
   const readGen = (gid: string) => /^n-[0-9a-f]{16}$/.test(gid) && existsSync(join(deps.stateDir, 'narrated', `${gid}.json`)) ? JSON.parse(readFileSync(join(deps.stateDir, 'narrated', `${gid}.json`), 'utf8')) as { request: unknown; result: NarratedResult } : null;
 
   return async (req, res, u) => {
@@ -159,6 +199,49 @@ export function createNarratedApi(deps: NarratedApiDeps): ApiHandler {
       res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'content-disposition': `attachment; filename="${rec.result.storyboard.id}.json"`, 'cache-control': 'no-store' });
       res.end(JSON.stringify(rec.result.storyboard, null, 2)); return true;
     }
+    if (p === '/api/narrated/approve' && req.method === 'POST') {
+      const raw = await readCapped(req, 4096);
+      let b: any = null; try { b = raw ? JSON.parse(raw.toString('utf8')) : null; } catch { b = null; }
+      const rec = typeof b?.generationId === 'string' ? readGen(b.generationId) : null;
+      if (!rec) { sendJson(res, 404, { error: 'unknown narrated storyboard' }); return true; }
+      const sb = rec.result.storyboard;
+      if (rec.result.status !== 'accepted' || !sb) { sendJson(res, 409, { error: 'only an accepted narrated storyboard can be approved' }); return true; }
+      if (!storedAudio(sb.audio.contentHash)) { sendJson(res, 409, { error: `${NARRATED_UI_TEXT.reupload} The approval must reference a stored, hash-verified voice-over.` }); return true; }
+      const D = sb.audio.durationSeconds;
+      if (D < NARRATED_DRAFT_DURATION[0] || D > NARRATED_DRAFT_DURATION[1]) { sendJson(res, 409, { error: `narrated drafts need a ${NARRATED_DRAFT_DURATION[0]}-${NARRATED_DRAFT_DURATION[1]} s voice-over; this one is ${D} s` }); return true; }
+      const text = JSON.stringify(sb), sha = sha256(text), aid = `na-${sha.slice(0, 16)}`;
+      if (!existsSync(AP(aid, 'approval.json'))) {
+        mkdirSync(AP(aid), { recursive: true });
+        writeFileSync(AP(aid, 'storyboard.json'), text, { flag: 'wx' });
+        const chunks = sb.script.phrases.reduce((n, x) => n + x.caption.chunks.length, 0);
+        writeFileSync(AP(aid, 'approval.json'), JSON.stringify({ approvalId: aid, generationId: b.generationId, approvedAt: new Date().toISOString(), storyboardId: sb.id, title: sb.title, storyboardSha256: sha, audioHash: sb.audio.contentHash, audioFilename: sb.audio.originalFilename, phraseCount: sb.script.phrases.length, captionChunks: chunks, durationSeconds: D, seed: sb.seed, schemaVersion: sb.schemaVersion, motionProfile: DEFAULT_MOTION_PROFILE, warnings: D > 60 ? [`${D} s exceeds the preferred 35-60 s publishing range`] : [] }, null, 1), { flag: 'wx' });
+      }
+      sendJson(res, 200, readApproval(aid)); return true;
+    }
+    const ap = p.match(/^\/api\/narrated\/approved\/(na-[0-9a-f]{16})(\/storyboard\.json)?$/);
+    if (ap && req.method === 'GET') {
+      const a = readApproval(ap[1]);
+      if (!a) { sendJson(res, 404, { error: 'unknown approval' }); return true; }
+      if (!ap[2]) { sendJson(res, 200, a); return true; }
+      res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'content-disposition': `attachment; filename="${a.storyboardId}-approved.json"`, 'cache-control': 'no-store' });
+      res.end(readFileSync(AP(ap[1], 'storyboard.json'))); return true;
+    }
+    if (p === '/api/narrated/render' && req.method === 'POST') {
+      const raw = await readCapped(req, 4096);
+      let b: any = null; try { b = raw ? JSON.parse(raw.toString('utf8')) : null; } catch { b = null; }
+      if (typeof b?.approvalId !== 'string') { sendJson(res, 400, { error: 'draft rendering requires an approved narrated storyboard (approvalId)' }); return true; }
+      const a = readApproval(b.approvalId);
+      if (!a) { sendJson(res, 404, { error: 'unknown approval' }); return true; }
+      if (!a.intact) { sendJson(res, 409, { error: 'the approved storyboard on disk no longer matches its approval hash' }); return true; }
+      if (typeof b.audioHash === 'string' && b.audioHash !== a.audioHash) { sendJson(res, 409, { error: 'the voice-over was replaced: this approval belongs to a different audio file. Approve the storyboard again for the new voice-over.' }); return true; }
+      if (!a.audioAvailable) { sendJson(res, 409, { error: `${NARRATED_UI_TEXT.reupload} (the approved voice-over is missing or no longer matches its hash)` }); return true; }
+      if (jobs.some((j) => j.approvalId === a.approvalId && (j.state === 'queued' || j.state === 'running'))) { sendJson(res, 409, { error: 'a draft render of this approval is already in progress' }); return true; }
+      const job: DraftJob = { id: `nj${jobs.length + 1}`, approvalId: a.approvalId, state: 'queued', stage: 'queued', done: 0, total: 0, outputs: {}, error: null, quality: null };
+      jobs.push(job); saveJobs(); void pump();
+      sendJson(res, 202, job); return true;
+    }
+    const nj = p.match(/^\/api\/narrated\/jobs\/(nj\d+)$/);
+    if (nj && req.method === 'GET') { const j = jobs.find((x) => x.id === nj[1]); sendJson(res, j ? 200 : 404, j ?? { error: 'unknown draft job' }); return true; }
     return false;
   };
 }

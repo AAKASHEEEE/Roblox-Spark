@@ -67,8 +67,8 @@ const api = {
       return { t, actors, props };
     });
   },
-  initCapture(cfg: { bitrate: number; hashEvery: number; keyframeInterval?: number; overlay?: Array<{ from: number; to: number; text: string }> | null }) {
-    cap = new FrameCapture({ width: renderer!.width, height: renderer!.height, fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery, overlay: cfg.overlay ?? null }, canvas!, () => renderer!.readPixels());
+  initCapture(cfg: { bitrate: number; hashEvery: number; keyframeInterval?: number; overlay?: Array<{ from: number; to: number; text: string }> | null; captions?: Array<{ start: number; end: number; lines: string[]; emphasisWords: string[] }> | null; captionStyle?: { centerY: number; bottomSafe: number } | null }) {
+    cap = new FrameCapture({ width: renderer!.width, height: renderer!.height, fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery, overlay: cfg.overlay ?? null, captions: cfg.captions ?? null, captionStyle: cfg.captionStyle ?? null }, canvas!, () => renderer!.readPixels());
     return true;
   },
   encodeRange: (a: number, b: number, final: boolean) => cap!.encodeRange(a, b, (i) => { prod!.render(renderer!, i / fps); }, final),
