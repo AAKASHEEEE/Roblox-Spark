@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Vec3 } from '../packages/engine/src/math.ts';
 import {
-  evaluateCameraCandidate, selectSafeCamera, requireSafeCamera, projectToScreen, nextScreenDirectionState,
+  evaluateCameraCandidate, selectSafeCamera, requireSafeCamera, projectToScreen, nextScreenDirectionState, buildSafeFallbackCandidates, CAMERA_SAFETY_DEFAULTS,
   type Bounds3, type CameraCandidate, type CameraObstacle, type CameraSafetyScene, type ProjectedEntity,
 } from '../packages/engine/src/camera-safety.ts';
 
@@ -35,7 +35,7 @@ function classroom(extra: CameraObstacle[] = [], over: Partial<CameraSafetyScene
   const k = character('kira', -0.6, 0), z = character('zapp', 0.6, 0);
   return {
     frameWidth: 1080, frameHeight: 1920,
-    subjectIds: ['kira', 'zapp'], heroPropIds: ['spark_coin'],
+    subjectIds: ['kira', 'zapp'], optionalSubjectIds: ['zapp'], heroPropIds: ['spark_coin'],
     obstacles: [...ENV, ...k.obstacles, ...z.obstacles, DESK, COIN, ...extra],
     projectedEntities: [k.meta, z.meta, { entityId: 'spark_coin', kind: 'prop', interactionPoint: [0, 0.95, 0.89] }],
     ...over,
@@ -50,13 +50,14 @@ const FRONTAL_KIRA = cand('frontal_kira', 'medium', [-0.6, 1.31, 2.1], [-0.6, 1.
 const PROP_INSERT = cand('coin_insert', 'prop', [0, 1.2, 1.6], [0, 0.84, 0.89]);
 
 // Face-to-face three-quarter pair for OTS (kira at left facing right+audience, zapp mirrored). No desk/coin.
-function facingPair(): CameraSafetyScene {
-  const k = character('kira', -0.7, 0, [1, 0, 1]), z = character('zapp', 0.7, 0, [-1, 0, 1]);
-  return { frameWidth: 1080, frameHeight: 1920, subjectIds: ['kira', 'zapp'], activeSubjectId: 'zapp', heroPropIds: [], obstacles: [...ENV, ...k.obstacles, ...z.obstacles], projectedEntities: [k.meta, z.meta] };
+// Default: the 1.4 m separation fixture; zapp active; both actors REQUIRED (no optionalSubjectIds).
+function facingPair(separation = 1.4, over: Partial<CameraSafetyScene> = {}): CameraSafetyScene {
+  const k = character('kira', -separation / 2, 0, [1, 0, 1]), z = character('zapp', separation / 2, 0, [-1, 0, 1]);
+  return { frameWidth: 1080, frameHeight: 1920, subjectIds: ['kira', 'zapp'], activeSubjectId: 'zapp', heroPropIds: [], obstacles: [...ENV, ...k.obstacles, ...z.obstacles], projectedEntities: [k.meta, z.meta], ...over };
 }
-const kiraHead: Vec3 = [-0.7, 1.46, 0];
 /** on the zapp→kira sight line, `d` m behind kira's head, slightly toward the audience (classic OTS placement) */
-const behindKira = (d: number, up: number): Vec3 => [kiraHead[0] - d, kiraHead[1] + up, 0.1];
+const behindKira = (d: number, up: number, separation = 1.4): Vec3 => [-separation / 2 - d, 1.46 + up, 0.1];
+const unsafeOts = (separation = 1.4) => cand('ots_hair', 'over_shoulder', behindKira(0.55, 0.1, separation), [separation / 2, 1.46, 0]);
 
 // ───────── collision ─────────
 
@@ -208,8 +209,8 @@ test('15. a valid prop insert passes', () => {
 });
 
 test('16. an unsafe OTS falls back to a safe two-character medium', () => {
-  const s = facingPair();
-  const sel = selectSafeCamera(s, [cand('ots_hair', 'over_shoulder', behindKira(0.55, 0.1), [0.7, 1.46, 0])]);
+  const s = facingPair(0.8); // close enough for a readable portrait two-shot
+  const sel = selectSafeCamera(s, [unsafeOts(0.8)]);
   assert.equal(sel.ok, true, !sel.ok ? sel.message : '');
   if (!sel.ok) return;
   assert.equal(sel.evaluations[0].result.accepted, false);
@@ -219,6 +220,8 @@ test('16. an unsafe OTS falls back to a safe two-character medium', () => {
   assert.equal(sel.result.diagnostics.fallback, 'two_character_medium');
   assert.ok(sel.result.faceVisibility.zapp >= 0.8 && sel.result.faceVisibility.kira >= 0.8);
   assert.ok(sel.candidate.transform.position[2] > 0, 'audience side of the action line');
+  assert.deepEqual(sel.droppedOptionalSubjects, []);
+  assert.equal(sel.droppedOnlyOptionalSupport, false);
 });
 
 // ───────── screen direction ─────────
@@ -317,7 +320,115 @@ test('20. no valid candidate and no valid fallback produces a blocking error', (
   if (sel.ok) return;
   assert.equal(sel.blocking, true);
   assert.equal(sel.code, 'CAMERA_SAFETY_BLOCKED');
-  assert.ok(sel.fallbackEvaluations.length >= 3, 'fallbacks were attempted');
+  assert.deepEqual(sel.fallbackEvaluations.map((e) => e.result.diagnostics.fallback), ['frontal_medium', 'reaction_close'], 'character fallbacks only; no elevated wide for a medium beat');
   assert.ok(sel.fallbackEvaluations.every((e) => !e.result.accepted && e.result.rejectionReasons.length > 0));
   assert.throws(() => requireSafeCamera(s, [cand('front', 'medium', [0, 1.31, 2.1], [0, 1.08, 0])]), /CAMERA_SAFETY_BLOCKED/);
+});
+
+// ───────── readable portrait scale (checkpoint 2 follow-up) ─────────
+
+test('21. the existing 8% two-character medium (1.4 m apart, camera ≈7 m back) is rejected', () => {
+  const s = facingPair();
+  const old = evaluateCameraCandidate(s, cand('old_two_shot', 'medium', [0, 1.36, 7.015], [0, 1.11, 0]));
+  assert.equal(old.accepted, false);
+  assert.equal(old.diagnostics.twoShot, true);
+  assert.equal(old.diagnostics.minHeadHeight, 0.14);
+  assert.deepEqual(old.diagnostics.requiredHeadHeightPct, { kira: 8.1, zapp: 8.1 });
+  assert.ok(has(old.rejectionReasons, 'SUBJECT_TOO_SMALL_FOR_INTENT:kira') && has(old.rejectionReasons, 'SUBJECT_TOO_SMALL_FOR_INTENT:zapp'), old.rejectionReasons.join('\n'));
+  assert.deepEqual(old.diagnostics.rejectingRequiredSubjects, ['kira', 'zapp']);
+  // the vetted two-shot now fits heads, not bodies (5.4 m instead of 7.0 m), and is still honestly rejected
+  const two = buildSafeFallbackCandidates(s).find((f) => f.fallback === 'two_character_medium')!;
+  assert.ok(two.transform.position[2] < 5.5, `two-shot distance ${two.transform.position[2]}`);
+  const r = evaluateCameraCandidate(s, two);
+  assert.equal(r.accepted, false);
+  assert.ok(r.diagnostics.requiredHeadHeightPct.kira < 14 && r.diagnostics.requiredHeadHeightPct.zapp < 14);
+  assert.ok(has(r.rejectionReasons, 'SUBJECT_TOO_SMALL_FOR_INTENT:kira') && has(r.rejectionReasons, 'SUBJECT_TOO_SMALL_FOR_INTENT:zapp'));
+});
+
+test('22. a two-character medium with both heads >= 14% passes', () => {
+  const s = facingPair(0.8);
+  const two = buildSafeFallbackCandidates(s).find((f) => f.fallback === 'two_character_medium')!;
+  const r = evaluateCameraCandidate(s, two);
+  assert.equal(r.accepted, true, r.rejectionReasons.join('\n'));
+  assert.equal(r.diagnostics.twoShot, true);
+  assert.ok(r.diagnostics.requiredHeadHeightPct.kira >= 14 && r.diagnostics.requiredHeadHeightPct.zapp >= 14, JSON.stringify(r.diagnostics.requiredHeadHeightPct));
+  assert.deepEqual(r.diagnostics.droppedSubjects, []);
+  // single-character medium and close/reaction keep their own, higher minimums
+  assert.equal(CAMERA_SAFETY_DEFAULTS.headHeight.medium[0], 0.18);
+  assert.equal(CAMERA_SAFETY_DEFAULTS.headHeight.close[0], 0.26);
+  assert.equal(CAMERA_SAFETY_DEFAULTS.headHeight.reaction[0], 0.26);
+  const single = evaluateCameraCandidate(classroom(), cand('far_single', 'medium', [-0.6, 1.31, 3.4], [-0.6, 1.08, 0]));
+  assert.ok(has(single.rejectionReasons, 'SUBJECT_TOO_SMALL_FOR_INTENT:kira'), single.rejectionReasons.join('\n'));
+  const close = evaluateCameraCandidate(classroom(), cand('far_close', 'close', [-0.6, 1.48, 2.4], [-0.6, 1.41, 0]));
+  assert.ok(has(close.rejectionReasons, 'SUBJECT_TOO_SMALL_FOR_INTENT:kira'), close.rejectionReasons.join('\n'));
+});
+
+test('23. an optional supporting character may be dropped for a readable active medium', () => {
+  const s = facingPair(1.4, { optionalSubjectIds: ['kira'] });
+  const sel = selectSafeCamera(s, [unsafeOts()]);
+  assert.equal(sel.ok, true, !sel.ok ? sel.message : '');
+  if (!sel.ok) return;
+  const tried = sel.fallbackEvaluations.map((e) => e.result.diagnostics.fallback);
+  assert.deepEqual(tried, ['two_character_medium', 'frontal_medium']);
+  assert.ok(has(sel.fallbackEvaluations[0].result.rejectionReasons, 'SUBJECT_TOO_SMALL_FOR_INTENT:zapp'));
+  assert.equal(sel.fallback, 'frontal_medium');
+  assert.equal(sel.candidate.activeSubjectId, 'zapp');
+  assert.ok(sel.result.diagnostics.requiredHeadHeightPct.zapp >= 18, JSON.stringify(sel.result.diagnostics.requiredHeadHeightPct));
+  assert.deepEqual(sel.droppedOptionalSubjects, ['kira']);
+  assert.equal(sel.droppedOnlyOptionalSupport, true);
+  assert.equal(sel.result.diagnostics.droppedOnlyOptionalSupport, true);
+  assert.deepEqual(sel.result.diagnostics.droppedRequiredSubjects, []);
+});
+
+test('24. a required supporting character cannot be silently dropped', () => {
+  const s = facingPair(); // both actors required in the same frame
+  const direct = evaluateCameraCandidate(s, buildSafeFallbackCandidates(s).find((f) => f.fallback === 'frontal_medium')!);
+  assert.equal(direct.accepted, false);
+  assert.ok(has(direct.rejectionReasons, 'REQUIRED_SUBJECT_NOT_IN_FRAME:kira'), direct.rejectionReasons.join('\n'));
+  assert.deepEqual(direct.diagnostics.droppedRequiredSubjects, ['kira']);
+  assert.deepEqual(direct.diagnostics.rejectingRequiredSubjects, ['kira']);
+
+  const sel = selectSafeCamera(s, [unsafeOts()]);
+  assert.equal(sel.ok, false, 'no readable composition holds both actors → blocking');
+  if (sel.ok) return;
+  assert.equal(sel.code, 'CAMERA_SAFETY_BLOCKED');
+  const byKind = Object.fromEntries(sel.fallbackEvaluations.map((e) => [e.result.diagnostics.fallback, e.result.rejectionReasons]));
+  assert.deepEqual(Object.keys(byKind), ['two_character_medium', 'frontal_medium', 'reaction_close'], 'no elevated wide for a character beat');
+  assert.ok(has(byKind.two_character_medium, 'SUBJECT_TOO_SMALL_FOR_INTENT:kira'));
+  assert.ok(has(byKind.frontal_medium, 'REQUIRED_SUBJECT_NOT_IN_FRAME:kira'));
+  assert.ok(has(byKind.reaction_close, 'REQUIRED_SUBJECT_NOT_IN_FRAME:kira'));
+  assert.deepEqual(sel.rejectingRequiredSubjects, ['kira', 'zapp']);
+  assert.match(sel.message, /required actors: kira, zapp/);
+});
+
+test('25. a geography wide may use smaller subjects within its own configured range', () => {
+  const s = facingPair();
+  const wide = cand('geo_wide', 'wide', [0, 5.7, 18], [0, 0.84, 0], { fov: 42 });
+  const r = evaluateCameraCandidate(s, wide);
+  assert.equal(r.accepted, true, r.rejectionReasons.join('\n'));
+  assert.ok(r.diagnostics.subjectScreenHeight.kira >= 0.12 && r.diagnostics.subjectScreenHeight.kira < 0.13, String(r.diagnostics.subjectScreenHeight.kira));
+  assert.ok(r.diagnostics.requiredHeadHeightPct.kira < 14, 'expressions are not required to carry a wide');
+  // the same camera cannot pass as a medium
+  const asMedium = evaluateCameraCandidate(s, { ...wide, id: 'geo_as_medium', intent: 'medium' });
+  assert.ok(has(asMedium.rejectionReasons, 'SUBJECT_TOO_SMALL_FOR_INTENT:kira'));
+  // below the configured wide minimum (12% default; configurable within 10–12%)
+  const smaller = { ...wide, id: 'geo_wide_far', transform: { position: [0, 5.95, 19] as Vec3 } };
+  const tiny = evaluateCameraCandidate(s, smaller);
+  assert.ok(has(tiny.rejectionReasons, 'WIDE_SUBJECT_TOO_SMALL:kira'), tiny.rejectionReasons.join('\n'));
+  const at10 = evaluateCameraCandidate(s, smaller, { ...CAMERA_SAFETY_DEFAULTS, minWideSubjectHeight: 0.10 });
+  assert.equal(at10.accepted, true, at10.rejectionReasons.join('\n'));
+});
+
+test('26. fallback selection remains deterministic', () => {
+  const run = (sep: number, over: Partial<CameraSafetyScene>) => JSON.stringify(selectSafeCamera(facingPair(sep, over), [unsafeOts(sep), cand('z_bad_medium', 'medium', [0, 1.36, 7.015], [0, 1.11, 0])]));
+  const runRev = (sep: number, over: Partial<CameraSafetyScene>) => JSON.stringify(selectSafeCamera(facingPair(sep, over), [cand('z_bad_medium', 'medium', [0, 1.36, 7.015], [0, 1.11, 0]), unsafeOts(sep)]));
+  for (const [sep, over] of [[1.4, { optionalSubjectIds: ['kira'] }], [1.4, {}], [0.8, {}]] as Array<[number, Partial<CameraSafetyScene>]>) {
+    const a = run(sep, over);
+    assert.equal(run(sep, over), a, 'same input → byte-identical selection');
+    assert.equal(runRev(sep, over), a, 'candidate order does not change the selection or the fallback chain');
+  }
+  const opt = selectSafeCamera(facingPair(1.4, { optionalSubjectIds: ['kira'] }), [unsafeOts()]);
+  const twice = selectSafeCamera(facingPair(1.4, { optionalSubjectIds: ['kira'] }), [unsafeOts()]);
+  assert.ok(opt.ok && twice.ok && opt.fallback === 'frontal_medium' && twice.fallback === 'frontal_medium');
+  if (opt.ok && twice.ok) assert.deepEqual(opt.candidate, twice.candidate);
 });

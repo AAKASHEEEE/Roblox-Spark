@@ -6,7 +6,8 @@
 //   • visibility: five rays per face / hero prop (centre + four corners), occlusion by slab tests;
 //   • coverage: a fixed screen grid of primary rays (nearest hit) → foreground clutter and per-entity coverage;
 //   • framing: projected head/face/prop/subject rectangles against intent rules;
-//   • screen direction: camera side of the action axis vs the previous shot.
+//   • screen direction: camera side of the action axis vs the previous shot;
+//   • portrait readability: intent-specific minimum head heights; required actors are never silently dropped.
 // Not wired into any renderer yet; see `selectSafeCamera` for the integration entry point.
 import { add, sub, scale, dot, cross, len, norm, clamp, lerp3, DEG, type Vec3 } from './math.ts';
 
@@ -69,8 +70,13 @@ export interface ScreenRegion { x0: number; y0: number; x1: number; y1: number }
 export interface CameraSafetyScene {
   frameWidth: number;
   frameHeight: number;
-  /** required subjects; the first is the active subject unless `activeSubjectId` is set */
+  /**
+   * Shot subjects; the first is the active subject unless `activeSubjectId` is set. Every subject is REQUIRED in the
+   * frame unless listed in `optionalSubjectIds` — a required actor is never silently dropped.
+   */
   subjectIds: string[];
+  /** supporting subjects the beat does not require in the same frame (may be dropped for a readable active shot) */
+  optionalSubjectIds?: string[];
   heroPropIds: string[];
   obstacles: CameraObstacle[];
   projectedEntities?: ProjectedEntity[];
@@ -93,6 +99,8 @@ export interface CameraCandidate {
   /** camera interpolates start → `motion.to` during the shot (linear); the whole path is checked */
   motion?: { to: CameraTransform; toTarget?: Vec3 };
   activeSubjectId?: string;
+  /** characters this composition frames (e.g. both actors of a two-shot); they must be readable like required ones */
+  framedSubjectIds?: string[];
   /** OTS: the actor whose shoulder is in the foreground (inferred when absent) */
   foregroundSubjectId?: string;
   /** beat explicitly intends a prop to cover the active face */
@@ -116,6 +124,23 @@ export interface CameraSafetyDiagnostics {
   pathSamples: number;
   cameraSide: 'left' | 'right' | 'neutral' | 'none';
   captionOverlapsActiveFace: boolean;
+  /** subjectIds − optionalSubjectIds (+ the active subject) */
+  requiredSubjects: string[];
+  optionalSubjects: string[];
+  /** projected head (incl. hair) height as % of frame height, per required / framed actor */
+  requiredHeadHeightPct: Record<string, number>;
+  /** head-height minimum applied to the readable actors for this intent (fraction of frame height) */
+  minHeadHeight: number;
+  /** two-character medium rules applied (≥ 2 required/framed characters) */
+  twoShot: boolean;
+  subjectsInFrame: string[];
+  droppedSubjects: string[];
+  droppedOptionalSubjects: string[];
+  droppedRequiredSubjects: string[];
+  /** a supporting actor was dropped and every dropped actor was optional */
+  droppedOnlyOptionalSupport: boolean;
+  /** required actors named by at least one rejection reason */
+  rejectingRequiredSubjects: string[];
   fallback?: string;
 }
 
@@ -146,10 +171,15 @@ export interface CameraSafetyConfig {
   profileAngleDeg: number;
   safeMargin: { top: number; bottom: number; side: number };
   faceMargin: number;
+  /** geography/scale wide: min full-actor height (fraction of frame height); expressions not required. Band 0.10–0.12. */
   minWideSubjectHeight: number;
-  minWideContentCoverage: number;
+  /** wide "excessive empty space": subject + hero-prop coverage must reach this × number of subject actors */
+  minWideContentCoveragePerActor: number;
   minPropScreenSize: number;
+  /** [min, max] projected head height per intent (fraction of frame height); `medium` min is the single-character medium */
   headHeight: Record<CameraIntent, [number, number]>;
+  /** two-character medium: every required/framed head must reach this (fraction of frame height) */
+  twoShotMinHeadHeight: number;
   pathStep: number;
   grid: number;
   neutralAxisSin: number;
@@ -168,13 +198,15 @@ export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
   safeMargin: { top: 0.03, bottom: 0.02, side: 0.02 },
   faceMargin: 0.04,
   minWideSubjectHeight: 0.12,
-  minWideContentCoverage: 0.04,
+  // calibrated so an actor at the wide minimum height is never rejected as "empty" (≈0.8% coverage at 12%)
+  minWideContentCoveragePerActor: 0.005,
   minPropScreenSize: 0.2,
-  // projected head height as a fraction of frame height, per intent
+  // projected head height as a fraction of frame height, per intent (portrait readability)
   headHeight: {
-    wide: [0, 0.2], medium: [0.06, 0.32], close: [0.18, 0.7], reaction: [0.18, 0.7],
+    wide: [0, 0.2], medium: [0.18, 0.32], close: [0.26, 0.7], reaction: [0.26, 0.7],
     prop: [0, 10], over_shoulder: [0.08, 0.45], extreme_close: [0.35, 10],
   },
+  twoShotMinHeadHeight: 0.14,
   pathStep: 0.05,
   grid: 24,
   neutralAxisSin: 0.2,
@@ -242,18 +274,33 @@ function project(c: Cam, p: Vec3): Proj {
 }
 const inFrame = (p: Proj, m = 0) => p.z > NEAR && p.x >= m && p.x <= 1 - m && p.y >= m && p.y <= 1 - m;
 interface Rect { x0: number; y0: number; x1: number; y1: number; behind: boolean }
+/** Screen rect of a box's visible part. Boxes straddling the near plane are clipped edge-by-edge (not guessed). */
 function projectBox(c: Cam, b: Bounds3): Rect {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, behind = false;
-  for (const p of corners(b)) {
+  const cs = corners(b), zc = NEAR * 1.01;
+  const depth = (p: Vec3) => dot(sub(p, c.pos), c.f);
+  const pts: Vec3[] = [];
+  for (const p of cs) { if (depth(p) > zc) pts.push(p); else behind = true; }
+  if (behind) {
+    for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) {
+      const a = cs[i], e = cs[j];
+      if ((a[0] !== e[0] ? 1 : 0) + (a[1] !== e[1] ? 1 : 0) + (a[2] !== e[2] ? 1 : 0) !== 1) continue; // not a box edge
+      const da = depth(a) - zc, de = depth(e) - zc;
+      if (da > 0 === de > 0) continue;
+      pts.push(lerp3(a, e, da / (da - de)));
+    }
+  }
+  for (const p of pts) {
     const q = project(c, p);
-    if (!(q.z > NEAR)) { behind = true; continue; }
+    if (!(q.z > NEAR)) continue;
     x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y);
   }
   return { x0, y0, x1, y1, behind };
 }
 const clip01 = (v: number) => clamp(v, 0, 1);
-const clippedHeight = (r: Rect) => (isFinite(r.y0) ? Math.max(0, clip01(r.y1) - clip01(r.y0)) : 0);
-const clippedWidth = (r: Rect) => (isFinite(r.x0) ? Math.max(0, clip01(r.x1) - clip01(r.x0)) : 0);
+const overlapsFrame = (r: Rect) => isFinite(r.x0) && r.x1 > 0 && r.x0 < 1 && r.y1 > 0 && r.y0 < 1;
+const clippedHeight = (r: Rect) => (overlapsFrame(r) ? Math.max(0, clip01(r.y1) - clip01(r.y0)) : 0);
+const clippedWidth = (r: Rect) => (overlapsFrame(r) ? Math.max(0, clip01(r.x1) - clip01(r.x0)) : 0);
 
 /** Project a world point for a candidate's first frame: x 0..1 left→right, y 0..1 top→bottom, z view depth (NaN x/y if behind). */
 export function projectToScreen(cand: CameraCandidate, p: Vec3, aspect: number): { x: number; y: number; z: number } {
@@ -396,12 +443,21 @@ export function nextScreenDirectionState(scene: CameraSafetyScene, cand: CameraC
 
 // ───────────────────────────── evaluation ─────────────────────────────
 
+/** Required vs optional subjects for a candidate (the active subject is always required). */
+function rolesOf(scene: CameraSafetyScene, active: string | undefined): { required: string[]; optional: string[] } {
+  const opt = new Set(scene.optionalSubjectIds ?? []);
+  const required = [...new Set(scene.subjectIds.filter((id) => !opt.has(id) || id === active))];
+  if (active && !required.includes(active)) required.push(active);
+  return { required, optional: [...new Set(scene.subjectIds.filter((id) => opt.has(id) && id !== active))] };
+}
+const pct = (x: number) => Math.round(x * 1000) / 10;
+
 interface SampleEval {
   reasons: string[];
   face: Record<string, number>;
   prop: Record<string, number>;
   fg: number;
-  d: Omit<CameraSafetyDiagnostics, 'minHeadDistance' | 'pathSamples' | 'cameraSide' | 'captionOverlapsActiveFace' | 'fallback'> & { captionOverlap: boolean; minHeadDist: number };
+  d: Omit<CameraSafetyDiagnostics, 'minHeadDistance' | 'pathSamples' | 'cameraSide' | 'captionOverlapsActiveFace' | 'fallback' | 'rejectingRequiredSubjects'> & { captionOverlap: boolean; minHeadDist: number };
   sizeTerm: number;
 }
 
@@ -413,7 +469,8 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   const reasons: string[] = [];
   const intent = cand.intent;
   const active = cand.activeSubjectId ?? ix.active;
-  const required = [...new Set(scene.subjectIds)];
+  const required = [...new Set(scene.subjectIds)]; // every shot subject (required + optional)
+  const roles = rolesOf(scene, active), requiredSet = new Set(roles.required);
   const heroes = [...new Set(scene.heroPropIds)];
   // OTS foreground actor: explicit, or the required character (≠ active) nearest the lens
   let fgActor = cand.foregroundSubjectId;
@@ -455,8 +512,8 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     profile[id] = dot(toCam, norm([f.normal[0], 0, f.normal[2]])) < Math.cos(cfg.profileAngleDeg * DEG);
     faceOccluders[id] = [...occ].sort();
     const hr = projectBox(cam, f.headTop);
-    headInFrame[id] = hr.behind || (isFinite(hr.x0) && hr.x1 > 0 && hr.x0 < 1 && hr.y1 > 0 && hr.y0 < 1);
-    headScreenHeight[id] = r6(hr.behind || !isFinite(hr.y0) ? 10 : hr.y1 - hr.y0);
+    headInFrame[id] = overlapsFrame(hr);
+    headScreenHeight[id] = r6(isFinite(hr.y0) ? hr.y1 - hr.y0 : 0);
     headCropped[id] = hr.behind || !isFinite(hr.y0) || hr.y0 < cfg.safeMargin.top || hr.y1 > 1 - cfg.safeMargin.bottom || hr.x0 < cfg.safeMargin.side || hr.x1 > 1 - cfg.safeMargin.side;
     const sb = ix.bounds.get(id);
     subjectScreenHeight[id] = sb ? r6(clippedHeight(projectBox(cam, sb))) : 0;
@@ -536,26 +593,39 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
 
   // ── framing rules
   const [hMin, hMax] = cfg.headHeight[intent];
+  // readable actors: required + explicitly framed characters (the OTS foreground shoulder is exempt)
+  const readable = [...new Set([...roles.required, ...(cand.framedSubjectIds ?? [])])].filter((id) => ix.faces.has(id) && id !== fgActor).sort();
+  const twoShot = intent === 'medium' && readable.length >= 2;
+  const minHead = twoShot ? cfg.twoShotMinHeadHeight : hMin;
   let sizeTerm = 1;
   if (intent !== 'prop' && intent !== 'extreme_close') {
-    for (const id of required) if (ix.faces.has(id) && id !== fgActor && headCropped[id] && (id === active || intent === 'wide' || headInFrame[id])) reasons.push(`HEAD_CROPPED:${id}`);
+    for (const id of required) if (ix.faces.has(id) && id !== fgActor && headCropped[id] && (id === active || (intent === 'wide' && requiredSet.has(id)) || headInFrame[id])) reasons.push(`HEAD_CROPPED:${id}`);
   }
-  if (af && intent !== 'prop' && intent !== 'wide') {
-    const hh = headScreenHeight[active!];
-    if (hh < hMin) reasons.push(`SUBJECT_TOO_SMALL_FOR_INTENT:${active}:${hh.toFixed(3)}<${hMin}`);
-    if (hh > hMax) reasons.push(`SHOT_TOO_TIGHT_FOR_INTENT:${active}:${hh.toFixed(3)}>${hMax}`);
-    const ideal = hMax > 5 ? hMin * 1.3 : (hMin + hMax) / 2;
-    sizeTerm = clamp(1 - Math.abs(hh - ideal) / Math.max(ideal, 1e-3), 0, 1);
+  if (intent !== 'prop' && intent !== 'wide') {
+    // a required actor is never silently dropped from a character shot
+    for (const id of roles.required) if (ix.faces.has(id) && id !== fgActor && !headInFrame[id]) reasons.push(`REQUIRED_SUBJECT_NOT_IN_FRAME:${id}`);
+    // readable portrait scale: two-shot → every readable head ≥ twoShotMinHeadHeight; otherwise the active head ≥ intent min
+    for (const id of twoShot ? readable : af ? [active!] : []) {
+      if (id !== active && !headInFrame[id]) continue; // reported as REQUIRED_SUBJECT_NOT_IN_FRAME
+      const hh = headScreenHeight[id];
+      if (hh < minHead) reasons.push(`SUBJECT_TOO_SMALL_FOR_INTENT:${id}:${pct(hh)}%<${pct(minHead)}%`);
+      if (hh > hMax) reasons.push(`SHOT_TOO_TIGHT_FOR_INTENT:${id}:${pct(hh)}%>${pct(hMax)}%`);
+    }
+    if (af) {
+      const hh = headScreenHeight[active!], ideal = hMax > 5 ? minHead * 1.3 : (minHead + hMax) / 2;
+      sizeTerm = clamp(1 - Math.abs(hh - ideal) / Math.max(ideal, 1e-3), 0, 1);
+    }
   }
   if (intent === 'wide') {
     let content = 0;
+    const needContent = cfg.minWideContentCoveragePerActor * Math.max(1, required.filter((id) => ix.faces.has(id)).length);
     for (const id of required) {
-      if (subjectScreenHeight[id] < cfg.minWideSubjectHeight) reasons.push(`WIDE_SUBJECT_TOO_SMALL:${id}:${(subjectScreenHeight[id] ?? 0).toFixed(3)}<${cfg.minWideSubjectHeight}`);
+      if (requiredSet.has(id) && subjectScreenHeight[id] < cfg.minWideSubjectHeight) reasons.push(`WIDE_SUBJECT_TOO_SMALL:${id}:${(subjectScreenHeight[id] ?? 0).toFixed(3)}<${cfg.minWideSubjectHeight}`);
       content += entityCoverage[id] ?? 0;
     }
     for (const id of heroes) content += entityCoverage[id] ?? 0;
-    if (content < cfg.minWideContentCoverage) reasons.push(`WIDE_EXCESSIVE_EMPTY_SPACE:${content.toFixed(3)}<${cfg.minWideContentCoverage}`);
-    const minH = Math.min(...required.map((id) => subjectScreenHeight[id] ?? 0));
+    if (content < needContent) reasons.push(`WIDE_EXCESSIVE_EMPTY_SPACE:${content.toFixed(3)}<${needContent.toFixed(3)}`);
+    const minH = Math.min(...roles.required.map((id) => subjectScreenHeight[id] ?? 0));
     sizeTerm = clamp(1 - Math.abs(minH - 0.35) / 0.35, 0, 1);
   }
   if (intent === 'medium' && active) {
@@ -621,9 +691,19 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     if (captionOverlap) reasons.push(`ACTIVE_FACE_IN_CAPTION_REGION:${active}`);
   }
 
+  const requiredHeadHeightPct: Record<string, number> = {};
+  for (const id of [...new Set([...roles.required, ...readable])].filter((x) => ix.faces.has(x)).sort()) requiredHeadHeightPct[id] = headInFrame[id] ? pct(headScreenHeight[id]) : 0; // 0 = not in frame
+  const subjectsInFrame = required.filter((id) => ix.faces.has(id) && (id === fgActor ? (entityCoverage[id] ?? 0) > 0 : headInFrame[id])).sort();
+  // prop inserts frame the hero prop; actor presence is not assessed for them
+  const droppedSubjects = intent === 'prop' ? [] : required.filter((id) => ix.faces.has(id) && !subjectsInFrame.includes(id)).sort();
   return {
     reasons, face, prop, fg, sizeTerm,
-    d: { eyesVisible, mouthVisible, profile, headScreenHeight, subjectScreenHeight, headCropped, entityCoverage, propScreenSize, faceOccluders, captionOverlap, minHeadDist },
+    d: {
+      eyesVisible, mouthVisible, profile, headScreenHeight, subjectScreenHeight, headCropped, entityCoverage, propScreenSize, faceOccluders, captionOverlap, minHeadDist,
+      requiredSubjects: [...roles.required].sort(), optionalSubjects: [...roles.optional].sort(), requiredHeadHeightPct, minHeadHeight: minHead, twoShot, subjectsInFrame,
+      droppedSubjects, droppedOptionalSubjects: droppedSubjects.filter((id) => !requiredSet.has(id)), droppedRequiredSubjects: droppedSubjects.filter((id) => requiredSet.has(id)),
+      droppedOnlyOptionalSupport: droppedSubjects.length > 0 && droppedSubjects.every((id) => !requiredSet.has(id)),
+    },
   };
 }
 
@@ -679,6 +759,8 @@ function evaluateIndexed(ix: SceneIndex, cand: CameraCandidate, cfg: CameraSafet
   const score = r6(clamp(0.3 * faceTerm + 0.2 * propTerm + 0.2 * clutterTerm + 0.1 * clearTerm + 0.15 * sizeTerm + 0.05 * dirTerm - dir.penalty, 0, 1));
   const rejectionReasons = [...reasons];
   const sideLabel: Side = endSide;
+  const req = new Set(worst.d.requiredSubjects);
+  const rejectingRequiredSubjects = [...new Set(rejectionReasons.flatMap((r) => r.split(':').slice(1).filter((x) => req.has(x))))].sort();
   return {
     accepted: rejectionReasons.length === 0,
     score,
@@ -694,6 +776,10 @@ function evaluateIndexed(ix: SceneIndex, cand: CameraCandidate, cfg: CameraSafet
       entityCoverage: worst.d.entityCoverage, propScreenSize: worst.d.propScreenSize, faceOccluders: worst.d.faceOccluders,
       minHeadDistance: r6(Math.min(...evals.map((e) => e.d.minHeadDist))), pathSamples: col.samples, cameraSide: sideLabel,
       captionOverlapsActiveFace: evals.some((e) => e.d.captionOverlap),
+      requiredSubjects: worst.d.requiredSubjects, optionalSubjects: worst.d.optionalSubjects, requiredHeadHeightPct: worst.d.requiredHeadHeightPct,
+      minHeadHeight: worst.d.minHeadHeight, twoShot: worst.d.twoShot, subjectsInFrame: worst.d.subjectsInFrame,
+      droppedSubjects: worst.d.droppedSubjects, droppedOptionalSubjects: worst.d.droppedOptionalSubjects, droppedRequiredSubjects: worst.d.droppedRequiredSubjects,
+      droppedOnlyOptionalSupport: worst.d.droppedOnlyOptionalSupport, rejectingRequiredSubjects,
     },
   };
 }
@@ -702,15 +788,20 @@ function evaluateIndexed(ix: SceneIndex, cand: CameraCandidate, cfg: CameraSafet
 
 export type FallbackKind = 'frontal_medium' | 'two_character_medium' | 'elevated_wide' | 'prop_insert' | 'reaction_close';
 export const FALLBACK_ORDER: FallbackKind[] = ['frontal_medium', 'two_character_medium', 'elevated_wide', 'prop_insert', 'reaction_close'];
-const FALLBACK_PREFERENCE: Record<CameraIntent, FallbackKind[]> = {
-  wide: ['elevated_wide', 'two_character_medium', 'frontal_medium'],
-  medium: ['frontal_medium', 'two_character_medium'],
-  close: ['reaction_close', 'frontal_medium'],
-  reaction: ['reaction_close', 'frontal_medium'],
-  extreme_close: ['reaction_close', 'frontal_medium'],
-  prop: ['prop_insert', 'elevated_wide'],
-  over_shoulder: ['two_character_medium', 'frontal_medium'],
-};
+
+/**
+ * Fallback chain for the requested intent. The elevated wide is used only for geography/scale (wide) beats and the
+ * prop insert only for prop beats, so neither can stand in for an unreadable character shot. A single active medium
+ * / reaction close drop the supporting actor and are therefore rejected when that actor is required.
+ */
+export function fallbackChain(intent: CameraIntent, twoShotFirst: boolean): FallbackKind[] {
+  switch (intent) {
+    case 'wide': return ['elevated_wide', 'two_character_medium', 'frontal_medium', 'reaction_close'];
+    case 'prop': return ['prop_insert', 'frontal_medium', 'two_character_medium', 'reaction_close'];
+    case 'close': case 'reaction': case 'extreme_close': return ['reaction_close', 'frontal_medium', 'two_character_medium'];
+    default: return twoShotFirst ? ['two_character_medium', 'frontal_medium', 'reaction_close'] : ['frontal_medium', 'two_character_medium', 'reaction_close'];
+  }
+}
 
 /** Vetted, geometry-solved fallback shots. They are still fully evaluated before use. */
 export function buildSafeFallbackCandidates(scene: CameraSafetyScene, cfg: CameraSafetyConfig = CAMERA_SAFETY_DEFAULTS): Array<CameraCandidate & { fallback: FallbackKind }> {
@@ -735,17 +826,24 @@ export function buildSafeFallbackCandidates(scene: CameraSafetyScene, cfg: Camer
     }
   }
   const chars = scene.subjectIds.filter((id) => ix.faces.has(id));
-  if (chars.length >= 2) {
-    const a = centerOf(ix.faces.get(chars[0])!.head), b = centerOf(ix.faces.get(chars[1])!.head);
+  const { required } = rolesOf(scene, active);
+  const partner = active ? [...chars.filter((id) => id !== active && required.includes(id)), ...chars.filter((id) => id !== active && !required.includes(id))][0] : chars[1];
+  const pair = active && af ? (partner ? [active, partner] : []) : chars.slice(0, 2);
+  if (pair.length === 2) {
+    const fa = ix.faces.get(pair[0])!, fb = ix.faces.get(pair[1])!;
+    const a = centerOf(fa.head), b = centerOf(fb.head);
     const mid = scale(add(a, b), 0.5), ab = sub(b, a);
     let perp = norm(cross(UP, [ab[0], 0, ab[2]]));
-    const avgN = add(ix.faces.get(chars[0])!.normal, ix.faces.get(chars[1])!.normal);
+    const avgN = add(fa.normal, fb.normal);
     const dn = dot(perp, avgN);
     if (dn < -1e-6 || (Math.abs(dn) <= 1e-6 && perp[2] < 0)) perp = scale(perp, -1); // toward the faces; tie → audience (+z)
     if (axis && sd?.previousCameraSide) { const s = sideOf(axis, add(mid, perp), cfg.neutralAxisSin); if (s !== 'neutral' && s !== sd.previousCameraSide) perp = scale(perp, -1); }
-    const w = len([ab[0], 0, ab[2]]) / 2 + 0.55, fov = 38;
+    // fit the two HEADS (+ small margin), not full bodies: a portrait two-shot is never pushed back further than the
+    // heads need. If that distance is still unreadable, the evaluator rejects it (SUBJECT_TOO_SMALL_FOR_INTENT).
+    const headHalfW = Math.max(halfOf(fa.headTop)[0], halfOf(fa.headTop)[2], halfOf(fb.headTop)[0], halfOf(fb.headTop)[2]);
+    const w = len([ab[0], 0, ab[2]]) / 2 + headHalfW + 0.08, fov = 38;
     const dist = w / (hfovTan(fov) * 0.92);
-    out.push({ fallback: 'two_character_medium', id: 'fallback:two_character_medium', intent: 'medium', fov, activeSubjectId: active, transform: { position: add(add(mid, scale(perp, dist)), [0, -0.1, 0]) }, target: add(mid, [0, -0.35, 0]) });
+    out.push({ fallback: 'two_character_medium', id: 'fallback:two_character_medium', intent: 'medium', fov, activeSubjectId: active, framedSubjectIds: [...pair], transform: { position: add(add(mid, scale(perp, dist)), [0, -0.1, 0]) }, target: add(mid, [0, -0.35, 0]) });
   }
   const content = unionBounds([...scene.subjectIds, ...scene.heroPropIds].map((id) => ix.bounds.get(id)).filter(Boolean) as Bounds3[]);
   if (content) {
@@ -768,7 +866,8 @@ export function buildSafeFallbackCandidates(scene: CameraSafetyScene, cfg: Camer
   }
   if (af) {
     const hc = centerOf(af.head), n = norm([af.normal[0], 0, af.normal[2]]);
-    out.push({ fallback: 'reaction_close', id: 'fallback:reaction_close', intent: 'reaction', fov: 38, activeSubjectId: active, transform: { position: add(add(hc, scale(n, 1.0)), [0, 0.02, 0]) }, target: add(hc, [0, -0.05, 0]) });
+    // 1.6 m keeps the head inside the close/reaction band (26–70% of frame height) without cropping 3/4 heads in 9:16
+    out.push({ fallback: 'reaction_close', id: 'fallback:reaction_close', intent: 'reaction', fov: 38, activeSubjectId: active, transform: { position: add(add(hc, scale(n, 1.6)), [0, 0.02, 0]) }, target: add(hc, [0, -0.05, 0]) });
   }
   return out;
 }
@@ -777,33 +876,47 @@ export function buildSafeFallbackCandidates(scene: CameraSafetyScene, cfg: Camer
 
 export interface CameraEvaluation { candidate: CameraCandidate; result: CameraSafetyResult }
 export type CameraSelection =
-  | { ok: true; candidate: CameraCandidate; result: CameraSafetyResult; usedFallback: boolean; fallback?: FallbackKind; evaluations: CameraEvaluation[]; fallbackEvaluations: CameraEvaluation[] }
-  | { ok: false; blocking: true; code: 'CAMERA_SAFETY_BLOCKED'; message: string; evaluations: CameraEvaluation[]; fallbackEvaluations: CameraEvaluation[] };
+  | {
+    ok: true; candidate: CameraCandidate; result: CameraSafetyResult; usedFallback: boolean; fallback?: FallbackKind;
+    /** supporting actors left out of the chosen frame (always optional ones — required actors are never dropped) */
+    droppedOptionalSubjects: string[];
+    /** true when the chosen shot dropped a supporting actor and every dropped actor was optional */
+    droppedOnlyOptionalSupport: boolean;
+    evaluations: CameraEvaluation[]; fallbackEvaluations: CameraEvaluation[];
+  }
+  | { ok: false; blocking: true; code: 'CAMERA_SAFETY_BLOCKED'; message: string; rejectingRequiredSubjects: string[]; evaluations: CameraEvaluation[]; fallbackEvaluations: CameraEvaluation[] };
 
 /**
  * Evaluate every candidate, keep the ones passing collision / occlusion / visibility / framing / screen direction,
- * pick the highest score (ties → lexicographic id). If none pass, try vetted fallbacks (preference by the requested
- * intent, then FALLBACK_ORDER) — each fully evaluated. If every fallback fails, return a blocking error.
+ * pick the highest score (ties → lexicographic id). If none pass, try the vetted fallbacks of `fallbackChain(intent)`
+ * (intent of the id-sorted first candidate; a beat's candidates normally share one) — each fully evaluated. If every
+ * fallback fails, return a blocking error that names the required actors behind the rejections.
  */
 export function selectSafeCamera(scene: CameraSafetyScene, candidates: CameraCandidate[], cfg: CameraSafetyConfig = CAMERA_SAFETY_DEFAULTS): CameraSelection {
   const ix = indexScene(scene);
   const evaluations = [...candidates].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)).map((c) => ({ candidate: c, result: evaluateIndexed(ix, c, cfg) }));
   const pick = (list: CameraEvaluation[]) => list.filter((e) => e.result.accepted).sort((a, b) => b.result.score - a.result.score || (a.candidate.id < b.candidate.id ? -1 : 1))[0];
+  const dropped = (r: CameraSafetyResult) => ({ droppedOptionalSubjects: r.diagnostics.droppedOptionalSubjects, droppedOnlyOptionalSupport: r.diagnostics.droppedOnlyOptionalSupport });
   const best = pick(evaluations);
-  if (best) return { ok: true, candidate: best.candidate, result: best.result, usedFallback: false, evaluations, fallbackEvaluations: [] };
+  if (best) return { ok: true, candidate: best.candidate, result: best.result, usedFallback: false, ...dropped(best.result), evaluations, fallbackEvaluations: [] };
 
-  const intent = candidates[0]?.intent ?? 'medium';
-  const order = [...new Set([...FALLBACK_PREFERENCE[intent], ...FALLBACK_ORDER])];
-  const fbs = buildSafeFallbackCandidates(scene, cfg).sort((a, b) => order.indexOf(a.fallback) - order.indexOf(b.fallback));
+  // requested intent: from the id-sorted list, so the chain does not depend on input order
+  const intent = evaluations[0]?.candidate.intent ?? 'medium';
+  const requiredChars = rolesOf(scene, ix.active).required.filter((id) => ix.faces.has(id));
+  const twoShotFirst = requiredChars.length >= 2 || candidates.some((c) => c.intent === 'over_shoulder' || (c.framedSubjectIds?.length ?? 0) >= 2);
+  const chain = fallbackChain(intent, twoShotFirst);
+  const fbs = buildSafeFallbackCandidates(scene, cfg).filter((f) => chain.includes(f.fallback)).sort((a, b) => chain.indexOf(a.fallback) - chain.indexOf(b.fallback));
   const fallbackEvaluations: CameraEvaluation[] = [];
   for (const fb of fbs) {
     const result = evaluateIndexed(ix, fb, cfg);
     result.diagnostics.fallback = fb.fallback;
     fallbackEvaluations.push({ candidate: fb, result });
-    if (result.accepted) return { ok: true, candidate: fb, result, usedFallback: true, fallback: fb.fallback, evaluations, fallbackEvaluations };
+    if (result.accepted) return { ok: true, candidate: fb, result, usedFallback: true, fallback: fb.fallback, ...dropped(result), evaluations, fallbackEvaluations };
   }
-  const summary = [...evaluations, ...fallbackEvaluations].map((e) => `${e.candidate.id}: ${e.result.rejectionReasons.slice(0, 3).join('; ')}`).join(' | ');
-  return { ok: false, blocking: true, code: 'CAMERA_SAFETY_BLOCKED', message: `no candidate or vetted fallback passed camera safety — ${summary}`, evaluations, fallbackEvaluations };
+  const all = [...evaluations, ...fallbackEvaluations];
+  const rejectingRequiredSubjects = [...new Set(all.flatMap((e) => e.result.diagnostics.rejectingRequiredSubjects))].sort();
+  const summary = all.map((e) => `${e.candidate.id}: ${e.result.rejectionReasons.slice(0, 3).join('; ')}`).join(' | ');
+  return { ok: false, blocking: true, code: 'CAMERA_SAFETY_BLOCKED', message: `no candidate or vetted fallback passed camera safety (required actors: ${rejectingRequiredSubjects.join(', ') || 'n/a'}) — ${summary}`, rejectingRequiredSubjects, evaluations, fallbackEvaluations };
 }
 
 /** Throwing variant for pipelines that must never accept an unsafe camera. */
