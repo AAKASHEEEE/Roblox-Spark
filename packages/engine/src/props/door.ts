@@ -13,7 +13,7 @@ import { anchorLocal, type RiggedProp } from './rig.ts';
 export const DOOR = {
   ...DOOR_DIMS,
   /** radius of the leaf's swing arc from the hinge (keep this floor area free of set pieces on the +z side) */
-  swingRadius: 1.1,
+  swingRadius: DOOR_DIMS.openingW,
   /** leaf yaw per state (deg; negative = toward +z) */
   angles: Object.fromEntries(Object.entries(RIGS.door.states).map(([k, s]) => [k, s.pose.pivots?.hinge?.rot?.[1] ?? 0])) as Record<'closed' | 'ajar' | 'open', number>,
   /** walls up to this thickness fit inside the frame depth (thicker walls: add reveal pieces) */

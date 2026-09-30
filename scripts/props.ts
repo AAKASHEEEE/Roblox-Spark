@@ -43,7 +43,7 @@ function check(): number {
     if (!disk) issues.push(`${m.id}@${m.version}: not published in assets/props (run write)`);
     else if (canonical(disk) !== canonical(m)) issues.push(`${m.id}@${m.version}: published manifest differs from the authoring catalog`);
   }
-  console.log(issues.length ? `prop check: ${issues.length} issue(s)\n  ${issues.join('\n  ')}` : `prop check: clean (${mine.length} manifests: ${PLANNED_PROP_IDS.length} new, ${LEGACY_PROP_IDS.length} legacy revisions)`);
+  console.log(issues.length ? `prop check: ${issues.length} issue(s)\n  ${issues.join('\n  ')}` : `prop check: clean (${mine.length} current manifests: ${PLANNED_PROP_IDS.length} catalog, ${LEGACY_PROP_IDS.length} legacy revisions)`);
   return issues.length;
 }
 
@@ -59,7 +59,7 @@ async function sheet(): Promise<void> {
   ensureWebBuild((s) => console.log(s));
   const lib = loadLibrary({ enforceLock: false });
   const zapp = lib.characters['zapp@1.0.0'];
-  const ids = [...PLANNED_PROP_IDS.map((id) => `${id}@1.0.0`), ...LEGACY_PROP_IDS.map((id) => `${id}@1.1.0`)];
+  const ids = [...NEW_PROPS.map((m) => `${m.id}@${m.version}`), ...LEGACY_PROP_IDS.map((id) => `${id}@1.1.0`)];
   const props = ids.map((k) => { const m = lib.props[k]; if (!m) throw new Error(`${k} missing: run write + assets:lock first`); return m; });
   const P = (id: string) => props.find((m) => m.id === id)!;
   const outDir = join(PROPS_DIR, 'stills');

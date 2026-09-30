@@ -79,7 +79,10 @@ const drink: Def = {
       lift: 0.015 * ahh,
     };
   },
-  props: (c) => ({ hand: 'r', grip: 'grip', attach: 1, state: { name: 'tilt', u: ramp(c.u, 0.25, 0.68) * (1 - ramp(c.u, 0.72, 0.82)) } }),
+  props: (c) => {
+    const tilt = ramp(c.u, 0.25, 0.68) * (1 - ramp(c.u, 0.72, 0.82));
+    return { hand: 'r', grip: 'grip', attach: 1, orientation: { rotDeg: [0, 0, -70 * tilt] } };
+  },
   face: (c) => {
     const ahh = window(c.u, 0.8, 0.92, 0.04);
     return ahh > 0.05 ? { mouth: { shape: 'wide', open: 0.8 * ahh } } : c.u > 0.24 && c.u < 0.72 ? { mouth: { shape: 'small', open: 0.2 } } : undefined;
@@ -102,7 +105,7 @@ const eat: Def = {
       scale: squashStretch(1 - 0.02 * Math.abs(chew)),
     };
   },
-  props: (c) => ({ hand: 'r', grip: 'grip', attach: 1, state: { name: 'bitten', u: ramp(c.u, EAT_BITE - 0.01, EAT_BITE + 0.01) } }),
+  props: (c) => ({ hand: 'r', grip: 'grip', attach: 1, state: { name: 'slice', u: ramp(c.u, EAT_BITE - 0.01, EAT_BITE + 0.01) } }),
   face: (c) => {
     const u = c.u;
     if (u < EAT_BITE) return { mouth: { shape: 'wide', open: ramp(u, 0.12, 0.26) } };

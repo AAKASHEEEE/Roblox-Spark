@@ -1,5 +1,5 @@
-// Prop catalog (S4): the 25 planned vignette props authored with ./kit.ts, plus 1.1.0 revisions of the three original
-// props that add the shared grip/surface/floor anchors (1.0.0 stays locked and untouched; episodes pin exact versions).
+// Prop catalog (S4): the 25 vignette props authored with ./kit.ts (new versions remain alongside immutable old
+// manifests), plus 1.1.0 revisions of the three original props that add the shared grip/surface/floor anchors.
 import type { PropManifest } from '../../../schema/src/assets.ts';
 import { HOME_PROPS } from './catalog-home.ts';
 import { ITEM_PROPS } from './catalog-items.ts';
@@ -13,7 +13,7 @@ export const PLANNED_PROP_IDS = [
 export const LEGACY_PROP_IDS = ['spark_coin', 'student_desk', 'suspicious_button'] as const;
 
 const byId = new Map([...HOME_PROPS, ...ITEM_PROPS, car].map((m) => [m.id, m]));
-/** new 1.0.0 manifests, in PLANNED_PROP_IDS order */
+/** current authored manifests, in PLANNED_PROP_IDS order */
 export const NEW_PROPS: PropManifest[] = PLANNED_PROP_IDS.map((id) => {
   const m = byId.get(id);
   if (!m) throw new Error(`catalog: planned prop ${id} is not authored`);

@@ -11,15 +11,15 @@ export const ANCHOR_ROLES = {
   /** door: the handle / knob the hand reaches for */
   door_handle: ['handle', 'knob', 'grip'],
   /** door: hinge line (the door swings about it) */
-  door_hinge: ['hinge'],
+  door_hinge: ['hinge_axis', 'hinge'],
   /** phone / laptop / tv: the screen the character looks at (and the glow source) */
-  screen: ['screen', 'face', 'front_face'],
+  screen: ['screen_center', 'screen', 'face', 'front_face'],
   /** laptop: centre of the keyboard the hands type on */
   keyboard: ['keyboard', 'keys', 'top_center', 'top'],
   /** food: the part that goes into the mouth */
   bite: ['bite', 'top', 'center'],
   /** cup / bottle: the rim that touches the lips */
-  lip: ['rim', 'lip', 'top'],
+  lip: ['mouth', 'rim', 'lip', 'top'],
   /** a pushed / tugged object: where the hands press or pull */
   contact: ['contact', 'handle', 'grip', 'front_face', 'edge_front', 'center'],
 } as const;

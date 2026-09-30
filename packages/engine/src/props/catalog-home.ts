@@ -1,42 +1,45 @@
 // Architecture, furniture and appliances. Heights follow Zapp's joints: seats at knee height (~0.45), tables/desks at
-// hip height (0.76), counters just above the hip (0.92), doors and fridges clear his hair (2.05 m).
+// hip height (0.76), counters just above the hip (0.92), and the published door clears the taller adult cast.
 import { box, cyl, decalUp, manifest, plane, C, type V3 } from './kit.ts';
 import type { PropManifest } from '../../../schema/src/assets.ts';
 
 // ---------------------------------------------------------------- door (hinged; see ./door.ts for set placement)
 /** leaf pivot: front-left edge of the leaf, on the frame's front face */
-export const DOOR_DIMS = { openingW: 1.1, openingH: 2.4, frameW: 1.3, frameH: 2.5, frameD: 0.16, leafT: 0.05, hingeX: -0.55, hingeZ: 0.08, handleY: 1.0 } as const;
+export const DOOR_DIMS = { openingW: 1.25, openingH: 2.9, frameW: 1.45, frameH: 3.0, frameD: 0.16, leafT: 0.05, hingeX: -0.625, hingeZ: 0.08, handleY: 1.1 } as const;
 const D = DOOR_DIMS;
 const H = { attach: 'hinge' };
+const JAMB_W = 0.1, JAMB_X = D.openingW / 2 + JAMB_W / 2;
+const LEAF_W = D.openingW - 0.02, LEAF_H = D.openingH - 0.03;
+const HANDLE_X = D.openingW / 2 - 0.15;
 const leafZ = D.hingeZ - D.leafT / 2; // 0.055
 export const door: PropManifest = manifest({
-  id: 'door', displayName: 'Door', category: 'architecture', dims: [D.frameW, D.frameH, 0.205], center: [0, 0.021],
+  id: 'door', version: '1.1.0', displayName: 'Door', category: 'architecture', dims: [D.frameW, D.frameH, 0.205], center: [0, 0.021],
   collision: { shape: 'box', size: [D.frameW, D.frameH, D.frameD], offset: [0, D.frameH / 2, 0] },
   parts: [
-    box('jamb_l', [0.1, D.frameH, D.frameD], [-0.6, D.frameH / 2, 0], C.offWhite, { bevel: 0.01 }),
-    box('jamb_r', [0.1, D.frameH, D.frameD], [0.6, D.frameH / 2, 0], C.offWhite, { bevel: 0.01 }),
+    box('jamb_l', [JAMB_W, D.frameH, D.frameD], [-JAMB_X, D.frameH / 2, 0], C.offWhite, { bevel: 0.01 }),
+    box('jamb_r', [JAMB_W, D.frameH, D.frameD], [JAMB_X, D.frameH / 2, 0], C.offWhite, { bevel: 0.01 }),
     box('header', [D.frameW, 0.1, D.frameD], [0, D.openingH + 0.05, 0], C.offWhite, { bevel: 0.01 }),
     box('threshold', [D.openingW, 0.02, D.frameD], [0, 0.01, 0], C.steel),
-    box('hinge_top', [0.03, 0.12, 0.03], [-0.555, 2.05, D.hingeZ], C.metal, { sheen: 0.9 }),
-    box('hinge_bot', [0.03, 0.12, 0.03], [-0.555, 0.35, D.hingeZ], C.metal, { sheen: 0.9 }),
+    box('hinge_top', [0.03, 0.12, 0.03], [D.hingeX - 0.005, 2.45, D.hingeZ], C.metal, { sheen: 0.9 }),
+    box('hinge_bot', [0.03, 0.12, 0.03], [D.hingeX - 0.005, 0.45, D.hingeZ], C.metal, { sheen: 0.9 }),
     // leaf (rides the hinge pivot)
-    box('leaf', [1.08, 2.37, D.leafT], [0, 0.01 + 2.37 / 2, leafZ], '#c0703a', { ...H, bevel: 0.01 }),
-    box('panel_top_f', [0.8, 0.9, 0.012], [0, 1.72, leafZ + 0.027], '#a95f2f', { ...H, bevel: 0.004 }),
-    box('panel_bot_f', [0.8, 0.8, 0.012], [0, 0.6, leafZ + 0.027], '#a95f2f', { ...H, bevel: 0.004 }),
-    box('panel_top_b', [0.8, 0.9, 0.012], [0, 1.72, leafZ - 0.027], '#a95f2f', { ...H, bevel: 0.004 }),
-    box('panel_bot_b', [0.8, 0.8, 0.012], [0, 0.6, leafZ - 0.027], '#a95f2f', { ...H, bevel: 0.004 }),
-    box('plate_f', [0.06, 0.18, 0.01], [0.44, D.handleY, leafZ + 0.03], C.metal, { ...H, sheen: 0.9 }),
-    box('lever_f', [0.16, 0.035, 0.035], [0.39, D.handleY, leafZ + 0.05], C.metal, { ...H, sheen: 0.9, bevel: 0.01 }),
-    box('plate_b', [0.06, 0.18, 0.01], [0.44, D.handleY, leafZ - 0.03], C.metal, { ...H, sheen: 0.9 }),
-    box('lever_b', [0.16, 0.035, 0.035], [0.39, D.handleY, leafZ - 0.05], C.metal, { ...H, sheen: 0.9, bevel: 0.01 }),
+    box('leaf', [LEAF_W, LEAF_H, D.leafT], [0, 0.01 + LEAF_H / 2, leafZ], '#c0703a', { ...H, bevel: 0.01 }),
+    box('panel_top_f', [D.openingW - 0.3, 1.15, 0.012], [0, 2.18, leafZ + 0.027], '#a95f2f', { ...H, bevel: 0.004 }),
+    box('panel_bot_f', [D.openingW - 0.3, 1.05, 0.012], [0, 0.68, leafZ + 0.027], '#a95f2f', { ...H, bevel: 0.004 }),
+    box('panel_top_b', [D.openingW - 0.3, 1.15, 0.012], [0, 2.18, leafZ - 0.027], '#a95f2f', { ...H, bevel: 0.004 }),
+    box('panel_bot_b', [D.openingW - 0.3, 1.05, 0.012], [0, 0.68, leafZ - 0.027], '#a95f2f', { ...H, bevel: 0.004 }),
+    box('plate_f', [0.06, 0.18, 0.01], [HANDLE_X + 0.05, D.handleY, leafZ + 0.03], C.metal, { ...H, sheen: 0.9 }),
+    box('lever_f', [0.16, 0.035, 0.035], [HANDLE_X, D.handleY, leafZ + 0.05], C.metal, { ...H, sheen: 0.9, bevel: 0.01 }),
+    box('plate_b', [0.06, 0.18, 0.01], [HANDLE_X + 0.05, D.handleY, leafZ - 0.03], C.metal, { ...H, sheen: 0.9 }),
+    box('lever_b', [0.16, 0.035, 0.035], [HANDLE_X, D.handleY, leafZ - 0.05], C.metal, { ...H, sheen: 0.9, bevel: 0.01 }),
   ],
-  grips: { grip: [0.39, D.handleY, leafZ + 0.05], grip_back: [0.39, D.handleY, leafZ - 0.05] },
+  grips: { grip: [HANDLE_X, D.handleY, leafZ + 0.05], grip_back: [HANDLE_X, D.handleY, leafZ - 0.05] },
   anchors: {
-    surface: [0, 1.3, D.hingeZ], threshold: [0, 0, 0], hinge_axis: [D.hingeX, 0, D.hingeZ],
-    // floor spots: use_front stands beside the handle OUTSIDE the leaf's swing arc (radius 1.1 m from the hinge)
-    use_front: [0.8, 0, 0.45], use_back: [0.3, 0, -0.6], enter_front: [0, 0, 1.5], enter_back: [0, 0, -1.0],
+    surface: [0, D.openingH / 2, D.hingeZ], threshold: [0, 0, 0], hinge_axis: [D.hingeX, 0, D.hingeZ],
+    // floor spots: use_front stands beside the handle OUTSIDE the leaf's swing arc
+    use_front: [D.openingW / 2 + 0.25, 0, 0.5], use_back: [0.35, 0, -0.65], enter_front: [0, 0, 1.65], enter_back: [0, 0, -1.1],
   },
-  effectAnchors: { knock: [0, 1.5, D.hingeZ + 0.01], slam_dust: [0, 0.05, 0.3] },
+  effectAnchors: { knock: [0, 1.75, D.hingeZ + 0.01], slam_dust: [0, 0.05, 0.3] },
   material: 'wood', color: '#c0703a', allowed: ['open'],
   notes: 'Hinged leaf on pivot "hinge" (anchors.hinge_axis). Front (+z) is the swing side. Place with door.ts doorPlacement().',
 });

@@ -13,7 +13,7 @@ export const ZAPP = { height: 1.932, hairTop: 2.12, hip: 0.8, knee: 0.4, shoulde
 type Metric = 'w' | 'h' | 'd' | 'max' | `anchor:${string}`;
 /** Believable-scale bands, relative to Zapp. */
 export const SCALE_REF: Record<string, Array<{ metric: Metric; min: number; max: number; why: string }>> = {
-  door: [{ metric: 'h', min: 2.3, max: 2.6, why: '2.4 m opening clears his hair spikes (2.12 m)' }, { metric: 'w', min: 1.2, max: 1.5, why: 'clear opening > shoulder span 0.85 m' }],
+  door: [{ metric: 'h', min: 2.9, max: 3.1, why: '2.90 m clear opening clears the full adult cast' }, { metric: 'w', min: 1.4, max: 1.6, why: '1.25 m clear opening exceeds adult shoulder width' }],
   chair: [{ metric: 'anchor:seat', min: 0.4, max: 0.5, why: 'seat at knee height (0.40 m)' }],
   table: [{ metric: 'anchor:surface', min: 0.7, max: 0.8, why: 'top at hip height (0.80 m), same as the student desk' }],
   bed: [{ metric: 'anchor:surface', min: 0.45, max: 0.6, why: 'mattress a little above the knee' }, { metric: 'd', min: 2.2, max: 2.6, why: 'longer than Zapp lying down (2.12 m with hair)' }],

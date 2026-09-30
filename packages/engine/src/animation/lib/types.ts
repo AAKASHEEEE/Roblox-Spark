@@ -24,7 +24,9 @@ export interface PropCue {
   attach: number;
   /** normalized time the prop leaves the hand (throw); the flight starts there (attach.ts flightAt) */
   releaseU?: number;
-  /** prop state for S4's PropBuilder.applyState (e.g. door 'open' at u) */
+  /** placement-space orientation layered onto the hand attachment (cup tilt is not an S4 rig state) */
+  orientation?: { rotDeg: Vec3 };
+  /** prop state for S4's PropBuilder.applyState (e.g. pizza 'slice' after a bite) */
   state?: { name: string; u: number };
 }
 
