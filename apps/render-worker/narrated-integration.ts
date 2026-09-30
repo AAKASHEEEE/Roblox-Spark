@@ -291,12 +291,22 @@ export interface ShotSpec {
   propEdge?: string[];
   /** props whose complete silhouette must stay inside the frame */
   propFull?: string[];
+  /** characters that must be fully out of frame (no screen coverage) */
+  excluded?: string[];
+  /** a non-subject head partially attached to the frame edge rejects the camera (instead of ranking it last) */
+  strictHeadEdge?: boolean;
+  /** the beat's approved camera preset is a two-shot: every required face must read */
+  twoShotPreset?: boolean;
+  /** used (instead of sequential coverage) when no camera satisfies this spec */
+  singleFallback?: ShotSpec;
 }
 export interface WindowFacts { jump: boolean; press: boolean; coinSpawn: boolean; grow: boolean; tip: boolean; kiraWalk: boolean; zappWalk: boolean; reset: boolean; seated: string[]; last: boolean; first: boolean;
   /** caption chunk names these characters; `safeBefore`: characters that reached a safe mark before the shot */
   chunkNames?: string[]; safeBefore?: string[];
   /** the shot starts after the coin/patient contact inside the affected actor's own phrase (0 = first such shot) */
-  resultIdx?: number | null; contactInShot?: boolean }
+  resultIdx?: number | null; contactInShot?: boolean;
+  /** the shot is the last shot of its phrase (the hand-off into the next beat) */
+  lastOfPhrase?: boolean }
 
 function windowFacts(plan: WorldPlan, s: number, e: number, first: boolean, last: boolean): WindowFacts {
   const inW = (t: number | null | undefined) => t !== null && t !== undefined && t >= s - 1e-9 && t < e - 1e-9;
@@ -339,6 +349,11 @@ export function shotSpec(p: NarratedPhrase, f: WindowFacts, geoMid: FrameGeo, ph
   // then not demanded of this shot — she may appear only if her legs stay out of frame / hidden)
   if (f.last) return { intent: 'elevated_consequence', active: 'zapp', subjects: ['zapp'], optional: [], heroProps: ['coin'], scaleRefs: ['zapp'], pattern: 'consequence_sequence', reason: 'ending consequence: prone-Zapp close/medium (coin edge) then elevated consequence (emblem, thickness, geography); Kira not required', requiresHeroProp: true };
   if (f.reset) return { intent: 'neutral_top_down_prop_insert', active: 'zapp', subjects: ['zapp'], optional: ['zapp'], heroProps: ['button'], reason: 'button reset: neutral top-down insert (button + reset point only; no actor in frame; resets geography)', requiresHeroProp: true };
+  // look_at beat whose narration names the button the actor looks at: its hand-off shot is a neutral top-down insert of
+  // the button alone (reset-insert rules: no actor in frame, FREE COINS label kept clear of the caption); the neutral
+  // insert resets screen-direction geography for the next beat
+  const looksAtButton = p.semanticAction === 'look_at' && (p.target ?? '').split('.')[0] === 'button' && /\bbutton\b/i.test(p.text);
+  if (looksAtButton && f.lastOfPhrase) return { intent: 'neutral_top_down_prop_insert', active: actor, subjects: [actor], optional: [actor], heroProps: ['button'], reason: `${actor} looks at the named button: neutral top-down insert (button only; no actor in frame; resets geography)`, requiresHeroProp: true };
   const seated = f.seated.includes(actor);
   if (seated) return { intent: 'close', active: actor, subjects: [actor, other], optional: [other], heroProps: [], reason: `${actor} implied_seated: waist-up close (no chair/legs shown)`, requiresHeroProp: false };
   if (f.first) return { intent: phraseShotIndex === 0 ? 'wide' : 'medium', active: actor, subjects: both, optional: [], heroProps: [], reason: 'opening comparison: both characters and the classroom geography (both required)', requiresHeroProp: false };
@@ -346,6 +361,13 @@ export function shotSpec(p: NarratedPhrase, f: WindowFacts, geoMid: FrameGeo, ph
   if (warning) return { intent: 'medium', active: actor, subjects: both, optional: [], heroProps: [], reason: `${actor} warns ${other}: speaker + listener required`, requiresHeroProp: false };
   if (p.actorRole === 'reactor' && p.propEvents.some((e) => e.prop === 'spark_coin') && coinReady) return { intent: 'scale_reveal', active: actor, subjects: both, optional: [other], heroProps: ['coin'], scaleRefs: [actor], pattern: 'reaction_then_insert', reason: 'reaction to the coin: actor reaction first, then a giant-coin scale insert (same narration interval)', requiresHeroProp: true };
   const intent: CameraIntent = phraseShotIndex % 2 === 1 ? 'reaction' : 'medium';
+  // the beat's approved camera preset is a two-shot: its medium shots require BOTH characters (two-shot candidates, both
+  // heads fully inside the safe margin); its reactions stay a single on the active actor with the other fully out of
+  // frame. Fallback when no two-shot is valid: a tighter single on the active actor, the other fully out of frame.
+  if (p.cameraPreset === 'two_shot') return intent === 'medium'
+    ? { intent, active: actor, subjects: both, optional: [], heroProps: [], strictHeadEdge: true, twoShotPreset: true, reason: `${actor} ${p.semanticAction}: beat preset two_shot -> two-character medium (both required)`, requiresHeroProp: false,
+        singleFallback: { intent: 'reaction', active: actor, subjects: both, optional: [other], heroProps: [], excluded: [other], strictHeadEdge: true, reason: `${actor} ${p.semanticAction}: two_shot preset fallback -> tighter ${actor} single (${other} fully out of frame)`, requiresHeroProp: false } }
+    : { intent, active: actor, subjects: both, optional: [other], heroProps: [], excluded: [other], strictHeadEdge: true, reason: `${actor} ${p.semanticAction}: two_shot beat reaction -> ${actor} single (${other} fully out of frame)`, requiresHeroProp: false };
   return { intent, active: actor, subjects: both, optional: [other], heroProps: [], reason: `${actor} ${p.semanticAction}: active-character ${intent} (supporting actor optional)`, requiresHeroProp: false };
 }
 
@@ -393,6 +415,7 @@ export function candidatesFor(scene: CameraSafetyScene, spec: ShotSpec, shotId: 
       out.push({ ...c, id: `${shotId}:${fallback}:y${yaw}:d${k}`, transform: { position: [c.target[0] + rv[0], c.target[1] + rv[1], c.target[2] + rv[2]] }, requiresHeroProp: spec.requiresHeroProp && scene.heroPropIds.length > 0 });
     }
   }
+  if (spec.excluded?.length || spec.strictHeadEdge || spec.twoShotPreset) for (const c of out) { if (spec.excluded?.length) c.excludedSubjectIds = [...spec.excluded]; if (spec.strictHeadEdge) c.partialHeadsBlocking = true; if (spec.twoShotPreset) c.readableFaceIds = spec.subjects.filter((x) => !spec.optional.includes(x)); }
   return out;
 }
 
@@ -433,8 +456,14 @@ function generatedCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: s
         const d = Math.max(headH / (frac * 2 * tanV(38)), (sep / 2 + 0.45) / (tanV(38) * (9 / 16) * 0.9));
         push('two_shot', 'medium', m, axisYaw + off, d, 0.15, 38, { framedSubjectIds: required.slice(0, 2) });
       }
+      // beat preset two_shot: a wider orbit / height family, and BOTH faces must read (not only the active one)
+      if (spec.twoShotPreset) for (const frac of [0.15, 0.17, 0.2]) for (const off of [50, -50, 130, -130, 30, -30, 150, -150]) for (const lift of [0.15, 0.5, 0.9]) {
+        const d = Math.max(headH / (frac * 2 * tanV(38)), (sep / 2 + 0.45) / (tanV(38) * (9 / 16) * 0.9));
+        push('two_shot', 'medium', m, axisYaw + off, d, lift, 38, { framedSubjectIds: required.slice(0, 2) });
+      }
     }
-    const fracs = seated ? [0.28, 0.32, 0.36] : spec.intent === 'medium' ? [0.21, 0.25, 0.29] : [0.32, 0.4, 0.48];
+    // a single that must keep another actor fully out of frame may also go tighter (still inside the intent's band)
+    const fracs = seated ? [0.28, 0.32, 0.36] : spec.intent === 'medium' ? [0.21, 0.25, 0.29] : spec.excluded?.length ? [0.32, 0.4, 0.48, 0.56, 0.64] : [0.32, 0.4, 0.48];
     const waistY = env?.actors[active]?.waistY ?? 0;
     // implied_seated: aim high enough that the frame bottom (at the subject) clears the waist line by 12 cm
     const seatAim = (frac: number) => Math.max(hc[1] - headH * 0.15, waistY + 0.12 + headH / (frac * 2));
@@ -550,6 +579,25 @@ function generatedCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: s
   return out;
 }
 
+/**
+ * Second-tier neutral top-down inserts (used only when no standard insert is valid): a longer lens from further up so
+ * an actor standing right behind the prop stays out of frame (the prop's supporting surface fills the frame edge) and
+ * the lens keeps its head clearance.
+ */
+export function longLensInsertCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: string): CameraCandidate[] {
+  const hb = unionBoundsOf(scene, spec.heroProps.filter((id) => scene.heroPropIds.includes(id)))[0];
+  if (!hb) return [];
+  const pc: Vec3 = [(hb.min[0] + hb.max[0]) / 2, (hb.min[1] + hb.max[1]) / 2, (hb.min[2] + hb.max[2]) / 2], out: CameraCandidate[] = [];
+  for (const pitch of [50, 60, 70, 80, 88]) for (let y = 0; y < 360; y += 30) for (const d of [1.2, 1.6, 2.2, 3]) for (const fov of [12, 16, 20, 26]) {
+    const cp = Math.cos(pitch * DEG), pos: Vec3 = [pc[0] + Math.sin(y * DEG) * cp * d, pc[1] + Math.sin(pitch * DEG) * d, pc[2] + Math.cos(y * DEG) * cp * d];
+    out.push({ id: `${shotId}:top_down_insert_long:p${pitch}:a${y}:d${d}:f${fov}`, intent: 'neutral_top_down_prop_insert', transform: { position: pos }, target: pc, fov, activeSubjectId: spec.active, requiresHeroProp: true });
+  }
+  return out;
+}
+function unionBoundsOf(scene: CameraSafetyScene, ids: string[]): Bounds3[] {
+  return ids.map((id) => union(scene.obstacles.filter((o) => o.entityId === id).map((o) => o.bounds))).filter((b): b is Bounds3 => !!b);
+}
+
 export interface ShotCamera {
   id: string; intent: CameraIntent; kind: string; position: Vec3; target: Vec3; fovDeg: number;
   /** static: one transform for the whole shot; tracking: one deterministic transform per owned frame */
@@ -558,7 +606,7 @@ export interface ShotCamera {
   track?: number[][];
   trackSubject?: string;
   /** candidate fields the evaluator needs to reproduce the planning decision exactly at every frame */
-  eval: { activeSubjectId: string; requiresHeroProp: boolean; framedSubjectIds?: string[]; profileScale?: 'medium' | 'close'; eyelineTargetId?: string; scaleReferenceIds?: string[]; foregroundSubjectId?: string; propEdgeIds?: string[] };
+  eval: { activeSubjectId: string; requiresHeroProp: boolean; framedSubjectIds?: string[]; profileScale?: 'medium' | 'close'; eyelineTargetId?: string; scaleReferenceIds?: string[]; foregroundSubjectId?: string; propEdgeIds?: string[]; propFullFrameIds?: string[]; excludedSubjectIds?: string[]; partialHeadsBlocking?: boolean; readableFaceIds?: string[] };
 }
 /** a camera choice for one planned shot: static candidate, or a tracking trajectory over the shot's frames */
 interface Ranked { cand: CameraCandidate; minScore: number; results: CameraSafetyResult[]; track: TrackFrame[] | null; trackSubject?: string }
@@ -737,6 +785,10 @@ function rankOverShot(prod: Production, plan: WorldPlan, geos: FrameGeo[], a: nu
   };
   const statics = cands.sort((x, y) => (x.id < y.id ? -1 : 1)).map((cand) => ({ cand, track: null }));
   let ranked = run(statics), tracking = 'not needed';
+  if (!ranked.length && spec.intent === 'neutral_top_down_prop_insert') {
+    ranked = run(longLensInsertCandidates(cameraScene(mid, spec, W, H, sd), spec, shotId).filter((c) => inCameraVolume(prod, c.transform.position)).map((cand) => ({ cand, track: null })));
+    if (ranked.length) tracking = 'not needed (long-lens top-down insert: standard inserts invalid)';
+  }
   if (!ranked.length && env.moves) {
     // static coverage failed on a moving subject: follow the active actor (or the growing hero prop for prop-led beats)
     const subject = (spec.intent === 'scale_reveal' || spec.intent === 'prop') && spec.heroProps.length && (env.props[spec.heroProps[0]]?.scale[1] ?? 1) - (env.props[spec.heroProps[0]]?.scale[0] ?? 1) > 0.01 ? spec.heroProps[0] : spec.active;
@@ -816,7 +868,11 @@ export function coordinateChunk<T>(lists: T[][], place: (choice: T[]) => Caption
 
 // ───────────────────────────── integrated timeline ─────────────────────────────
 
-export interface IntegratedShot { id: string; sourceShot: string; start: number; end: number; frames: [number, number]; phraseId: string; chunkId: string; spec: ShotSpec; camera: ShotCamera | null; coverage: 'single' | 'sequential_speaker' | 'sequential_listener' | 'growth_stage' | 'sequential_reaction' | 'sequential_insert' | 'consequence_subject' | 'consequence_elevated' | 'impact_tip' | 'impact_contact'; blocked: string | null; screenDirection: string; minScore: number | null; droppedOptional: string[]; cameraRejections: Record<string, number>; tracking: string; envelope: { moves: boolean; actors: Record<string, { displacementM: number; maxStepM: number; postures: string[] }>; coinScale: [number, number] } }
+export interface IntegratedShot { id: string; sourceShot: string; start: number; end: number; frames: [number, number]; phraseId: string; chunkId: string; spec: ShotSpec; camera: ShotCamera | null; coverage: 'single' | 'sequential_speaker' | 'sequential_listener' | 'growth_stage' | 'sequential_reaction' | 'sequential_insert' | 'consequence_subject' | 'consequence_elevated' | 'impact_tip' | 'impact_contact'; blocked: string | null; screenDirection: string; minScore: number | null; droppedOptional: string[];
+  /** non-subject heads left partially attached to the frame edge by the chosen camera (union over every owned frame) */
+  partialHeads: string[];
+  /** max screen coverage of each character that is not a required subject of the shot (0 = fully out of frame) */
+  offSubjectCoverage: Record<string, number>; cameraRejections: Record<string, number>; tracking: string; envelope: { moves: boolean; actors: Record<string, { displacementM: number; maxStepM: number; postures: string[] }>; coinScale: [number, number] } }
 export type IntegratedCaption = CaptionEvent;
 export interface IntegratedTimeline {
   schema: typeof INTEGRATED_TIMELINE_SCHEMA; storyboardId: string; storyboardSha256: string; audioHash: string; seed: number; fps: number; frames: number; width: number; height: number;
@@ -872,7 +928,7 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
     return {
       id: c.id, intent: c.intent, kind: c.id.split(':')[1], position: (r.track ? r.track[0].position : c.transform.position).map(r4) as Vec3, target: (r.track ? r.track[0].target : c.target).map(r4) as Vec3, fovDeg: c.fov,
       motion: r.track ? 'tracking' : 'static', ...(r.track ? { track: r.track.map((f) => [...f.position, ...f.target].map(r4)), trackSubject: r.trackSubject } : {}),
-      eval: { activeSubjectId: c.activeSubjectId ?? spec.active, requiresHeroProp: !!c.requiresHeroProp, ...(c.framedSubjectIds ? { framedSubjectIds: [...c.framedSubjectIds] } : {}), ...(c.profileScale ? { profileScale: c.profileScale } : {}), ...(c.eyelineTargetId ? { eyelineTargetId: c.eyelineTargetId } : {}), ...(c.scaleReferenceIds ? { scaleReferenceIds: [...c.scaleReferenceIds] } : {}), ...(c.foregroundSubjectId ? { foregroundSubjectId: c.foregroundSubjectId } : {}), ...(c.propEdgeIds ? { propEdgeIds: [...c.propEdgeIds] } : {}) },
+      eval: { activeSubjectId: c.activeSubjectId ?? spec.active, requiresHeroProp: !!c.requiresHeroProp, ...(c.framedSubjectIds ? { framedSubjectIds: [...c.framedSubjectIds] } : {}), ...(c.profileScale ? { profileScale: c.profileScale } : {}), ...(c.eyelineTargetId ? { eyelineTargetId: c.eyelineTargetId } : {}), ...(c.scaleReferenceIds ? { scaleReferenceIds: [...c.scaleReferenceIds] } : {}), ...(c.foregroundSubjectId ? { foregroundSubjectId: c.foregroundSubjectId } : {}), ...(c.propEdgeIds ? { propEdgeIds: [...c.propEdgeIds] } : {}), ...(c.propFullFrameIds ? { propFullFrameIds: [...c.propFullFrameIds] } : {}), ...(c.excludedSubjectIds ? { excludedSubjectIds: [...c.excludedSubjectIds] } : {}), ...(c.partialHeadsBlocking ? { partialHeadsBlocking: true } : {}), ...(c.readableFaceIds ? { readableFaceIds: [...c.readableFaceIds] } : {}) },
     };
   };
   for (const chunkId of chunkIds) {
@@ -890,8 +946,9 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
       facts.chunkNames = ['zapp', 'kira'].filter((n) => new RegExp(`\\b${n}\\b`, 'i').test(cap.lines.join(' ')));
       facts.safeBefore = plan.events.filter((e) => e.type === 'reached_safe' && e.t <= s.start + 1e-9).map((e) => e.source);
       facts.contactInShot = contactFrame !== null && contactFrame >= fr[0] && contactFrame < fr[1];
+      facts.lastOfPhrase = tl.shots.filter((x) => x.phraseId === s.phraseId).at(-1) === s;
       if (p.actorRole === 'affected' && tcW !== null && s.start >= tcW - 1e-9) { facts.resultIdx = resultCount.get(p.id) ?? 0; resultCount.set(p.id, facts.resultIdx + 1); } else facts.resultIdx = null;
-      const spec = shotSpec(p, facts, geos[Math.floor((fr[0] + fr[1] - 1) / 2)], k);
+      let spec = shotSpec(p, facts, geos[Math.floor((fr[0] + fr[1] - 1) / 2)], k);
       // previous coin framing (previous planned shot of this chunk, else the last emitted shot) for de-duplication
       const avoidFor = (sp: ShotSpec): CameraCandidate | null => {
         if (!sp.heroProps.includes('coin')) return null;
@@ -912,7 +969,8 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
         sdLocal = sdSeg;
         continue;
       }
-      const rk = rankOverShot(prod, plan, geos, fr[0], fr[1], spec, W, H, sdLocal, s.id, inp.trace, avoidFor(spec));
+      let rk = rankOverShot(prod, plan, geos, fr[0], fr[1], spec, W, H, sdLocal, s.id, inp.trace, avoidFor(spec));
+      if (!rk.ranked.length && spec.singleFallback) { spec = spec.singleFallback; rk = rankOverShot(prod, plan, geos, fr[0], fr[1], spec, W, H, sdLocal, s.id, inp.trace, avoidFor(spec)); }
       const required = spec.subjects.filter((x) => !spec.optional.includes(x));
       if (rk.ranked.length || required.length < 2 || s.end - s.start < 2 * MIN_SHOT_SEC) {
         planned.push({ id: s.id, sourceShot: s.id, start: s.start, end: s.end, frames: fr, phraseId: s.phraseId, spec, coverage: 'single', ranked: rk.ranked, rej: rk.rejections, env: rk.envelope, tracking: rk.tracking });
@@ -961,6 +1019,8 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
         camera: r ? shotCam(r, q.spec) : null,
         blocked: r ? null : q.ranked.length ? 'CAPTION_CAMERA_COMPOSITION_BLOCKED' : 'CAMERA_SAFETY_BLOCKED', screenDirection: sdRes, minScore: r ? r4(r.minScore) : null,
         droppedOptional: r ? [...new Set(r.results.flatMap((x) => x.diagnostics.droppedOptionalSubjects))].sort() : [], cameraRejections: q.rej, tracking: q.tracking,
+        partialHeads: r ? [...new Set(r.results.flatMap((x) => x.diagnostics.partialHeads))].sort() : [],
+        offSubjectCoverage: r ? Object.fromEntries(Object.keys(geos[q.frames[0]].actors).filter((id) => !q.spec.subjects.filter((x) => !q.spec.optional.includes(x) || x === q.spec.active).includes(id)).sort().map((id) => [id, r4(Math.max(0, ...r.results.map((x) => x.diagnostics.entityCoverage[id] ?? 0)))])) : {},
         envelope: { moves: q.env.moves, actors: Object.fromEntries(Object.entries(q.env.actors).map(([id, v]) => [id, { displacementM: v.displacementM, maxStepM: v.maxStepM, postures: v.postures }])), coinScale: q.env.props.coin?.scale ?? [0, 0] },
       });
       if (r) sd = nextScreenDirectionState(cameraScene(geos[q.frames[1] - 1], q.spec, W, H, sd), candAtFrame(r, q.frames[1] - 1, q.frames[0]));
@@ -1153,6 +1213,7 @@ function analyze(x: { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldP
     frameCoverage: fc,
     camera: { nonFaceIntentFaceVisibilityMin: cam.nonFaceMin === Infinity ? null : r3(cam.nonFaceMin), evaluatedFrames: cam.frames, collisions: cam.collisions, pathCollisions: cam.pathCollisions, occlusionFrames: cam.occlusion, faceVisibilityMin: r3(cam.faceMin), faceVisibilityMinAt: r3(cam.faceMinAt), heroPropVisibilityMin: cam.propMin === Infinity ? null : r3(cam.propMin), heroPropVisibilityMinAt: r3(cam.propMinAt), foregroundClutterMax: r3(cam.clutterMax), foregroundClutterAt: r3(cam.clutterAt), headCroppedFrames: cam.headCropped, subjectSizeFrames: cam.subjectSmall, screenDirectionViolations: cam.screenDir, requiredActorDropFrames: cam.requiredDropped, subjectHeadHeights: Object.fromEntries(Object.entries(cam.headHeights).map(([k, v]) => [k, { min: r4(v.min), max: r4(v.max) }])), rejectedFrames: cam.rejectedFrames.slice(0, 60), rejectedFrameCount: cam.rejectedFrames.length, blockedShots: blockedShots.map((s) => ({ id: s.id, spec: s.spec.reason, rejections: s.cameraRejections })) },
     captions: { chunks: pls.length, primaryFaceMax: r4(faceMax), heroPropMax: r4(propMax), interactionHits: inter, conflicts: conflicts.map((p) => p.chunkId), compositionBlocked: blocked.map((p) => p.chunkId), cameraRetries: pls.reduce((a, p) => a + p.cameraRetries, 0), bands: Object.fromEntries(['upper', 'middle', 'lower'].map((b) => [b, pls.filter((p) => p.band === b).length])) },
+    shotTable: timeline.shots.map((s) => ({ id: s.id, start: s.start, end: s.end, frames: s.frames, intent: s.spec.intent, camera: s.camera?.id ?? null, screenDirection: s.screenDirection, partialHeads: s.partialHeads, offSubjectCoverage: s.offSubjectCoverage, blocked: s.blocked })),
     shots: { count: timeline.shots.length, meanSec: r3(shotDur.reduce((a, b) => a + b, 0) / shotDur.length), minSec: r3(Math.min(...shotDur)), maxSec: r3(Math.max(...shotDur)), sequentialCoverage: timeline.sequentialCoverage, coveragePatterns: timeline.coveragePatterns, requiredActorDrops: timeline.shots.filter((s) => !s.camera).length },
     gates,
   };
@@ -1163,7 +1224,7 @@ function analyze(x: { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldP
 /** the camera candidate of an integrated shot at owned frame i (static transform, or that frame's tracking transform) */
 export function cameraForFrame(s: IntegratedShot, i: number): CameraCandidate {
   const c = s.camera!, e = c.eval;
-  const base: CameraCandidate = { id: c.id, intent: c.intent, transform: { position: c.position }, target: c.target, fov: c.fovDeg, activeSubjectId: e.activeSubjectId, requiresHeroProp: e.requiresHeroProp, ...(e.framedSubjectIds ? { framedSubjectIds: e.framedSubjectIds } : {}), ...(e.profileScale ? { profileScale: e.profileScale } : {}), ...(e.eyelineTargetId ? { eyelineTargetId: e.eyelineTargetId } : {}), ...(e.scaleReferenceIds ? { scaleReferenceIds: e.scaleReferenceIds } : {}), ...(e.foregroundSubjectId ? { foregroundSubjectId: e.foregroundSubjectId } : {}), ...(e.propEdgeIds ? { propEdgeIds: e.propEdgeIds } : {}) };
+  const base: CameraCandidate = { id: c.id, intent: c.intent, transform: { position: c.position }, target: c.target, fov: c.fovDeg, activeSubjectId: e.activeSubjectId, requiresHeroProp: e.requiresHeroProp, ...(e.framedSubjectIds ? { framedSubjectIds: e.framedSubjectIds } : {}), ...(e.profileScale ? { profileScale: e.profileScale } : {}), ...(e.eyelineTargetId ? { eyelineTargetId: e.eyelineTargetId } : {}), ...(e.scaleReferenceIds ? { scaleReferenceIds: e.scaleReferenceIds } : {}), ...(e.foregroundSubjectId ? { foregroundSubjectId: e.foregroundSubjectId } : {}), ...(e.propEdgeIds ? { propEdgeIds: e.propEdgeIds } : {}), ...(e.propFullFrameIds ? { propFullFrameIds: e.propFullFrameIds } : {}), ...(e.excludedSubjectIds ? { excludedSubjectIds: e.excludedSubjectIds } : {}), ...(e.partialHeadsBlocking ? { partialHeadsBlocking: true } : {}), ...(e.readableFaceIds ? { readableFaceIds: e.readableFaceIds } : {}) };
   if (c.motion !== 'tracking' || !c.track) return base;
   const k = Math.max(0, Math.min(c.track.length - 1, i - s.frames[0])), f = c.track[k], prev = k > 0 ? c.track[k - 1] : null;
   return { ...base, transform: { position: [f[0], f[1], f[2]] }, target: [f[3], f[4], f[5]], ...(prev ? { lensPath: [[prev[0], prev[1], prev[2]] as Vec3] } : {}) };

@@ -167,6 +167,12 @@ export interface CameraCandidate {
   propEdgeIds?: string[];
   /** props whose complete silhouette (identity rim, else AABB corners) must stay inside the frame */
   propFullFrameIds?: string[];
+  /** characters that must be fully out of frame (no screen coverage at all) */
+  excludedSubjectIds?: string[];
+  /** a non-subject head partially attached to the frame edge (diagnostics.partialHeads) rejects the camera */
+  partialHeadsBlocking?: boolean;
+  /** characters whose face must read at the intent's face-visibility minimum (e.g. both actors of a preset two-shot) */
+  readableFaceIds?: string[];
 }
 
 export interface CameraSafetyDiagnostics {
@@ -797,6 +803,9 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   if (intent !== 'prop' && intent !== 'extreme_close') {
     for (const id of [...ix.faces.keys()].sort()) if (!required.includes(id) && id !== fgActor && headInFrame[id] && headCropped[id]) partialHeads.push(id);
   }
+  if (cand.partialHeadsBlocking) for (const id of partialHeads) reasons.push(`PARTIAL_HEAD_AT_FRAME_EDGE:${id}`);
+  for (const id of cand.readableFaceIds ?? []) if (id !== active && ix.faces.has(id) && !((face[id] ?? 0) >= cfg.minFaceVisibility)) reasons.push(`FACE_VISIBILITY_LOW:${id}:${face[id] ?? 0}<${cfg.minFaceVisibility}`);
+  for (const id of cand.excludedSubjectIds ?? []) if ((entityCoverage[id] ?? 0) > 0) reasons.push(`EXCLUDED_ACTOR_IN_FRAME:${id}:${entityCoverage[id].toFixed(3)}`);
   for (const id of cand.propFullFrameIds ?? []) {
     const idn = ix.meta.get(id)?.identity, b = ix.bounds.get(id);
     const pts = idn ? idn.rim : b ? corners(b) : [];
