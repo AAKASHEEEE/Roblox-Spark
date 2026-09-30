@@ -1,0 +1,351 @@
+{
+  "kind": "character",
+  "id": "noob",
+  "version": "1.0.0",
+  "displayName": "Newbie",
+  "description": "Starter-avatar newbie archetype, original design. Oversized bald bevelled head, short limbs, plain pale-grey tee with the shop tag still attached, plain grey trousers and shoes. Deliberately no platform default colour scheme.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.6,
+      0.6,
+      0.56
+    ],
+    "headBevel": 0.09,
+    "skin": "#d9c3a5",
+    "torso": [
+      0.5,
+      0.52,
+      0.26
+    ],
+    "torsoColor": "#c3c7cc",
+    "armWidth": 0.15,
+    "upperArm": 0.27,
+    "lowerArm": 0.26,
+    "sleeveColor": "#c3c7cc",
+    "handColor": "#d9c3a5",
+    "legWidth": 0.21,
+    "upperLeg": 0.33,
+    "lowerLeg": 0.33,
+    "legColor": "#8e939a",
+    "shoeColor": "#6d7278",
+    "soleColor": "#5a5e63"
+  },
+  "parts": [
+    {
+      "id": "tee_collar",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.22,
+        0.03,
+        0.02
+      ],
+      "pos": [
+        0,
+        0.505,
+        0.13
+      ],
+      "color": "#b7bbc1"
+    },
+    {
+      "id": "tag_string",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.008,
+        0.05,
+        0.008
+      ],
+      "pos": [
+        0.255,
+        0.44,
+        0.07
+      ],
+      "color": "#55585e"
+    },
+    {
+      "id": "tag",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.012,
+        0.085,
+        0.065
+      ],
+      "pos": [
+        0.258,
+        0.39,
+        0.07
+      ],
+      "color": "#ffffff"
+    },
+    {
+      "id": "sleeve_hem_l",
+      "attach": "upperarm_l",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.04,
+        0.16
+      ],
+      "pos": [
+        0,
+        -0.18,
+        0
+      ],
+      "color": "#b7bbc1",
+      "bevel": 0.01
+    },
+    {
+      "id": "sleeve_hem_r",
+      "attach": "upperarm_r",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.04,
+        0.16
+      ],
+      "pos": [
+        0,
+        -0.18,
+        0
+      ],
+      "color": "#b7bbc1",
+      "bevel": 0.01
+    }
+  ],
+  "face": {
+    "eyeColor": "#111114",
+    "browColor": "#6a5a48",
+    "mouthColor": "#3a2a22",
+    "eyeSpacing": 0.3,
+    "eyeY": 0.5,
+    "eyeW": 0.1,
+    "eyeH": 0.15,
+    "browThickness": 0.035,
+    "browWidth": 0.15,
+    "mouthY": 0.72,
+    "mouthW": 0.18,
+    "hasNose": false,
+    "states": {
+      "neutral": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          4
+        ],
+        "browR": [
+          0.3,
+          4
+        ],
+        "mouth": "half_smile"
+      },
+      "curious": {
+        "eyes": "oval",
+        "browL": [
+          0.55,
+          6
+        ],
+        "browR": [
+          -0.08,
+          -8
+        ],
+        "mouth": "tight"
+      },
+      "shock": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "determined": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -24
+        ],
+        "browR": [
+          -0.2,
+          -24
+        ],
+        "mouth": "flat"
+      },
+      "regret": {
+        "eyes": "half_lid",
+        "browL": [
+          0.15,
+          20
+        ],
+        "browR": [
+          0.15,
+          20
+        ],
+        "mouth": "flat"
+      },
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.25,
+          4
+        ],
+        "browR": [
+          -0.05,
+          -8
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.85,
+          8
+        ],
+        "browR": [
+          0.85,
+          8
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      },
+      "happy": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          6
+        ],
+        "browR": [
+          0.3,
+          6
+        ],
+        "mouth": "grin"
+      },
+      "angry": {
+        "eyes": "narrow",
+        "browL": [
+          -0.35,
+          -30
+        ],
+        "browR": [
+          -0.35,
+          -30
+        ],
+        "mouth": "frown"
+      },
+      "calm": {
+        "eyes": "half_lid",
+        "browL": [
+          0.05,
+          0
+        ],
+        "browR": [
+          0.05,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "strict": {
+        "eyes": "narrow",
+        "browL": [
+          -0.15,
+          -14
+        ],
+        "browR": [
+          -0.15,
+          -14
+        ],
+        "mouth": "flat"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret",
+    "smug",
+    "skeptical",
+    "surprised",
+    "laughing",
+    "happy",
+    "angry",
+    "calm",
+    "strict"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.2,
+    "runSpeed": 3.2
+  },
+  "personality": "Brand new, believes everything, presses buttons because a sign said so.",
+  "identityRules": [
+    "Bald oversized head: the largest head-to-body ratio in the cast.",
+    "Shop tag always hangs from the left side seam.",
+    "Never yellow/blue/green (no platform default scheme)."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

@@ -1,0 +1,418 @@
+{
+  "kind": "character",
+  "id": "crowd_kid",
+  "version": "1.0.0",
+  "displayName": "Classmate",
+  "description": "Background kid for crowds and classrooms. Plain proportions slightly smaller than the leads, short hair, plain tee and trousers. Colours vary by seed (skin, hair, shirt, trousers, shoes); seed 0 is this manifest.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.5,
+      0.5,
+      0.48
+    ],
+    "headBevel": 0.065,
+    "skin": "#d6a27a",
+    "torso": [
+      0.5,
+      0.54,
+      0.27
+    ],
+    "torsoColor": "#4f7fb8",
+    "armWidth": 0.145,
+    "upperArm": 0.3,
+    "lowerArm": 0.28,
+    "sleeveColor": "#4f7fb8",
+    "handColor": "#d6a27a",
+    "legWidth": 0.2,
+    "upperLeg": 0.36,
+    "lowerLeg": 0.36,
+    "legColor": "#3d4250",
+    "shoeColor": "#e9e9e6",
+    "soleColor": "#9aa0a6"
+  },
+  "parts": [
+    {
+      "id": "hair_top",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.08,
+        0.52
+      ],
+      "pos": [
+        0,
+        0.53,
+        -0.01
+      ],
+      "color": "#3a2a1e",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_back",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.26,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.41,
+        -0.24
+      ],
+      "color": "#3a2a1e",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_side_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.16,
+        0.34
+      ],
+      "pos": [
+        0.265,
+        0.45,
+        -0.07
+      ],
+      "color": "#3a2a1e",
+      "bevel": 0.01
+    },
+    {
+      "id": "hair_side_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.16,
+        0.34
+      ],
+      "pos": [
+        -0.265,
+        0.45,
+        -0.07
+      ],
+      "color": "#3a2a1e",
+      "bevel": 0.01
+    },
+    {
+      "id": "hair_fringe",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.06,
+        0.06
+      ],
+      "pos": [
+        0,
+        0.5,
+        0.235
+      ],
+      "color": "#3a2a1e",
+      "bevel": 0.015
+    },
+    {
+      "id": "shirtdark_collar",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.22,
+        0.035,
+        0.02
+      ],
+      "pos": [
+        0,
+        0.525,
+        0.13
+      ],
+      "color": "#39608c"
+    },
+    {
+      "id": "shirtdark_hem",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.52,
+        0.05,
+        0.29
+      ],
+      "pos": [
+        0,
+        0.025,
+        0
+      ],
+      "color": "#39608c",
+      "bevel": 0.01
+    },
+    {
+      "id": "shoe_lace_l",
+      "attach": "lowerleg_l",
+      "shape": "box",
+      "size": [
+        0.12,
+        0.02,
+        0.1
+      ],
+      "pos": [
+        0,
+        -0.29,
+        0.1
+      ],
+      "color": "#e9e9e6"
+    },
+    {
+      "id": "shoe_lace_r",
+      "attach": "lowerleg_r",
+      "shape": "box",
+      "size": [
+        0.12,
+        0.02,
+        0.1
+      ],
+      "pos": [
+        0,
+        -0.29,
+        0.1
+      ],
+      "color": "#e9e9e6"
+    }
+  ],
+  "face": {
+    "eyeColor": "#111114",
+    "browColor": "#2a1e16",
+    "mouthColor": "#3a1a12",
+    "eyeSpacing": 0.33,
+    "eyeY": 0.52,
+    "eyeW": 0.1,
+    "eyeH": 0.17,
+    "browThickness": 0.045,
+    "browWidth": 0.19,
+    "mouthY": 0.75,
+    "mouthW": 0.2,
+    "hasNose": false,
+    "states": {
+      "neutral": {
+        "eyes": "oval",
+        "browL": [
+          0.1,
+          0
+        ],
+        "browR": [
+          0.1,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "curious": {
+        "eyes": "oval",
+        "browL": [
+          0.55,
+          6
+        ],
+        "browR": [
+          -0.08,
+          -8
+        ],
+        "mouth": "tight"
+      },
+      "shock": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "determined": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -24
+        ],
+        "browR": [
+          -0.2,
+          -24
+        ],
+        "mouth": "flat"
+      },
+      "regret": {
+        "eyes": "half_lid",
+        "browL": [
+          0.15,
+          20
+        ],
+        "browR": [
+          0.15,
+          20
+        ],
+        "mouth": "flat"
+      },
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.25,
+          4
+        ],
+        "browR": [
+          -0.05,
+          -8
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.85,
+          8
+        ],
+        "browR": [
+          0.85,
+          8
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      },
+      "happy": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          6
+        ],
+        "browR": [
+          0.3,
+          6
+        ],
+        "mouth": "grin"
+      },
+      "angry": {
+        "eyes": "narrow",
+        "browL": [
+          -0.35,
+          -30
+        ],
+        "browR": [
+          -0.35,
+          -30
+        ],
+        "mouth": "frown"
+      },
+      "calm": {
+        "eyes": "half_lid",
+        "browL": [
+          0.05,
+          0
+        ],
+        "browR": [
+          0.05,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "strict": {
+        "eyes": "narrow",
+        "browL": [
+          -0.15,
+          -14
+        ],
+        "browR": [
+          -0.15,
+          -14
+        ],
+        "mouth": "flat"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret",
+    "smug",
+    "skeptical",
+    "surprised",
+    "laughing",
+    "happy",
+    "angry",
+    "calm",
+    "strict"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.2,
+    "runSpeed": 3.3
+  },
+  "personality": "Background classmate: reacts, laughs, never steals the scene.",
+  "identityRules": [
+    "Must never out-colour the leads: one plain shirt colour, no accessories.",
+    "Part ids are colour-slot prefixed (hair_, shirt_, shirtdark_, pants_, shoe_)."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

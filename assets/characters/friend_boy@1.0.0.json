@@ -1,0 +1,656 @@
+{
+  "kind": "character",
+  "id": "friend_boy",
+  "version": "1.0.0",
+  "displayName": "Dev",
+  "description": "Kid friend (boy). Deep-brown skin, a mop of black cube curls, mustard tee with two navy stripes, navy shorts, white crew socks, red sneakers.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.54,
+      0.52,
+      0.5
+    ],
+    "headBevel": 0.07,
+    "skin": "#6b4428",
+    "torso": [
+      0.52,
+      0.56,
+      0.28
+    ],
+    "torsoColor": "#f2b928",
+    "armWidth": 0.15,
+    "upperArm": 0.31,
+    "lowerArm": 0.29,
+    "sleeveColor": "#f2b928",
+    "handColor": "#6b4428",
+    "legWidth": 0.21,
+    "upperLeg": 0.38,
+    "lowerLeg": 0.38,
+    "legColor": "#6b4428",
+    "shoeColor": "#e03a2e",
+    "soleColor": "#f4f4f2"
+  },
+  "parts": [
+    {
+      "id": "hair_top",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.1,
+        0.54
+      ],
+      "pos": [
+        0,
+        0.545,
+        -0.01
+      ],
+      "color": "#1a1210",
+      "bevel": 0.03
+    },
+    {
+      "id": "hair_curl_1",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.16,
+        0.18
+      ],
+      "pos": [
+        -0.17,
+        0.62,
+        0.12
+      ],
+      "color": "#1a1210",
+      "bevel": 0.06
+    },
+    {
+      "id": "hair_curl_2",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.16,
+        0.18
+      ],
+      "pos": [
+        0,
+        0.645,
+        0.14
+      ],
+      "color": "#1a1210",
+      "bevel": 0.06
+    },
+    {
+      "id": "hair_curl_3",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.16,
+        0.18
+      ],
+      "pos": [
+        0.17,
+        0.62,
+        0.12
+      ],
+      "color": "#1a1210",
+      "bevel": 0.06
+    },
+    {
+      "id": "hair_curl_4",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.16,
+        0.18
+      ],
+      "pos": [
+        -0.17,
+        0.63,
+        -0.1
+      ],
+      "color": "#1a1210",
+      "bevel": 0.06
+    },
+    {
+      "id": "hair_curl_5",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.16,
+        0.18
+      ],
+      "pos": [
+        0,
+        0.665,
+        -0.08
+      ],
+      "color": "#1a1210",
+      "bevel": 0.06
+    },
+    {
+      "id": "hair_curl_6",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.16,
+        0.18
+      ],
+      "pos": [
+        0.17,
+        0.63,
+        -0.1
+      ],
+      "color": "#1a1210",
+      "bevel": 0.06
+    },
+    {
+      "id": "hair_back",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.28,
+        0.1
+      ],
+      "pos": [
+        0,
+        0.4,
+        -0.23
+      ],
+      "color": "#1a1210",
+      "bevel": 0.03
+    },
+    {
+      "id": "hair_side_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.14,
+        0.34
+      ],
+      "pos": [
+        0.27,
+        0.47,
+        -0.06
+      ],
+      "color": "#1a1210",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_side_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.14,
+        0.34
+      ],
+      "pos": [
+        -0.27,
+        0.47,
+        -0.06
+      ],
+      "color": "#1a1210",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_fringe_1",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        -0.15,
+        0.525,
+        0.24
+      ],
+      "color": "#1a1210",
+      "bevel": 0.04
+    },
+    {
+      "id": "hair_fringe_2",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        0.01,
+        0.525,
+        0.24
+      ],
+      "color": "#1a1210",
+      "bevel": 0.04
+    },
+    {
+      "id": "hair_fringe_3",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        0.16,
+        0.525,
+        0.24
+      ],
+      "color": "#1a1210",
+      "bevel": 0.04
+    },
+    {
+      "id": "tee_stripe_1",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.525,
+        0.05,
+        0.285
+      ],
+      "pos": [
+        0,
+        0.38,
+        0
+      ],
+      "color": "#1d2a5c"
+    },
+    {
+      "id": "tee_stripe_2",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.525,
+        0.05,
+        0.285
+      ],
+      "pos": [
+        0,
+        0.26,
+        0
+      ],
+      "color": "#1d2a5c"
+    },
+    {
+      "id": "tee_collar",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.035,
+        0.02
+      ],
+      "pos": [
+        0,
+        0.545,
+        0.135
+      ],
+      "color": "#1d2a5c"
+    },
+    {
+      "id": "shorts_waist",
+      "attach": "hips",
+      "shape": "box",
+      "size": [
+        0.5,
+        0.1,
+        0.29
+      ],
+      "pos": [
+        0,
+        -0.03,
+        0
+      ],
+      "color": "#1d2a5c",
+      "bevel": 0.02
+    },
+    {
+      "id": "shorts_leg_l",
+      "attach": "upperleg_l",
+      "shape": "box",
+      "size": [
+        0.25,
+        0.24,
+        0.26
+      ],
+      "pos": [
+        0,
+        -0.1,
+        0
+      ],
+      "color": "#1d2a5c",
+      "bevel": 0.02
+    },
+    {
+      "id": "shorts_leg_r",
+      "attach": "upperleg_r",
+      "shape": "box",
+      "size": [
+        0.25,
+        0.24,
+        0.26
+      ],
+      "pos": [
+        0,
+        -0.1,
+        0
+      ],
+      "color": "#1d2a5c",
+      "bevel": 0.02
+    },
+    {
+      "id": "sock_l",
+      "attach": "lowerleg_l",
+      "shape": "box",
+      "size": [
+        0.225,
+        0.14,
+        0.23
+      ],
+      "pos": [
+        0,
+        -0.24,
+        0
+      ],
+      "color": "#f4f4f2",
+      "bevel": 0.01
+    },
+    {
+      "id": "sock_r",
+      "attach": "lowerleg_r",
+      "shape": "box",
+      "size": [
+        0.225,
+        0.14,
+        0.23
+      ],
+      "pos": [
+        0,
+        -0.24,
+        0
+      ],
+      "color": "#f4f4f2",
+      "bevel": 0.01
+    },
+    {
+      "id": "sleeve_cuff_l",
+      "attach": "upperarm_l",
+      "shape": "box",
+      "size": [
+        0.165,
+        0.05,
+        0.165
+      ],
+      "pos": [
+        0,
+        -0.2,
+        0
+      ],
+      "color": "#1d2a5c",
+      "bevel": 0.01
+    },
+    {
+      "id": "sleeve_cuff_r",
+      "attach": "upperarm_r",
+      "shape": "box",
+      "size": [
+        0.165,
+        0.05,
+        0.165
+      ],
+      "pos": [
+        0,
+        -0.2,
+        0
+      ],
+      "color": "#1d2a5c",
+      "bevel": 0.01
+    }
+  ],
+  "face": {
+    "eyeColor": "#0e0a08",
+    "browColor": "#140e0b",
+    "mouthColor": "#1f0c08",
+    "eyeSpacing": 0.35,
+    "eyeY": 0.52,
+    "eyeW": 0.11,
+    "eyeH": 0.19,
+    "browThickness": 0.055,
+    "browWidth": 0.2,
+    "mouthY": 0.75,
+    "mouthW": 0.23,
+    "hasNose": false,
+    "states": {
+      "neutral": {
+        "eyes": "oval",
+        "browL": [
+          0.1,
+          0
+        ],
+        "browR": [
+          0.1,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "curious": {
+        "eyes": "oval",
+        "browL": [
+          0.55,
+          6
+        ],
+        "browR": [
+          -0.08,
+          -8
+        ],
+        "mouth": "tight"
+      },
+      "shock": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "determined": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -24
+        ],
+        "browR": [
+          -0.2,
+          -24
+        ],
+        "mouth": "flat"
+      },
+      "regret": {
+        "eyes": "half_lid",
+        "browL": [
+          0.15,
+          20
+        ],
+        "browR": [
+          0.15,
+          20
+        ],
+        "mouth": "flat"
+      },
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.25,
+          4
+        ],
+        "browR": [
+          -0.05,
+          -8
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.85,
+          8
+        ],
+        "browR": [
+          0.85,
+          8
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      },
+      "happy": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          6
+        ],
+        "browR": [
+          0.3,
+          6
+        ],
+        "mouth": "grin"
+      },
+      "angry": {
+        "eyes": "narrow",
+        "browL": [
+          -0.35,
+          -30
+        ],
+        "browR": [
+          -0.35,
+          -30
+        ],
+        "mouth": "frown"
+      },
+      "calm": {
+        "eyes": "half_lid",
+        "browL": [
+          0.05,
+          0
+        ],
+        "browR": [
+          0.05,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "strict": {
+        "eyes": "narrow",
+        "browL": [
+          -0.15,
+          -14
+        ],
+        "browR": [
+          -0.15,
+          -14
+        ],
+        "mouth": "flat"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "happy",
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret",
+    "smug",
+    "skeptical",
+    "surprised",
+    "laughing",
+    "angry",
+    "calm",
+    "strict"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.3,
+    "runSpeed": 3.6
+  },
+  "personality": "Loyal hype-man. Says \"bro\" a lot, dares Zapp, then panics.",
+  "identityRules": [
+    "Cube curls: six on top, three across the fringe.",
+    "Mustard tee with two navy stripes; navy shorts; red sneakers."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}
