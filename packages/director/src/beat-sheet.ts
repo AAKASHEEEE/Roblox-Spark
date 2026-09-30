@@ -68,7 +68,13 @@ export const Beat = v.object({
   cast: v.array(CastMember, { max: 8 }),
   props: v.array(BeatProp, { max: 16 }),
   events: v.array(BeatEvent, { max: 32 }),
-  camera: v.object({ recipeId: sid(), subject: sid(), secondary: sid().optional() }),
+  camera: v.object({
+    recipeId: sid(), subject: sid(), secondary: sid().optional(),
+    /** optional intra-beat sub-shots (extra compositions/cuts within the beat). Each starts at absolute time `from`
+     *  (which must fall inside the beat and increase); the beat's own `camera` is the first composition. A sub-shot is
+     *  a hard camera cut, so a caption re-bands at its boundary (still one caption band per composition). */
+    subShots: v.array(v.object({ from: time(), recipeId: sid(), subject: sid(), secondary: sid().optional() }), { max: 6 }).optional(),
+  }),
   captions: v.array(Caption, { min: 1, max: 12 }),
   /** entity IDs (characterIds, prop instanceIds) kept from the previous beat */
   carryOver: v.array(sid(), { max: 24 }),
@@ -215,6 +221,17 @@ export function validateBeatSheet(input: unknown, opts: { library?: Library; req
     use('cameraRecipes', b.camera.recipeId, `${P}.camera.recipeId`);
     if (!entities.has(b.camera.subject)) err(`${P}.camera.subject`, `subject "${b.camera.subject}" is not an entity in this beat`);
     if (b.camera.secondary !== undefined && (!entities.has(b.camera.secondary) || b.camera.secondary === b.camera.subject)) err(`${P}.camera.secondary`, `secondary "${b.camera.secondary}" must be another entity in this beat`);
+    if (b.camera.subShots) {
+      let prevFrom = b.start;
+      for (const [si, ss] of b.camera.subShots.entries()) {
+        const SS = `${P}.camera.subShots[${si}]`;
+        use('cameraRecipes', ss.recipeId, `${SS}.recipeId`);
+        if (!entities.has(ss.subject)) err(`${SS}.subject`, `subject "${ss.subject}" is not an entity in this beat`);
+        if (ss.secondary !== undefined && (!entities.has(ss.secondary) || ss.secondary === ss.subject)) err(`${SS}.secondary`, `secondary "${ss.secondary}" must be another entity in this beat`);
+        if (ss.from <= prevFrom + 1e-6 || ss.from >= b.end - 1e-6) err(`${SS}.from`, `sub-shot cut ${ss.from} must be strictly inside the beat and after the previous cut (${prevFrom})`);
+        prevFrom = ss.from;
+      }
+    }
 
     for (const [ki, c] of b.captions.entries()) {
       const K = `${P}.captions[${ki}]`;

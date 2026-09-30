@@ -1,0 +1,1109 @@
+{
+  "schema": "blockspark.s7-full-render-v2/1",
+  "createdAt": "2026-09-30T21:50:20.798Z",
+  "visual": "vignette",
+  "inputs": {
+    "storyboard": "tests/fixtures/narrated/approved-narrated-v0.1.json",
+    "storyboardSha256": "76a6b5f26af5f9e0f1bcf635677f8c9f7a79f16d9f1bfc48575f3e0be2985856",
+    "beatSheet": "packages/director/fixtures/free-coins-classroom.beats.json",
+    "voice": ".scratch/voice/eleven-1.mp3",
+    "voiceSha256": "d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2",
+    "voiceMatchesApprovedStoryboard": true,
+    "decodedDurationSec": 69.146
+  },
+  "output": {
+    "file": "packages/captions/full-render-v2/zapp-vs-kira-competitor-performance-v2.mp4",
+    "sha256": "e02fb254c39ae613d59349e148192936ca2a7d7b05b1863a3f0b20e471ebb4b1",
+    "bytes": 24491401,
+    "width": 540,
+    "height": 960,
+    "fps": 30,
+    "frames": 2075,
+    "durationSec": 69.1667,
+    "codec": "H.264 High + AAC-LC 48kHz stereo",
+    "fastStart": true
+  },
+  "s7": {
+    "captions": 61,
+    "placementSegments": 87,
+    "faceConflicts": 0,
+    "graphics": 1,
+    "vfx": 14,
+    "sfx": 19,
+    "music": "none",
+    "ignoredMusic": [
+      {
+        "musicId": "amb_classroom@1.0.0",
+        "start": 0,
+        "end": 69.146,
+        "reason": "music_added_in_editing"
+      },
+      {
+        "musicId": "bed_upbeat",
+        "start": 9.58,
+        "end": 20.26,
+        "reason": "music_added_in_editing"
+      },
+      {
+        "musicId": "bed_suspense",
+        "start": 20.96,
+        "end": 34.9,
+        "reason": "music_added_in_editing"
+      },
+      {
+        "musicId": "bed_silly",
+        "start": 55.06,
+        "end": 69.08,
+        "reason": "music_added_in_editing"
+      }
+    ]
+  },
+  "runVignette": {
+    "blocking": false,
+    "coveragePct": 96.6,
+    "camerasAccepted": 14,
+    "camerasFallback": 0,
+    "camerasBlocked": 0,
+    "stagingErrors": 0,
+    "sources": {
+      "teacher": {
+        "kind": "character",
+        "source": "builder",
+        "key": "teacher@1.0.0"
+      },
+      "door": {
+        "kind": "prop",
+        "source": "builder",
+        "key": "door@1.1.0"
+      },
+      "classroom": {
+        "kind": "set",
+        "source": "builder",
+        "key": "classroom@1.2.0"
+      }
+    }
+  },
+  "gates": {
+    "captionFaceSafety": {
+      "conflicts": 0,
+      "captions": 61,
+      "segments": 87
+    },
+    "denseCameraAudit": {
+      "fps": 30,
+      "frames": 2075,
+      "allFramesAccepted": true,
+      "perBeat": {
+        "p01": {
+          "frames": 138,
+          "acceptedFrames": 138,
+          "compositions": 3,
+          "minScore": 0.6872
+        },
+        "p02": {
+          "frames": 150,
+          "acceptedFrames": 150,
+          "compositions": 3,
+          "minScore": 0.9107
+        },
+        "p03": {
+          "frames": 183,
+          "acceptedFrames": 183,
+          "compositions": 3,
+          "minScore": 0.8064
+        },
+        "p04": {
+          "frames": 158,
+          "acceptedFrames": 158,
+          "compositions": 3,
+          "minScore": 0.9755
+        },
+        "p05": {
+          "frames": 150,
+          "acceptedFrames": 150,
+          "compositions": 3,
+          "minScore": 0.615
+        },
+        "p06": {
+          "frames": 167,
+          "acceptedFrames": 167,
+          "compositions": 3,
+          "minScore": 0.6831
+        },
+        "p07": {
+          "frames": 110,
+          "acceptedFrames": 110,
+          "compositions": 3,
+          "minScore": 0.9261
+        },
+        "p08": {
+          "frames": 152,
+          "acceptedFrames": 152,
+          "compositions": 3,
+          "minScore": 0.92
+        },
+        "p09": {
+          "frames": 119,
+          "acceptedFrames": 119,
+          "compositions": 2,
+          "minScore": 0.6495
+        },
+        "p10": {
+          "frames": 169,
+          "acceptedFrames": 169,
+          "compositions": 3,
+          "minScore": 0.6277
+        },
+        "p11": {
+          "frames": 156,
+          "acceptedFrames": 156,
+          "compositions": 3,
+          "minScore": 0.6319
+        },
+        "p12": {
+          "frames": 144,
+          "acceptedFrames": 144,
+          "compositions": 3,
+          "minScore": 0.81
+        },
+        "p13": {
+          "frames": 163,
+          "acceptedFrames": 163,
+          "compositions": 3,
+          "minScore": 0.9216
+        },
+        "p14": {
+          "frames": 116,
+          "acceptedFrames": 116,
+          "compositions": 3,
+          "minScore": 0.85
+        }
+      }
+    },
+    "teacher": {
+      "sourceKey": "teacher@1.0.0",
+      "source": "builder",
+      "areaThreshold": 0.006,
+      "exitOk": true,
+      "returnOk": true,
+      "presentOk": true,
+      "samples": [
+        {
+          "t": 2.4,
+          "present": true,
+          "areaFrac": 0.079880719781641,
+          "faceAreaFrac": 0.008405650817737958
+        },
+        {
+          "t": 3,
+          "present": true,
+          "areaFrac": 0.0691052797655516,
+          "faceAreaFrac": 0.0069351031359142275
+        },
+        {
+          "t": 3.8,
+          "present": true,
+          "areaFrac": 0.05520716050525369,
+          "faceAreaFrac": 0.006024425745706828
+        },
+        {
+          "t": 60.3,
+          "present": false,
+          "areaFrac": 0,
+          "faceAreaFrac": 0
+        },
+        {
+          "t": 60.8,
+          "present": true,
+          "areaFrac": 0.0270782578580518,
+          "faceAreaFrac": 0.0029411744426254376
+        },
+        {
+          "t": 61.5,
+          "present": true,
+          "areaFrac": 0.02929967754890287,
+          "faceAreaFrac": 0.0033100006934913273
+        },
+        {
+          "t": 62.5,
+          "present": true,
+          "areaFrac": 0.28677941239948523,
+          "faceAreaFrac": 0.03447505907851055
+        },
+        {
+          "t": 65.5,
+          "present": true,
+          "areaFrac": 0.028387635055929936,
+          "faceAreaFrac": 0.004229520260219729
+        },
+        {
+          "t": 66.5,
+          "present": true,
+          "areaFrac": 0.029759182258129204,
+          "faceAreaFrac": 0.004380695531681404
+        },
+        {
+          "t": 67.5,
+          "present": true,
+          "areaFrac": 0,
+          "faceAreaFrac": 0
+        },
+        {
+          "t": 68.5,
+          "present": true,
+          "areaFrac": 0.021979858898004277,
+          "faceAreaFrac": 0.003020087286601086
+        }
+      ]
+    },
+    "door": {
+      "propId": "door",
+      "sourceKey": "door@1.1.0",
+      "usedRealDoorway": true,
+      "leafMovedP01": true,
+      "doorwayOnCameraP01": true,
+      "doorwayOnCameraP13": true,
+      "samples": [
+        {
+          "t": 1.5,
+          "grip": [
+            2.9749999046325684,
+            1.100000023841858,
+            -3.8450000286102295
+          ],
+          "leaf": [
+            2.5,
+            1.5,
+            -3.950000047683716
+          ],
+          "openAmount": 0,
+          "doorwayRect": {
+            "x": 193.90648284253209,
+            "y": 312.0183571910694,
+            "w": 127.241780253624,
+            "h": 283.687555369464
+          },
+          "onCamera": true
+        },
+        {
+          "t": 3,
+          "grip": [
+            1.850000023841858,
+            1.100000023841858,
+            -2.7699999809265137
+          ],
+          "leaf": [
+            2.5,
+            1.5,
+            -3.950000047683716
+          ],
+          "openAmount": 0,
+          "doorwayRect": {
+            "x": 215.70716400080477,
+            "y": 301.98708820042475,
+            "w": 140.12706765075706,
+            "h": 325.2437922717602
+          },
+          "onCamera": true
+        },
+        {
+          "t": 61.5,
+          "grip": [
+            1.850000023841858,
+            1.100000023841858,
+            -2.7699999809265137
+          ],
+          "leaf": [
+            2.5,
+            1.5,
+            -3.950000047683716
+          ],
+          "openAmount": 0,
+          "doorwayRect": {
+            "x": 396.7381179136509,
+            "y": 363.4869935046023,
+            "w": 108.69857044763103,
+            "h": 213.71790701383554
+          },
+          "onCamera": true
+        }
+      ]
+    },
+    "performanceMotion": {
+      "blinksDeterministic": true,
+      "mouthNarrationDriven": false,
+      "actions": {
+        "p02_look_around": {
+          "actor": "zapp",
+          "t0": 4.8,
+          "t1": 8.8,
+          "deltas": {
+            "neck": 0.0982,
+            "spine": 0.0064,
+            "shoulder_l": 0.0212,
+            "shoulder_r": 0.1665
+          },
+          "maxDelta": 0.1665,
+          "expression0": "evil_grin",
+          "expression1": "evil_grin",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p03_celebrate": {
+          "actor": "zapp",
+          "t0": 10,
+          "t1": 11.4,
+          "deltas": {
+            "hand_l": 1.7529,
+            "hand_r": 0.4142,
+            "spine": 1.0735,
+            "root": 1.0735
+          },
+          "maxDelta": 1.7529,
+          "expression0": "big_grin",
+          "expression1": "big_grin",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p04_dance": {
+          "actor": "zapp",
+          "t0": 16,
+          "t1": 19.5,
+          "deltas": {
+            "hand_l": 0.6094,
+            "hand_r": 1.1369,
+            "knee_l": 0.0183,
+            "knee_r": 0.069,
+            "spine": 0.0057
+          },
+          "maxDelta": 1.1369,
+          "expression0": "big_grin",
+          "expression1": "big_grin",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p06_zapp_walk_to_button": {
+          "actor": "zapp",
+          "t0": 26.2,
+          "t1": 30.8,
+          "deltas": {
+            "root": 1.0502,
+            "hip_l": 1.0735,
+            "hip_r": 1.0793
+          },
+          "maxDelta": 1.0793,
+          "expression0": "evil_grin",
+          "expression1": "evil_grin",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p06_kira_head_shake": {
+          "actor": "kira",
+          "t0": 26.2,
+          "t1": 27.4,
+          "deltas": {
+            "neck": 0.0019,
+            "head": 0.0973
+          },
+          "maxDelta": 0.0973,
+          "expression0": "skeptical",
+          "expression1": "skeptical",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p07_press_contact": {
+          "actor": "zapp",
+          "t0": 31.7,
+          "t1": 32.6,
+          "deltas": {
+            "hand_r": 0.5755,
+            "hand_l": 0.2731
+          },
+          "maxDelta": 0.5755,
+          "expression0": "determined",
+          "expression1": "determined",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p08_kira_facepalm": {
+          "actor": "kira",
+          "t0": 35.4,
+          "t1": 37,
+          "deltas": {
+            "hand_l": 0.0212,
+            "hand_r": 0.4272
+          },
+          "maxDelta": 0.4272,
+          "expression0": "skeptical",
+          "expression1": "skeptical",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p08_zapp_celebrate": {
+          "actor": "zapp",
+          "t0": 35.4,
+          "t1": 37,
+          "deltas": {
+            "hand_l": 1.1547,
+            "hand_r": 1.2725,
+            "spine": 0.0088
+          },
+          "maxDelta": 1.2725,
+          "expression0": "laugh",
+          "expression1": "laugh",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": true,
+          "mouthNarrationDriven": false
+        },
+        "p10_kira_stand_up": {
+          "actor": "kira",
+          "t0": 44.4,
+          "t1": 48.5,
+          "deltas": {
+            "root": 0.3667,
+            "spine": 0.3667,
+            "neck": 0.4341
+          },
+          "maxDelta": 0.4341,
+          "expression0": "scared",
+          "expression1": "scared",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p11_kira_walk_to_safe": {
+          "actor": "kira",
+          "t0": 50,
+          "t1": 54.4,
+          "deltas": {
+            "root": 1.5305
+          },
+          "maxDelta": 1.5305,
+          "expression0": "scared",
+          "expression1": "scared",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p12_zapp_prone": {
+          "actor": "zapp",
+          "t0": 55.2,
+          "t1": 58.5,
+          "deltas": {
+            "spine": 1.1202,
+            "root": 0.0681,
+            "neck": 2.0207
+          },
+          "maxDelta": 2.0207,
+          "expression0": "shocked",
+          "expression1": "shock",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": true,
+          "mouthNarrationDriven": false
+        },
+        "p12_kira_recoil": {
+          "actor": "kira",
+          "t0": 55.2,
+          "t1": 58.5,
+          "deltas": {
+            "spine": 0.0057,
+            "neck": 0.0741,
+            "hand_l": 0.7396,
+            "hand_r": 0.7359
+          },
+          "maxDelta": 0.7396,
+          "expression0": "shocked",
+          "expression1": "shocked",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p13_teacher_through_doorway": {
+          "actor": "teacher",
+          "t0": 60.9,
+          "t1": 64,
+          "deltas": {
+            "root": 0.95
+          },
+          "maxDelta": 0.95,
+          "expression0": "strict",
+          "expression1": "strict",
+          "blink0": 0,
+          "blink1": 1,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        },
+        "p14_teacher_look": {
+          "actor": "teacher",
+          "t0": 65.5,
+          "t1": 68.8,
+          "deltas": {
+            "neck": 0.0053,
+            "head": 0.0148,
+            "root": 0
+          },
+          "maxDelta": 0.0148,
+          "expression0": "strict",
+          "expression1": "strict",
+          "blink0": 0,
+          "blink1": 0,
+          "mouthOpen0": false,
+          "mouthOpen1": false,
+          "mouthNarrationDriven": false
+        }
+      }
+    },
+    "cameraMetrics": {
+      "compositions": 41,
+      "medianCompositionSec": 1.6,
+      "repeatedIdenticalZappKiraSingles": 0,
+      "translationFrac": 0.456,
+      "zoomFrac": 0.324
+    },
+    "productionProfile": {
+      "ok": true,
+      "errors": []
+    },
+    "mediaVerification": {
+      "playback": {
+        "ok": true,
+        "droppedFrames": 0,
+        "videoWidth": 540,
+        "videoHeight": 960,
+        "duration": 69.167,
+        "seekTimes": [
+          0.5,
+          3,
+          11,
+          32.2,
+          45,
+          57,
+          61,
+          67
+        ]
+      },
+      "roundTrip": {
+        "ok": true,
+        "decodedFrames": 3244,
+        "decodedSamples": 3321856,
+        "snrDb": [
+          27.77,
+          27.8
+        ],
+        "bestLag": 1024,
+        "peakAbsErr": 0.13397
+      },
+      "alignment": {
+        "lagSamples": 0,
+        "lagMs": 0,
+        "decodedSamples": 3320016,
+        "snrDb": 27.77
+      },
+      "avDriftSec": 0.00033
+    }
+  },
+  "audio": {
+    "sampleRate": 48000,
+    "channels": 2,
+    "durationSec": 69.16666666666667,
+    "targetLufs": -14,
+    "integratedLufs": -14.01,
+    "truePeakTargetDbtp": -1,
+    "truePeakDbtp": -1.2,
+    "samplePeakDbfs": -1.2,
+    "gainAppliedDb": 0.38,
+    "limiterMaxReductionDb": 5.62,
+    "limiterCeilingDbtp": -1.2,
+    "voice": {
+      "integratedLufsIn": -20.64,
+      "gainDb": 6.64
+    },
+    "sfxUnderVoice": {
+      "speechWindows": 445,
+      "minSpeechMarginDb": 6.3,
+      "requiredSpeechMarginDb": 6,
+      "maxSfxMomentaryLufs": -22.62,
+      "guardTrimMaxDb": 3.12
+    },
+    "music": "none",
+    "cues": [
+      {
+        "sfxId": "footsteps",
+        "at": 0.4,
+        "source": "footsteps@1.0.0",
+        "pitch": 0.9726,
+        "levelDb": -24,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "door_open",
+        "at": 2.4,
+        "source": "door_open@1.0.0",
+        "pitch": 1,
+        "levelDb": -21,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "door_slam",
+        "at": 4.9,
+        "source": "door_slam@1.0.0",
+        "pitch": 1,
+        "levelDb": -19,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "whoosh",
+        "at": 9.8,
+        "source": "sfx_whoosh@1.0.0",
+        "pitch": 0.9525,
+        "levelDb": -21,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_tada",
+        "at": 11,
+        "source": "sfx_tada@1.0.0",
+        "pitch": 1,
+        "levelDb": -20,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_beep",
+        "at": 22,
+        "source": "sfx_beep@1.0.0",
+        "pitch": 1,
+        "levelDb": -22,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_blip_question",
+        "at": 26.2,
+        "source": "sfx_blip_question@1.0.0",
+        "pitch": 1,
+        "levelDb": -22,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_click",
+        "at": 32.248,
+        "source": "sfx_click@1.0.0",
+        "pitch": 0.9848,
+        "levelDb": -21,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_coin_pop",
+        "at": 32.8,
+        "source": "sfx_coin_pop@1.0.0",
+        "pitch": 0.9747,
+        "levelDb": -20,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_tada",
+        "at": 35.6,
+        "source": "sfx_tada@1.0.0",
+        "pitch": 1,
+        "levelDb": -20,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_beep",
+        "at": 40.6,
+        "source": "sfx_beep@1.0.0",
+        "pitch": 1,
+        "levelDb": -22,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_boing",
+        "at": 41.8,
+        "source": "sfx_boing@1.0.0",
+        "pitch": 1.0016,
+        "levelDb": -20,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_rumble",
+        "at": 44.5,
+        "source": "sfx_rumble@1.0.0",
+        "pitch": 1,
+        "levelDb": -20,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "footsteps",
+        "at": 50.2,
+        "source": "footsteps@1.0.0",
+        "pitch": 1.0237,
+        "levelDb": -24,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_creak",
+        "at": 55.3,
+        "source": "sfx_creak@1.0.0",
+        "pitch": 1,
+        "levelDb": -22,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_thud_big",
+        "at": 56.936,
+        "source": "sfx_thud_big@1.0.0",
+        "pitch": 1,
+        "levelDb": -18,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "footsteps",
+        "at": 60,
+        "source": "footsteps@1.0.0",
+        "pitch": 0.9868,
+        "levelDb": -24,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "door_open",
+        "at": 60.3,
+        "source": "door_open@1.0.0",
+        "pitch": 1,
+        "levelDb": -21,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_ding_reset",
+        "at": 66.2,
+        "source": "sfx_ding_reset@1.0.0",
+        "pitch": 1,
+        "levelDb": -21,
+        "status": "mixed"
+      }
+    ]
+  },
+  "encoding": {
+    "videoBitrate": 3000000,
+    "audioBitrate": 160000,
+    "renderMs": 31904.300000037067,
+    "aac": {
+      "avgBits": 3284,
+      "maxBits": 3413,
+      "clippedCoefficients": 0
+    }
+  },
+  "frameHashes": [
+    [
+      0,
+      "bd8f094ddf6fd97a9bac809c6ea9382a480fbebb985da189267991ea35905cb0"
+    ],
+    [
+      30,
+      "30d2a9a66ea7161a4e2d4c1b3e90eec55a282fae9454c770ffd734a8506d1605"
+    ],
+    [
+      60,
+      "141395304fe9843fc8bfc2d902e535d86c125c062398dfe593be89bc0b8e24c6"
+    ],
+    [
+      90,
+      "56094be656607aae3812a40e2c2df800f507d54eba54358dbf57330defbd8528"
+    ],
+    [
+      120,
+      "06bf3b481a842533ae370ff6f34ce254efe839a5aef9bc4180cfdba504fbb689"
+    ],
+    [
+      150,
+      "4f882381066f2abff17ef0be78869e82336ecb163131d4b37f9add04bbbc2f96"
+    ],
+    [
+      180,
+      "7e658f9079673cbfbefb6f729db9e53c83c0fdf7a690d2f1800130518e5798b5"
+    ],
+    [
+      210,
+      "e6e6173abe28f195d959fd82642947b035c6dff6290b8f610a34821c940f310d"
+    ],
+    [
+      240,
+      "68e863cbedaa9aad6834a2c90e7d39e45bbfa17814d17cf3722f44d8b13614b5"
+    ],
+    [
+      270,
+      "fe3ae36aa06a89a8eb60e2e2447ba9e50fc62ffbc23fd2daf52c825f437553b2"
+    ],
+    [
+      300,
+      "71dc2c55a5d7770ce88d69883f40894defd26ad6198fe247c607a49b2260998c"
+    ],
+    [
+      330,
+      "4a217e519f04470afb16a41c615e55ad0c24d904cde4586a60930646f080b6dc"
+    ],
+    [
+      360,
+      "12af9e4a17e3adc8e7e739016299ac6eb37854001cfad4b11c797773077927e4"
+    ],
+    [
+      390,
+      "bfe3120f0321bc41f311ae4db56a40b2786933f21a6dea0d7b285ee3e0543e03"
+    ],
+    [
+      420,
+      "2420017ec2ff41459e76fe0d06c97f37ff28be2d15ca88a4bd4246594c0638bb"
+    ],
+    [
+      450,
+      "afcd961bafbe9a6e15bb28aabd27adeb00f810f83822d099e9fd71e824820e23"
+    ],
+    [
+      480,
+      "167d7bde1aca8098f1a6528f7a7696b5fabe11ad782d9bf71b744b5f7cb25bef"
+    ],
+    [
+      510,
+      "38358b537573b07604177af7c2258dc8622e3d6d4040d738120ceb410dd18efe"
+    ],
+    [
+      540,
+      "66c9c3bf4ad853709400c75c2d6c0347a21569c26d9e394f41d84df4461d7bd5"
+    ],
+    [
+      570,
+      "35bb8926165de4fc84b8eeb9f2404176834cebc1cdc1fac7845f633c18e8b057"
+    ],
+    [
+      600,
+      "41dc80ab71a7c2ae66c6eb95b799dc5071a475caa347348633c8f5d7dda99b68"
+    ],
+    [
+      630,
+      "446ccef938b3a19a005a479784722768ff29f5a2e2007c560eaed5c8fb715f03"
+    ],
+    [
+      660,
+      "8bf9f5776278afa7cbdc334101ede89725b1c58374818bae11fa4ad09cf97042"
+    ],
+    [
+      690,
+      "d82e8fe7c9eb36066519cfa0ce4fcc046b4982a87bd0411f027449c1c65120fc"
+    ],
+    [
+      720,
+      "348fb1b7b1e81c6d4c0b98a93356157459d021b2129c5009cb69ff5051974cf3"
+    ],
+    [
+      750,
+      "bf2c45f0989a5292d726d3c88883bd86bbd7d109e0593c58af22cd4adfe083a8"
+    ],
+    [
+      780,
+      "f5b46e8bd7dd9aa934dd0e811baece6ede3921cdd6a91582b49f58b4c8ef069b"
+    ],
+    [
+      810,
+      "4d70d1fb977ad6d4962dc25d5dceeb5eed0ad03dfe5bf0d9f406e6a8c1cd97b2"
+    ],
+    [
+      840,
+      "8860bc0b9e9719110dfda039b65275a9442becee2fe346a0eb96f138bf0b6b4a"
+    ],
+    [
+      870,
+      "ae76b35448eb4fee8a1474ad24d8d89011eaaf2e0de402ec96cf5ddf3e0e851a"
+    ],
+    [
+      900,
+      "db22de2b6c0624bad70780103b09c961ec7d9074ea5e98a55460ec0c85b3d7e9"
+    ],
+    [
+      930,
+      "87fdb93842398d92ae91f4092090e4478435cd54193e26fc73eab3a761054197"
+    ],
+    [
+      960,
+      "b6f8fd2edfb9d72fc8c0155a592e45a132c3eb1779abf793aaee14d4f68b8346"
+    ],
+    [
+      990,
+      "6afefe2cdeb1be568885a1d57776e70d1a221551206da757e87961d1f322f3bd"
+    ],
+    [
+      1020,
+      "81a74688ca42e1def2ae9d1dcd67f5e60da6a554bc886800c952139efb2ad914"
+    ],
+    [
+      1050,
+      "e6188ad3c470841db244316645814358f37fd798acaef29b498aea24583efa8d"
+    ],
+    [
+      1080,
+      "ee8b97132f7a5f688c1fb7bdb04164a7f01206cc7c6ba5445524c1a9a8f87486"
+    ],
+    [
+      1110,
+      "5b18b2735f541c4dfcc85178b9b3f344302b1a98eb5cc00fd1ff3a66054c08b3"
+    ],
+    [
+      1140,
+      "859e7f8bdf8cd9ea2e911acc90532f9b1598c456310e4b52c0393db136f5e4e3"
+    ],
+    [
+      1170,
+      "741b0dc4036de08d4f4434c62db4981a5c3d763f90b4c2c99eba86d0086f3775"
+    ],
+    [
+      1200,
+      "90db038bbc66a97688411f55923db11c7a30c892ca7277fb67ea8b5715e371f2"
+    ],
+    [
+      1230,
+      "73417301b6b063e68d57d232b6753051a875d66d5a343167095c269a233dd777"
+    ],
+    [
+      1260,
+      "53870cc45643efd52c09da3d5acd15c14cc237847797a445a71282f4b13c117a"
+    ],
+    [
+      1290,
+      "1784fd1a60d578922e4428abccb1f36562a66fb6d0268e0ad7f23dd40d6e7178"
+    ],
+    [
+      1320,
+      "82008ae3fed2efc1ccca7297c14cd90d27051e2e15735220fa33717f8a62ef56"
+    ],
+    [
+      1350,
+      "325fafbb8b065f81e6755e5d1a8d708b3ad8f60f788b271808bcae1bdbe8410c"
+    ],
+    [
+      1380,
+      "ae3a4a42d6a72b0a901e85a19004caf6be768df780f1c23f7f493bc0c9a7df6a"
+    ],
+    [
+      1410,
+      "aeaf5c18aa42984083ba601bedc215a5a53ac4b725586649f17c5c71d2ff3e4a"
+    ],
+    [
+      1440,
+      "b7ad0f48a27247144b693fe09514ec5169df0a196e92f12cebf86043355a09c0"
+    ],
+    [
+      1470,
+      "952e86130a90f32535cd947bc6fac5b3ce818efef96a387a9449f69a418b6367"
+    ],
+    [
+      1500,
+      "208e41f4833009da77414dcab3e7a55f70cfa229986e67d9a3ee74e521ccd1b1"
+    ],
+    [
+      1530,
+      "435dde8d1edd50325c247d1129c00e22f3f22d04075f46eba3fb0c1aa9c450fb"
+    ],
+    [
+      1560,
+      "71607a6e24c4e68bec64551bcd12985877a792d15be01cea7b64e6588e7358df"
+    ],
+    [
+      1590,
+      "33bb04830c65b35e138e40b3c1233446a7feba2ff6857e8be44aea0ebde52c19"
+    ],
+    [
+      1620,
+      "4ccfe509a43d62abe4a537383b225328b51309ac149aa8669d65db17c6d8b9ca"
+    ],
+    [
+      1650,
+      "7e96e670764118b9adaa49b0b43cb092d275e0e1edc1ead68937307c99c6d4e0"
+    ],
+    [
+      1680,
+      "e1f5ed02e733cfbf732c2a27839d5090b2760bd0dd5fb8252d55464cf24c595b"
+    ],
+    [
+      1710,
+      "8125985febdc15d2cdfa78056f3f86d0832bf50de727924661904808592868d3"
+    ],
+    [
+      1740,
+      "8b7bfa072b8d79a8ec57ed7a61cd015b5310dffc057e4e0d7ea770c19d5a0995"
+    ],
+    [
+      1770,
+      "386bcb9be04a625a3d0b1fd153e230a11e584bcbb76822fe053ea3293eb18112"
+    ],
+    [
+      1800,
+      "0d1a6721fa79b0add9574000fac95aa85b421dc2fa2f2b7d23fca850ba43608c"
+    ],
+    [
+      1830,
+      "4db55ab66bc771f87a5536b32d941515736fe0e6a0e66eaed612fc91b7de105e"
+    ],
+    [
+      1860,
+      "485321d90ba5f033ff54ace388bc9d561f74d31bc44b3f77cea93d659bbf66f2"
+    ],
+    [
+      1890,
+      "738b929bd1bf7724669340f94f82723f968a98beff8274c10b7185a5346785a6"
+    ],
+    [
+      1920,
+      "b17f1e8ce74c34c3632ad8d81e9a9891dbe283647d1a8b532c1c0287bd194627"
+    ],
+    [
+      1950,
+      "60d06e20425e3f7b3512ab897e2eff95af2997217a14664ef535cb2d2b3f4f9d"
+    ],
+    [
+      1980,
+      "0791277fb6c35c09377a84e954341048c683f91138b387288aee56376518eb27"
+    ],
+    [
+      2010,
+      "a1acc5e6993ed073a45dd146ba01bd67b19e8bcf8a51640269a1816e8b6ed9f3"
+    ],
+    [
+      2040,
+      "62cd2a75e6a92efb0d7c24ac74dc53252091d6053ece2a3d942bb2ec0a8a0ecd"
+    ],
+    [
+      2070,
+      "dc0d44990f12de8a508725d7a92c95902172a7621ffe6482d857e6b123f662c8"
+    ]
+  ],
+  "mp4Sha256": "e02fb254c39ae613d59349e148192936ca2a7d7b05b1863a3f0b20e471ebb4b1"
+}
