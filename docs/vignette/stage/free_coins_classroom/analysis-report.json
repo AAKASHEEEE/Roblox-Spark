@@ -1,0 +1,5972 @@
+{
+  "schema": "blockspark.vignette-analysis/1",
+  "sheetId": "free_coins_classroom",
+  "title": "Zapp vs Kira When the Teacher Leaves",
+  "beats": 14,
+  "duration": 69.08,
+  "summary": {
+    "blocking": true,
+    "reasons": [
+      "camera safety blocked 5 beat(s): p02, p03, p04, p10, p11",
+      "script coverage 74.7% < 90%"
+    ],
+    "coveragePct": 0.7471,
+    "coverageThreshold": 0.9,
+    "camerasAccepted": 8,
+    "camerasFallback": 1,
+    "camerasBlocked": 5,
+    "stagingErrors": 0,
+    "stagingWarnings": 3,
+    "placeholders": 33
+  },
+  "validation": {
+    "ok": true,
+    "issues": [],
+    "planned": [
+      {
+        "kind": "music",
+        "id": "bed_upbeat",
+        "uses": 1
+      },
+      {
+        "kind": "music",
+        "id": "bed_suspense",
+        "uses": 1
+      },
+      {
+        "kind": "music",
+        "id": "bed_silly",
+        "uses": 1
+      },
+      {
+        "kind": "characters",
+        "id": "teacher",
+        "uses": 5
+      },
+      {
+        "kind": "actions",
+        "id": "sit",
+        "uses": 10
+      },
+      {
+        "kind": "props",
+        "id": "door",
+        "uses": 14
+      },
+      {
+        "kind": "sfx",
+        "id": "footsteps",
+        "uses": 3
+      },
+      {
+        "kind": "sfx",
+        "id": "door_open",
+        "uses": 2
+      },
+      {
+        "kind": "cameraRecipes",
+        "id": "establishing_wide",
+        "uses": 1
+      },
+      {
+        "kind": "actions",
+        "id": "look_around",
+        "uses": 1
+      },
+      {
+        "kind": "expressions",
+        "id": "evil_grin",
+        "uses": 2
+      },
+      {
+        "kind": "sfx",
+        "id": "door_slam",
+        "uses": 1
+      },
+      {
+        "kind": "vfx",
+        "id": "emote_exclaim",
+        "uses": 2
+      },
+      {
+        "kind": "cameraRecipes",
+        "id": "slow_push_in",
+        "uses": 1
+      },
+      {
+        "kind": "actions",
+        "id": "celebrate",
+        "uses": 2
+      },
+      {
+        "kind": "expressions",
+        "id": "big_grin",
+        "uses": 1
+      },
+      {
+        "kind": "sfx",
+        "id": "whoosh",
+        "uses": 1
+      },
+      {
+        "kind": "cameraRecipes",
+        "id": "low_angle_hero",
+        "uses": 1
+      },
+      {
+        "kind": "actions",
+        "id": "dance",
+        "uses": 1
+      },
+      {
+        "kind": "expressions",
+        "id": "suspicious",
+        "uses": 1
+      },
+      {
+        "kind": "cameraRecipes",
+        "id": "insert_prop",
+        "uses": 1
+      },
+      {
+        "kind": "vfx",
+        "id": "zoom_punch",
+        "uses": 1
+      },
+      {
+        "kind": "expressions",
+        "id": "laugh",
+        "uses": 1
+      },
+      {
+        "kind": "textStyles",
+        "id": "ui_popup",
+        "uses": 1
+      },
+      {
+        "kind": "cameraRecipes",
+        "id": "medium_single",
+        "uses": 1
+      },
+      {
+        "kind": "expressions",
+        "id": "shocked",
+        "uses": 3
+      },
+      {
+        "kind": "expressions",
+        "id": "scared",
+        "uses": 3
+      },
+      {
+        "kind": "actions",
+        "id": "stand_up",
+        "uses": 1
+      },
+      {
+        "kind": "vfx",
+        "id": "emote_sweat",
+        "uses": 1
+      },
+      {
+        "kind": "actions",
+        "id": "flattened",
+        "uses": 3
+      },
+      {
+        "kind": "cameraRecipes",
+        "id": "top_down",
+        "uses": 1
+      },
+      {
+        "kind": "vfx",
+        "id": "emote_question",
+        "uses": 1
+      }
+    ]
+  },
+  "sets": [
+    {
+      "id": "classroom",
+      "resolution": "available",
+      "key": "classroom@1.1.0",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "marks": 27,
+      "doors": [
+        "classroom_door"
+      ],
+      "dressing": [
+        "hero_desk=student_desk@1.0.0"
+      ],
+      "notes": []
+    }
+  ],
+  "resolution": [
+    {
+      "kind": "sets",
+      "id": "classroom",
+      "status": "available",
+      "resolution": "available",
+      "source": "assets classroom@1.1.0"
+    },
+    {
+      "kind": "characters",
+      "id": "teacher",
+      "status": "planned",
+      "resolution": "placeholder",
+      "source": "grey placeholder block",
+      "note": "planned (S3)"
+    },
+    {
+      "kind": "characters",
+      "id": "zapp",
+      "status": "available",
+      "resolution": "available",
+      "source": "assets zapp@1.0.0"
+    },
+    {
+      "kind": "characters",
+      "id": "kira",
+      "status": "available",
+      "resolution": "available",
+      "source": "assets kira@1.1.0"
+    },
+    {
+      "kind": "props",
+      "id": "door",
+      "status": "planned",
+      "resolution": "placeholder",
+      "source": "grey placeholder block",
+      "note": "planned (S4)"
+    },
+    {
+      "kind": "props",
+      "id": "suspicious_button",
+      "status": "available",
+      "resolution": "available",
+      "source": "assets suspicious_button@1.0.0"
+    },
+    {
+      "kind": "props",
+      "id": "spark_coin",
+      "status": "available",
+      "resolution": "available",
+      "source": "assets spark_coin@1.0.0"
+    },
+    {
+      "kind": "music",
+      "id": "amb_classroom",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/amb_classroom@1.0.0.json"
+    },
+    {
+      "kind": "music",
+      "id": "bed_upbeat",
+      "status": "planned",
+      "resolution": "audio_only",
+      "source": "planned (S7); not drawn"
+    },
+    {
+      "kind": "music",
+      "id": "bed_suspense",
+      "status": "planned",
+      "resolution": "audio_only",
+      "source": "planned (S7); not drawn"
+    },
+    {
+      "kind": "music",
+      "id": "bed_silly",
+      "status": "planned",
+      "resolution": "audio_only",
+      "source": "planned (S7); not drawn"
+    },
+    {
+      "kind": "sfx",
+      "id": "footsteps",
+      "status": "planned",
+      "resolution": "audio_only",
+      "source": "planned (S7); not drawn"
+    },
+    {
+      "kind": "sfx",
+      "id": "door_open",
+      "status": "planned",
+      "resolution": "audio_only",
+      "source": "planned (S7); not drawn"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "establishing_wide",
+      "status": "planned",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "sfx",
+      "id": "door_slam",
+      "status": "planned",
+      "resolution": "audio_only",
+      "source": "planned (S7); not drawn"
+    },
+    {
+      "kind": "vfx",
+      "id": "emote_exclaim",
+      "status": "planned",
+      "resolution": "placeholder",
+      "source": "planned (S7); labelled placeholder"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "slow_push_in",
+      "status": "planned",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "sfx",
+      "id": "whoosh",
+      "status": "planned",
+      "resolution": "audio_only",
+      "source": "planned (S7); not drawn"
+    },
+    {
+      "kind": "vfx",
+      "id": "confetti",
+      "status": "available",
+      "resolution": "available",
+      "source": "engine VFX (vfx.ts)"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_tada",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_tada@1.0.0.json"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "low_angle_hero",
+      "status": "planned",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "two_shot",
+      "status": "available",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_beep",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_beep@1.0.0.json"
+    },
+    {
+      "kind": "vfx",
+      "id": "glow_pulse",
+      "status": "available",
+      "resolution": "available",
+      "source": "engine VFX (vfx.ts)"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "insert_prop",
+      "status": "planned",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_blip_question",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_blip_question@1.0.0.json"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_click",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_click@1.0.0.json"
+    },
+    {
+      "kind": "vfx",
+      "id": "zoom_punch",
+      "status": "planned",
+      "resolution": "placeholder",
+      "source": "planned (S7); labelled placeholder"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_coin_pop",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_coin_pop@1.0.0.json"
+    },
+    {
+      "kind": "vfx",
+      "id": "sparkle_burst",
+      "status": "available",
+      "resolution": "available",
+      "source": "engine VFX (vfx.ts)"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "over_shoulder",
+      "status": "available",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "textStyles",
+      "id": "ui_popup",
+      "status": "planned",
+      "resolution": "placeholder",
+      "source": "planned (S7); labelled placeholder"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "medium_single",
+      "status": "planned",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "vfx",
+      "id": "screen_flash",
+      "status": "available",
+      "resolution": "available",
+      "source": "engine VFX (vfx.ts)"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_boing",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_boing@1.0.0.json"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "reaction_punch_in",
+      "status": "available",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_rumble",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_rumble@1.0.0.json"
+    },
+    {
+      "kind": "vfx",
+      "id": "screen_shake",
+      "status": "available",
+      "resolution": "available",
+      "source": "engine VFX (vfx.ts)"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "low_angle_reveal",
+      "status": "available",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "vfx",
+      "id": "emote_sweat",
+      "status": "planned",
+      "resolution": "placeholder",
+      "source": "planned (S7); labelled placeholder"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_creak",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_creak@1.0.0.json"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_thud_big",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_thud_big@1.0.0.json"
+    },
+    {
+      "kind": "vfx",
+      "id": "dust_puff",
+      "status": "available",
+      "resolution": "available",
+      "source": "engine VFX (vfx.ts)"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "top_down",
+      "status": "planned",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    },
+    {
+      "kind": "vfx",
+      "id": "emote_question",
+      "status": "planned",
+      "resolution": "placeholder",
+      "source": "planned (S7); labelled placeholder"
+    },
+    {
+      "kind": "sfx",
+      "id": "sfx_ding_reset",
+      "status": "available",
+      "resolution": "audio_only",
+      "source": "assets/audio/sfx_ding_reset@1.0.0.json"
+    },
+    {
+      "kind": "cameraRecipes",
+      "id": "final_loop",
+      "status": "available",
+      "resolution": "available",
+      "source": "packages/vignette camera recipe (S6)"
+    }
+  ],
+  "sources": {
+    "set:classroom": {
+      "kind": "set",
+      "source": "manifest",
+      "key": "classroom@1.1.0"
+    },
+    "character:teacher": {
+      "kind": "character",
+      "source": "placeholder",
+      "key": "teacher@0.0.0"
+    },
+    "character:zapp": {
+      "kind": "character",
+      "source": "manifest",
+      "key": "zapp@1.0.0"
+    },
+    "character:kira": {
+      "kind": "character",
+      "source": "manifest",
+      "key": "kira@1.1.0"
+    },
+    "prop:door": {
+      "kind": "prop",
+      "source": "placeholder",
+      "key": "door@0.0.0"
+    },
+    "prop:suspicious_button": {
+      "kind": "prop",
+      "source": "manifest",
+      "key": "suspicious_button@1.0.0"
+    },
+    "prop:spark_coin": {
+      "kind": "prop",
+      "source": "manifest",
+      "key": "spark_coin@1.0.0"
+    }
+  },
+  "staging": {
+    "contracts": {
+      "version": "1.0.0",
+      "used": {
+        "move_to": 9,
+        "remain_still": 16,
+        "look_at": 13,
+        "celebrate": 3,
+        "warning": 1,
+        "press_button": 1,
+        "spawn_coin": 1,
+        "grow_coin": 4,
+        "confident_pose": 1,
+        "tip_coin_onto": 1,
+        "fall_prone": 1,
+        "reset_button": 1
+      }
+    },
+    "bridges": [
+      {
+        "id": "b01",
+        "contract": "move_to",
+        "actor": "zapp",
+        "reason": "celebrate happens at center_stage: zapp walks there first",
+        "forContract": "c006",
+        "t0": 9.63,
+        "t1": 12.5781,
+        "from": [
+          0.25,
+          0,
+          -0.52
+        ],
+        "to": [
+          0,
+          0,
+          0.5
+        ]
+      },
+      {
+        "id": "b02",
+        "contract": "move_to",
+        "actor": "zapp",
+        "reason": "press_button requires zapp facing the button",
+        "forContract": "c017",
+        "t0": 31.57,
+        "t1": 31.87,
+        "from": [
+          0.25,
+          0,
+          -0.52
+        ],
+        "to": [
+          0.25,
+          0,
+          -0.52
+        ]
+      },
+      {
+        "id": "b03",
+        "contract": "move_to",
+        "actor": "zapp",
+        "reason": "arms_crossed happens at coin_front: zapp walks there first",
+        "forContract": "c033",
+        "t0": 49.91,
+        "t1": 52.199,
+        "from": [
+          0.25,
+          0,
+          -0.52
+        ],
+        "to": [
+          -1.5,
+          0,
+          -0.3
+        ]
+      },
+      {
+        "id": "b04",
+        "contract": "move_to",
+        "actor": "kira",
+        "reason": "sit happens at kira_desk: kira walks there first",
+        "forContract": "c043",
+        "t0": 59.91,
+        "t1": 61.9932,
+        "from": [
+          2.5,
+          0,
+          0.6
+        ],
+        "to": [
+          1.3,
+          0,
+          -0.35
+        ]
+      },
+      {
+        "id": "b05",
+        "contract": "move_to",
+        "actor": "teacher",
+        "reason": "look_at happens at center_stage: teacher walks there first",
+        "forContract": "c047",
+        "t0": 65.35,
+        "t1": 70.3822,
+        "from": [
+          2.5,
+          0,
+          -3
+        ],
+        "to": [
+          0,
+          0,
+          0.5
+        ]
+      }
+    ],
+    "worldEvents": 22,
+    "issues": [
+      {
+        "severity": "info",
+        "code": "PATH_ROUTED",
+        "beat": "p01",
+        "message": "teacher is routed around obstacles (2 waypoint(s), 2.57 m)",
+        "entity": "teacher",
+        "t": 0.11
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p01",
+        "message": "zapp: planned action (S5); played as remain_still/idle",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p01",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p01",
+        "message": "kira: kira has no \"calm\" face; nearest drawable \"smug\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p02",
+        "message": "zapp: planned action (S5); played as look_at/look_at",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p02",
+        "message": "zapp: zapp has no \"evil_grin\" face; nearest drawable \"determined\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p02",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p02",
+        "message": "kira: kira has no \"calm\" face; nearest drawable \"smug\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p03",
+        "message": "zapp: planned action (S5); played as celebrate/victory_pose",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p03",
+        "message": "zapp: zapp has no \"big_grin\" face; nearest drawable \"curious\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "PATH_ROUTED",
+        "beat": "p03",
+        "message": "zapp is routed around obstacles (2 waypoint(s), 2.24 m)",
+        "entity": "zapp",
+        "t": 9.63
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p03",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "LOOK_AT_CAMERA",
+        "beat": "p03",
+        "message": "zapp looks at the camera: body turned to the audience side (the engine has no camera look target)",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p04",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p04",
+        "message": "zapp: planned action (S5); played as celebrate/victory_pose",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p04",
+        "message": "zapp: zapp has no \"happy\" face; nearest drawable \"curious\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p05",
+        "message": "zapp: zapp has no \"suspicious\" face; nearest drawable \"curious\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p05",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p06",
+        "message": "kira: kira has no \"strict\" face; nearest drawable \"skeptical\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p06",
+        "message": "zapp: zapp has no \"evil_grin\" face; nearest drawable \"determined\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "PATH_ROUTED",
+        "beat": "p06",
+        "message": "zapp is routed around obstacles (2 waypoint(s), 2.24 m)",
+        "entity": "zapp",
+        "t": 25.99
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p07",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p07",
+        "message": "kira: kira has no \"shock\" face; nearest drawable \"surprised\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "warning",
+        "code": "CONTACT_OFF_CUE",
+        "beat": "p07",
+        "message": "zapp's press contact lands at 32.248 s, cue sfx_click at 32.2",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p08",
+        "message": "zapp: planned action (S5); played as celebrate/victory_pose",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p08",
+        "message": "zapp: zapp has no \"laugh\" face; nearest drawable \"neutral\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p09",
+        "message": "zapp: zapp has no \"shocked\" face; nearest drawable \"shock\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p09",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p09",
+        "message": "kira: kira has no \"scared\" face; nearest drawable \"surprised\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p10",
+        "message": "zapp: zapp has no \"shocked\" face; nearest drawable \"shock\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p10",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p10",
+        "message": "kira: kira has no \"scared\" face; nearest drawable \"surprised\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p11",
+        "message": "zapp: zapp has no \"smug\" face; nearest drawable \"determined\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "PATH_ROUTED",
+        "beat": "p11",
+        "message": "zapp is routed around obstacles (1 waypoint(s), 1.78 m)",
+        "entity": "zapp",
+        "t": 49.91
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p11",
+        "message": "kira: kira has no \"scared\" face; nearest drawable \"surprised\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "LOOK_AT_CAMERA",
+        "beat": "p11",
+        "message": "zapp looks at the camera: body turned to the audience side (the engine has no camera look target)",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p12",
+        "message": "zapp: planned action (S5); played as fall_prone/fall",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p12",
+        "message": "zapp: zapp has no \"shocked\" face; nearest drawable \"shock\"",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p12",
+        "message": "kira: kira has no \"shock\" face; nearest drawable \"surprised\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "warning",
+        "code": "CONTACT_OFF_CUE",
+        "beat": "p12",
+        "message": "coin/zapp contact at 56.3791 s, impact cue at 57",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p13",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "EXPRESSION_FALLBACK",
+        "beat": "p13",
+        "message": "kira: kira has no \"calm\" face; nearest drawable \"smug\"",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p13",
+        "message": "zapp: planned action (S5); played as fall_prone/fall",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "PATH_ROUTED",
+        "beat": "p14",
+        "message": "teacher is routed around obstacles (3 waypoint(s), 4.70 m)",
+        "entity": "teacher",
+        "t": 65.35
+      },
+      {
+        "severity": "warning",
+        "code": "MOVE_OVERRUNS_BEAT",
+        "beat": "p14",
+        "message": "teacher reaches center_stage at 70.3822 s, 1.3022 s after the beat ends (69.08)",
+        "entity": "teacher",
+        "t": 70.3822
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p14",
+        "message": "kira: planned action (S5); played as remain_still/idle",
+        "entity": "kira"
+      },
+      {
+        "severity": "info",
+        "code": "ACTION_PLACEHOLDER",
+        "beat": "p14",
+        "message": "zapp: planned action (S5); played as fall_prone/fall",
+        "entity": "zapp"
+      },
+      {
+        "severity": "info",
+        "code": "LOOK_AT_CAMERA",
+        "beat": "p14",
+        "message": "kira looks at the camera: body turned to the audience side (the engine has no camera look target)",
+        "entity": "kira"
+      }
+    ],
+    "beats": [
+      {
+        "beat": "p01",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "teacher",
+            "placement": "exit:classroom_door",
+            "action": "walk",
+            "played": "idle",
+            "contract": "move_to",
+            "face": "strict",
+            "from": [
+              2.5,
+              0,
+              -0.466
+            ],
+            "to": [
+              2.5,
+              0,
+              -3.95
+            ],
+            "move": [
+              0.11,
+              3.912
+            ],
+            "enterAt": null,
+            "exitAt": 3.9,
+            "labels": []
+          },
+          {
+            "id": "zapp",
+            "placement": "zapp_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "neutral",
+            "from": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "to": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "calm->smug",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit",
+              "FACE calm"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p02",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "zapp_desk",
+            "action": "look_around",
+            "played": "look_at",
+            "contract": "look_at",
+            "face": "evil_grin->determined",
+            "from": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "to": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION look_around",
+              "FACE evil_grin"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "calm->smug",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit",
+              "FACE calm"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p03",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "center_stage",
+            "action": "celebrate",
+            "played": "victory_pose",
+            "contract": "celebrate",
+            "face": "big_grin->curious",
+            "from": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "to": [
+              0,
+              0,
+              0.5
+            ],
+            "move": [
+              9.63,
+              12.578
+            ],
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION celebrate",
+              "FACE big_grin"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "skeptical",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p04",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "smug",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit"
+            ]
+          },
+          {
+            "id": "zapp",
+            "placement": "center_stage",
+            "action": "dance",
+            "played": "victory_pose",
+            "contract": "celebrate",
+            "face": "happy->curious",
+            "from": [
+              0,
+              0,
+              0.5
+            ],
+            "to": [
+              0,
+              0,
+              0.5
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION dance",
+              "FACE happy"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p05",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "center_stage",
+            "action": "look_at",
+            "played": "look_at",
+            "contract": "look_at",
+            "face": "suspicious->curious",
+            "from": [
+              0,
+              0,
+              0.5
+            ],
+            "to": [
+              0,
+              0,
+              0.5
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "FACE suspicious"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "skeptical",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p06",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "head_shake",
+            "played": "head_shake",
+            "contract": "warning",
+            "face": "strict->skeptical",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "FACE strict"
+            ]
+          },
+          {
+            "id": "zapp",
+            "placement": "press_spot",
+            "action": "walk",
+            "played": "idle",
+            "contract": "move_to",
+            "face": "evil_grin->determined",
+            "from": [
+              0,
+              0,
+              0.5
+            ],
+            "to": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "move": [
+              25.99,
+              28.971
+            ],
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "FACE evil_grin"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p07",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "press_spot",
+            "action": "press_button",
+            "played": "press_button",
+            "contract": "press_button",
+            "face": "determined",
+            "from": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "to": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": []
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "shock->surprised",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit",
+              "FACE shock"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "pressed",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          },
+          {
+            "id": "spark_coin",
+            "placement": "coin_spawn",
+            "state": "spawned",
+            "pos": [
+              -1.7,
+              0,
+              -1.2
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p08",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "press_spot",
+            "action": "celebrate",
+            "played": "victory_pose",
+            "contract": "celebrate",
+            "face": "laugh->neutral",
+            "from": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "to": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION celebrate",
+              "FACE laugh"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "facepalm",
+            "played": "facepalm",
+            "contract": "look_at",
+            "face": "skeptical",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": []
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          },
+          {
+            "id": "spark_coin",
+            "placement": "coin_spawn",
+            "state": "spawned",
+            "pos": [
+              -1.7,
+              0,
+              -1.2
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p09",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "press_spot",
+            "action": "shock_recoil",
+            "played": "shock_recoil",
+            "contract": "look_at",
+            "face": "shocked->shock",
+            "from": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "to": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "FACE shocked"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "scared->surprised",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit",
+              "FACE scared"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "flashing",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          },
+          {
+            "id": "spark_coin",
+            "placement": "coin_spawn",
+            "state": "growing",
+            "pos": [
+              -1.7,
+              0,
+              -1.2
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p10",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "press_spot",
+            "action": "shock_recoil",
+            "played": "shock_recoil",
+            "contract": "look_at",
+            "face": "shocked->shock",
+            "from": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "to": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "FACE shocked"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "stand_up",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "scared->surprised",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION stand_up",
+              "FACE scared"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          },
+          {
+            "id": "spark_coin",
+            "placement": "coin_spawn",
+            "state": "giant",
+            "pos": [
+              -1.7,
+              0,
+              -1.2
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p11",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "coin_front",
+            "action": "arms_crossed",
+            "played": "arms_crossed",
+            "contract": "confident_pose",
+            "face": "smug->determined",
+            "from": [
+              0.25,
+              0,
+              -0.52
+            ],
+            "to": [
+              -1.5,
+              0,
+              -0.3
+            ],
+            "move": [
+              49.91,
+              52.199
+            ],
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "FACE smug"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_safe",
+            "action": "walk",
+            "played": "idle",
+            "contract": "move_to",
+            "face": "scared->surprised",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              2.5,
+              0,
+              0.6
+            ],
+            "move": [
+              49.91,
+              52.389
+            ],
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "FACE scared"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          },
+          {
+            "id": "spark_coin",
+            "placement": "coin_spawn",
+            "state": "giant",
+            "pos": [
+              -1.7,
+              0,
+              -1.2
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p12",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "zapp",
+            "placement": "zapp_impact",
+            "action": "flattened",
+            "played": "fall",
+            "contract": "fall_prone",
+            "face": "shocked->shock",
+            "from": [
+              -1.5,
+              0,
+              -0.3
+            ],
+            "to": [
+              -1.5,
+              0,
+              -0.3
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION flattened",
+              "FACE shocked"
+            ]
+          },
+          {
+            "id": "kira",
+            "placement": "kira_safe",
+            "action": "shock_recoil",
+            "played": "shock_recoil",
+            "contract": "look_at",
+            "face": "shock->surprised",
+            "from": [
+              2.5,
+              0,
+              0.6
+            ],
+            "to": [
+              2.5,
+              0,
+              0.6
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "FACE shock"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "closed",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          },
+          {
+            "id": "spark_coin",
+            "placement": "giant_front",
+            "state": "tipped",
+            "pos": [
+              -2,
+              0,
+              -0.75
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p13",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "teacher",
+            "placement": "enter:classroom_door",
+            "action": "walk",
+            "played": "idle",
+            "contract": "move_to",
+            "face": "strict",
+            "from": [
+              2.5,
+              0,
+              -3.95
+            ],
+            "to": [
+              2.5,
+              0,
+              -3
+            ],
+            "move": [
+              60.6,
+              62.064
+            ],
+            "enterAt": 60.6,
+            "exitAt": null,
+            "labels": []
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "calm->smug",
+            "from": [
+              2.5,
+              0,
+              0.6
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": [
+              59.91,
+              61.993
+            ],
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit",
+              "FACE calm"
+            ]
+          },
+          {
+            "id": "zapp",
+            "placement": "zapp_impact",
+            "action": "flattened",
+            "played": "fall",
+            "contract": "fall_prone",
+            "face": "regret",
+            "from": [
+              -1.5,
+              0,
+              -0.3
+            ],
+            "to": [
+              -1.5,
+              0,
+              -0.3
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION flattened"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "open",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "idle",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          },
+          {
+            "id": "spark_coin",
+            "placement": "giant_front",
+            "state": "tipped",
+            "pos": [
+              -2,
+              0,
+              -0.75
+            ]
+          }
+        ]
+      },
+      {
+        "beat": "p14",
+        "set": "classroom",
+        "lighting": "morning",
+        "cast": [
+          {
+            "id": "teacher",
+            "placement": "center_stage",
+            "action": "look_at",
+            "played": "look_at",
+            "contract": "look_at",
+            "face": "strict",
+            "from": [
+              2.5,
+              0,
+              -3
+            ],
+            "to": [
+              0,
+              0,
+              0.5
+            ],
+            "move": [
+              65.35,
+              70.382
+            ],
+            "enterAt": null,
+            "exitAt": null,
+            "labels": []
+          },
+          {
+            "id": "kira",
+            "placement": "kira_desk",
+            "action": "sit",
+            "played": "idle",
+            "contract": "remain_still",
+            "face": "smug",
+            "from": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "to": [
+              1.3,
+              0,
+              -0.35
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION sit"
+            ]
+          },
+          {
+            "id": "zapp",
+            "placement": "zapp_impact",
+            "action": "flattened",
+            "played": "fall",
+            "contract": "fall_prone",
+            "face": "regret",
+            "from": [
+              -1.5,
+              0,
+              -0.3
+            ],
+            "to": [
+              -1.5,
+              0,
+              -0.3
+            ],
+            "move": null,
+            "enterAt": null,
+            "exitAt": null,
+            "labels": [
+              "ACTION flattened"
+            ]
+          }
+        ],
+        "props": [
+          {
+            "id": "door",
+            "placement": "classroom_door",
+            "state": "open",
+            "pos": [
+              2.5,
+              0,
+              -3.95
+            ]
+          },
+          {
+            "id": "suspicious_button",
+            "placement": "button_desk",
+            "state": "reset",
+            "pos": [
+              -0.1,
+              0.76,
+              -0.12
+            ]
+          },
+          {
+            "id": "spark_coin",
+            "placement": "giant_front",
+            "state": "tipped",
+            "pos": [
+              -2,
+              0,
+              -0.75
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "cameras": {
+    "recipes": {
+      "planned": [
+        "hook_closeup",
+        "establishing_wide",
+        "medium_single",
+        "low_angle_hero",
+        "pov",
+        "insert_prop",
+        "top_down",
+        "whip_pan",
+        "slow_push_in"
+      ],
+      "implemented": [
+        "hook_closeup",
+        "establishing_wide",
+        "medium_single",
+        "low_angle_hero",
+        "pov",
+        "insert_prop",
+        "top_down",
+        "whip_pan",
+        "slow_push_in",
+        "prop_ecu",
+        "frontal_medium",
+        "two_shot",
+        "over_shoulder",
+        "low_angle_reveal",
+        "top_down_insert",
+        "wide_environment",
+        "reaction_punch_in",
+        "chase_cam",
+        "final_loop"
+      ]
+    },
+    "beats": [
+      {
+        "beat": "p01",
+        "recipeId": "establishing_wide",
+        "recipeKnown": true,
+        "intent": "wide",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "recipe",
+        "candidateId": "establishing_wide:y-15_s1_h24_f46",
+        "variant": {
+          "id": "y-15_s1_h24_f46",
+          "yaw": -15,
+          "size": 1,
+          "height": 24,
+          "fov": 46
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -0.5436879076677914,
+                3.2148265218279435,
+                6.504744014309906
+              ],
+              "target": [
+                1.8465879099071025,
+                1.1317190326657145,
+                -2.415886780982837
+              ],
+              "fovDeg": 46
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 0.11,
+            "accepted": true,
+            "score": 0.69211,
+            "reasons": [],
+            "screenDirection": "established:right"
+          },
+          {
+            "t": 0.4,
+            "accepted": true,
+            "score": 0.69462,
+            "reasons": [],
+            "screenDirection": "established:right"
+          },
+          {
+            "t": 2.18,
+            "accepted": true,
+            "score": 0.667922,
+            "reasons": [],
+            "screenDirection": "established:right"
+          },
+          {
+            "t": 2.4,
+            "accepted": true,
+            "score": 0.666503,
+            "reasons": [],
+            "screenDirection": "established:right"
+          },
+          {
+            "t": 3.9,
+            "accepted": true,
+            "score": 0.64883,
+            "reasons": [],
+            "screenDirection": "established:right"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.6488,
+        "coverageAtSelection": 1,
+        "evaluated": {
+          "candidates": 20,
+          "accepted": 20,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {},
+        "subjects": {
+          "active": "teacher",
+          "required": [
+            "teacher"
+          ],
+          "optional": [
+            "zapp",
+            "kira"
+          ],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "teacher": 6.2
+          },
+          "faceVisibility": {
+            "kira": 0,
+            "teacher": 0,
+            "zapp": 0.8
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "right"
+        }
+      },
+      {
+        "beat": "p02",
+        "recipeId": "slow_push_in",
+        "recipeKnown": true,
+        "intent": "medium",
+        "motion": "dolly",
+        "framingFrom": 0,
+        "source": "blocked_best_effort",
+        "candidateId": "slow_push_in:y50_s0.2_h0.2_f38_w",
+        "variant": {
+          "id": "y50_s0.2_h0.2_f38_w",
+          "yaw": 50,
+          "size": 0.2,
+          "height": 0.2,
+          "fov": 46,
+          "size1": 0.29
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                4.3,
+                1.8657016109092013,
+                -3.475963902919246
+              ],
+              "target": [
+                0.4914758801460266,
+                1.398652286529541,
+                -0.4707067906856537
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 0.05,
+            "pose": {
+              "pos": [
+                4.3,
+                1.8657016109092013,
+                -3.4755091277441834
+              ],
+              "target": [
+                0.4914758801460266,
+                1.398652286529541,
+                -0.4707067906856537
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 0.3,
+            "pose": {
+              "pos": [
+                4.3,
+                1.8656989503393242,
+                -3.467355145412382
+              ],
+              "target": [
+                0.4914758801460266,
+                1.398652286529541,
+                -0.4707067906856537
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 1.6,
+            "pose": {
+              "pos": [
+                4.3,
+                1.8658904584764162,
+                -3.141668417924038
+              ],
+              "target": [
+                0.4914758801460266,
+                1.398652286529541,
+                -0.4707067906856537
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 2.36,
+            "pose": {
+              "pos": [
+                4.095852100335834,
+                1.8657766199378731,
+                -2.91508722895527
+              ],
+              "target": [
+                0.4914758801460266,
+                1.398652286529541,
+                -0.4707067906856537
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 4.67,
+            "pose": {
+              "pos": [
+                3.5469448941371433,
+                1.8659017143267098,
+                -2.5275866603270973
+              ],
+              "target": [
+                0.4914758801460266,
+                1.398652286529541,
+                -0.4707067906856537
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 4.72,
+            "pose": {
+              "pos": [
+                3.546635904194565,
+                1.8659017143267098,
+                -2.527370303241038
+              ],
+              "target": [
+                0.4914758801460266,
+                1.398652286529541,
+                -0.4707067906856537
+              ],
+              "fovDeg": 46
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 4.65,
+            "accepted": true,
+            "score": 0.91297,
+            "reasons": [],
+            "screenDirection": "consistent:right"
+          },
+          {
+            "t": 4.9,
+            "accepted": false,
+            "score": 0.912324,
+            "reasons": [
+              "HEAD_CROPPED:kira"
+            ],
+            "screenDirection": "consistent:right"
+          },
+          {
+            "t": 6.2,
+            "accepted": false,
+            "score": 0.914917,
+            "reasons": [
+              "HEAD_CROPPED:kira"
+            ],
+            "screenDirection": "consistent:right"
+          },
+          {
+            "t": 6.96,
+            "accepted": false,
+            "score": 0.926134,
+            "reasons": [
+              "HEAD_CROPPED:kira"
+            ],
+            "screenDirection": "consistent:right"
+          },
+          {
+            "t": 9.27,
+            "accepted": false,
+            "score": 0.956332,
+            "reasons": [
+              "HEAD_CROPPED:kira"
+            ],
+            "screenDirection": "consistent:right"
+          }
+        ],
+        "accepted": false,
+        "minScore": 0.9123,
+        "coverageAtSelection": 0.5,
+        "evaluated": {
+          "candidates": 42,
+          "accepted": 0,
+          "fallbacks": 3
+        },
+        "rejectionSummary": {
+          "FACE_VISIBILITY_LOW": 114,
+          "SCREEN_DIRECTION_REVERSED": 106,
+          "HEAD_CROPPED": 165,
+          "SHOT_TOO_TIGHT_FOR_INTENT": 47
+        },
+        "subjects": {
+          "active": "zapp",
+          "required": [
+            "zapp"
+          ],
+          "optional": [
+            "kira"
+          ],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "zapp": 28.4
+          },
+          "faceVisibility": {
+            "kira": 0,
+            "zapp": 1
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "right"
+        }
+      },
+      {
+        "beat": "p03",
+        "recipeId": "low_angle_hero",
+        "recipeKnown": true,
+        "intent": "medium",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "blocked_best_effort",
+        "candidateId": "low_angle_hero:y-50_s0.27_h-0.95_f40_n",
+        "variant": {
+          "id": "y-50_s0.27_h-0.95_f40_n",
+          "yaw": -50,
+          "size": 0.27,
+          "height": -0.95,
+          "fov": 32
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -4.3,
+                0.15,
+                4.5212445890714985
+              ],
+              "target": [
+                0.25116472576558596,
+                1.568322941462199,
+                0.002410251332970792
+              ],
+              "fovDeg": 32
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 9.63,
+            "accepted": false,
+            "score": 0.142869,
+            "reasons": [
+              "FACE_VISIBILITY_LOW:zapp:0<0.8",
+              "SCREEN_DIRECTION_REVERSED:reversed_unmotivated:right->left"
+            ],
+            "screenDirection": "reversed_unmotivated:right->left"
+          },
+          {
+            "t": 9.8,
+            "accepted": false,
+            "score": 0.141791,
+            "reasons": [
+              "FACE_VISIBILITY_LOW:zapp:0<0.8",
+              "SCREEN_DIRECTION_REVERSED:reversed_unmotivated:right->left"
+            ],
+            "screenDirection": "reversed_unmotivated:right->left"
+          },
+          {
+            "t": 11,
+            "accepted": false,
+            "score": 0.600107,
+            "reasons": [
+              "FACE_VISIBILITY_LOW:zapp:0<0.8"
+            ],
+            "screenDirection": "neutral"
+          },
+          {
+            "t": 12.51,
+            "accepted": true,
+            "score": 0.889084,
+            "reasons": [],
+            "screenDirection": "neutral"
+          },
+          {
+            "t": 13.2281,
+            "accepted": true,
+            "score": 0.883524,
+            "reasons": [],
+            "screenDirection": "neutral"
+          },
+          {
+            "t": 15.39,
+            "accepted": true,
+            "score": 0.888529,
+            "reasons": [],
+            "screenDirection": "neutral"
+          }
+        ],
+        "accepted": false,
+        "minScore": 0.1418,
+        "coverageAtSelection": 1,
+        "evaluated": {
+          "candidates": 84,
+          "accepted": 0,
+          "fallbacks": 3
+        },
+        "rejectionSummary": {
+          "SUBJECT_TOO_SMALL_FOR_INTENT": 87,
+          "SCREEN_DIRECTION_REVERSED": 460,
+          "FACE_VISIBILITY_LOW": 115,
+          "HEAD_CROPPED": 313
+        },
+        "subjects": {
+          "active": "zapp",
+          "required": [
+            "zapp"
+          ],
+          "optional": [
+            "kira"
+          ],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "zapp": 28.7
+          },
+          "faceVisibility": {
+            "kira": 0,
+            "zapp": 1
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "neutral"
+        }
+      },
+      {
+        "beat": "p04",
+        "recipeId": "two_shot",
+        "recipeKnown": true,
+        "intent": "medium",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "blocked_best_effort",
+        "candidateId": "two_shot:y-15_s1_h0.3_f40",
+        "variant": {
+          "id": "y-15_s1_h0.3_f40",
+          "yaw": -15,
+          "size": 1,
+          "height": 0.3,
+          "fov": 40
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -4.214995504103664,
+                2.1316193188667296,
+                -3.6
+              ],
+              "target": [
+                0.5495656793937087,
+                1.3586483120918273,
+                0.1294785588979721
+              ],
+              "fovDeg": 40
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 15.73,
+            "accepted": false,
+            "score": 0.910536,
+            "reasons": [
+              "HEAD_CROPPED:kira"
+            ],
+            "screenDirection": "consistent:right"
+          },
+          {
+            "t": 16.53,
+            "accepted": true,
+            "score": 0.909277,
+            "reasons": [],
+            "screenDirection": "consistent:right"
+          },
+          {
+            "t": 17.97,
+            "accepted": true,
+            "score": 0.909278,
+            "reasons": [],
+            "screenDirection": "consistent:right"
+          },
+          {
+            "t": 20.21,
+            "accepted": true,
+            "score": 0.909173,
+            "reasons": [],
+            "screenDirection": "consistent:right"
+          }
+        ],
+        "accepted": false,
+        "minScore": 0.9092,
+        "coverageAtSelection": 0.75,
+        "evaluated": {
+          "candidates": 56,
+          "accepted": 0,
+          "fallbacks": 3
+        },
+        "rejectionSummary": {
+          "HEAD_CROPPED": 148,
+          "FACE_VISIBILITY_LOW": 132,
+          "SHOT_TOO_TIGHT_FOR_INTENT": 65,
+          "UPPER_BODY_NOT_READABLE": 16
+        },
+        "subjects": {
+          "active": "kira",
+          "required": [
+            "kira",
+            "zapp"
+          ],
+          "optional": [],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "kira": 16.3,
+            "zapp": 20.9
+          },
+          "faceVisibility": {
+            "kira": 1,
+            "zapp": 0
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "right"
+        }
+      },
+      {
+        "beat": "p05",
+        "recipeId": "insert_prop",
+        "recipeKnown": true,
+        "intent": "prop",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "recipe",
+        "candidateId": "insert_prop:y-45_s0.44_h30_f38",
+        "variant": {
+          "id": "y-45_s0.44_h30_f38",
+          "yaw": -45,
+          "size": 0.44,
+          "height": 30,
+          "fov": 38
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -1.321567585810181,
+                1.8324057547773818,
+                1.101567587002274
+              ],
+              "target": [
+                -0.10000000149011613,
+                0.8349999988079071,
+                -0.11999999731779099
+              ],
+              "fovDeg": 38
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 21.01,
+            "accepted": true,
+            "score": 0.993909,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 21.5,
+            "accepted": true,
+            "score": 1,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 22,
+            "accepted": true,
+            "score": 0.996678,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 23.29,
+            "accepted": true,
+            "score": 0.992248,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 25.57,
+            "accepted": true,
+            "score": 0.997231,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.9922,
+        "coverageAtSelection": 0.5,
+        "evaluated": {
+          "candidates": 30,
+          "accepted": 2,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {
+          "HERO_PROP_VISIBILITY_LOW": 90,
+          "PROP_SHOT_UPSTAGED_BY_BODY": 126,
+          "FOREGROUND_CLUTTER": 40,
+          "LENS_TOO_CLOSE_TO_HEAD": 2
+        },
+        "subjects": {
+          "active": "suspicious_button",
+          "required": [
+            "suspicious_button"
+          ],
+          "optional": [
+            "zapp",
+            "kira"
+          ],
+          "heroProps": [
+            "suspicious_button"
+          ]
+        },
+        "diagnostics": {
+          "headHeightPct": {},
+          "faceVisibility": {
+            "kira": 0,
+            "zapp": 0
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p06",
+        "recipeId": "two_shot",
+        "recipeKnown": true,
+        "intent": "medium",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "recipe",
+        "candidateId": "two_shot:aud_y-20_s1_h0.3_f34",
+        "variant": {
+          "id": "aud_y-20_s1_h0.3_f34",
+          "yaw": -20,
+          "size": 1,
+          "height": 0.3,
+          "fov": 34,
+          "side": 1
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -1.6155843082611376,
+                1.9186185717105868,
+                5.869281757954422
+              ],
+              "target": [
+                0.5922731704718899,
+                1.252312046289444,
+                -0.19675681023858488
+              ],
+              "fovDeg": 34
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 25.99,
+            "accepted": true,
+            "score": 0.967525,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 26.2,
+            "accepted": true,
+            "score": 0.968862,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 26.44,
+            "accepted": true,
+            "score": 0.908246,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 28.62,
+            "accepted": true,
+            "score": 0.966807,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 28.971,
+            "accepted": true,
+            "score": 0.9669,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 31.25,
+            "accepted": true,
+            "score": 0.966719,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.9082,
+        "coverageAtSelection": 0.75,
+        "evaluated": {
+          "candidates": 56,
+          "accepted": 4,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {
+          "HEAD_CROPPED": 206,
+          "FACE_VISIBILITY_LOW": 213,
+          "SHOT_TOO_TIGHT_FOR_INTENT": 63
+        },
+        "subjects": {
+          "active": "kira",
+          "required": [
+            "kira",
+            "zapp"
+          ],
+          "optional": [],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "kira": 17.9,
+            "zapp": 21
+          },
+          "faceVisibility": {
+            "kira": 1,
+            "zapp": 1
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p07",
+        "recipeId": "over_shoulder",
+        "recipeKnown": true,
+        "intent": "medium",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "fallback",
+        "candidateId": "fallback:two_character_medium",
+        "variant": null,
+        "fallback": "two_character_medium",
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                0.8352222453501874,
+                1.602196622916081,
+                6.154505481443795
+              ],
+              "target": [
+                0.6614264490596543,
+                1.3521966229160811,
+                -0.3316116440854967
+              ],
+              "fovDeg": 38
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 31.57,
+            "accepted": true,
+            "score": 0.97138,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 32.2,
+            "accepted": true,
+            "score": 0.973097,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 32.8,
+            "accepted": true,
+            "score": 0.972407,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 33.21,
+            "accepted": true,
+            "score": 0.971724,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 33.45,
+            "accepted": true,
+            "score": 0.971636,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 34.85,
+            "accepted": true,
+            "score": 0.971475,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.9714,
+        "coverageAtSelection": 0.6,
+        "evaluated": {
+          "candidates": 32,
+          "accepted": 0,
+          "fallbacks": 3
+        },
+        "rejectionSummary": {
+          "HEAD_CROPPED": 186,
+          "SHOT_TOO_TIGHT_FOR_INTENT": 192
+        },
+        "subjects": {
+          "active": "zapp",
+          "required": [
+            "zapp",
+            "suspicious_button"
+          ],
+          "optional": [
+            "kira"
+          ],
+          "heroProps": [],
+          "foreground": "suspicious_button"
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "kira": 16.5,
+            "zapp": 18.6
+          },
+          "faceVisibility": {
+            "kira": 0,
+            "zapp": 1
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p08",
+        "recipeId": "medium_single",
+        "recipeKnown": true,
+        "intent": "medium",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "recipe",
+        "candidateId": "medium_single:y20_s0.27_h-0.08_f38_w",
+        "variant": {
+          "id": "y20_s0.27_h-0.08_f38_w",
+          "yaw": 20,
+          "size": 0.27,
+          "height": -0.08,
+          "fov": 46
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -3.684708362098234,
+                1.3145697359701827,
+                -0.6934722732042573
+              ],
+              "target": [
+                0.00016381140449084342,
+                1.2110349655151367,
+                -0.6101285815238953
+              ],
+              "fovDeg": 46
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 35.25,
+            "accepted": true,
+            "score": 0.988905,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 35.6,
+            "accepted": true,
+            "score": 0.990461,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 36,
+            "accepted": true,
+            "score": 0.990093,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 36.2366,
+            "accepted": true,
+            "score": 0.992293,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 37.53,
+            "accepted": true,
+            "score": 0.991419,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 39.81,
+            "accepted": true,
+            "score": 0.990464,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.9889,
+        "coverageAtSelection": 0.6,
+        "evaluated": {
+          "candidates": 84,
+          "accepted": 12,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {
+          "FACE_VISIBILITY_LOW": 39,
+          "HEAD_CROPPED": 295,
+          "SHOT_TOO_TIGHT_FOR_INTENT": 109
+        },
+        "subjects": {
+          "active": "zapp",
+          "required": [
+            "zapp"
+          ],
+          "optional": [
+            "kira"
+          ],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "zapp": 26.6
+          },
+          "faceVisibility": {
+            "kira": 0.6,
+            "zapp": 1
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p09",
+        "recipeId": "reaction_punch_in",
+        "recipeKnown": true,
+        "intent": "reaction",
+        "motion": "punch",
+        "framingFrom": 0,
+        "source": "recipe",
+        "candidateId": "reaction_punch_in:y0_s0.29_h0.15_f38",
+        "variant": {
+          "id": "y0_s0.29_h0.15_f38",
+          "yaw": 0,
+          "size": 0.29,
+          "height": 0.15,
+          "fov": 38,
+          "size1": 0.4
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -3.7532438208481365,
+                1.6348742992028085,
+                -1.9219251243527053
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 0.05,
+            "pose": {
+              "pos": [
+                -3.650153465536015,
+                1.6348742992028085,
+                -1.88599178840862
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 0.1,
+            "pose": {
+              "pos": [
+                -3.415503034694762,
+                1.6348742992028085,
+                -1.804201666187053
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 0.2,
+            "pose": {
+              "pos": [
+                -2.925848646109777,
+                1.6348742992028085,
+                -1.6335269644824284
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 0.3,
+            "pose": {
+              "pos": [
+                -2.762279081210899,
+                1.617251914971981,
+                -1.573202775757533
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 0.36,
+            "pose": {
+              "pos": [
+                -2.762279081210899,
+                1.617251914971981,
+                -1.573202775757533
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 1.56,
+            "pose": {
+              "pos": [
+                -2.748252032410577,
+                1.6211217777749518,
+                -1.5675417946572945
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 1.86,
+            "pose": {
+              "pos": [
+                -2.748167213141883,
+                1.6211456591699305,
+                -1.567464030565779
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 2.74,
+            "pose": {
+              "pos": [
+                -2.7529881253230886,
+                1.6177945039578412,
+                -1.5690705774032145
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 3.67,
+            "pose": {
+              "pos": [
+                -2.754389066566396,
+                1.6169511310925948,
+                -1.569441817551025
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          },
+          {
+            "lt": 3.72,
+            "pose": {
+              "pos": [
+                -2.754389066566396,
+                1.6169511310925948,
+                -1.569441817551025
+              ],
+              "target": [
+                -0.003918925300240517,
+                1.4627694606781005,
+                -0.6071589589118958
+              ],
+              "fovDeg": 38
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 40.29,
+            "accepted": true,
+            "score": 0.944423,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 40.6,
+            "accepted": true,
+            "score": 0.974242,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 41.8,
+            "accepted": true,
+            "score": 0.973629,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 42.1,
+            "accepted": true,
+            "score": 0.973622,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 42.98,
+            "accepted": true,
+            "score": 0.952653,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 43.91,
+            "accepted": true,
+            "score": 0.952477,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.9444,
+        "coverageAtSelection": 0.6,
+        "evaluated": {
+          "candidates": 42,
+          "accepted": 8,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {
+          "HEAD_CROPPED": 191
+        },
+        "subjects": {
+          "active": "zapp",
+          "required": [
+            "zapp"
+          ],
+          "optional": [
+            "kira"
+          ],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "zapp": 40.2
+          },
+          "faceVisibility": {
+            "kira": 0,
+            "zapp": 1
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p10",
+        "recipeId": "low_angle_reveal",
+        "recipeKnown": true,
+        "intent": "scale_reveal",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "blocked_best_effort",
+        "candidateId": "low_angle_reveal:y50_s0.74_h0.6_f48",
+        "variant": {
+          "id": "y50_s0.74_h0.6_f48",
+          "yaw": 50,
+          "size": 0.74,
+          "height": 0.6,
+          "fov": 48
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                3.6793614563778716,
+                0.5072842407393814,
+                3.313820206343621
+              ],
+              "target": [
+                -1.7000000476837158,
+                1.2162732124328615,
+                -1.2000000476837158
+              ],
+              "fovDeg": 48
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 44.27,
+            "accepted": false,
+            "score": 0.910037,
+            "reasons": [
+              "HEAD_CROPPED:kira",
+              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
+            ],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 44.5,
+            "accepted": false,
+            "score": 0.93074,
+            "reasons": [
+              "HEAD_CROPPED:kira",
+              "SCALE_REVEAL_EMBLEM_HIDDEN:spark_coin",
+              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
+            ],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 44.78,
+            "accepted": false,
+            "score": 0.96075,
+            "reasons": [
+              "HEAD_CROPPED:kira"
+            ],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 46,
+            "accepted": false,
+            "score": 1,
+            "reasons": [
+              "HEAD_CROPPED:kira",
+              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.50<0.75"
+            ],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 46.18,
+            "accepted": false,
+            "score": 1,
+            "reasons": [
+              "HEAD_CROPPED:kira",
+              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
+            ],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 46.86,
+            "accepted": false,
+            "score": 1,
+            "reasons": [
+              "HEAD_CROPPED:kira",
+              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
+            ],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 49.45,
+            "accepted": false,
+            "score": 1,
+            "reasons": [
+              "HEAD_CROPPED:kira",
+              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
+            ],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": false,
+        "minScore": 0.91,
+        "coverageAtSelection": 0.8,
+        "evaluated": {
+          "candidates": 24,
+          "accepted": 0,
+          "fallbacks": 1
+        },
+        "rejectionSummary": {
+          "HEAD_CROPPED": 189,
+          "SCALE_REVEAL_NO_THICKNESS_EDGE": 7,
+          "SCALE_REVEAL_EMBLEM_HIDDEN": 4,
+          "SCALE_REVEAL_SILHOUETTE_LOW": 21,
+          "HERO_PROP_VISIBILITY_LOW": 2
+        },
+        "subjects": {
+          "active": "spark_coin",
+          "required": [
+            "spark_coin"
+          ],
+          "optional": [
+            "zapp",
+            "kira"
+          ],
+          "heroProps": [
+            "spark_coin"
+          ]
+        },
+        "diagnostics": {
+          "headHeightPct": {},
+          "faceVisibility": {
+            "kira": 0,
+            "zapp": 0
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p11",
+        "recipeId": "two_shot",
+        "recipeKnown": true,
+        "intent": "medium",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "blocked_best_effort",
+        "candidateId": "two_shot:y-60_s1_h0.3_f40",
+        "variant": {
+          "id": "y-60_s1_h0.3_f40",
+          "yaw": -60,
+          "size": 1,
+          "height": 0.3,
+          "fov": 40
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -4.3,
+                2.467182330131531,
+                3.8661722330366137
+              ],
+              "target": [
+                0.6531446008323691,
+                1.3520386457443239,
+                -0.18019518442801197
+              ],
+              "fovDeg": 40
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 49.91,
+            "accepted": true,
+            "score": 0.913377,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 50.2,
+            "accepted": true,
+            "score": 0.913938,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 52.28,
+            "accepted": false,
+            "score": 0.621062,
+            "reasons": [
+              "FACE_VISIBILITY_LOW:zapp:0<0.8",
+              "HEAD_CROPPED:zapp",
+              "HEAD_CROPPED:kira",
+              "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
+              "UPPER_BODY_NOT_READABLE:zapp"
+            ],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 52.5,
+            "accepted": false,
+            "score": 0.613763,
+            "reasons": [
+              "FACE_VISIBILITY_LOW:zapp:0<0.8",
+              "HEAD_CROPPED:zapp",
+              "HEAD_CROPPED:kira",
+              "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
+              "UPPER_BODY_NOT_READABLE:zapp"
+            ],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 54.65,
+            "accepted": false,
+            "score": 0.614858,
+            "reasons": [
+              "FACE_VISIBILITY_LOW:zapp:0<0.8",
+              "HEAD_CROPPED:zapp",
+              "HEAD_CROPPED:kira",
+              "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
+              "UPPER_BODY_NOT_READABLE:zapp"
+            ],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": false,
+        "minScore": 0.6138,
+        "coverageAtSelection": 0.6,
+        "evaluated": {
+          "candidates": 56,
+          "accepted": 0,
+          "fallbacks": 3
+        },
+        "rejectionSummary": {
+          "FACE_VISIBILITY_LOW": 152,
+          "SUBJECT_TOO_SMALL_FOR_INTENT": 516,
+          "HEAD_CROPPED": 188,
+          "UPPER_BODY_NOT_READABLE": 24,
+          "REQUIRED_SUBJECT_NOT_IN_FRAME": 16
+        },
+        "subjects": {
+          "active": "zapp",
+          "required": [
+            "zapp",
+            "kira"
+          ],
+          "optional": [],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "kira": 14.8,
+            "zapp": 0
+          },
+          "faceVisibility": {
+            "kira": 0.4,
+            "zapp": 0
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p12",
+        "recipeId": "top_down",
+        "recipeKnown": true,
+        "intent": "wide",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "recipe",
+        "candidateId": "top_down:y20_s1_h52_f62",
+        "variant": {
+          "id": "y20_s1_h52_f62",
+          "yaw": 20,
+          "size": 1,
+          "height": 52,
+          "fov": 62
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                3.697897448800907,
+                4,
+                14
+              ],
+              "target": [
+                -1.7000000476837158,
+                1.5186655795574189,
+                -0.5238777175545694
+              ],
+              "fovDeg": 62
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 55.11,
+            "accepted": true,
+            "score": 0.81,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 55.3,
+            "accepted": true,
+            "score": 0.81,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 55.7,
+            "accepted": true,
+            "score": 0.81,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 56.3791,
+            "accepted": true,
+            "score": 0.81,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 56.9791,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 57.27,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 59.43,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.81,
+        "coverageAtSelection": 1,
+        "evaluated": {
+          "candidates": 45,
+          "accepted": 15,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {
+          "HEAD_CROPPED": 164,
+          "HERO_PROP_VISIBILITY_LOW": 7
+        },
+        "subjects": {
+          "active": "spark_coin",
+          "required": [
+            "spark_coin"
+          ],
+          "optional": [
+            "zapp",
+            "kira"
+          ],
+          "heroProps": [
+            "spark_coin"
+          ]
+        },
+        "diagnostics": {
+          "headHeightPct": {},
+          "faceVisibility": {
+            "kira": 0,
+            "zapp": 0.6
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p13",
+        "recipeId": "over_shoulder",
+        "recipeKnown": true,
+        "intent": "over_shoulder",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "recipe",
+        "candidateId": "over_shoulder:s1_l0.8_b1.3_h0.35_f28",
+        "variant": {
+          "id": "s1_l0.8_b1.3_h0.35_f28",
+          "yaw": 0,
+          "side": 0.8,
+          "size": 1.3,
+          "height": 0.35,
+          "fov": 28
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                2.614145333229879,
+                1.9190033038457233,
+                2.2304419715521138
+              ],
+              "target": [
+                2.499779875312224,
+                1.769383144378662,
+                -3.472020718283318
+              ],
+              "fovDeg": 28
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 60.6,
+            "accepted": true,
+            "score": 0.84117,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 61.9932,
+            "accepted": true,
+            "score": 0.965822,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 62.4,
+            "accepted": true,
+            "score": 0.965304,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 64.89,
+            "accepted": true,
+            "score": 0.965393,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.8412,
+        "coverageAtSelection": 0.5,
+        "evaluated": {
+          "candidates": 32,
+          "accepted": 8,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {
+          "FOREGROUND_CLUTTER": 34,
+          "FACE_VISIBILITY_LOW": 56,
+          "OTS_FOREGROUND_OBSTRUCTION": 56
+        },
+        "subjects": {
+          "active": "teacher",
+          "required": [
+            "teacher",
+            "kira"
+          ],
+          "optional": [
+            "zapp"
+          ],
+          "heroProps": [],
+          "foreground": "kira"
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "kira": 0,
+            "teacher": 20.4
+          },
+          "faceVisibility": {
+            "kira": 0,
+            "teacher": 1,
+            "zapp": 0
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      },
+      {
+        "beat": "p14",
+        "recipeId": "final_loop",
+        "recipeKnown": true,
+        "intent": "wide",
+        "motion": "dolly",
+        "framingFrom": 0,
+        "source": "recipe",
+        "candidateId": "final_loop:ctx_y0_s1_h10_f46",
+        "variant": {
+          "id": "ctx_y0_s1_h10_f46",
+          "yaw": 0,
+          "size": 1,
+          "height": 10,
+          "fov": 46,
+          "size1": 0.85,
+          "intent": "wide",
+          "fit": "content"
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                0.38008785247802734,
+                4,
+                14
+              ],
+              "target": [
+                0.38008785247802734,
+                1.0188359530828892,
+                -1.3190079280734062
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 0.05,
+            "pose": {
+              "pos": [
+                0.3799629642098319,
+                4,
+                14
+              ],
+              "target": [
+                0.3799629642098319,
+                1.0187869168313874,
+                -1.3186960226111308
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 0.7,
+            "pose": {
+              "pos": [
+                0.3584408489523083,
+                4,
+                14
+              ],
+              "target": [
+                0.3584408489523083,
+                1.0103364524934169,
+                -1.2649450546015977
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 0.9,
+            "pose": {
+              "pos": [
+                0.34574402316651726,
+                4,
+                14
+              ],
+              "target": [
+                0.34574402316651726,
+                1.0053511584261554,
+                -1.2332350359315647
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 1.89,
+            "pose": {
+              "pos": [
+                0.26006588898599153,
+                4,
+                14
+              ],
+              "target": [
+                0.26006588898599153,
+                0.9717104122089222,
+                -1.0192559453845025
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 3.73,
+            "pose": {
+              "pos": [
+                0.14016881376215104,
+                4,
+                14
+              ],
+              "target": [
+                0.14016881376215104,
+                0.9246339075864567,
+                -0.7198158681578738
+              ],
+              "fovDeg": 46
+            }
+          },
+          {
+            "lt": 3.78,
+            "pose": {
+              "pos": [
+                0.1400439254939556,
+                4,
+                14
+              ],
+              "target": [
+                0.1400439254939556,
+                0.924584871334955,
+                -0.7195039626955986
+              ],
+              "fovDeg": 46
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 65.35,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 66,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 66.2,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 67.19,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 69.03,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.85,
+        "coverageAtSelection": 1,
+        "evaluated": {
+          "candidates": 30,
+          "accepted": 25,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {
+          "FOREGROUND_CLUTTER": 20,
+          "HERO_PROP_VISIBILITY_LOW": 22,
+          "INTERACTION_POINT_HIDDEN": 8,
+          "CAMERA_PATH_COLLISION": 1,
+          "LENS_COLLISION": 1
+        },
+        "subjects": {
+          "active": "suspicious_button",
+          "required": [
+            "suspicious_button"
+          ],
+          "optional": [
+            "teacher",
+            "kira",
+            "zapp"
+          ],
+          "heroProps": [
+            "suspicious_button"
+          ]
+        },
+        "diagnostics": {
+          "headHeightPct": {},
+          "faceVisibility": {
+            "kira": 0,
+            "teacher": 1,
+            "zapp": 0.6
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "none"
+        }
+      }
+    ]
+  },
+  "coverage": {
+    "threshold": 0.9,
+    "step": 0.3333,
+    "visual": 87,
+    "covered": 65,
+    "pct": 0.7471,
+    "blocking": true,
+    "audioOnly": 19,
+    "beats": [
+      {
+        "beat": "p01",
+        "recipeId": "establishing_wide",
+        "visual": 7,
+        "covered": 7,
+        "pct": 1,
+        "missing": []
+      },
+      {
+        "beat": "p02",
+        "recipeId": "slow_push_in",
+        "visual": 6,
+        "covered": 3,
+        "pct": 0.5,
+        "missing": [
+          "door (closed)",
+          "suspicious_button (idle)",
+          "door_close classroom_door@4.9"
+        ]
+      },
+      {
+        "beat": "p03",
+        "recipeId": "low_angle_hero",
+        "visual": 5,
+        "covered": 5,
+        "pct": 1,
+        "missing": []
+      },
+      {
+        "beat": "p04",
+        "recipeId": "two_shot",
+        "visual": 4,
+        "covered": 3,
+        "pct": 0.75,
+        "missing": [
+          "door (closed)"
+        ]
+      },
+      {
+        "beat": "p05",
+        "recipeId": "insert_prop",
+        "visual": 6,
+        "covered": 4,
+        "pct": 0.6667,
+        "missing": [
+          "kira (sit)",
+          "door (closed)"
+        ]
+      },
+      {
+        "beat": "p06",
+        "recipeId": "two_shot",
+        "visual": 4,
+        "covered": 3,
+        "pct": 0.75,
+        "missing": [
+          "door (closed)"
+        ]
+      },
+      {
+        "beat": "p07",
+        "recipeId": "over_shoulder",
+        "visual": 7,
+        "covered": 5,
+        "pct": 0.7143,
+        "missing": [
+          "door (closed)",
+          "spark_coin (spawned)"
+        ]
+      },
+      {
+        "beat": "p08",
+        "recipeId": "medium_single",
+        "visual": 7,
+        "covered": 4,
+        "pct": 0.5714,
+        "missing": [
+          "door (closed)",
+          "spark_coin (spawned)",
+          "text ui_popup@36->spark_coin"
+        ]
+      },
+      {
+        "beat": "p09",
+        "recipeId": "reaction_punch_in",
+        "visual": 6,
+        "covered": 4,
+        "pct": 0.6667,
+        "missing": [
+          "door (closed)",
+          "spark_coin (growing)"
+        ]
+      },
+      {
+        "beat": "p10",
+        "recipeId": "low_angle_reveal",
+        "visual": 6,
+        "covered": 5,
+        "pct": 0.8333,
+        "missing": [
+          "door (closed)"
+        ]
+      },
+      {
+        "beat": "p11",
+        "recipeId": "two_shot",
+        "visual": 6,
+        "covered": 3,
+        "pct": 0.5,
+        "missing": [
+          "zapp (arms_crossed)",
+          "spark_coin (giant)",
+          "vfx emote_sweat@52.5->zapp"
+        ]
+      },
+      {
+        "beat": "p12",
+        "recipeId": "top_down",
+        "visual": 7,
+        "covered": 7,
+        "pct": 1,
+        "missing": []
+      },
+      {
+        "beat": "p13",
+        "recipeId": "over_shoulder",
+        "visual": 9,
+        "covered": 5,
+        "pct": 0.5556,
+        "missing": [
+          "kira (sit)",
+          "zapp (flattened)",
+          "suspicious_button (idle)",
+          "spark_coin (tipped)"
+        ]
+      },
+      {
+        "beat": "p14",
+        "recipeId": "final_loop",
+        "visual": 7,
+        "covered": 7,
+        "pct": 1,
+        "missing": []
+      }
+    ],
+    "items": [
+      {
+        "beat": "p01",
+        "kind": "cast",
+        "id": "teacher",
+        "label": "teacher (walk)",
+        "witness": [
+          "teacher"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 12,
+        "seen": 12,
+        "covered": true
+      },
+      {
+        "beat": "p01",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (sit)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p01",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p01",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p01",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p01",
+        "kind": "event",
+        "id": "p01#0",
+        "label": "sfx footsteps@0.4",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p01",
+        "kind": "event",
+        "id": "p01#1",
+        "label": "door_open classroom_door@2.4",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 2,
+        "covered": true
+      },
+      {
+        "beat": "p01",
+        "kind": "event",
+        "id": "p01#2",
+        "label": "sfx door_open@2.4",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p01",
+        "kind": "event",
+        "id": "p01#3",
+        "label": "exit teacher classroom_door@3.9",
+        "witness": [
+          "teacher"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p02",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (look_around)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 14,
+        "covered": true
+      },
+      {
+        "beat": "p02",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 14,
+        "covered": true
+      },
+      {
+        "beat": "p02",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p02",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p02",
+        "kind": "event",
+        "id": "p02#0",
+        "label": "door_close classroom_door@4.9",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p02",
+        "kind": "event",
+        "id": "p02#1",
+        "label": "sfx door_slam@4.9",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p02",
+        "kind": "event",
+        "id": "p02#2",
+        "label": "vfx emote_exclaim@6.2->zapp",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p03",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (celebrate)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 18,
+        "seen": 18,
+        "covered": true
+      },
+      {
+        "beat": "p03",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 18,
+        "seen": 17,
+        "covered": true
+      },
+      {
+        "beat": "p03",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 18,
+        "seen": 18,
+        "covered": true
+      },
+      {
+        "beat": "p03",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 18,
+        "seen": 18,
+        "covered": true
+      },
+      {
+        "beat": "p03",
+        "kind": "event",
+        "id": "p03#0",
+        "label": "sfx whoosh@9.8",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p03",
+        "kind": "event",
+        "id": "p03#1",
+        "label": "vfx confetti@11->zapp",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p03",
+        "kind": "event",
+        "id": "p03#2",
+        "label": "sfx sfx_tada@11",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p04",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 14,
+        "covered": true
+      },
+      {
+        "beat": "p04",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (dance)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 14,
+        "covered": true
+      },
+      {
+        "beat": "p04",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p04",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 14,
+        "covered": true
+      },
+      {
+        "beat": "p05",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (look_at)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p05",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p05",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p05",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 14,
+        "covered": true
+      },
+      {
+        "beat": "p05",
+        "kind": "event",
+        "id": "p05#0",
+        "label": "vfx emote_exclaim@21.5->zapp",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p05",
+        "kind": "event",
+        "id": "p05#1",
+        "label": "sfx sfx_beep@22",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p05",
+        "kind": "event",
+        "id": "p05#2",
+        "label": "vfx glow_pulse@22->suspicious_button",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p06",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (head_shake)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 16,
+        "covered": true
+      },
+      {
+        "beat": "p06",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (walk)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 16,
+        "covered": true
+      },
+      {
+        "beat": "p06",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p06",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 15,
+        "covered": true
+      },
+      {
+        "beat": "p06",
+        "kind": "event",
+        "id": "p06#0",
+        "label": "sfx sfx_blip_question@26.2",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p07",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (press_button)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 10,
+        "seen": 10,
+        "covered": true
+      },
+      {
+        "beat": "p07",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 10,
+        "seen": 10,
+        "covered": true
+      },
+      {
+        "beat": "p07",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 10,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p07",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (pressed)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 10,
+        "seen": 10,
+        "covered": true
+      },
+      {
+        "beat": "p07",
+        "kind": "prop",
+        "id": "spark_coin",
+        "label": "spark_coin (spawned)",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 6,
+        "seen": 1,
+        "covered": false
+      },
+      {
+        "beat": "p07",
+        "kind": "event",
+        "id": "p07#0",
+        "label": "sfx sfx_click@32.2",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p07",
+        "kind": "event",
+        "id": "p07#1",
+        "label": "vfx zoom_punch@32.2",
+        "witness": [],
+        "space": "screen",
+        "counted": true,
+        "samples": 1,
+        "seen": 1,
+        "covered": true,
+        "reason": "screen-space"
+      },
+      {
+        "beat": "p07",
+        "kind": "event",
+        "id": "p07#2",
+        "label": "sfx sfx_coin_pop@32.8",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p07",
+        "kind": "event",
+        "id": "p07#3",
+        "label": "vfx sparkle_burst@32.8->spark_coin",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 1,
+        "covered": true
+      },
+      {
+        "beat": "p08",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (celebrate)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 14,
+        "covered": true
+      },
+      {
+        "beat": "p08",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (facepalm)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 11,
+        "covered": true
+      },
+      {
+        "beat": "p08",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p08",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 14,
+        "covered": true
+      },
+      {
+        "beat": "p08",
+        "kind": "prop",
+        "id": "spark_coin",
+        "label": "spark_coin (spawned)",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 14,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p08",
+        "kind": "event",
+        "id": "p08#0",
+        "label": "vfx confetti@35.6->zapp",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p08",
+        "kind": "event",
+        "id": "p08#1",
+        "label": "sfx sfx_tada@35.6",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p08",
+        "kind": "event",
+        "id": "p08#2",
+        "label": "text ui_popup@36->spark_coin",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p09",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (shock_recoil)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 11,
+        "seen": 11,
+        "covered": true
+      },
+      {
+        "beat": "p09",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 11,
+        "seen": 11,
+        "covered": true
+      },
+      {
+        "beat": "p09",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 11,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p09",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (flashing)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 11,
+        "seen": 11,
+        "covered": true
+      },
+      {
+        "beat": "p09",
+        "kind": "prop",
+        "id": "spark_coin",
+        "label": "spark_coin (growing)",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 11,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p09",
+        "kind": "event",
+        "id": "p09#0",
+        "label": "vfx screen_flash@40.6",
+        "witness": [],
+        "space": "screen",
+        "counted": true,
+        "samples": 1,
+        "seen": 1,
+        "covered": true,
+        "reason": "screen-space"
+      },
+      {
+        "beat": "p09",
+        "kind": "event",
+        "id": "p09#1",
+        "label": "sfx sfx_beep@40.6",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p09",
+        "kind": "event",
+        "id": "p09#2",
+        "label": "sfx sfx_boing@41.8",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p10",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (shock_recoil)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 16,
+        "covered": true
+      },
+      {
+        "beat": "p10",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (stand_up)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 16,
+        "covered": true
+      },
+      {
+        "beat": "p10",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p10",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 16,
+        "covered": true
+      },
+      {
+        "beat": "p10",
+        "kind": "prop",
+        "id": "spark_coin",
+        "label": "spark_coin (giant)",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 16,
+        "seen": 16,
+        "covered": true
+      },
+      {
+        "beat": "p10",
+        "kind": "event",
+        "id": "p10#0",
+        "label": "sfx sfx_rumble@44.5",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p10",
+        "kind": "event",
+        "id": "p10#1",
+        "label": "vfx screen_shake@46",
+        "witness": [],
+        "space": "screen",
+        "counted": true,
+        "samples": 1,
+        "seen": 1,
+        "covered": true,
+        "reason": "screen-space"
+      },
+      {
+        "beat": "p11",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (arms_crossed)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 5,
+        "covered": false
+      },
+      {
+        "beat": "p11",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (walk)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p11",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 10,
+        "covered": true
+      },
+      {
+        "beat": "p11",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 15,
+        "covered": true
+      },
+      {
+        "beat": "p11",
+        "kind": "prop",
+        "id": "spark_coin",
+        "label": "spark_coin (giant)",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p11",
+        "kind": "event",
+        "id": "p11#0",
+        "label": "sfx footsteps@50.2",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p11",
+        "kind": "event",
+        "id": "p11#1",
+        "label": "vfx emote_sweat@52.5->zapp",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p12",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (flattened)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p12",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (shock_recoil)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p12",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (closed)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p12",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p12",
+        "kind": "prop",
+        "id": "spark_coin",
+        "label": "spark_coin (tipped)",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 13,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p12",
+        "kind": "event",
+        "id": "p12#0",
+        "label": "sfx sfx_creak@55.3",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p12",
+        "kind": "event",
+        "id": "p12#1",
+        "label": "sfx sfx_thud_big@57",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p12",
+        "kind": "event",
+        "id": "p12#2",
+        "label": "vfx dust_puff@57->zapp",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p12",
+        "kind": "event",
+        "id": "p12#3",
+        "label": "vfx screen_shake@57",
+        "witness": [],
+        "space": "screen",
+        "counted": true,
+        "samples": 1,
+        "seen": 1,
+        "covered": true,
+        "reason": "screen-space"
+      },
+      {
+        "beat": "p13",
+        "kind": "cast",
+        "id": "teacher",
+        "label": "teacher (walk)",
+        "witness": [
+          "teacher"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 12,
+        "seen": 12,
+        "covered": true
+      },
+      {
+        "beat": "p13",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 3,
+        "covered": false
+      },
+      {
+        "beat": "p13",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (flattened)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p13",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (open)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 13,
+        "covered": true
+      },
+      {
+        "beat": "p13",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (idle)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p13",
+        "kind": "prop",
+        "id": "spark_coin",
+        "label": "spark_coin (tipped)",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 15,
+        "seen": 0,
+        "covered": false
+      },
+      {
+        "beat": "p13",
+        "kind": "event",
+        "id": "p13#0",
+        "label": "sfx footsteps@60",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p13",
+        "kind": "event",
+        "id": "p13#1",
+        "label": "door_open classroom_door@60.3",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 2,
+        "covered": true
+      },
+      {
+        "beat": "p13",
+        "kind": "event",
+        "id": "p13#2",
+        "label": "sfx door_open@60.3",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      },
+      {
+        "beat": "p13",
+        "kind": "event",
+        "id": "p13#3",
+        "label": "enter teacher classroom_door@60.6",
+        "witness": [
+          "teacher"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p13",
+        "kind": "event",
+        "id": "p13#4",
+        "label": "vfx emote_question@62.4->teacher",
+        "witness": [
+          "teacher"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p14",
+        "kind": "cast",
+        "id": "teacher",
+        "label": "teacher (look_at)",
+        "witness": [
+          "teacher"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 12,
+        "seen": 12,
+        "covered": true
+      },
+      {
+        "beat": "p14",
+        "kind": "cast",
+        "id": "kira",
+        "label": "kira (sit)",
+        "witness": [
+          "kira"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 12,
+        "seen": 12,
+        "covered": true
+      },
+      {
+        "beat": "p14",
+        "kind": "cast",
+        "id": "zapp",
+        "label": "zapp (flattened)",
+        "witness": [
+          "zapp"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 12,
+        "seen": 12,
+        "covered": true
+      },
+      {
+        "beat": "p14",
+        "kind": "prop",
+        "id": "door",
+        "label": "door (open)",
+        "witness": [
+          "door"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 12,
+        "seen": 12,
+        "covered": true
+      },
+      {
+        "beat": "p14",
+        "kind": "prop",
+        "id": "suspicious_button",
+        "label": "suspicious_button (reset)",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 12,
+        "seen": 12,
+        "covered": true
+      },
+      {
+        "beat": "p14",
+        "kind": "prop",
+        "id": "spark_coin",
+        "label": "spark_coin (tipped)",
+        "witness": [
+          "spark_coin"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 12,
+        "seen": 12,
+        "covered": true
+      },
+      {
+        "beat": "p14",
+        "kind": "event",
+        "id": "p14#0",
+        "label": "vfx glow_pulse@66->suspicious_button",
+        "witness": [
+          "suspicious_button"
+        ],
+        "space": "world",
+        "counted": true,
+        "samples": 3,
+        "seen": 3,
+        "covered": true
+      },
+      {
+        "beat": "p14",
+        "kind": "event",
+        "id": "p14#1",
+        "label": "sfx sfx_ding_reset@66.2",
+        "witness": [],
+        "space": "audio",
+        "counted": false,
+        "samples": 0,
+        "seen": 0,
+        "covered": true,
+        "reason": "audio only"
+      }
+    ]
+  },
+  "stills": {
+    "p01": {
+      "file": "stills/p01.png",
+      "t": 2.18
+    },
+    "p02": {
+      "file": "stills/p02.png",
+      "t": 6.2
+    },
+    "p03": {
+      "file": "stills/p03.png",
+      "t": 12.51
+    },
+    "p04": {
+      "file": "stills/p04.png",
+      "t": 16.53
+    },
+    "p05": {
+      "file": "stills/p05.png",
+      "t": 22
+    },
+    "p06": {
+      "file": "stills/p06.png",
+      "t": 28.62
+    },
+    "p07": {
+      "file": "stills/p07.png",
+      "t": 32.8
+    },
+    "p08": {
+      "file": "stills/p08.png",
+      "t": 36
+    },
+    "p09": {
+      "file": "stills/p09.png",
+      "t": 42.1
+    },
+    "p10": {
+      "file": "stills/p10.png",
+      "t": 46
+    },
+    "p11": {
+      "file": "stills/p11.png",
+      "t": 52.28
+    },
+    "p12": {
+      "file": "stills/p12.png",
+      "t": 56.979
+    },
+    "p13": {
+      "file": "stills/p13.png",
+      "t": 60.6
+    },
+    "p14": {
+      "file": "stills/p14.png",
+      "t": 66.2
+    }
+  },
+  "timingSec": 20.727
+}
