@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import type { Vec3 } from '../packages/engine/src/math.ts';
-import { evaluateCameraCandidate, type Bounds3, type CameraCandidate, type CameraObstacle, type CameraSafetyScene, type ProjectedEntity } from '../packages/engine/src/camera-safety.ts';
+import { evaluateCameraCandidate, nextScreenDirectionState, type Bounds3, type CameraCandidate, type CameraObstacle, type CameraSafetyScene, type ProjectedEntity } from '../packages/engine/src/camera-safety.ts';
 
 const { lib, ROOT } = await import('./helpers.ts');
 const I = await import('../apps/render-worker/narrated-integration.ts');
@@ -242,7 +242,7 @@ test('12. the final button-reset shots do not require Kira', () => {
   assert.ok(shots.length >= 1);
   for (const s of shots) assert.ok(!s.spec.subjects.filter((q) => !s.spec.optional.includes(q)).includes('kira'), `${s.id} requires Kira`);
   const last = shots[shots.length - 1];
-  assert.equal(last.spec.intent, 'scale_reveal');
+  assert.equal(last.spec.intent, 'elevated_consequence');
   assert.deepEqual(last.spec.scaleRefs, ['zapp'], 'Zapp (prone) stays in the consequence coverage');
   assert.ok(last.spec.heroProps.includes('coin'));
   const sc = I.cameraScene(RUN.geos[last.frames[0]], last.spec, W, H, undefined);
@@ -314,4 +314,135 @@ test('18. the Visual Comedy camera path is unchanged', () => {
   const run = () => { const { prod } = headlessEngine(v.episode!, lib as never, 540, 960); return [0, 3.1, 7.7, 12.4].map((t) => prod.evaluate(t).cam.pos.map((x: number) => x.toFixed(6)).join(',')).join('|'); };
   assert.equal(run(), run());
   assert.doesNotMatch(readFileSync(join(ROOT, 'packages/engine/src/production.ts'), 'utf8'), /narrated|camera-safety/);
+});
+
+// ───────── final five: intent-level shot patterns selected from semantic events ─────────
+const shot = (id: string) => T.shots.find((x) => x.id === id);
+const byCoverage = (c: string) => T.shots.filter((x) => x.coverage === c);
+const everyFrame = (s: (typeof T.shots)[number]) => { const out = []; for (let i = s.frames[0]; i < s.frames[1]; i++) out.push(evaluateCameraCandidate(I.cameraScene(RUN.geos[i], s.spec, W, H, undefined), I.cameraForFrame(s, i))); return out; };
+
+test('19. Kira warning: offset/elevated speaker OTS holds the actual head shake on every frame', () => {
+  const warn = SB.script.phrases.find((p: any) => p.semanticAction === 'head_shake');
+  const sp = T.shots.find((x) => x.phraseId === warn.id && x.coverage === 'sequential_speaker')!;
+  assert.equal(sp.spec.active, 'kira', 'Kira stays the active subject');
+  assert.ok(!sp.spec.optional.includes('kira'), "Kira's face is never optional");
+  assert.equal(sp.camera!.intent, 'offset_elevated_speaker_ots');
+  assert.equal(sp.camera!.eval.foregroundSubjectId, 'zapp');
+  const yaws = []; for (let i = sp.frames[0]; i < sp.frames[1]; i++) { const n = RUN.geos[i].actors.kira.face.normal; yaws.push((Math.atan2(n[0], n[2]) * 180) / Math.PI); }
+  assert.ok(Math.max(...yaws) - Math.min(...yaws) > 25, 'the interval contains the real head shake');
+  const zBody = RUN.geos[sp.frames[0]].actors.zapp.body;
+  assert.ok(sp.camera!.position[1] >= zBody.max[1], "lens above the listener's shoulder line");
+  const kira = RUN.geos[sp.frames[0]].actors.kira.root;
+  assert.equal(RUN.geos[sp.frames[1] - 1].actors.kira.root.join(), kira.join(), 'Kira is not moved or rotated toward the camera');
+  for (const r of everyFrame(sp)) {
+    assert.equal(r.accepted, true, r.rejectionReasons.join('; '));
+    assert.ok(r.diagnostics.eyesVisible.kira >= 1 && r.diagnostics.mouthVisible.kira, 'near eye + mouth');
+    assert.ok(r.foregroundCoverage <= 0.35 && r.lensClearance > 0);
+    assert.ok(!r.screenDirectionResult.startsWith('reversed'));
+  }
+  assert.ok(sp.screenDirection.startsWith('consistent'), `same side of the axis as the previous shot: ${sp.screenDirection}`);
+  // the listener coverage stays separate and follows in the same caption interval
+  const li = T.shots.find((x) => x.phraseId === warn.id && x.coverage === 'sequential_listener')!;
+  assert.equal(li.spec.active, 'zapp'); assert.equal(li.chunkId, sp.chunkId); assert.equal(li.frames[0], sp.frames[1]);
+});
+
+test('20. the speaker OTS pattern is explicit: an ordinary medium from the same lens is not relaxed', () => {
+  const sp = byCoverage('sequential_speaker')[0], i = sp.frames[0] + 5, c = I.cameraForFrame(sp, i);
+  const asOts = evaluateCameraCandidate(I.cameraScene(RUN.geos[i], sp.spec, W, H, undefined), c);
+  assert.equal(asOts.accepted, true);
+  const noFg = evaluateCameraCandidate(I.cameraScene(RUN.geos[i], sp.spec, W, H, undefined), { ...c, foregroundSubjectId: undefined });
+  assert.ok(noFg.rejectionReasons.some((x) => x.startsWith('OTS_NO_FOREGROUND_SUBJECT')), 'an OTS must name its foreground listener');
+  const low = evaluateCameraCandidate(I.cameraScene(RUN.geos[i], sp.spec, W, H, undefined), { ...c, transform: { position: [c.transform.position[0], 0.9, c.transform.position[2]] } });
+  assert.ok(low.rejectionReasons.some((x) => x.startsWith('OTS_NOT_ELEVATED:zapp')));
+});
+
+test('21. coin growth receives scale-staged coverage cut at deterministic prop-scale thresholds', () => {
+  const pat = T.coveragePatterns.find((q) => q.pattern === 'prop_growth_sequence')!;
+  assert.ok(pat && pat.segments.length >= 2, 'at least two scale-appropriate cameras');
+  assert.equal(pat.outcome, 'accepted');
+  const segs = pat.segments.map((id) => shot(id)!);
+  const src = RUN.tl.shots.find((x) => x.id === pat.sourceShot)!;
+  assert.equal(segs[0].start, src.start); assert.equal(segs[segs.length - 1].end, src.end);
+  for (let k = 1; k < segs.length; k++) assert.equal(segs[k].frames[0], segs[k - 1].frames[1], 'every frame belongs to exactly one stage');
+  const scales = []; for (let i = segs[0].frames[0]; i < segs[segs.length - 1].frames[1]; i++) scales.push(RUN.geos[i].coinScale);
+  assert.deepEqual(I.growthStageBoundaries(scales, segs[0].frames[0]), pat.boundaries, 'boundaries = first frame at s0 * 2.5^k');
+  assert.deepEqual(I.growthStageBoundaries(scales, segs[0].frames[0]), I.growthStageBoundaries([...scales], segs[0].frames[0]));
+  for (const b of pat.boundaries) {
+    const g0 = RUN.geos[b - 1], g1 = RUN.geos[b];
+    assert.ok(Math.abs(g1.coinScale - g0.coinScale) < 0.3, 'the coin transform is continuous across the cut (no reset)');
+    assert.ok(Math.abs(g1.props.coin!.min[1] - g0.props.coin!.min[1]) < 1e-6, 'fixed base across the cut');
+  }
+  for (const s of segs) {
+    for (const r of everyFrame(s)) { assert.equal(r.accepted, true, `${s.id}: ${r.rejectionReasons.join('; ')}`); assert.ok(r.diagnostics.propScreenSize.coin >= 0.2); }
+    const sc = scales.slice(s.frames[0] - segs[0].frames[0], s.frames[1] - segs[0].frames[0]);
+    assert.ok(Math.max(...sc) / Math.min(...sc) <= I.GROWTH_STAGE_RATIO + 1e-9, 'each stage spans at most the stage ratio');
+  }
+  assert.notEqual(segs[0].camera!.id, segs[1].camera!.id);
+});
+
+test('22. Zapp reacts first, then a giant-coin insert, inside the same narration interval', () => {
+  const pat = T.coveragePatterns.find((q) => q.pattern === 'reaction_then_insert')!;
+  assert.equal(pat.outcome, 'accepted');
+  const [a, b] = pat.segments.map((id) => shot(id)!);
+  assert.equal(a.chunkId, b.chunkId); assert.equal(a.frames[1], b.frames[0]);
+  assert.equal(a.spec.active, 'zapp'); assert.ok(!a.spec.optional.includes('zapp'), 'Zapp face required in the reaction');
+  assert.deepEqual(a.spec.heroProps, [], 'the coin is not required in the reaction');
+  assert.ok(b.spec.heroProps.includes('coin') && b.spec.intent === 'scale_reveal');
+  assert.ok(!I.cameraScene(RUN.geos[b.frames[0]], b.spec, W, H, undefined).subjectIds.includes('kira'), 'Kira excluded from the insert');
+  for (const r of everyFrame(a)) { assert.equal(r.accepted, true); assert.ok(r.faceVisibility.zapp >= 0.8); }
+  for (const r of everyFrame(b)) { assert.equal(r.accepted, true); assert.ok(!(r.diagnostics.faceOccluders.zapp ?? []).includes('prop:coin')); }
+  assert.notEqual(JSON.stringify(a.camera!.position), JSON.stringify(b.camera!.position), 'no repeated identical framing');
+});
+
+test('23. an intentional neutral top-down insert may reset geography; ordinary shots may not ignore screen direction', () => {
+  const k = character('kira', 1.4, 0), z = character('zapp', -1.4, 0);
+  const btn: CameraObstacle = { entityId: 'button', type: 'prop', bounds: box(-0.15, 0.76, 2.0, 0.15, 0.9, 2.2) };
+  // the previous shot was on the far ('right') side of the Zapp-Kira axis; the button sits on the near side
+  const sd = { actors: [{ id: 'zapp', position: [-1.4, 0, 0] as Vec3 }, { id: 'kira', position: [1.4, 0, 0] as Vec3 }], previousCameraSide: 'right' as const };
+  const sc = scene([...k.obstacles, ...z.obstacles, btn], [k.meta, z.meta, { entityId: 'button', kind: 'prop', bounds: btn.bounds }], { subjectIds: [], heroPropIds: ['button'], screenDirection: sd });
+  const behind: Vec3 = [0.05, 1.9, 1.35];
+  const ordinary = evaluateCameraCandidate(sc, cand('prop_behind', 'prop', behind, [0, 0.83, 2.1], { requiresHeroProp: true }));
+  assert.ok(ordinary.rejectionReasons.some((x) => x.startsWith('SCREEN_DIRECTION_REVERSED')), `ordinary insert from the far side: ${ordinary.screenDirectionResult}`);
+  const insert = cand('top_down', 'neutral_top_down_prop_insert', behind, [0, 0.83, 2.1], { requiresHeroProp: true });
+  const r = evaluateCameraCandidate(sc, insert);
+  assert.equal(r.accepted, true, r.rejectionReasons.join('; '));
+  assert.equal(r.screenDirectionResult, 'neutral_insert');
+  const next = nextScreenDirectionState(sc, insert)!;
+  assert.equal(next.previousWasNeutral, true, 'geography reset for the next shot');
+  assert.equal(next.previousCameraSide, 'right', 'the insert does not claim a side');
+  const shallow = evaluateCameraCandidate(sc, { ...insert, transform: { position: [0.05, 1.1, 0.6] } });
+  assert.ok(shallow.rejectionReasons.some((x) => x.startsWith('INSERT_NOT_TOP_DOWN')), 'the neutral classification requires a steep top-down view');
+  const zNear = character('zapp', 0.55, 2.1);
+  const sc2 = scene([...zNear.obstacles, btn], [zNear.meta, { entityId: 'button', kind: 'prop', bounds: btn.bounds }], { subjectIds: [], heroPropIds: ['button'] });
+  const wide = evaluateCameraCandidate(sc2, { ...insert, transform: { position: [0.05, 2.5, 2.3] }, fov: 70 });
+  assert.ok(wide.rejectionReasons.some((x) => x.startsWith('INSERT_SHOWS_ACTOR:zapp')), 'no actor may enter a neutral insert: ' + wide.rejectionReasons.join('; '));
+  // in the episode: the reset insert frames only the button (reset point visible, Kira's legs out of frame)
+  const s = T.shots.find((x) => x.spec.intent === 'neutral_top_down_prop_insert')!;
+  assert.equal(s.screenDirection, 'neutral_insert');
+  for (const q of everyFrame(s)) { assert.equal(q.accepted, true, q.rejectionReasons.join('; ')); assert.ok(q.propVisibility.button >= 0.6); }
+  const nx = T.shots[T.shots.indexOf(s) + 1];
+  assert.match(nx.screenDirection, /^reset_after_neutral|^established|^consistent/);
+});
+
+test('24. final consequence: prone-Zapp close/medium, then an elevated consequence shot (Kira not required)', () => {
+  const pat = T.coveragePatterns.find((q) => q.pattern === 'consequence_sequence')!;
+  assert.equal(pat.outcome, 'accepted');
+  const [a, b] = pat.segments.map((id) => shot(id)!);
+  assert.equal(b.frames[1], N, 'the consequence ends the episode');
+  assert.deepEqual(a.spec.propEdge, ['coin']);
+  assert.equal(b.camera!.intent, 'elevated_consequence');
+  for (const r of everyFrame(a)) { assert.equal(r.accepted, true, r.rejectionReasons.join('; ')); assert.equal(RUN.geos[a.frames[0]].actors.zapp.posture, 'prone'); }
+  for (const r of everyFrame(b)) { assert.equal(r.accepted, true, r.rejectionReasons.join('; ')); assert.ok(r.propVisibility.coin >= 0.6); }
+  for (const q of [a, b]) assert.ok(!q.spec.subjects.filter((x) => !q.spec.optional.includes(x)).includes('kira'));
+  assert.ok(b.camera!.position[1] < 3.95, 'below the ceiling');
+  const pitch = Math.atan2(b.camera!.position[1] - b.camera!.target[1], Math.hypot(b.camera!.position[0] - b.camera!.target[0], b.camera!.position[2] - b.camera!.target[2])) * 180 / Math.PI;
+  assert.ok(pitch >= 20, `elevated (${pitch.toFixed(1)} deg)`);
+});
+
+test('25. the repaired plan passes every gate with every frame covered', () => {
+  assert.equal(A.summary.passed, A.summary.total, A.summary.failed.join(', '));
+  assert.equal(A.frameCoverage.evaluated, N); assert.equal(A.frameCoverage.passing, N);
+  assert.equal(T.shots.filter((x) => !x.camera).length, 0);
+  assert.equal(A.world.coinZappClearance.minM >= 0.02, true);
+  assert.equal(A.world.contact.count, 1);
 });

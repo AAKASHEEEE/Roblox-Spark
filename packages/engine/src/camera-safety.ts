@@ -22,7 +22,12 @@ export interface OrientedBox { center: Vec3; axes: [Vec3, Vec3, Vec3]; half: Vec
  * rays and screen coverage use the oriented part box instead: the AABB of a yawed torso or head is up to ~40% larger
  * than the part and falsely occludes the actor's own chin or a neighbour's face.
  */
-export interface CameraObstacle { entityId: string; type: ObstacleType; bounds: Bounds3; oriented?: OrientedBox }
+export interface CameraObstacle {
+  entityId: string; type: ObstacleType; bounds: Bounds3; oriented?: OrientedBox;
+  /** false: a conservative collision envelope only (lens collision / clearance / path); visibility rays and screen
+   *  coverage use the accurate per-part obstacles emitted alongside it */
+  occludes?: boolean;
+}
 
 /** Optional explicit face anchors; derived from the head obstacle + facing when absent. */
 export interface FaceAnchors {
@@ -121,7 +126,15 @@ export type CameraIntent = 'wide' | 'medium' | 'close' | 'reaction' | 'prop' | '
    *  no foreign obstruction, eyeline toward `eyelineTargetId`; 60% face visibility. Never applied to other intents. */
   | 'motivated_profile'
   /** giant hero-prop scale reveal: silhouette, emblem, thickness edge, base and a readable scale-reference actor */
-  | 'scale_reveal';
+  | 'scale_reveal'
+  /** speaker coverage over an elevated, side-offset listener shoulder (over_shoulder foreground rules + profile face
+   *  rules: near eye, mouth, brow, face area, eyeline to the listener, 80% face visibility); lens above the listener's head */
+  | 'offset_elevated_speaker_ots'
+  /** intentional neutral-axis prop insert: steep top-down (>= topDownMinPitchDeg), prop rules, no actor in frame; may
+   *  reset screen-direction geography for the next shot */
+  | 'neutral_top_down_prop_insert'
+  /** consequence shot: scale-reveal identity rules from an elevated camera (>= consequenceMinPitchDeg) */
+  | 'elevated_consequence';
 
 export interface CameraCandidate {
   id: string;
@@ -150,6 +163,8 @@ export interface CameraCandidate {
   lensPath?: Vec3[];
   /** scale reveal: actors that must read as the scale reference (default: the required characters) */
   scaleReferenceIds?: string[];
+  /** props whose thickness edge (identity rim) must read in this shot (>= 2 rim points in frame and unoccluded) */
+  propEdgeIds?: string[];
 }
 
 export interface CameraSafetyDiagnostics {
@@ -238,6 +253,12 @@ export interface CameraSafetyConfig {
   scaleRevealMinSilhouette: number;
   /** scale reveal: view angle off the identity-face normal that shows both the emblem and the thickness edge */
   scaleRevealViewAngleDeg: [number, number];
+  /** offset_elevated_speaker_ots: allowed angle off the speaker's face normal */
+  speakerOtsAngleDeg: [number, number];
+  /** neutral_top_down_prop_insert: minimum downward camera pitch */
+  topDownMinPitchDeg: number;
+  /** elevated_consequence: minimum downward camera pitch */
+  consequenceMinPitchDeg: number;
 }
 
 export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
@@ -262,6 +283,7 @@ export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
     prop: [0, 10], over_shoulder: [0.08, 0.45], extreme_close: [0.35, 10],
     // profile intents resolve to headHeight[profileScale] (medium or close) at evaluation; listed for completeness
     three_quarter_profile: [0.26, 0.7], motivated_profile: [0.26, 0.7], scale_reveal: [0, 10],
+    offset_elevated_speaker_ots: [0.26, 0.7], neutral_top_down_prop_insert: [0, 10], elevated_consequence: [0, 10],
   },
   twoShotMinHeadHeight: 0.14,
   pathStep: 0.05,
@@ -277,6 +299,11 @@ export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
   eyelineToleranceDeg: 45,
   scaleRevealMinSilhouette: 0.75,
   scaleRevealViewAngleDeg: [15, 78],
+  // upper bound = the motivated-profile bound family: beyond ~75 deg readability is decided by the near-eye / mouth /
+  // brow / face-area / no-obstruction checks that this intent always applies
+  speakerOtsAngleDeg: [0, 85],
+  topDownMinPitchDeg: 50,
+  consequenceMinPitchDeg: 20,
 };
 
 // ───────────────────────────── geometry ─────────────────────────────
@@ -376,7 +403,10 @@ function projectPts(c: Cam, pts: Vec3[]): Rect {
   return { x0, y0, x1, y1, behind };
 }
 const insideBox = (b: Bounds3, p: Vec3, e = 1e-6) => p[0] >= b.min[0] - e && p[0] <= b.max[0] + e && p[1] >= b.min[1] - e && p[1] <= b.max[1] + e && p[2] >= b.min[2] - e && p[2] <= b.max[2] + e;
-const PROFILE_INTENTS = new Set<CameraIntent>(['three_quarter_profile', 'motivated_profile']);
+const PROFILE_INTENTS = new Set<CameraIntent>(['three_quarter_profile', 'motivated_profile', 'offset_elevated_speaker_ots']);
+/** explicit pattern intents evaluated with a base intent's rules plus their own extra checks */
+const INTENT_BASE: Partial<Record<CameraIntent, CameraIntent>> = { offset_elevated_speaker_ots: 'over_shoulder', neutral_top_down_prop_insert: 'prop', elevated_consequence: 'scale_reveal' };
+export const baseIntent = (i: CameraIntent): CameraIntent => INTENT_BASE[i] ?? i;
 const overlapsFrame = (r: Rect) => isFinite(r.x0) && r.x1 > 0 && r.x0 < 1 && r.y1 > 0 && r.y0 < 1;
 const clippedHeight = (r: Rect) => (overlapsFrame(r) ? Math.max(0, clip01(r.y1) - clip01(r.y0)) : 0);
 const clippedWidth = (r: Rect) => (overlapsFrame(r) ? Math.max(0, clip01(r.x1) - clip01(r.x0)) : 0);
@@ -461,7 +491,7 @@ function insideObstacle(o: CameraObstacle, p: Vec3): boolean {
 function blockers(ix: SceneIndex, from: Vec3, p: Vec3, exclude: (o: CameraObstacle) => boolean): CameraObstacle[] {
   const d = sub(p, from), out: CameraObstacle[] = [];
   for (const o of ix.scene.obstacles) {
-    if (exclude(o)) continue;
+    if (o.occludes === false || exclude(o)) continue;
     const h = rayObstacle(o, from, d);
     if (h && h[0] < 1 - 1e-4 && h[1] > 1e-4) out.push(o);
   }
@@ -490,6 +520,9 @@ function sideOf(axis: [Vec3, Vec3] | undefined, p: Vec3, neutralSin: number): Si
 
 function evaluateScreenDirection(sd: ScreenDirectionState | undefined, cand: CameraCandidate, startSide: Side, endSide: Side, cam: Cam): { result: string; reject: boolean; penalty: number } {
   if (!sd || startSide === 'none') return { result: 'no_axis', reject: false, penalty: 0 };
+  // an intentional top-down prop insert has no actor on screen: it is classified neutral (never a reversal) and resets
+  // geography for the next shot; its own rules (steep pitch, no actor in frame) are enforced by the evaluator
+  if (cand.intent === 'neutral_top_down_prop_insert') return { result: 'neutral_insert', reject: false, penalty: 0 };
   let penalty = 0, suffix = '';
   // movement direction on screen
   if (sd.previousMovementScreenX && sd.actors) {
@@ -529,10 +562,11 @@ export function nextScreenDirectionState(scene: CameraSafetyScene, cand: CameraC
   const cam = makeCam((cand.motion?.to ?? cand.transform).position, cand.motion?.toTarget ?? cand.target, cand.fov, (cand.motion?.to ?? cand.transform).roll ?? 0, aspect);
   const ordering = (sd.actors ?? []).map((a) => ({ id: a.id, x: project(cam, a.position).x })).filter((a) => isFinite(a.x)).sort((a, b) => a.x - b.x || (a.id < b.id ? -1 : 1)).map((a) => a.id);
   const mover = (sd.actors ?? []).find((a) => a.movement && len(a.movement) > 1e-6);
+  const insert = cand.intent === 'neutral_top_down_prop_insert';
   return {
     ...sd,
-    previousCameraSide: end === 'left' || end === 'right' ? end : sd.previousCameraSide,
-    previousWasNeutral: end === 'neutral',
+    previousCameraSide: !insert && (end === 'left' || end === 'right') ? end : sd.previousCameraSide,
+    previousWasNeutral: insert || end === 'neutral',
     previousOrdering: ordering,
     previousMovementScreenX: mover ? Math.sign(dot(mover.movement!, cam.r)) || sd.previousMovementScreenX : sd.previousMovementScreenX,
     disorientationIntended: false,
@@ -565,7 +599,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   const { scene } = ix;
   const cam = makeCam(pos, target, cand.fov, roll, ix.aspect);
   const reasons: string[] = [];
-  const intent = cand.intent;
+  const intent0 = cand.intent, intent = baseIntent(intent0);
   const active = cand.activeSubjectId ?? ix.active;
   const required = [...new Set(scene.subjectIds)]; // every shot subject (required + optional)
   const roles = rolesOf(scene, active), requiredSet = new Set(roles.required);
@@ -647,6 +681,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     const dir = norm(add(cam.f, add(scale(cam.r, nx * cam.tanH), scale(cam.u, ny * cam.tanV))));
     let best = Infinity, who: CameraObstacle | undefined;
     for (const o of scene.obstacles) {
+      if (o.occludes === false) continue;
       const h = rayObstacle(o, pos, dir);
       if (!h || h[1] <= NEAR) continue;
       const t = Math.max(0, h[0]);
@@ -689,10 +724,10 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     if (clutter.length) reasons.push(`ECU_FOREGROUND_OVER_FACE:${active}:${clutter.join(',')}`);
   }
   // ── profile intents (explicit only; never applied to frontal intents)
-  if (af && PROFILE_INTENTS.has(intent)) {
+  if (af && PROFILE_INTENTS.has(intent0)) {
     const nxz = norm([af.normal[0], 0, af.normal[2]]), toCam = norm([pos[0] - af.center[0], 0, pos[2] - af.center[2]]);
     const ang = Math.acos(clamp(dot(toCam, nxz), -1, 1)) / DEG;
-    const [a0, a1] = intent === 'three_quarter_profile' ? cfg.threeQuarterAngleDeg : cfg.motivatedProfileAngleDeg;
+    const [a0, a1] = intent0 === 'three_quarter_profile' ? cfg.threeQuarterAngleDeg : intent0 === 'offset_elevated_speaker_ots' ? cfg.speakerOtsAngleDeg : cfg.motivatedProfileAngleDeg;
     if (ang < a0 || ang > a1) reasons.push(`PROFILE_ANGLE_OUT_OF_RANGE:${active}:${ang.toFixed(0)}deg`);
     if (eyesVisible[active!] < 1) reasons.push(`NEAR_EYE_NOT_VISIBLE:${active}`);
     if (!mouthVisible[active!]) reasons.push(`MOUTH_NOT_VISIBLE:${active}`);
@@ -721,7 +756,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   }
 
   // ── framing rules
-  const [hMin, hMax] = PROFILE_INTENTS.has(intent) ? cfg.headHeight[cand.profileScale ?? 'close'] : cfg.headHeight[intent];
+  const [hMin, hMax] = PROFILE_INTENTS.has(intent0) ? cfg.headHeight[cand.profileScale ?? 'close'] : cfg.headHeight[intent];
   // readable actors: required + explicitly framed characters (the OTS foreground shoulder is exempt)
   const readable = [...new Set([...roles.required, ...(cand.framedSubjectIds ?? [])])].filter((id) => ix.faces.has(id) && id !== fgActor).sort();
   const twoShot = intent === 'medium' && readable.length >= 2;
@@ -766,7 +801,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
       if (!inFrame(project(cam, sh))) reasons.push(`UPPER_BODY_NOT_READABLE:${active}`);
     }
   }
-  if ((intent === 'close' || intent === 'reaction' || PROFILE_INTENTS.has(intent)) && af) {
+  if ((intent === 'close' || intent === 'reaction' || PROFILE_INTENTS.has(intent0)) && af) {
     const fr = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
     let bad = false;
     for (const p of af.samples) { const q = project(cam, p); if (!(q.z > NEAR)) { bad = true; continue; } fr.x0 = Math.min(fr.x0, q.x); fr.x1 = Math.max(fr.x1, q.x); fr.y0 = Math.min(fr.y0, q.y); fr.y1 = Math.max(fr.y1, q.y); }
@@ -816,6 +851,24 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     sizeTerm = clamp(ps / 0.6, 0, 1);
   }
 
+  // ── explicit pattern intents: their own extra checks on top of the base-intent rules
+  const pitch = Math.asin(clamp(-cam.f[1], -1, 1)) / DEG;
+  if (intent0 === 'offset_elevated_speaker_ots' && fgActor) {
+    // the lens sits above the listener's shoulder line (top of the body parts below the head)
+    const body = unionBounds(scene.obstacles.filter((o) => o.entityId === fgActor && o.type === 'body').map((o) => o.bounds));
+    if (body && pos[1] < body.max[1]) reasons.push(`OTS_NOT_ELEVATED:${fgActor}`);
+  }
+  if (intent0 === 'neutral_top_down_prop_insert') {
+    if (pitch < cfg.topDownMinPitchDeg) reasons.push(`INSERT_NOT_TOP_DOWN:${pitch.toFixed(0)}deg<${cfg.topDownMinPitchDeg}`);
+    for (const [k, v] of Object.entries(entityCoverage)) if (ix.kind.get(k) === 'character' && v > 0) reasons.push(`INSERT_SHOWS_ACTOR:${k}`);
+  }
+  if (intent0 === 'elevated_consequence' && pitch < cfg.consequenceMinPitchDeg) reasons.push(`CONSEQUENCE_NOT_ELEVATED:${pitch.toFixed(0)}deg<${cfg.consequenceMinPitchDeg}`);
+  for (const id of cand.propEdgeIds ?? []) {
+    const idn = ix.meta.get(id)?.identity;
+    const n = idn ? idn.rim.filter((q) => inFrame(project(cam, q)) && blockers(ix, pos, q, (o) => o.entityId === id).length === 0).length : 0;
+    if (n < 2) reasons.push(`PROP_EDGE_NOT_VISIBLE:${id}:${n}/${idn?.rim.length ?? 0}`);
+  }
+
   // ── implied seated / waist-up constraints: ANY character whose legs must not show (subject or not) — an optional or
   // off-subject seated actor may be left out of frame or hidden, but never shown standing on missing chair legs
   const seatedIds = [...ix.meta.values()].filter((m) => m.waistUpRequired).map((m) => m.entityId).sort();
@@ -854,7 +907,10 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   for (const id of [...new Set([...roles.required, ...readable])].filter((x) => ix.faces.has(x)).sort()) requiredHeadHeightPct[id] = headInFrame[id] ? pct(headScreenHeight[id]) : 0; // 0 = not in frame
   const subjectsInFrame = required.filter((id) => ix.faces.has(id) && (id === fgActor ? (entityCoverage[id] ?? 0) > 0 : headInFrame[id])).sort();
   // prop inserts frame the hero prop; actor presence is not assessed for them
-  const droppedSubjects = intent === 'prop' ? [] : required.filter((id) => ix.faces.has(id) && !subjectsInFrame.includes(id)).sort();
+  // prop-led intents frame the hero prop: prop inserts assess no actor presence; a scale reveal assesses its scale
+  // references only (a missing reference is also rejected as SCALE_REFERENCE_NOT_VISIBLE)
+  const presence = intent === 'scale_reveal' ? required.filter((id) => (cand.scaleReferenceIds ?? roles.required).includes(id)) : required;
+  const droppedSubjects = intent === 'prop' ? [] : presence.filter((id) => ix.faces.has(id) && !subjectsInFrame.includes(id)).sort();
   return {
     reasons, face, prop, fg, sizeTerm,
     d: {
@@ -918,7 +974,8 @@ function evaluateIndexed(ix: SceneIndex, cand: CameraCandidate, cfg: CameraSafet
   const active = cand.activeSubjectId ?? ix.active;
   const faceTerm = active && face[active] !== undefined ? face[active] : 1;
   const heroes = ix.scene.heroPropIds;
-  const propTerm = heroes.length && (cand.intent === 'prop' || cand.requiresHeroProp || cand.intent === 'wide') ? Math.min(...heroes.map((h) => prop[h] ?? 0)) : 1;
+  const bi = baseIntent(cand.intent);
+  const propTerm = heroes.length && (bi === 'prop' || cand.requiresHeroProp || bi === 'wide') ? Math.min(...heroes.map((h) => prop[h] ?? 0)) : 1;
   const clutterTerm = clamp(1 - fg / cfg.maxForegroundCoverage, 0, 1);
   const clearTerm = clamp(col.clearance / 0.5, 0, 1);
   const sizeTerm = Math.min(...evals.map((e) => e.sizeTerm));
