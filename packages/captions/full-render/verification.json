@@ -1,0 +1,51 @@
+{
+  "schema": "blockspark.s7-full-render-verification/1",
+  "input": {
+    "storyboard": "tests/fixtures/narrated/approved-narrated-v0.1.json",
+    "storyboardSha256": "76a6b5f26af5f9e0f1bcf635677f8c9f7a79f16d9f1bfc48575f3e0be2985856",
+    "beatSheet": "packages/director/fixtures/free-coins-classroom.beats.json",
+    "voiceSource": "Google Drive shared folder file e;leven 1.mp3",
+    "voiceSha256": "d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2",
+    "voiceMatchesApprovedStoryboard": true,
+    "phraseTimingsMatched": "14/14"
+  },
+  "output": {
+    "file": "packages/captions/full-render/zapp-vs-kira-full-s7.mp4",
+    "sha256": "6317404e146e8b7fd9bef5e56760bdfa0f99c51e9de8da61ffb6ead1fa6afe28",
+    "bytes": 20900240,
+    "width": 540,
+    "height": 960,
+    "fps": 30,
+    "frames": 2075,
+    "durationSec": 69.16666666666667,
+    "video": "H.264 High / yuv420p",
+    "audio": "AAC-LC / 48 kHz stereo",
+    "fastStart": true
+  },
+  "s7": {
+    "captions": 61,
+    "placementSegments": 90,
+    "faceConflicts": 0,
+    "graphics": 1,
+    "vfx": 14,
+    "sfx": 19,
+    "music": "none"
+  },
+  "audio": {
+    "integratedLufs": -14.01,
+    "truePeakDbtp": -1.2,
+    "minimumSfxBelowVoiceDb": 6.3
+  },
+  "gates": {
+    "narratedIntegration": "47/47",
+    "productionProfile": true,
+    "chromiumPlayback": true,
+    "decodedFramesDuringPlayback": 90,
+    "droppedFrames": 0,
+    "playbackErrors": [],
+    "avDurationDriftMs": 0.3,
+    "aacRoundTripSnrDb": [27.75, 27.78],
+    "containerAudioLagSamples": 0,
+    "allPassed": true
+  }
+}
