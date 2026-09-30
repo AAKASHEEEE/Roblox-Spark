@@ -159,6 +159,16 @@ Flow: Input → Alignment Review → Storyboard → **Approve** → **Draft Rend
 - A draft of about 70 s takes about 5 minutes on 8 CPU cores and needs the Chromium from *Setup*. MP3/M4A voice-overs need FFmpeg (`FFMPEG_PATH` or `PATH`).
 - Uploaded audio stays in `.scratch/narrated-uploads/` until you delete it; there is no automatic cleanup yet.
 
+## BlockSpark Vignette MVP
+The Vignette path currently validates and stages beat sheets, solves camera safety/coverage, and renders review stills; beat-sheet generation and final MP4 export are not implemented yet.
+
+```bash
+npm run vignette:stage -- --no-stills  # validate + stage the reference sheet
+npm run vignette:stage                 # also render one PNG still per beat
+```
+
+See [PRODUCT_STATUS](docs/PRODUCT_STATUS.md) for exact custom-sheet commands, outputs, verified status, gaps, and next work. Use [RESUME_KIRO_PROMPT](docs/RESUME_KIRO_PROMPT.md) to continue the integration in a future Kiro session.
+
 ## Documents
 - [VALIDATION_REPORT](docs/VALIDATION_REPORT.md) — results, measurements, limitations, recommendation
 - [DECISION_MATRIX](docs/DECISION_MATRIX.md) — Roblox Studio vs web vs Blender vs hybrid
