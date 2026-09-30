@@ -1,0 +1,249 @@
+{
+  "kind": "prop",
+  "id": "ban_hammer",
+  "version": "1.0.0",
+  "displayName": "Ban Hammer",
+  "category": "tool",
+  "dimensions": [
+    0.47,
+    1.11,
+    0.24
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.47,
+      1.11,
+      0.24
+    ],
+    "offset": [
+      0,
+      0.555,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "pommel",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.09,
+        0.05,
+        0.09
+      ],
+      "pos": [
+        0,
+        0.025,
+        0
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.01
+    },
+    {
+      "id": "wrap",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.07,
+        0.25,
+        0.07
+      ],
+      "pos": [
+        0,
+        0.16,
+        0
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.008
+    },
+    {
+      "id": "handle",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.62,
+        0.06
+      ],
+      "pos": [
+        0,
+        0.57,
+        0
+      ],
+      "color": "#8a5a3c",
+      "bevel": 0.008
+    },
+    {
+      "id": "collar",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.1,
+        0.06,
+        0.1
+      ],
+      "pos": [
+        0,
+        0.87,
+        0
+      ],
+      "color": "#c3c9d0",
+      "bevel": 0.01,
+      "sheen": 0.9
+    },
+    {
+      "id": "head",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.42,
+        0.22,
+        0.22
+      ],
+      "pos": [
+        0,
+        1,
+        0
+      ],
+      "color": "#e8322b",
+      "bevel": 0.03,
+      "sheen": 0.5
+    },
+    {
+      "id": "cap_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.24,
+        0.24
+      ],
+      "pos": [
+        0.215,
+        1,
+        0
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.015
+    },
+    {
+      "id": "cap_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.24,
+        0.24
+      ],
+      "pos": [
+        -0.215,
+        1,
+        0
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.015
+    },
+    {
+      "id": "label_f",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.3,
+        0.14
+      ],
+      "pos": [
+        0,
+        1,
+        0.1105
+      ],
+      "color": "#ffffff"
+    },
+    {
+      "id": "label_b",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.3,
+        0.14
+      ],
+      "pos": [
+        0,
+        1,
+        -0.1105
+      ],
+      "color": "#ffffff",
+      "rotDeg": [
+        0,
+        180,
+        0
+      ]
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.16,
+      0
+    ],
+    "grip_top": [
+      0,
+      0.5,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      1.11,
+      0
+    ],
+    "strike_face": [
+      0.235,
+      1,
+      0
+    ],
+    "head_center": [
+      0,
+      1,
+      0
+    ]
+  },
+  "effectAnchors": {
+    "impact": [
+      0.3,
+      1,
+      0
+    ]
+  },
+  "defaultMaterial": "glossy_plastic",
+  "defaultColor": "#e8322b",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "uniform_scale",
+    "glow"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change"
+  ],
+  "maxScale": 10,
+  "thumbnail": "assets/thumbnails/ban_hammer.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Labels are painted in-house (props/screens.ts, block font): \"BAN\"."
+  }
+}

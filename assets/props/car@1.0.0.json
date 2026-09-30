@@ -1,0 +1,751 @@
+{
+  "kind": "prop",
+  "id": "car",
+  "version": "1.0.0",
+  "displayName": "Car",
+  "category": "vehicle",
+  "dimensions": [
+    1.88,
+    1.54,
+    3.64
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      1.88,
+      1.54,
+      3.64
+    ],
+    "offset": [
+      0,
+      0.77,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "body",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.7,
+        0.62,
+        3.5
+      ],
+      "pos": [
+        0,
+        0.55,
+        0
+      ],
+      "color": "#e8322b",
+      "bevel": 0.08,
+      "sheen": 0.6
+    },
+    {
+      "id": "cabin",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.56,
+        0.62,
+        1.9
+      ],
+      "pos": [
+        0,
+        1.17,
+        -0.25
+      ],
+      "color": "#e8322b",
+      "bevel": 0.1,
+      "sheen": 0.6
+    },
+    {
+      "id": "roof",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.5,
+        0.08,
+        1.7
+      ],
+      "pos": [
+        0,
+        1.5,
+        -0.3
+      ],
+      "color": "#f4f4f2",
+      "bevel": 0.03
+    },
+    {
+      "id": "windshield",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.4,
+        0.48,
+        0.03
+      ],
+      "pos": [
+        0,
+        1.17,
+        0.705
+      ],
+      "color": "#9fd3f2",
+      "sheen": 1
+    },
+    {
+      "id": "rear_window",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.4,
+        0.44,
+        0.03
+      ],
+      "pos": [
+        0,
+        1.19,
+        -1.205
+      ],
+      "color": "#9fd3f2",
+      "sheen": 1
+    },
+    {
+      "id": "window_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.44,
+        1.6
+      ],
+      "pos": [
+        0.785,
+        1.19,
+        -0.25
+      ],
+      "color": "#9fd3f2",
+      "sheen": 1
+    },
+    {
+      "id": "window_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.44,
+        1.6
+      ],
+      "pos": [
+        -0.785,
+        1.19,
+        -0.25
+      ],
+      "color": "#9fd3f2",
+      "sheen": 1
+    },
+    {
+      "id": "pillar_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.46,
+        0.08
+      ],
+      "pos": [
+        0.79,
+        1.19,
+        -0.2
+      ],
+      "color": "#e8322b"
+    },
+    {
+      "id": "pillar_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.46,
+        0.08
+      ],
+      "pos": [
+        -0.79,
+        1.19,
+        -0.2
+      ],
+      "color": "#e8322b"
+    },
+    {
+      "id": "bumper_f",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.74,
+        0.16,
+        0.12
+      ],
+      "pos": [
+        0,
+        0.34,
+        1.76
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.03
+    },
+    {
+      "id": "bumper_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.74,
+        0.16,
+        0.12
+      ],
+      "pos": [
+        0,
+        0.34,
+        -1.76
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.03
+    },
+    {
+      "id": "grille",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.8,
+        0.14,
+        0.02
+      ],
+      "pos": [
+        0,
+        0.62,
+        1.755
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "head_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.26,
+        0.14,
+        0.03
+      ],
+      "pos": [
+        0.6,
+        0.66,
+        1.755
+      ],
+      "color": "#fff6c8",
+      "sheen": 1
+    },
+    {
+      "id": "head_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.26,
+        0.14,
+        0.03
+      ],
+      "pos": [
+        -0.6,
+        0.66,
+        1.755
+      ],
+      "color": "#fff6c8",
+      "sheen": 1
+    },
+    {
+      "id": "tail_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.24,
+        0.12,
+        0.03
+      ],
+      "pos": [
+        0.6,
+        0.68,
+        -1.755
+      ],
+      "color": "#ff3b30",
+      "emissive": "#400000",
+      "sheen": 1
+    },
+    {
+      "id": "tail_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.24,
+        0.12,
+        0.03
+      ],
+      "pos": [
+        -0.6,
+        0.68,
+        -1.755
+      ],
+      "color": "#ff3b30",
+      "emissive": "#400000",
+      "sheen": 1
+    },
+    {
+      "id": "plate",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.34,
+        0.1,
+        0.01
+      ],
+      "pos": [
+        0,
+        0.34,
+        1.825
+      ],
+      "color": "#ffd21a"
+    },
+    {
+      "id": "handle_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.04,
+        0.16
+      ],
+      "pos": [
+        0.86,
+        0.8,
+        0.1
+      ],
+      "color": "#c3c9d0",
+      "sheen": 0.9
+    },
+    {
+      "id": "handle_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.04,
+        0.16
+      ],
+      "pos": [
+        -0.86,
+        0.8,
+        0.1
+      ],
+      "color": "#c3c9d0",
+      "sheen": 0.9
+    },
+    {
+      "id": "mirror_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.14,
+        0.08,
+        0.1
+      ],
+      "pos": [
+        0.87,
+        1,
+        0.6
+      ],
+      "color": "#e8322b",
+      "bevel": 0.02
+    },
+    {
+      "id": "mirror_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.14,
+        0.08,
+        0.1
+      ],
+      "pos": [
+        -0.87,
+        1,
+        0.6
+      ],
+      "color": "#e8322b",
+      "bevel": 0.02
+    },
+    {
+      "id": "tire_fl",
+      "attach": "wheel_fl",
+      "shape": "cylinder",
+      "size": [
+        0.34,
+        0.24
+      ],
+      "pos": [
+        0.8,
+        0.34,
+        1.15
+      ],
+      "color": "#1f2126",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ],
+      "bevel": 0.04,
+      "sheen": 0.1
+    },
+    {
+      "id": "hub_fl",
+      "attach": "wheel_fl",
+      "shape": "cylinder",
+      "size": [
+        0.18,
+        0.25
+      ],
+      "pos": [
+        0.8,
+        0.34,
+        1.15
+      ],
+      "color": "#c3c9d0",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ],
+      "sheen": 0.9
+    },
+    {
+      "id": "spoke_fl",
+      "attach": "wheel_fl",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.3,
+        0.06
+      ],
+      "pos": [
+        0.93,
+        0.34,
+        1.15
+      ],
+      "color": "#8a8f99"
+    },
+    {
+      "id": "tire_fr",
+      "attach": "wheel_fr",
+      "shape": "cylinder",
+      "size": [
+        0.34,
+        0.24
+      ],
+      "pos": [
+        -0.8,
+        0.34,
+        1.15
+      ],
+      "color": "#1f2126",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ],
+      "bevel": 0.04,
+      "sheen": 0.1
+    },
+    {
+      "id": "hub_fr",
+      "attach": "wheel_fr",
+      "shape": "cylinder",
+      "size": [
+        0.18,
+        0.25
+      ],
+      "pos": [
+        -0.8,
+        0.34,
+        1.15
+      ],
+      "color": "#c3c9d0",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ],
+      "sheen": 0.9
+    },
+    {
+      "id": "spoke_fr",
+      "attach": "wheel_fr",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.3,
+        0.06
+      ],
+      "pos": [
+        -0.93,
+        0.34,
+        1.15
+      ],
+      "color": "#8a8f99"
+    },
+    {
+      "id": "tire_rl",
+      "attach": "wheel_rl",
+      "shape": "cylinder",
+      "size": [
+        0.34,
+        0.24
+      ],
+      "pos": [
+        0.8,
+        0.34,
+        -1.15
+      ],
+      "color": "#1f2126",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ],
+      "bevel": 0.04,
+      "sheen": 0.1
+    },
+    {
+      "id": "hub_rl",
+      "attach": "wheel_rl",
+      "shape": "cylinder",
+      "size": [
+        0.18,
+        0.25
+      ],
+      "pos": [
+        0.8,
+        0.34,
+        -1.15
+      ],
+      "color": "#c3c9d0",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ],
+      "sheen": 0.9
+    },
+    {
+      "id": "spoke_rl",
+      "attach": "wheel_rl",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.3,
+        0.06
+      ],
+      "pos": [
+        0.93,
+        0.34,
+        -1.15
+      ],
+      "color": "#8a8f99"
+    },
+    {
+      "id": "tire_rr",
+      "attach": "wheel_rr",
+      "shape": "cylinder",
+      "size": [
+        0.34,
+        0.24
+      ],
+      "pos": [
+        -0.8,
+        0.34,
+        -1.15
+      ],
+      "color": "#1f2126",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ],
+      "bevel": 0.04,
+      "sheen": 0.1
+    },
+    {
+      "id": "hub_rr",
+      "attach": "wheel_rr",
+      "shape": "cylinder",
+      "size": [
+        0.18,
+        0.25
+      ],
+      "pos": [
+        -0.8,
+        0.34,
+        -1.15
+      ],
+      "color": "#c3c9d0",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ],
+      "sheen": 0.9
+    },
+    {
+      "id": "spoke_rr",
+      "attach": "wheel_rr",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.3,
+        0.06
+      ],
+      "pos": [
+        -0.93,
+        0.34,
+        -1.15
+      ],
+      "color": "#8a8f99"
+    }
+  ],
+  "grips": {
+    "grip": [
+      0.875,
+      0.8,
+      0.1
+    ],
+    "grip_passenger": [
+      -0.875,
+      0.8,
+      0.1
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      1.54,
+      -0.3
+    ],
+    "hood": [
+      0,
+      0.86,
+      1.25
+    ],
+    "trunk": [
+      0,
+      0.86,
+      -1.5
+    ],
+    "seat_driver": [
+      0.4,
+      0.75,
+      -0.1
+    ],
+    "door_driver": [
+      1.4,
+      0,
+      0.1
+    ],
+    "door_passenger": [
+      -1.4,
+      0,
+      0.1
+    ],
+    "axle_fl": [
+      0.8,
+      0.34,
+      1.15
+    ],
+    "axle_fr": [
+      -0.8,
+      0.34,
+      1.15
+    ],
+    "axle_rl": [
+      0.8,
+      0.34,
+      -1.15
+    ],
+    "axle_rr": [
+      -0.8,
+      0.34,
+      -1.15
+    ],
+    "contact_fl": [
+      0.8,
+      0,
+      1.15
+    ],
+    "contact_fr": [
+      -0.8,
+      0,
+      1.15
+    ],
+    "contact_rl": [
+      0.8,
+      0,
+      -1.15
+    ],
+    "contact_rr": [
+      -0.8,
+      0,
+      -1.15
+    ]
+  },
+  "effectAnchors": {
+    "exhaust": [
+      0.5,
+      0.3,
+      -1.85
+    ],
+    "dust": [
+      0,
+      0.05,
+      -1.9
+    ],
+    "headlights": [
+      0,
+      0.66,
+      1.9
+    ]
+  },
+  "defaultMaterial": "glossy_plastic",
+  "defaultColor": "#e8322b",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "spin"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/car.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Wheels on pivots wheel_fl/fr/rl/rr (spin about x), front wheels under steer_fl/steer_fr (yaw). Plate is blank (no text)."
+  }
+}

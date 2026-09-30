@@ -1,0 +1,146 @@
+{
+  "kind": "prop",
+  "id": "ball",
+  "version": "1.0.0",
+  "displayName": "Ball",
+  "category": "handheld",
+  "dimensions": [
+    0.245,
+    0.245,
+    0.245
+  ],
+  "collision": {
+    "shape": "sphere",
+    "size": [
+      0.12,
+      0.12,
+      0.12
+    ],
+    "offset": [
+      0,
+      0.12,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "ball",
+      "attach": "root",
+      "shape": "sphere",
+      "size": [
+        0.12
+      ],
+      "pos": [
+        0,
+        0.12,
+        0
+      ],
+      "color": "#ff7a1a",
+      "sheen": 0.3
+    },
+    {
+      "id": "seam_h",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.1225,
+        0.008
+      ],
+      "pos": [
+        0,
+        0.12,
+        0
+      ],
+      "color": "#2b1a10"
+    },
+    {
+      "id": "seam_v1",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.1225,
+        0.008
+      ],
+      "pos": [
+        0,
+        0.12,
+        0
+      ],
+      "color": "#2b1a10",
+      "rotDeg": [
+        90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "seam_v2",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.1225,
+        0.008
+      ],
+      "pos": [
+        0,
+        0.12,
+        0
+      ],
+      "color": "#2b1a10",
+      "rotDeg": [
+        0,
+        0,
+        90
+      ]
+    }
+  ],
+  "grips": {
+    "grip": [
+      0.12,
+      0.12,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.24,
+      0
+    ],
+    "center": [
+      0,
+      0.12,
+      0
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "matte_plastic",
+  "defaultColor": "#ff7a1a",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "spin",
+    "uniform_scale"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change"
+  ],
+  "maxScale": 20,
+  "thumbnail": "assets/thumbnails/ball.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

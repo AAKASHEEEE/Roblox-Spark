@@ -1,0 +1,131 @@
+{
+  "kind": "prop",
+  "id": "plate",
+  "version": "1.0.0",
+  "displayName": "Plate",
+  "category": "handheld",
+  "dimensions": [
+    0.26,
+    0.0215,
+    0.26
+  ],
+  "collision": {
+    "shape": "cylinder",
+    "size": [
+      0.13,
+      0.0215,
+      0.13
+    ],
+    "offset": [
+      0,
+      0.011,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "foot",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.08,
+        0.008
+      ],
+      "pos": [
+        0,
+        0.004,
+        0
+      ],
+      "color": "#e6e9ee"
+    },
+    {
+      "id": "body",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.13,
+        0.014
+      ],
+      "pos": [
+        0,
+        0.011,
+        0
+      ],
+      "color": "#ffffff",
+      "bevel": 0.004
+    },
+    {
+      "id": "rim",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.13,
+        0.004
+      ],
+      "pos": [
+        0,
+        0.019,
+        0
+      ],
+      "color": "#3f7fd9"
+    },
+    {
+      "id": "well",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.1,
+        0.004
+      ],
+      "pos": [
+        0,
+        0.0195,
+        0
+      ],
+      "color": "#ffffff"
+    }
+  ],
+  "grips": {
+    "grip": [
+      0.13,
+      0.015,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.0215,
+      0
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "glossy_plastic",
+  "defaultColor": "#ffffff",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/plate.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}
