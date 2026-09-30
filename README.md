@@ -160,14 +160,15 @@ Flow: Input → Alignment Review → Storyboard → **Approve** → **Draft Rend
 - Uploaded audio stays in `.scratch/narrated-uploads/` until you delete it; there is no automatic cleanup yet.
 
 ## BlockSpark Vignette MVP
-The Vignette path currently validates and stages beat sheets, solves camera safety/coverage, and renders review stills; beat-sheet generation and final MP4 export are not implemented yet.
+The Vignette path now includes an offline/free-OpenRouter script Director, original sets/characters/props/actions, deterministic staging, safe cameras, 90% script coverage, captions and review stills. Both reference fixtures pass; production Vignette MP4 export and Studio/bulk adapters remain the next milestone.
 
 ```bash
-npm run vignette:stage -- --no-stills  # validate + stage the reference sheet
-npm run vignette:stage                 # also render one PNG still per beat
+npm run director -- --script script.txt --duration 30 --seed 7 --provider offline --out out/story.beats.json --report out/story.report.json
+npm run vignette:stage -- --sheet out/story.beats.json --out out/story-stage --no-stills
+npm run vignette:stage -- --sheet out/story.beats.json --out out/story-stage
 ```
 
-See [PRODUCT_STATUS](docs/PRODUCT_STATUS.md) for exact custom-sheet commands, outputs, verified status, gaps, and next work. Use [RESUME_KIRO_PROMPT](docs/RESUME_KIRO_PROMPT.md) to continue the integration in a future Kiro session.
+See [FINAL_STATUS](docs/FINAL_STATUS.md) for verified results, OpenRouter `$0` setup, exact usage and current gaps. Use [RESUME_KIRO_PROMPT](docs/RESUME_KIRO_PROMPT.md) to continue in a future Kiro session.
 
 ## Documents
 - [VALIDATION_REPORT](docs/VALIDATION_REPORT.md) — results, measurements, limitations, recommendation
