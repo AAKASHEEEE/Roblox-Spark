@@ -2,11 +2,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { getEventListeners } from 'node:events';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  BulkRunner, BulkStore, JobQueue, JOB_STATES, TRANSITIONS, assertPortable, buildManifest, canTransition, deriveSeed,
+  BulkError, BulkRunner, BulkStore, JobQueue, JOB_STATES, TRANSITIONS, assertPortable, buildManifest, canTransition, deriveSeed,
   duplicateWithNewSeed, isBulkError, parseBatchRequest, serializeManifest, sha256Hex, writeManifest,
   type EpisodePipeline, type RenderResult, type ResolvedBatch, type ApprovalResult, type Timers,
 } from '../packages/bulk/src/index.ts';
@@ -556,6 +557,7 @@ test('lease: lease loss aborts the stage and its late result cannot complete the
   const j = queue.get('batch-a', 'batch-a--ep-01');
   assert.deepEqual([j.state, j.lease?.token, j.outputs], ['leased', stolen.lease.token, {}]);
   assert.ok(events.includes('lease_lost'));
+  assert.ok(!events.includes('cancelled') && !events.includes('fatal'), 'genuine loss is classified as lease loss only');
   assert.equal(c.active, 0);
 });
 
@@ -614,4 +616,96 @@ test('stopOnFirstError: no new claims after the first failure; the in-flight cla
   assert.deepEqual([f.attempt, f.retryable, s.stoppedEarly], [1, true, true], 'no auto-retry; retryable flag kept for resume');
   assert.deepEqual([...started].sort(), ['ep-01', 'ep-02']);
   assert.equal(c.active, 0);
+});
+
+// ── abort-cause classification + heartbeat error handling ───────────────────────────────────────────────────────────
+/** One job rendering under fake time; `render` resolves only when the test says so. */
+async function startRendering(opts: { lockWaitMs?: number } = {}) {
+  const dir = tmp(), c = clock();
+  setup(request(1), dir, c, 1_000);
+  const store = new BulkStore(new NodeBulkFs(dir), { clock: c, lockWaitMs: opts.lockWaitMs });
+  const queue = new JobQueue(store, { leaseMs: 1_000 });
+  const d = deferred<RenderResult>();
+  const ac = new AbortController();
+  const events: { type: string; code?: string }[] = [];
+  let signal: AbortSignal | null = null;
+  const pipeline = mockPipeline({ render: (_e, _a, _t, sig) => { signal = sig; return d.promise; } }).p;
+  const run = new BulkRunner(queue, pipeline).run('batch-a', { timers: c, heartbeatMs: 250, signal: ac.signal, onEvent: (e) => events.push(e as { type: string }) });
+  run.catch(() => { /* asserted by the caller */ });
+  await until(() => signal !== null, 'render start');
+  const types = () => events.map((e) => e.type);
+  return { dir, c, store, queue, d, ac, run, events, types, signal: () => signal!, statePath: join(dir, 'batches', 'batch-a', 'state.json') };
+}
+function assertClean(h: { c: FakeTime; ac: AbortController; signal: () => AbortSignal }) {
+  assert.equal(h.c.active, 0, 'no live timers');
+  assert.equal(h.c.created, h.c.cleared, 'every timer cleared');
+  assert.equal(getEventListeners(h.ac.signal, 'abort').length, 0, 'run signal listener removed');
+  assert.equal(getEventListeners(h.signal(), 'abort').length, 0, 'job signal listeners removed');
+}
+
+test('abort cause: external cancellation is reported as cancelled, never lease_lost, with one terminal transition', async () => {
+  const h = await startRendering();
+  h.ac.abort();
+  const s = await drive(h.run, h.c);
+  assert.equal(h.signal().aborted, true);
+  assert.deepEqual((h.signal().reason as { kind: string }).kind, 'cancelled');
+  assert.ok(h.types().includes('cancelled'));
+  assert.ok(!h.types().includes('lease_lost') && !h.types().includes('failed'));
+  h.d.resolve(okRender('batch-a/ep-01')); // late result
+  await flush();
+  const j = h.queue.get('batch-a', 'batch-a--ep-01');
+  assert.deepEqual([j.state, j.outputs, s.cancelled], ['cancelled', {}, 1]);
+  assert.equal(j.history.filter((x) => x.state === 'cancelled').length, 1, 'no duplicate terminal transition');
+  assertClean(h);
+});
+
+test('heartbeat: one transient STORE_LOCKED is retried and the next renewal recovers the lease', async () => {
+  const h = await startRendering({ lockWaitMs: 0 });
+  const lock = join(h.dir, 'batches', 'batch-a', 'state.lock');
+  writeFileSync(lock, JSON.stringify({ owner: 'other-proc', expiresAt: h.c.t + 60_000 }));
+  h.c.advance(250); // renewal hits the live foreign lock
+  rmSync(lock);
+  assert.deepEqual(h.events.filter((e) => e.type === 'heartbeat_retry').map((e) => e.code), ['STORE_LOCKED']);
+  assert.equal(h.signal().aborted, false, 'transient error does not abort');
+  h.c.advance(250); // next beat renews
+  assert.equal(h.queue.get('batch-a', 'batch-a--ep-01').lease!.expiresAt, new Date(h.c.t + 1_000).toISOString());
+  h.d.resolve(okRender('batch-a/ep-01'));
+  const s = await drive(h.run, h.c);
+  assert.equal(s.completed, 1);
+  assertClean(h);
+});
+
+test('heartbeat: STORE_CORRUPT aborts, surfaces from run(), and the late result never commits', async () => {
+  const h = await startRendering();
+  const good = readFileSync(h.statePath, 'utf8');
+  writeFileSync(h.statePath, good.replace('"attempt": 1', '"attempt": 9')); // tampered → hash mismatch
+  h.c.advance(250);
+  assert.equal(h.signal().aborted, true);
+  assert.equal((h.signal().reason as { kind: string }).kind, 'heartbeat_fatal');
+  h.d.resolve(okRender('batch-a/ep-01'));
+  await assert.rejects(drive(h.run, h.c), (e) => isBulkError(e, 'STORE_CORRUPT'));
+  assert.ok(h.types().includes('fatal') && !h.types().includes('lease_lost') && !h.types().includes('cancelled'));
+  writeFileSync(h.statePath, good); // operator restores the store: nothing was committed after the abort
+  const j = h.queue.get('batch-a', 'batch-a--ep-01');
+  assert.deepEqual([j.state, j.outputs], ['rendering', {}]);
+  assertClean(h);
+});
+
+test('heartbeat: an unexpected renewal error aborts and surfaces instead of being swallowed', async () => {
+  const h = await startRendering();
+  const boom = new Error('EIO: unexpected renewal failure');
+  h.queue.renewLease = () => { throw boom; };
+  h.c.advance(250);
+  assert.equal((h.signal().reason as { kind: string }).kind, 'heartbeat_fatal');
+  h.d.resolve(okRender('batch-a/ep-01'));
+  await assert.rejects(drive(h.run, h.c), (e) => e === boom);
+  assert.deepEqual(h.events.filter((e) => e.type === 'fatal').map((e) => e.code), ['UNEXPECTED']);
+  const j = h.queue.get('batch-a', 'batch-a--ep-01');
+  assert.deepEqual([j.state, j.outputs], ['rendering', {}], 'late result not committed; lease left to expire for recovery');
+  assert.ok(!h.events.some((e) => e.type === 'state' && (e as { state?: string }).state === 'completed'), 'never reported as completed');
+  assertClean(h);
+  // the job is recoverable: after the lease expires a fresh run completes it
+  h.c.t += 2_000;
+  const again = await drive(new BulkRunner(new JobQueue(h.store, { leaseMs: 1_000 }), mockPipeline().p).run('batch-a', { timers: h.c, heartbeatMs: 250 }), h.c);
+  assert.equal(again.completed, 1);
 });

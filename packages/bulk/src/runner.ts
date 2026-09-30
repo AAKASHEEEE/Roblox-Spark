@@ -51,7 +51,10 @@ export type ProgressEvent =
   | { type: 'retry'; jobId: string; attempt: number; code: string }
   | { type: 'failed'; jobId: string; attempt: number; code: string; retryable: boolean }
   | { type: 'lease_lost'; jobId: string }
-  | { type: 'stopped'; reason: 'first_error' | 'cancelled' }
+  | { type: 'cancelled'; jobId: string }
+  | { type: 'heartbeat_retry'; jobId: string; code: string }
+  | { type: 'fatal'; jobId: string | null; code: string; message: string }
+  | { type: 'stopped'; reason: 'first_error' | 'cancelled' | 'fatal' }
   | { type: 'done'; summary: RunSummary };
 
 export interface RunOptions {
@@ -82,6 +85,21 @@ export const systemTimers: Timers = {
   clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
 };
 
+/**
+ * Why a job's AbortController fired. The FIRST cause wins (AbortController ignores later aborts) and decides the outcome:
+ * - cancelled:       external/run cancellation → emits `cancelled`; nothing committed (cancelBatch already did it)
+ * - timeout:         deadline hit → commits failed/TIMEOUT for this attempt (normal retry policy applies)
+ * - lease_lost:      token expired/replaced (seen by heartbeat or a commit) → emits `lease_lost`; nothing committed
+ * - heartbeat_fatal: renewal failed with STORE_CORRUPT or an unexpected error → nothing committed; run fails closed
+ * - run_fatal:       a sibling job hit a fatal error → nothing committed; its lease expires and is recovered on resume
+ */
+export type AbortCauseKind = 'cancelled' | 'timeout' | 'lease_lost' | 'heartbeat_fatal' | 'run_fatal';
+export interface AbortCause { kind: AbortCauseKind; error?: unknown }
+const causeOf = (signal: AbortSignal): AbortCause | null => (signal.aborted ? ((signal.reason as AbortCause)?.kind ? (signal.reason as AbortCause) : { kind: 'cancelled' }) : null);
+
+/** Heartbeat renewal errors: STORE_LOCKED is transient (retried next beat); everything else aborts the job. */
+export const TRANSIENT_HEARTBEAT_CODES = ['STORE_LOCKED'] as const;
+
 export interface RunSummary {
   batchId: string; total: number; completed: number; failed: number; cancelled: number; awaitingApproval: number;
   open: number; stoppedEarly: boolean; aborted: boolean;
@@ -111,11 +129,12 @@ export class BulkRunner {
     const inflight = new Set<AbortController>();
     const approvalChecked = new Set<string>();
     let stopped = false, aborted = false;
+    let fatal: { error: unknown } | null = null;
 
     const onAbort = () => {
       if (aborted) return;
       aborted = true; stopped = true;
-      for (const c of inflight) c.abort();
+      for (const c of inflight) c.abort({ kind: 'cancelled' } satisfies AbortCause);
       this.queue.cancelBatch(batchId, 'run aborted');
       emit({ type: 'stopped', reason: 'cancelled' });
     };
@@ -135,6 +154,14 @@ export class BulkRunner {
         try {
           const outcome = await this.process(batch, c.job, c.lease, env, emit, inflight, approvalChecked);
           if (outcome === 'failed' && stopOnFirstError && !stopped) { stopped = true; emit({ type: 'stopped', reason: 'first_error' }); }
+        } catch (e) {
+          // fail closed: stop claiming, abort every sibling without committing, surface the error from run()
+          if (!fatal) {
+            fatal = { error: e }; stopped = true;
+            for (const ctl of inflight) ctl.abort({ kind: 'run_fatal', error: e } satisfies AbortCause);
+            emit({ type: 'fatal', jobId: c.job.jobId, code: isBulkError(e) ? e.code : 'UNEXPECTED', message: e instanceof Error ? e.message : String(e) });
+            emit({ type: 'stopped', reason: 'fatal' });
+          }
         } finally { busy--; notify(); }
       }
       notify(); // let waiting siblings re-check (and exit) once this worker is done
@@ -144,6 +171,7 @@ export class BulkRunner {
     } finally {
       opts.signal?.removeEventListener('abort', onAbort);
     }
+    if (fatal) throw (fatal as { error: unknown }).error;
     const summary = summarize(batchId, this.queue.list(batchId), stopped && !aborted, aborted);
     emit({ type: 'done', summary });
     return summary;
@@ -151,7 +179,7 @@ export class BulkRunner {
 
   /** Runs one claimed job until it leaves this worker's hands. Returns how it ended for this worker. */
   private async process(batch: ResolvedBatch, claimed: JobRecord, ref: LeaseRef, env: ProcessEnv, emit: (e: ProgressEvent) => void,
-    inflight: Set<AbortController>, approvalChecked: Set<string>): Promise<'ok' | 'failed' | 'retrying' | 'lost'> {
+    inflight: Set<AbortController>, approvalChecked: Set<string>): Promise<'ok' | 'failed' | 'retrying' | 'lost' | 'cancelled'> {
     const q = this.queue;
     const ep = batch.episodes.find((e) => e.episodeId === claimed.episodeId);
     if (!ep) throw new BulkError('NOT_FOUND', `episode ${claimed.episodeId} missing from batch ${batch.batchId}`);
@@ -160,15 +188,23 @@ export class BulkRunner {
     const clock = q.store.clock;
     const timeoutMs = claimed.timeoutMs ?? env.defaultTimeoutMs ?? null;
     const ctx: PipelineContext = { batchId: batch.batchId, jobId: claimed.jobId, attempt: claimed.attempt, seed: claimed.seed, signal: controller.signal, deadline: timeoutMs === null ? null : clock.now() + timeoutMs };
-    // heartbeat: token-checked renewal for the whole claim; LEASE_LOST aborts the pipeline. Transient errors (e.g. a busy
-    // store lock) are ignored — the next beat retries, and the lease stays valid until its expiry either way.
-    let lostLease = false;
+    const abort = (cause: AbortCause) => controller.abort(cause); // first cause wins
+    // heartbeat: token-checked renewal for the whole claim. STORE_LOCKED → retry next beat (the lease stays valid until
+    // its expiry; if it lapses meanwhile the next renewal/commit gets LEASE_LOST). LEASE_LOST → lease-loss path.
+    // STORE_CORRUPT or anything unexpected → abort and fail the run closed (never ignored, never retried).
     let heartbeat: unknown = env.timers.setInterval(() => {
       if (controller.signal.aborted) return;
-      try { q.renewLease(ref); } catch (e) { if (isBulkError(e, 'LEASE_LOST')) { lostLease = true; controller.abort(); } }
+      try { q.renewLease(ref); } catch (e) {
+        if (isBulkError(e) && (TRANSIENT_HEARTBEAT_CODES as readonly string[]).includes(e.code)) { emit({ type: 'heartbeat_retry', jobId: claimed.jobId, code: e.code }); return; }
+        abort(isBulkError(e, 'LEASE_LOST') ? { kind: 'lease_lost', error: e } : { kind: 'heartbeat_fatal', error: e });
+      }
     }, env.heartbeatMs);
     const stopHeartbeat = () => { if (heartbeat !== null) { env.timers.clearInterval(heartbeat); heartbeat = null; } };
-    const call = <T>(p: () => Promise<T>) => withDeadline(p, ctx, env.timers, clock);
+    const call = async <T>(p: () => Promise<T>) => {
+      const r = await withDeadline(p, ctx, env.timers, clock);
+      if (controller.signal.aborted) throw new BulkError('CANCELLED', 'job aborted'); // never act on a result after any abort
+      return r;
+    };
     let job = claimed;
     const step = (to: JobState, patch?: Parameters<JobQueue['advance']>[2]) => { job = q.advance(ref, to, patch); emit({ type: 'state', jobId: job.jobId, state: to, attempt: job.attempt }); };
     try {
@@ -216,9 +252,13 @@ export class BulkRunner {
       return 'ok';
     } catch (e) {
       stopHeartbeat();
-      if (lostLease || isBulkError(e, 'LEASE_LOST') || (controller.signal.aborted && !isBulkError(e, 'TIMEOUT'))) { emit({ type: 'lease_lost', jobId: job.jobId }); return 'lost'; }
+      if (isBulkError(e, 'TIMEOUT')) abort({ kind: 'timeout', error: e }); // no-op if another cause already aborted
+      if (isBulkError(e, 'LEASE_LOST')) abort({ kind: 'lease_lost', error: e }); // seen by a commit, not the heartbeat
+      const cause = causeOf(controller.signal);
+      if (cause?.kind === 'cancelled') { emit({ type: 'cancelled', jobId: job.jobId }); return 'cancelled'; }
+      if (cause?.kind === 'lease_lost') { emit({ type: 'lease_lost', jobId: job.jobId }); return 'lost'; }
+      if (cause?.kind === 'heartbeat_fatal' || cause?.kind === 'run_fatal') throw cause.error; // fail closed, commit nothing
       if (isBulkError(e, 'ILLEGAL_TRANSITION')) throw e; // programming error: surface it
-      if (isBulkError(e, 'TIMEOUT')) controller.abort(); // tell the still-running handler to stop
       const code: string = isBulkError(e) ? e.code : 'HANDLER_ERROR';
       const retryable = isBulkError(e) ? e.retryable : true;
       return this.failJob(ref, job, code, { ok: false, message: e instanceof Error ? e.message : String(e), retryable }, retryable, emit, env.autoRetry);
