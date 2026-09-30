@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  ENVIRONMENT_CATALOG, CLASSROOM_1_0_0, CLASSROOM_1_1_0, validateProfile, validateCatalog, validateMarks, validateAnchors, validateCameraZones,
+  ENVIRONMENT_CATALOG, CLASSROOM_1_0_0, CLASSROOM_1_1_0, CLASSROOM_1_2_0, validateProfile, validateCatalog, validateMarks, validateAnchors, validateCameraZones,
   parseProfile, parseEnvironmentRef, resolveForRender, pinExact, pinLatestForAuthoring, profileContentHash, sha256Hex, verifyLock,
   placeableMarks, resolvePlacementMark, checkPropAnchor, resolvePropAnchor, isCameraAllowed, checkCompatibility, simultaneousActorCapacity,
   type EnvironmentProfile, type CompatibilityRequest, type Catalog,
@@ -64,7 +64,7 @@ test('latest/ranges are forbidden at render; latest is an authoring-only pin', (
   const h = pinExact(ENVIRONMENT_CATALOG, 'classroom', '1.0.0').contentHash;
   for (const version of ['latest', '^1.0.0', '~1.1.0', '1.x', '*', '>=1.0.0'])
     assert.throws(() => resolveForRender(ENVIRONMENT_CATALOG, { environmentId: 'classroom', version, contentHash: h }), /exact environment version|invalid environment ref/, version);
-  assert.deepEqual(pinLatestForAuthoring(ENVIRONMENT_CATALOG, 'classroom'), pinExact(ENVIRONMENT_CATALOG, 'classroom', '1.1.0'));
+  assert.deepEqual(pinLatestForAuthoring(ENVIRONMENT_CATALOG, 'classroom'), pinExact(ENVIRONMENT_CATALOG, 'classroom', '1.2.0'));
 });
 
 test('content hash is deterministic and key-order independent; sha256 matches node:crypto', () => {
@@ -200,11 +200,11 @@ test('any locked change (marks, anchors, camera, lighting, collision, geometry) 
 
 test('old versions stay pinned and reproducible after a new version is published', () => {
   const pin100 = pinExact(ENVIRONMENT_CATALOG, 'classroom', '1.0.0');
-  const next = clone(CLASSROOM_1_1_0); next.version = '1.2.0'; next.lighting.params.exposure = 1.2;
-  const cat: Catalog = { profiles: [...ENVIRONMENT_CATALOG.profiles, next], lock: { ...ENVIRONMENT_CATALOG.lock, 'classroom@1.2.0': profileContentHash(next) } };
+  const next = clone(CLASSROOM_1_2_0); next.version = '1.3.0'; next.lighting.params.exposure = 1.2;
+  const cat: Catalog = { profiles: [...ENVIRONMENT_CATALOG.profiles, next], lock: { ...ENVIRONMENT_CATALOG.lock, 'classroom@1.3.0': profileContentHash(next) } };
   assert.deepEqual(verifyLock(cat), []);
   assert.equal(profileContentHash(resolveForRender(cat, pin100)), pin100.contentHash);
-  assert.equal(pinLatestForAuthoring(cat, 'classroom').version, '1.2.0');
+  assert.equal(pinLatestForAuthoring(cat, 'classroom').version, '1.3.0');
   const dropped: Catalog = { profiles: [CLASSROOM_1_1_0], lock: ENVIRONMENT_CATALOG.lock };
   assert.ok(codes(verifyLock(dropped)).includes('lock_orphan'));
   // classroom@1.0.0 (Visual Comedy) mirrors its manifest and asset-lock entry unchanged

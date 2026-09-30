@@ -77,6 +77,18 @@ function classroomMarks110(): Mark[] {
   return [...base, ...overlay];
 }
 
+function classroomMarks120(): Mark[] {
+  const marks = classroomMarks110().filter((m) => m.id !== 'classroom_door');
+  const entry = actor('classroom_door_inside', [2.5, 0, -3.0], 0, ['wp_desk_back_right'], {
+    pathId: 'lane_classroom_door', sourceRef: 'manifest.marks.classroom_door_inside',
+  });
+  const threshold = waypoint('classroom_door', [2.5, 0, -3.95], 0, ['classroom_door_inside']);
+  threshold.sourceRef = 'producer door threshold: classroom_door';
+  const waypointRight = marks.find((m) => m.id === 'wp_desk_back_right')!;
+  waypointRight.reachable = [...waypointRight.reachable, 'classroom_door_inside'];
+  return [...marks, entry, threshold];
+}
+
 function classroomAnchors(v110: boolean): PropAnchor[] {
   const a: PropAnchor[] = [
     { id: 'hero_desk_spot', role: 'prop', categories: ['furniture'], position: [0, 0, 0], rotationDeg: [0, 0, 0], maxSize: [1.1, 0.9, 0.7],
@@ -128,7 +140,7 @@ const cameraZones = (): EnvironmentProfile['cameraZones'] => ({
 const MORNING = { sunDir: [-0.72, 0.78, 0.42] as V3, sunColor: '#fff1d9', sunIntensity: 2.1, sky: '#c9dcf2', ground: '#b08a62', ambientIntensity: 0.62, fog: '#e7eef2', fogNear: 18, fogFar: 45, exposure: 1.05 };
 const COLLIDERS_COMMON = ['floor', 'wall_back', 'wall_left', 'wall_right', 'teacher_desk_top', 'teacher_desk_body', 'bg_desk_1_top', 'bg_desk_1_apron', 'bg_desk_2_top', 'bg_desk_2_apron', 'bg_desk_3_top', 'bg_desk_3_apron', 'bg_desk_4_top', 'bg_desk_4_apron', 'bg_desk_legs_1', 'bg_desk_legs_2', 'bg_desk_legs_3', 'bg_desk_legs_4'];
 
-function classroom(version: '1.0.0' | '1.1.0', sha: string, colliders: string[]): EnvironmentProfile {
+function classroom(version: '1.0.0' | '1.1.0' | '1.2.0', sha: string, colliders: string[]): EnvironmentProfile {
   const key = `environments/classroom@${version}`;
   return {
     schemaVersion: PROFILE_SCHEMA_VERSION, id: 'classroom', version, displayName: 'Classroom 1A', status: 'locked',
@@ -138,8 +150,8 @@ function classroom(version: '1.0.0' | '1.1.0', sha: string, colliders: string[])
     scale: { metersPerUnit: 1, actorReferenceHeight: 1.6 },
     bounds: { min: [-4.6, 0, -4.1], max: [4.6, 4.2, 4.0] },
     lighting: { presetId: 'morning', params: { ...MORNING, sunDir: [...MORNING.sunDir] } },
-    marks: version === '1.0.0' ? classroomMarks100() : classroomMarks110(),
-    anchors: classroomAnchors(version === '1.1.0'),
+    marks: version === '1.0.0' ? classroomMarks100() : version === '1.1.0' ? classroomMarks110() : classroomMarks120(),
+    anchors: classroomAnchors(version !== '1.0.0'),
     cameraZones: cameraZones(),
     collision: { source: 'environment_manifest_pieces', assetKey: key, assetSha256: sha, filter: 'collide=true', colliderIds: colliders },
     captionSafe: { actionSafe: { left: 0.06, right: 0.86, top: 0.1, bottom: 0.8 }, captionBand: { top: 0.8, bottom: 0.94 }, avoidBusyBackgroundBehindCaptions: true },
@@ -147,7 +159,110 @@ function classroom(version: '1.0.0' | '1.1.0', sha: string, colliders: string[])
     storyPatterns: version === '1.0.0' ? ['escalation_backfire'] : ['escalation_backfire', 'ordinary_object_extreme', 'visible_secret_chase', 'apparent_win_instant_loss', 'noob_vs_smart'],
     supportedActions: [...ACTIONS],
     license: { source: 'original-procedural', author: 'RBLX SPARK (in-house)', license: 'Proprietary - owned', attributionRequired: false, notes: 'All posters, chalk doodles and textures are procedurally drawn in-house.' },
-    provenance: { origin: 'in_house_procedural', derivedFrom: [key], author: 'RBLX SPARK (in-house)', notes: version === '1.0.0' ? 'Pinned by the Visual Comedy PoC (free-coins-loop-001); values copied unchanged.' : 'Staging overlay: 1.0.0 marks plus role-neutral marks/waypoints and giant_spot.' },
+    provenance: { origin: 'in_house_procedural', derivedFrom: [key], author: 'RBLX SPARK (in-house)', notes: version === '1.0.0' ? 'Pinned by the Visual Comedy PoC (free-coins-loop-001); values copied unchanged.' : version === '1.1.0' ? 'Staging overlay: 1.0.0 marks plus role-neutral marks/waypoints and giant_spot.' : 'New immutable version preserving 1.1.0 marks and room semantics while adding the S6 traversable doorway.' },
+  };
+}
+
+const HALL_DAY = { sunDir: [-0.45, 0.86, 0.35] as V3, sunColor: '#fff4d8', sunIntensity: 1.85, sky: '#c8deea', ground: '#9d8b73', ambientIntensity: 0.72, fog: '#e5edf0', fogNear: 24, fogFar: 58, exposure: 1.02 };
+const PLAYGROUND_DAY = { sunDir: [-0.58, 0.8, 0.25] as V3, sunColor: '#fff1cf', sunIntensity: 2.2, sky: '#8ecaf0', ground: '#77a765', ambientIntensity: 0.7, fog: '#d9eef7', fogNear: 28, fogFar: 70, exposure: 1.0 };
+const OWNED_LICENSE = { source: 'original-procedural', author: 'RBLX SPARK (in-house)', license: 'Proprietary - owned', attributionRequired: false, notes: 'Original primitive geometry and procedural dressing authored in-house; no Roblox or copied map assets.' } as const;
+
+function lookAnchor(id: string, position: V3, sourceRef: string): PropAnchor {
+  return {
+    id, role: 'look_target', categories: [], position, rotationDeg: [0, 0, 0], maxSize: [0, 0, 0],
+    parentSurface: { kind: 'none', ref: null, propAnchor: null }, reachZones: [], clearance: { radius: 0, height: 0 },
+    scaling: { allowed: false, maxScale: 1 }, hazard: { ...NO_HAZARD }, sourceRef,
+  };
+}
+
+function hallwayMarks(): Mark[] {
+  const center = actor('hall_center', [0, 0, 0], 0, ['lockers', 'hall_door_inside', 'notice_board', 'water_fountain', 'hall_end'], { pathId: 'hall_main' });
+  return [
+    center,
+    actor('lockers', [-3.25, 0, 1.2], -90, ['hall_center'], { pathId: 'hall_locker_lane', postures: ['stand', 'crouch'] }),
+    actor('hall_door_inside', [0, 0, -7.0], 0, ['hall_center', 'hall_door'], { pathId: 'hall_main' }),
+    actor('notice_board', [3.25, 0, 6.25], 90, ['hall_center'], { pathId: 'hall_right_lane' }),
+    actor('water_fountain', [3.25, 0, -2.3], 90, ['hall_center'], { pathId: 'hall_right_lane', postures: ['stand', 'crouch'] }),
+    actor('hall_end', [0, 0, 5.8], 180, ['hall_center'], { pathId: 'hall_main' }),
+    waypoint('hall_door', [0, 0, -8.05], 0, ['hall_door_inside']),
+  ];
+}
+
+function hallwayProfile(): EnvironmentProfile {
+  const key = 'environments/school_hallway@1.0.0';
+  const sha = '6721e7b0915456db52a8e9c77889eb80228d2d6d037eb7bc80de113fee4909ae';
+  return {
+    schemaVersion: PROFILE_SCHEMA_VERSION, id: 'school_hallway', version: '1.0.0', displayName: 'North School Hall', status: 'locked',
+    asset: { key, sha256: sha, source: 'assets/asset-lock.json' }, geometryVersion: '1.0.0',
+    coordinateSystem: { units: 'meters', up: '+y', stageRight: '+x', towardAudience: '+z', handedness: 'right' },
+    scale: { metersPerUnit: 1, actorReferenceHeight: 1.6 }, bounds: { min: [-4.6, 0, -8.2], max: [4.6, 4.2, 8.2] },
+    lighting: { presetId: 'day', params: { ...HALL_DAY, sunDir: [...HALL_DAY.sunDir] } }, marks: hallwayMarks(),
+    anchors: [lookAnchor('locker_focus', [-3.95, 1.15, 1.2], 'manifest.anchors.locker_focus'), lookAnchor('trophy_case_focus', [4.0, 1.4, 3.7], 'manifest.anchors.trophy_case_focus')],
+    cameraZones: {
+      safeVolumes: [{ id: 'hall_long_axis', min: [-4.0, 0.2, -7.6], max: [4.0, 3.95, 7.6], allowedIntents: [...SHOT_INTENTS], elevatedAllowed: true, topDownAllowed: true, maxCastFraming: 4 }],
+      exclusionVolumes: [
+        { id: 'locker_bank', min: [-4.5, 0, -6.0], max: [-3.9, 2.0, 6.0], reason: 'lens inside the locker bank' },
+        { id: 'trophy_case_body', min: [3.95, 0.25, 2.4], max: [4.5, 2.05, 5.0], reason: 'lens inside the trophy case' },
+      ],
+      ceilingY: 4.1, minWallClearance: 0.35, openSides: [],
+      axis: { stageLineA: [-3.2, 0, 0], stageLineB: [3.2, 0, 0], audienceSide: '+z', screenRight: '+x', audienceSideOnly: false },
+      lensCorridors: [{ id: 'hall_tracking_lane', from: [0, 1.7, 6.5], to: [0, 1.4, -5.8], radius: 0.5, intents: ['frontal_medium', 'two_shot', 'chase_cam', 'wide_environment'] }],
+    },
+    collision: { source: 'environment_manifest_pieces', assetKey: key, assetSha256: sha, filter: 'collide=true', colliderIds: [
+      'floor', 'wall_left', 'wall_right', 'wall_back_left', 'wall_back_right', 'wall_back_lintel', 'wall_front', 'water_fountain', 'trophy_case',
+      ...Array.from({ length: 10 }, (_, i) => `locker_${i + 1}`), 'hall_plant_pot',
+    ] },
+    captionSafe: { actionSafe: { left: 0.06, right: 0.86, top: 0.1, bottom: 0.8 }, captionBand: { top: 0.8, bottom: 0.94 }, avoidBusyBackgroundBehindCaptions: true },
+    cast: { min: 1, max: 4 }, storyPatterns: ['visible_secret_chase', 'noob_vs_smart', 'apparent_win_instant_loss'], supportedActions: [...ACTIONS],
+    license: { ...OWNED_LICENSE }, provenance: { origin: 'in_house_procedural', derivedFrom: [key], author: 'RBLX SPARK (in-house)', notes: 'Original S2 corridor assembled from authored primitives and deterministic repeated locker modules.' },
+  };
+}
+
+function playgroundMarks(): Mark[] {
+  return [
+    actor('play_center', [0, 0, 0.9], 0, ['slide', 'swings', 'bench', 'playground_path'], { pathId: 'play_main' }),
+    actor('slide', [-1.6, 0, 1.8], -90, ['play_center'], { pathId: 'play_slide', postures: ['stand', 'crouch'] }),
+    actor('swings', [2.5, 0, -0.55], 180, ['play_center'], { pathId: 'play_swings', postures: ['stand', 'sit'] }),
+    propMark('sandpit', [3.0, 0, 3.55], 'manifest.marks.sandpit', { facingDeg: 180 }),
+    actor('bench', [-3.5, 0, 4.3], -90, ['play_center'], { pathId: 'play_bench', postures: ['stand', 'sit'] }),
+    actor('playground_path', [0, 0, 5.5], 180, ['play_center'], { pathId: 'play_main' }),
+  ];
+}
+
+function playgroundProfile(): EnvironmentProfile {
+  const key = 'environments/playground@1.0.0';
+  const sha = 'e68619ae3410bf713d3afe0d75b968c65b126d3ec44efe33f2b71668c418b86c';
+  const colliders = [
+    'ground', 'slide_platform', 'slide_post_1', 'slide_post_2', 'slide_post_3', 'slide_post_4', 'slide_ladder_left', 'slide_ladder_right',
+    'swing_top_bar', 'swing_post_left', 'swing_post_right', 'swing_seat_1', 'swing_seat_2',
+    'sandpit_edge_left', 'sandpit_edge_right', 'sandpit_edge_back', 'sandpit_edge_front', 'bench_seat', 'bench_back', 'bench_legs',
+    'fence_back_left', 'fence_back_right', 'fence_left', 'fence_right', 'tree_trunk_1', 'tree_trunk_2', 'tree_trunk_3',
+  ];
+  return {
+    schemaVersion: PROFILE_SCHEMA_VERSION, id: 'playground', version: '1.0.0', displayName: 'Spark School Playground', status: 'locked',
+    asset: { key, sha256: sha, source: 'assets/asset-lock.json' }, geometryVersion: '1.0.0',
+    coordinateSystem: { units: 'meters', up: '+y', stageRight: '+x', towardAudience: '+z', handedness: 'right' },
+    scale: { metersPerUnit: 1, actorReferenceHeight: 1.6 }, bounds: { min: [-8, 0, -7], max: [8, 5, 8] },
+    lighting: { presetId: 'day', params: { ...PLAYGROUND_DAY, sunDir: [...PLAYGROUND_DAY.sunDir] } }, marks: playgroundMarks(),
+    anchors: [
+      lookAnchor('slide_focus', [-3.0, 1.1, 0.5], 'manifest.anchors.slide_focus'),
+      lookAnchor('swing_focus', [2.5, 1.7, -1.8], 'manifest.anchors.swing_focus'),
+      lookAnchor('sandpit_center', [3.0, 0.08, 3.55], 'manifest.anchors.sandpit_center'),
+    ],
+    cameraZones: {
+      safeVolumes: [{ id: 'playground_open', min: [-7.4, 0.2, -6.4], max: [7.4, 4.5, 7.4], allowedIntents: [...SHOT_INTENTS], elevatedAllowed: true, topDownAllowed: true, maxCastFraming: 5 }],
+      exclusionVolumes: [
+        { id: 'slide_structure', min: [-3.8, 0, -2.2], max: [-2.2, 2.25, 3.1], reason: 'lens inside slide structure' },
+        { id: 'swing_structure', min: [0.55, 0, -2.15], max: [4.45, 3.1, -1.4], reason: 'lens inside swing frame' },
+      ],
+      ceilingY: 4.8, minWallClearance: 0.25, openSides: ['+x', '-x', '+z', '-z'],
+      axis: { stageLineA: [-5.5, 0, 0.8], stageLineB: [5.5, 0, 0.8], audienceSide: '+z', screenRight: '+x', audienceSideOnly: false },
+      lensCorridors: [{ id: 'playground_establishing', from: [0, 2.2, 6.6], to: [0, 1.5, 1.0], radius: 0.6, intents: ['wide_environment', 'frontal_medium', 'two_shot'] }],
+    },
+    collision: { source: 'environment_manifest_pieces', assetKey: key, assetSha256: sha, filter: 'collide=true', colliderIds: colliders },
+    captionSafe: { actionSafe: { left: 0.06, right: 0.86, top: 0.1, bottom: 0.8 }, captionBand: { top: 0.8, bottom: 0.94 }, avoidBusyBackgroundBehindCaptions: true },
+    cast: { min: 1, max: 5 }, storyPatterns: ['visible_secret_chase', 'noob_vs_smart', 'ordinary_object_extreme'], supportedActions: [...ACTIONS],
+    license: { ...OWNED_LICENSE }, provenance: { origin: 'in_house_procedural', derivedFrom: [key], author: 'RBLX SPARK (in-house)', notes: 'Original S2 playground assembled from authored primitives and deterministic repeated ladder/tree modules.' },
   };
 }
 
@@ -155,9 +270,20 @@ export const CLASSROOM_1_0_0 = classroom('1.0.0', '867964e30cc6b1d8ba3efd58e0486
   [...COLLIDERS_COMMON, 'bg_chair_1_seat', 'bg_chair_1_back', 'bg_chair_2_seat', 'bg_chair_2_back', 'bg_chair_legs_1', 'bg_chair_legs_2', 'shelf', 'plant_pot']);
 export const CLASSROOM_1_1_0 = classroom('1.1.0', 'cd1e3b6fd24acacd2ec0f417b6b13dd8cce7b0640418d61568737af3b06f2a90',
   [...COLLIDERS_COMMON, 'bg_chair_2_seat', 'bg_chair_2_back', 'bg_chair_legs_2', 'shelf', 'plant_pot']);
+export const CLASSROOM_1_2_0 = classroom('1.2.0', 'c3ba63a7848306d635bfea9e15ef2001a7549db05cd36029db9eb387e51f71b6', [
+  'floor', 'wall_back_left', 'wall_back_right', 'wall_back_lintel', 'wall_left', 'wall_right',
+  'teacher_desk_top', 'teacher_desk_body', 'bg_desk_1_top', 'bg_desk_1_apron', 'bg_desk_2_top', 'bg_desk_2_apron',
+  'bg_desk_3_top', 'bg_desk_3_apron', 'bg_desk_4_top', 'bg_desk_4_apron', 'bg_desk_legs_1', 'bg_desk_legs_2',
+  'bg_desk_legs_3', 'bg_desk_legs_4', 'bg_chair_2_seat', 'bg_chair_2_back', 'bg_chair_legs_2', 'shelf', 'plant_pot',
+]);
+export const SCHOOL_HALLWAY_1_0_0 = hallwayProfile();
+export const PLAYGROUND_1_0_0 = playgroundProfile();
 
 /** the built-in catalog; profiles are deep-frozen so nothing can mutate a locked version at runtime */
-export const ENVIRONMENT_CATALOG: Catalog = Object.freeze({ profiles: Object.freeze([deepFreeze(CLASSROOM_1_0_0), deepFreeze(CLASSROOM_1_1_0)]), lock: ENVIRONMENT_LOCK });
+export const ENVIRONMENT_CATALOG: Catalog = Object.freeze({ profiles: Object.freeze([
+  deepFreeze(CLASSROOM_1_0_0), deepFreeze(CLASSROOM_1_1_0), deepFreeze(CLASSROOM_1_2_0),
+  deepFreeze(SCHOOL_HALLWAY_1_0_0), deepFreeze(PLAYGROUND_1_0_0),
+]), lock: ENVIRONMENT_LOCK });
 
 function deepFreeze<T>(x: T): T {
   if (x && typeof x === 'object') { for (const k of Object.keys(x)) deepFreeze((x as Record<string, unknown>)[k]); Object.freeze(x); }
