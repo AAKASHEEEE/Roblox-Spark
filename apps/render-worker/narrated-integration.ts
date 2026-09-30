@@ -14,8 +14,8 @@ import type { Node } from '../../packages/engine/src/gl/scene.ts';
 import type { CameraState, Lighting, PointLight } from '../../packages/engine/src/gl/renderer.ts';
 import { m4TransformPoint, DEG, type Vec3 } from '../../packages/engine/src/math.ts';
 import {
-  evaluateCameraCandidate, buildSafeFallbackCandidates, nextScreenDirectionState, projectToScreen, CAMERA_SAFETY_DEFAULTS,
-  type Bounds3, type CameraCandidate, type CameraIntent, type CameraObstacle, type CameraSafetyResult, type CameraSafetyScene, type ProjectedEntity, type ScreenDirectionState,
+  evaluateCameraCandidate, buildSafeFallbackCandidates, nextScreenDirectionState, projectToScreen, cameraAxisSide, CAMERA_SAFETY_DEFAULTS,
+  type Bounds3, type CameraCandidate, type CameraIntent, type CameraObstacle, type CameraSafetyResult, type CameraSafetyScene, type ProjectedEntity, type PropIdentity, type ScreenDirectionState,
 } from '../../packages/engine/src/camera-safety.ts';
 import { placeCaption, type CaptionPlacementResult, type OccupiedRegion, type Rect } from '../../packages/engine/src/caption-placement.ts';
 import { sampleWorld, type WorldPlan, type WorldState } from '../../packages/narrated/src/world.ts';
@@ -34,9 +34,16 @@ export const MIN_JUMP_M = 0.25;
 export const MAX_PRESS_HAND_GAP_M = 0.08;
 export const KIRA_HAZARD_MARGIN_M = 0.5;
 export const MIN_SHOT_SEC = 0.6;
-/** camera samples per shot (every CAMERA_SAMPLE_FRAMES frames + the last frame) */
+/** planning samples: every CAMERA_SAMPLE_FRAMES frames (100 ms at 30 fps) + first/last + every event, mark and
+ *  pose/expression transition frame; the chosen camera is then validated on EVERY frame of the shot */
 export const CAMERA_SAMPLE_FRAMES = 3;
-export const CAPTION_SAMPLE_FRAMES = 2;
+/** caption projection covers every frame of the chunk */
+export const CAPTION_SAMPLE_FRAMES = 1;
+/** fully validated alternatives kept per shot (for caption-conflict camera reselection) */
+export const FULL_VALIDATED_PER_SHOT = 3;
+/** tracking camera: max lens / aim step per frame (no teleport), smoothing half-window (frames) */
+export const MAX_TRACK_STEP_M = 0.06;
+export const TRACK_SMOOTH_FRAMES = 4;
 export const PRIMARY_FACE_CAPTION_MAX = 0.08;
 export const HERO_PROP_CAPTION_MAX = 0.5;
 
@@ -45,6 +52,8 @@ const r3 = (x: number) => Math.round(x * 1e3) / 1e3;
 const d2 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[2] - b[2]);
 const d3 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const PROP_OBSTACLES = ['desk', 'button', 'coin'];
+/** intents whose camera rules require the active/required faces to read (C03 scope) */
+const FACE_REQUIRED_INTENTS = new Set<CameraIntent>(['medium', 'close', 'reaction', 'over_shoulder', 'extreme_close', 'three_quarter_profile', 'motivated_profile']);
 
 // ───────────────────────────── posed scene ─────────────────────────────
 
@@ -82,6 +91,21 @@ export class NarratedScene {
 
 // ───────────────────────────── geometry extraction ─────────────────────────────
 
+function nodeOBB(n: Node): { center: Vec3; axes: [Vec3, Vec3, Vec3]; half: Vec3 } | undefined {
+  const h = n.geometry?.half;
+  if (!h) return undefined;
+  const w = n.world, col = (k: number): Vec3 => [w[k * 4], w[k * 4 + 1], w[k * 4 + 2]], l = (v: Vec3) => Math.hypot(v[0], v[1], v[2]);
+  const c = [col(0), col(1), col(2)], ls = c.map(l);
+  if (ls.some((x) => x < 1e-9)) return undefined;
+  return { center: [w[12], w[13], w[14]], axes: c.map((v, k) => [v[0] / ls[k], v[1] / ls[k], v[2] / ls[k]] as Vec3) as [Vec3, Vec3, Vec3], half: [h[0] * ls[0], h[1] * ls[1], h[2] * ls[2]] };
+}
+function nodeCorners(n: Node): Vec3[] | null {
+  const h = n.geometry?.half;
+  if (!h) return null;
+  const w = n.world, out: Vec3[] = [];
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) { const p = m4TransformPoint(w, [sx * h[0], sy * h[1], sz * h[2]]); out.push([p[0], p[1], p[2]]); }
+  return out;
+}
 function nodeBox(n: Node): Bounds3 | null {
   const h = n.geometry?.half;
   if (!h) return null;
@@ -97,12 +121,12 @@ function nodeBox(n: Node): Bounds3 | null {
 const union = (bs: Bounds3[]): Bounds3 | null => bs.length ? { min: [0, 1, 2].map((k) => Math.min(...bs.map((b) => b.min[k]))) as Vec3, max: [0, 1, 2].map((k) => Math.max(...bs.map((b) => b.max[k]))) as Vec3 } : null;
 const pad = (p: readonly number[], r: number): Bounds3 => ({ min: [p[0] - r, p[1] - r, p[2] - r], max: [p[0] + r, p[1] + r, p[2] + r] });
 
-export interface ActorGeo { id: string; head: Bounds3; body: Bounds3; face: { center: Vec3; normal: Vec3; halfWidth: number; halfHeight: number }; root: Vec3; yawDeg: number; velocity: Vec3; posture: string; waistUp: boolean; waistY: number; handR: Vec3; handL: Vec3; chest: Vec3 }
+export interface ActorGeo { id: string; head: Bounds3; body: Bounds3; face: { center: Vec3; normal: Vec3; halfWidth: number; halfHeight: number }; root: Vec3; yawDeg: number; velocity: Vec3; posture: string; waistUp: boolean; waistY: number; handR: Vec3; handL: Vec3; chest: Vec3; headCorners: Vec3[]; lookTarget: string | null }
 /** everything the camera and caption layers may read about one frame: extracted from the POSED scene only */
-export interface FrameGeo { i: number; t: number; obstacles: CameraObstacle[]; actors: Record<string, ActorGeo>; props: Record<string, Bounds3 | null>; interaction: Vec3 | null; interactionKind: string | null; coinVisible: boolean; coinScale: number }
+export interface FrameGeo { i: number; t: number; obstacles: CameraObstacle[]; actors: Record<string, ActorGeo>; props: Record<string, Bounds3 | null>; interaction: Vec3 | null; interactionKind: string | null; coinVisible: boolean; coinScale: number; coinIdentity: PropIdentity | null; lookTargets: Record<string, Vec3> }
 
 function rigGeo(id: string, rig: Rig, w: WorldState, diag: AdapterDiagnostics): { geo: ActorGeo; obs: CameraObstacle[] } {
-  const obs: CameraObstacle[] = [], body: Bounds3[] = [], head: Bounds3[] = [], hair: Bounds3[] = [];
+  const obs: CameraObstacle[] = [], body: Bounds3[] = [], head: Bounds3[] = [], hair: Bounds3[] = [], headCorners: Vec3[] = [];
   const f = rig.face.world, [hw, hh] = rig.manifest.body.headSize;
   const n = Math.hypot(f[8], f[9], f[10]) || 1;
   for (const m of rig.meshes) {
@@ -112,8 +136,10 @@ function rigGeo(id: string, rig: Rig, w: WorldState, diag: AdapterDiagnostics): 
     // head-bone parts (hair, cap, brim) move rigidly with the head: they are part of the head volume, so an actor's own
     // hair AABB never counts as occluding the actor's own face; the crown above the face is ALSO kept as a 'hair' obstacle
     const onHead = m.name === 'head_mesh' || m.parent?.name === 'neck';
-    obs.push({ entityId: id, type: onHead ? 'head' : 'body', bounds: b });
+    const ob = nodeOBB(m);
+    obs.push({ entityId: id, type: onHead ? 'head' : 'body', bounds: b, ...(ob ? { oriented: ob } : {}) });
     (onHead ? head : body).push(b);
+    if (onHead) headCorners.push(...(nodeCorners(m) ?? []));
     if (onHead && m.name !== 'head_mesh') hair.push(b);
   }
   const faceTop = rig.face.worldPos()[1] + (hh / 2) * Math.abs(f[5] / (Math.hypot(f[4], f[5], f[6]) || 1)) + 0.02;
@@ -128,6 +154,7 @@ function rigGeo(id: string, rig: Rig, w: WorldState, diag: AdapterDiagnostics): 
       id, head: union(head.slice(0, 1).length ? head : body)!, body: union(body)!, root: [...ad.appliedRoot] as Vec3, yawDeg: a.yawDeg, velocity: [...a.velocity] as Vec3, posture: a.posture,
       face: { center: rig.face.worldPos(), normal: [f[8] / n, f[9] / n, f[10] / n], halfWidth: (hw / 2) * 0.9, halfHeight: (hh / 2) * 0.9 },
       waistUp: !!ad.framing.waist_up_required, waistY: hips[1] + 0.05, handR: rig.hand_r.worldPos(), handL: rig.hand_l.worldPos(), chest: [(hips[0] + neck[0]) / 2, (hips[1] + neck[1]) / 2, (hips[2] + neck[2]) / 2],
+      headCorners, lookTarget: a.lookTarget ?? null,
     },
   };
 }
@@ -140,7 +167,7 @@ export function extractFrameGeo(ns: NarratedScene, i: number, w: WorldState, dia
     const p = prod.props.get(id);
     if (!p || !p.inst.root.visible) { props[id] = null; continue; }
     const bs: Bounds3[] = [];
-    for (const n of Object.values(p.inst.parts)) { if (!n.geometry || n.decal || !n.visible) continue; const b = nodeBox(n); if (b) { bs.push(b); obstacles.push({ entityId: id, type: 'prop', bounds: b }); } }
+    for (const n of Object.values(p.inst.parts)) { if (!n.geometry || n.decal || !n.visible) continue; const b = nodeBox(n); if (b) { bs.push(b); const ob = nodeOBB(n); obstacles.push({ entityId: id, type: 'prop', bounds: b, ...(ob ? { oriented: ob } : {}) }); } }
     props[id] = union(bs);
   }
   // causal interaction point: the press contact (hand -> press surface) or the coin/patient contact
@@ -149,12 +176,33 @@ export function extractFrameGeo(ns: NarratedScene, i: number, w: WorldState, dia
   if (pressT !== null && w.t >= pressT - 0.35 && w.t <= pressT + 0.25) { interaction = [...P.assets.button.pressSurface] as Vec3; interactionKind = 'press'; }
   else if (tip && w.t >= tip.tc - 0.35 && w.t <= tip.t1 && actors.zapp) { interaction = actors.zapp.chest; interactionKind = 'coin_contact'; }
   const coin = w.props.coin;
-  return { i, t: w.t, obstacles, actors, props, interaction, interactionKind, coinVisible: !!coin?.visible, coinScale: coin?.scale ?? 0 };
+  // coin identity landmarks from the POSED disc: face normal (cylinder axis, audience/up side), emblem, rim, base
+  let coinIdentity: PropIdentity | null = null;
+  const cp = prod.props.get('coin');
+  const disc = cp && cp.inst.root.visible ? Object.values(cp.inst.parts).find((n) => n.geometry && !n.decal && n.visible) : undefined;
+  if (disc?.geometry) {
+    const m = disc.world, h = disc.geometry.half;
+    const col = (k: number): Vec3 => [m[k * 4], m[k * 4 + 1], m[k * 4 + 2]];
+    const l = (v: Vec3) => Math.hypot(v[0], v[1], v[2]) || 1;
+    const ax0 = col(1), R = h[0] * l(col(0)), th = h[1] * l(ax0);
+    let ax: Vec3 = [ax0[0] / l(ax0), ax0[1] / l(ax0), ax0[2] / l(ax0)];
+    if (ax[1] * 0.447 + ax[2] * 0.894 < 0) ax = [-ax[0], -ax[1], -ax[2]];
+    const c: Vec3 = [m[12], m[13], m[14]];
+    const u0 = col(0), u: Vec3 = [u0[0] / l(u0), u0[1] / l(u0), u0[2] / l(u0)];
+    const v: Vec3 = [ax[1] * u[2] - ax[2] * u[1], ax[2] * u[0] - ax[0] * u[2], ax[0] * u[1] - ax[1] * u[0]];
+    const rim: Vec3[] = Array.from({ length: 12 }, (_, k) => { const a = (k / 12) * 2 * Math.PI; return [c[0] + R * (u[0] * Math.cos(a) + v[0] * Math.sin(a)), c[1] + R * (u[1] * Math.cos(a) + v[1] * Math.sin(a)), c[2] + R * (u[2] * Math.cos(a) + v[2] * Math.sin(a))] as Vec3; });
+    const base = rim.reduce((b, p) => (p[1] < b[1] ? p : b), rim[0]);
+    coinIdentity = { center: c, frontNormal: ax, emblem: [c[0] + ax[0] * th, c[1] + ax[1] * th, c[2] + ax[2] * th], rim, base: [base[0], Math.max(base[1], 0.01), base[2]] };
+  }
+  const lookTargets: Record<string, Vec3> = {};
+  const marks = P.assets.marks as Record<string, { pos: readonly number[] } | undefined>;
+  for (const [id, mk] of Object.entries(marks)) if (mk) lookTargets[id] = [mk.pos[0], mk.pos[1] + 1.5, mk.pos[2]];
+  return { i, t: w.t, obstacles, actors, props, interaction, interactionKind, coinVisible: !!coin?.visible, coinScale: coin?.scale ?? 0, coinIdentity, lookTargets };
 }
 
 // ───────────────────────────── shot specs (motivated coverage) ─────────────────────────────
 
-export interface ShotSpec { intent: CameraIntent; active: string; subjects: string[]; optional: string[]; heroProps: string[]; reason: string; requiresHeroProp: boolean }
+export interface ShotSpec { intent: CameraIntent; active: string; subjects: string[]; optional: string[]; heroProps: string[]; reason: string; requiresHeroProp: boolean; scaleRefs?: string[] }
 export interface WindowFacts { jump: boolean; press: boolean; coinSpawn: boolean; grow: boolean; tip: boolean; kiraWalk: boolean; zappWalk: boolean; reset: boolean; seated: string[]; last: boolean; first: boolean }
 
 function windowFacts(plan: WorldPlan, s: number, e: number, first: boolean, last: boolean): WindowFacts {
@@ -179,15 +227,19 @@ export function shotSpec(p: NarratedPhrase, f: WindowFacts, geoMid: FrameGeo, ph
   if (f.press) return { intent: 'prop', active: 'zapp', subjects: ['zapp'], optional: [], heroProps: ['button'], reason: 'press: hand/button contact and interaction point visible', requiresHeroProp: true };
   if (f.jump) return { intent: 'wide', active: 'zapp', subjects: ['zapp', 'kira'], optional: ['kira'], heroProps: [], reason: 'jump: full-body framing so the vertical displacement reads', requiresHeroProp: false };
   if (f.coinSpawn && coinReady) return { intent: 'prop', active: 'zapp', subjects: ['zapp'], optional: ['zapp'], heroProps: ['coin'], reason: 'coin spawn visible', requiresHeroProp: true };
-  if ((f.grow || f.zappWalk) && coinReady) return { intent: 'prop', active: 'zapp', subjects: ['zapp', 'kira'], optional: ['kira'], heroProps: ['coin'], reason: 'coin growth / scale: coin base + Zapp for scale (prop-led wide; his face may turn to the coin)', requiresHeroProp: true };
-  if (f.last) return { intent: 'wide', active: 'zapp', subjects: ['zapp', 'kira'], optional: ['kira'], heroProps: ['coin'], reason: 'ending: Zapp prone under the resting coin, Kira at her desk (consequence preserved)', requiresHeroProp: true };
+  if ((f.grow || f.zappWalk) && coinReady) return f.grow
+    ? { intent: 'scale_reveal', active: 'zapp', subjects: ['zapp', 'kira'], optional: ['zapp', 'kira'], heroProps: ['coin'], scaleRefs: [], reason: 'coin growth: prop-led scale reveal (emblem, thickness edge, fixed base) while it grows; actors optional', requiresHeroProp: true }
+    : { intent: 'scale_reveal', active: 'zapp', subjects: ['zapp', 'kira'], optional: ['kira'], heroProps: ['coin'], scaleRefs: ['zapp'], reason: 'giant-coin scale reveal with Zapp for scale (his face may turn to the coin)', requiresHeroProp: true };
+  // consequence: prone Zapp + fallen coin are required; Kira is NOT required here (implied_seated waist-up framing is
+  // then not demanded of this shot — she may appear only if her legs stay out of frame / hidden)
+  if (f.last) return { intent: 'scale_reveal', active: 'zapp', subjects: ['zapp'], optional: [], heroProps: ['coin'], scaleRefs: ['zapp'], reason: 'ending consequence: prone Zapp under the fallen coin (emblem/thickness readable); Kira not required', requiresHeroProp: true };
   if (f.reset) return { intent: 'prop', active: 'zapp', subjects: ['zapp'], optional: ['zapp'], heroProps: ['button'], reason: 'button reset insert (consequence stays in the world)', requiresHeroProp: true };
   const seated = f.seated.includes(actor);
   if (seated) return { intent: 'close', active: actor, subjects: [actor, other], optional: [other], heroProps: [], reason: `${actor} implied_seated: waist-up close (no chair/legs shown)`, requiresHeroProp: false };
   if (f.first) return { intent: phraseShotIndex === 0 ? 'wide' : 'medium', active: actor, subjects: both, optional: [], heroProps: [], reason: 'opening comparison: both characters and the classroom geography (both required)', requiresHeroProp: false };
   const warning = p.semanticAction === 'head_shake' && !!p.supportingCharacter && explicitlyNamed(p, p.supportingCharacter);
   if (warning) return { intent: 'medium', active: actor, subjects: both, optional: [], heroProps: [], reason: `${actor} warns ${other}: speaker + listener required`, requiresHeroProp: false };
-  if (p.actorRole === 'reactor' && p.propEvents.some((e) => e.prop === 'spark_coin') && coinReady) return { intent: 'wide', active: actor, subjects: both, optional: [other], heroProps: ['coin'], reason: 'reaction to the coin: coin + reacting face', requiresHeroProp: true };
+  if (p.actorRole === 'reactor' && p.propEvents.some((e) => e.prop === 'spark_coin') && coinReady) return { intent: 'scale_reveal', active: actor, subjects: both, optional: [other], heroProps: ['coin'], scaleRefs: [actor], reason: 'reaction to the coin: scale reveal of the coin with the reacting actor for scale', requiresHeroProp: true };
   const intent: CameraIntent = phraseShotIndex % 2 === 1 ? 'reaction' : 'medium';
   return { intent, active: actor, subjects: both, optional: [other], heroProps: [], reason: `${actor} ${p.semanticAction}: active-character ${intent} (supporting actor optional)`, requiresHeroProp: false };
 }
@@ -196,13 +248,20 @@ export function shotSpec(p: NarratedPhrase, f: WindowFacts, geoMid: FrameGeo, ph
 
 export function cameraScene(g: FrameGeo, spec: ShotSpec, W: number, H: number, sd: ScreenDirectionState | undefined): CameraSafetyScene {
   const entities: ProjectedEntity[] = [];
-  for (const a of Object.values(g.actors)) entities.push({ entityId: a.id, kind: 'character', face: a.face, facing: [Math.sin(a.yawDeg * DEG), 0, Math.cos(a.yawDeg * DEG)], ...(a.waistUp ? { waistUpRequired: true, waistY: a.waistY } : {}) });
-  for (const id of spec.heroProps) { const b = g.props[id]; if (b) entities.push({ entityId: id, kind: 'prop', bounds: b, ...(g.interaction && ((id === 'button' && g.interactionKind === 'press') || (id === 'coin' && g.interactionKind === 'coin_contact')) ? { interactionPoint: g.interaction } : {}) }); }
+  for (const a of Object.values(g.actors)) entities.push({ entityId: a.id, kind: 'character', face: a.face, facing: [Math.sin(a.yawDeg * DEG), 0, Math.cos(a.yawDeg * DEG)], headCorners: a.headCorners, ...(a.waistUp ? { waistUpRequired: true, waistY: a.waistY } : {}) });
+  for (const id of spec.heroProps) { const b = g.props[id]; if (b) entities.push({ entityId: id, kind: 'prop', bounds: b, ...(id === 'coin' && g.coinIdentity ? { identity: g.coinIdentity } : {}), ...(g.interaction && ((id === 'button' && g.interactionKind === 'press') || (id === 'coin' && g.interactionKind === 'coin_contact')) ? { interactionPoint: g.interaction } : {}) }); }
+  // off-screen look targets (marks such as the classroom door) and each actor's CURRENT eyeline target (from the world
+  // look target at this frame): eyeline references only — never obstacles
+  for (const [id, q] of Object.entries(g.lookTargets)) entities.push({ entityId: `look:${id}`, kind: 'environment', bounds: pad(q, 0.3) });
+  for (const a of Object.values(g.actors)) {
+    const lt = a.lookTarget, q: Vec3 | null = !lt ? null : g.actors[lt] ? g.actors[lt].face.center : g.props[lt] ? [(g.props[lt]!.min[0] + g.props[lt]!.max[0]) / 2, (g.props[lt]!.min[1] + g.props[lt]!.max[1]) / 2, (g.props[lt]!.min[2] + g.props[lt]!.max[2]) / 2] : g.lookTargets[lt] ?? null;
+    if (q) entities.push({ entityId: `eyeline:${a.id}`, kind: 'environment', bounds: pad(q, 0.05) });
+  }
   const ids = Object.keys(g.actors).sort();
   const actors = ['zapp', 'kira'].filter((id) => g.actors[id]).map((id) => ({ id, position: g.actors[id].root, facing: [Math.sin(g.actors[id].yawDeg * DEG), 0, Math.cos(g.actors[id].yawDeg * DEG)] as Vec3, movement: g.actors[id].velocity }));
   // optional supporting actors are shot subjects only in wides; single-character coverage keeps them as obstacles
   // (collision / occlusion still apply) and records them as optional drops, never as required ones
-  const subjects = [spec.active, ...spec.subjects.filter((s) => s !== spec.active && (spec.intent === 'wide' || !spec.optional.includes(s)))].filter((s) => ids.includes(s));
+  const subjects = [spec.active, ...spec.subjects.filter((s) => s !== spec.active && (spec.intent === 'wide' || spec.intent === 'scale_reveal' || !spec.optional.includes(s)))].filter((s) => ids.includes(s));
   return {
     frameWidth: W, frameHeight: H, subjectIds: subjects, optionalSubjectIds: spec.optional.filter((s) => s !== spec.active), heroPropIds: spec.heroProps.filter((id) => g.props[id]),
     obstacles: g.obstacles, projectedEntities: entities, activeSubjectId: spec.active, screenDirection: { ...(sd ?? {}), actors },
@@ -210,13 +269,14 @@ export function cameraScene(g: FrameGeo, spec: ShotSpec, W: number, H: number, s
 }
 
 /** candidate family per intent: vetted geometry-solved shots plus deterministic orbit/distance variants */
-export function candidatesFor(scene: CameraSafetyScene, spec: ShotSpec, shotId: string): CameraCandidate[] {
-  const base = buildSafeFallbackCandidates(scene);
+export function candidatesFor(scene: CameraSafetyScene, spec: ShotSpec, shotId: string, env?: ShotEnvelope, eyeline?: string | null): CameraCandidate[] {
+  const base = spec.intent === 'scale_reveal' ? [] : buildSafeFallbackCandidates(scene);
   const want: Record<CameraIntent, string[]> = {
     wide: ['elevated_wide', 'two_character_medium'], medium: spec.optional.length < spec.subjects.length - 1 ? ['two_character_medium', 'frontal_medium'] : ['frontal_medium', 'two_character_medium'],
     close: ['reaction_close', 'frontal_medium'], reaction: ['reaction_close', 'frontal_medium'], extreme_close: ['reaction_close'], prop: ['prop_insert', 'frontal_medium', 'elevated_wide'], over_shoulder: ['two_character_medium', 'frontal_medium'],
+    three_quarter_profile: [], motivated_profile: [], scale_reveal: [],
   };
-  const out: CameraCandidate[] = generatedCandidates(scene, spec, shotId);
+  const out: CameraCandidate[] = generatedCandidates(scene, spec, shotId, env, eyeline ?? null);
   for (const b of base.filter((x) => want[spec.intent].includes(x.fallback))) {
     const { fallback, ...c } = b;
     // the vetted solver assumes ~0.3 m heads; the blocky cast has 0.52 m heads + hair, so distance variants reach further
@@ -235,7 +295,7 @@ export function candidatesFor(scene: CameraSafetyScene, spec: ShotSpec, shotId: 
  * Deterministic candidates sized from the POSED bounds: the camera orbits the subject (face-normal side and audience
  * side), at distances derived from the intent's head-height band (portrait 9:16) or from the content bounds (wide/prop).
  */
-function generatedCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: string): CameraCandidate[] {
+function generatedCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: string, env?: ShotEnvelope, eyeline: string | null = null): CameraCandidate[] {
   const heads = new Map<string, Bounds3>(), bodies = new Map<string, Bounds3>();
   for (const o of scene.obstacles) {
     if (o.type === 'head' || o.type === 'hair') heads.set(o.entityId, union([o.bounds, ...(heads.has(o.entityId) ? [heads.get(o.entityId)!] : [])])!);
@@ -245,7 +305,9 @@ function generatedCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: s
   const active = spec.active, ah = heads.get(active);
   if (!ah) return [];
   const c = (b: Bounds3): Vec3 => [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, (b.min[2] + b.max[2]) / 2];
-  const hc = c(ah), headH = ah.max[1] - ah.min[1];
+  // head height from the ORIENTED head corners (the AABB of a yawed block head is up to ~40% taller on screen)
+  const hcs = ent.get(active)?.headCorners;
+  const hc = c(ah), headH = hcs?.length ? Math.max(...hcs.map((q) => q[1])) - Math.min(...hcs.map((q) => q[1])) : ah.max[1] - ah.min[1];
   const fn = ent.get(active)?.face?.normal ?? [0, 0, 1];
   const faceYaw = Math.atan2(fn[0], fn[2]) / DEG, prone = Math.abs(fn[1]) > 0.6;
   const out: CameraCandidate[] = [];
@@ -257,7 +319,7 @@ function generatedCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: s
   const tanV = (fov: number) => Math.tan((fov * DEG) / 2);
   const required = spec.subjects.filter((s) => !spec.optional.includes(s) && heads.has(s));
   if (spec.intent === 'medium' || spec.intent === 'reaction' || spec.intent === 'close' || spec.intent === 'over_shoulder') {
-    const seated = ent.get(active)?.waistUpRequired === true;
+    const seated = ent.get(active)?.waistUpRequired === true || env?.actors[active]?.seated === true;
     const two = spec.intent !== 'reaction' && spec.intent !== 'close' && required.length >= 2;
     if (two) {
       const bh = heads.get(required.find((s) => s !== active)!)!, m: Vec3 = [(hc[0] + c(bh)[0]) / 2, (hc[1] + c(bh)[1]) / 2 - 0.3, (hc[2] + c(bh)[2]) / 2];
@@ -267,57 +329,267 @@ function generatedCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: s
         push('two_shot', 'medium', m, axisYaw + off, d, 0.15, 38, { framedSubjectIds: required.slice(0, 2) });
       }
     }
-    const fracs = seated ? [0.4, 0.44, 0.48] : spec.intent === 'medium' ? [0.21, 0.25, 0.29] : [0.32, 0.4, 0.48];
+    const fracs = seated ? [0.28, 0.32, 0.36] : spec.intent === 'medium' ? [0.21, 0.25, 0.29] : [0.32, 0.4, 0.48];
+    const waistY = env?.actors[active]?.waistY ?? 0;
+    // implied_seated: aim high enough that the frame bottom (at the subject) clears the waist line by 12 cm
+    const seatAim = (frac: number) => Math.max(hc[1] - headH * 0.15, waistY + 0.12 + headH / (frac * 2));
     const intent: CameraIntent = seated ? 'close' : spec.intent === 'over_shoulder' ? 'medium' : spec.intent;
-    for (const frac of fracs) for (const y of yaws) for (const lift of seated ? [0, 0.15, 0.3] : [0.1, 0.6, 1.1]) {
+    for (const frac of fracs) for (const y of yaws) for (const lift of seated ? [0, 0.15, 0.3] : [0.1, 0.6, 1.1, 2.0]) {
       const d = headH / (frac * 2 * tanV(38));
-      const t: Vec3 = seated ? [hc[0], hc[1] - headH * 0.15, hc[2]] : intent === 'medium' ? [hc[0], hc[1] - headH * 0.55, hc[2]] : [hc[0], hc[1] - headH * 0.2, hc[2]];
+      const t: Vec3 = seated ? [hc[0], seatAim(frac), hc[2]] : intent === 'medium' ? [hc[0], hc[1] - headH * 0.55, hc[2]] : [hc[0], hc[1] - headH * 0.2, hc[2]];
       push(seated ? 'seated_close' : intent, intent, t, y, d, lift, 38);
     }
+    // visible-face-side coverage for an actor whose face is turned to its eyeline target (listening / warning / the
+    // off-screen teacher): explicit three-quarter / motivated-profile intents at the SAME head-size band (never lower)
+    if (eyeline && !prone) {
+      const scaleBand: 'medium' | 'close' = !seated && spec.intent === 'medium' ? 'medium' : 'close';
+      const pf = seated ? [0.28, 0.32, 0.36] : scaleBand === 'medium' ? [0.2, 0.24, 0.28] : [0.3, 0.38, 0.46];
+      // reference: the face direction averaged over the whole shot (a head shake oscillates around it)
+      const ref = env?.actors[active]?.meanFaceYawDeg ?? faceYaw;
+      for (const off of [35, 50, 65, 80]) for (const sgn of [1, -1]) for (const frac of pf) for (const lift of seated ? [0.05, 0.25] : [-0.1, 0.3]) {
+        const pi: CameraIntent = off <= 45 ? 'three_quarter_profile' : 'motivated_profile';
+        const d = headH / (frac * 2 * tanV(38));
+        const t: Vec3 = seated ? [hc[0], seatAim(frac), hc[2]] : scaleBand === 'medium' ? [hc[0], hc[1] - headH * 0.5, hc[2]] : [hc[0], hc[1] - headH * 0.15, hc[2]];
+        push(pi === 'three_quarter_profile' ? 'three_quarter' : 'profile', pi, t, ref + sgn * off, d, lift, 38, { profileScale: scaleBand, eyelineTargetId: eyeline });
+      }
+    }
+  } else if (spec.intent === 'scale_reveal') {
+    // giant-prop scale reveal: frame the SWEPT prop + scale actor(s); orbit around the identity-face normal so the
+    // emblem and the thickness edge both read (15-78 deg off the face), low three-quarter / elevated corner / side comparison
+    const refs = spec.scaleRefs ?? required;
+    const idn = (scene.projectedEntities ?? []).find((e) => e.identity)?.identity;
+    if (!idn) return out;
+    const fn = idn.frontNormal, flat = Math.abs(fn[1]) > 0.7;
+    const baseYaw = flat ? 0 : Math.atan2(fn[0], fn[2]) / DEG;
+    const ids = [...new Set([...refs, ...scene.heroPropIds])];
+    for (const vk of env?.moves ? ['sw', 'mid'] : ['mid']) {
+      const content = union(ids.map((id) => (vk === 'sw' ? env?.bounds[id] : undefined) ?? bodies.get(id)).filter((b): b is Bounds3 => !!b));
+      if (!content) continue;
+      const cc = c(content), half = [(content.max[0] - content.min[0]) / 2, (content.max[1] - content.min[1]) / 2, (content.max[2] - content.min[2]) / 2];
+      for (const fov of [42, 62]) for (const k of [0.95, 1.2]) for (const off of [0, 15, -15, 35, -35, 60, -60]) for (const el of flat ? [0.7, 1.2] : [0.1, 0.3, 0.55]) {
+        const y = baseYaw + off, sy = Math.abs(Math.cos(y * DEG)) * half[0] + Math.abs(Math.sin(y * DEG)) * half[2];
+        const dist = Math.max((sy * k + 0.3) / (tanV(fov) * (9 / 16)), (half[1] * k + 0.3) / tanV(fov)) + Math.max(half[0], half[2]) * 0.7;
+        push(`scale_${vk}_f${fov}`, 'scale_reveal', cc, Math.round(y), dist, Math.min(dist * el, 3.9 - cc[1]), fov, { scaleReferenceIds: [...refs] });
+      }
+    }
   } else {
-    // wide / prop: fit the content (required actors + hero props, or the prop alone)
+    // wide / prop: fit the content (required actors + hero props, or the prop alone) over the SWEPT shot envelope
     const ids = spec.intent === 'prop' ? (scene.heroPropIds.length ? [...scene.heroPropIds, ...(spec.optional.includes(active) ? [] : [active])] : [active]) : [...new Set([...required, active, ...scene.heroPropIds])];
-    const content = union(ids.map((id) => bodies.get(id)).filter((b): b is Bounds3 => !!b));
-    if (!content) return out;
-    const cc = c(content), half = [(content.max[0] - content.min[0]) / 2, (content.max[1] - content.min[1]) / 2, (content.max[2] - content.min[2]) / 2];
+    const allIds = spec.intent === 'wide' ? [...new Set([...ids, ...spec.subjects])] : ids;
+    // content variants: mid-frame, swept required (the whole movement), swept incl. optional subjects (fully in frame)
+    const variants: Array<[string, Bounds3 | null]> = [['', union(ids.map((id) => bodies.get(id)).filter((b): b is Bounds3 => !!b))]];
+    if (env?.moves) variants.push(['sw', union(ids.map((id) => env.bounds[id] ?? bodies.get(id)).filter((b): b is Bounds3 => !!b))], ['swall', union(allIds.map((id) => env.bounds[id] ?? bodies.get(id)).filter((b): b is Bounds3 => !!b))]);
     const fov = spec.intent === 'wide' ? 42 : 38;
-    for (const k of spec.intent === 'wide' ? [1.05, 1.2, 1.4] : [1.3, 1.7, 2.2]) for (const y of [0, 20, -20, 40, -40, faceYaw, faceYaw + 30, faceYaw - 30]) for (const el of [0.25, 0.45]) {
-      const sy = Math.abs(Math.cos(y * DEG)) * half[0] + Math.abs(Math.sin(y * DEG)) * half[2];
-      const dist = Math.max((sy * k + 0.3) / (tanV(fov) * (9 / 16)), (half[1] * k + 0.3) / tanV(fov)) + Math.max(half[0], half[2]);
-      push(spec.intent === "wide" ? "wide" : "prop", spec.intent, cc, Math.round(y), dist, Math.min(dist * el, 3.7 - cc[1]), fov);
+    for (const [vk, content] of variants) {
+      if (!content) continue;
+      const cc = c(content), half = [(content.max[0] - content.min[0]) / 2, (content.max[1] - content.min[1]) / 2, (content.max[2] - content.min[2]) / 2];
+      for (const k of spec.intent === 'wide' ? [1.05, 1.2, 1.4] : [1.3, 1.7, 2.2]) for (const y of spec.intent === 'prop' ? [0, 20, -20, 40, -40, 65, -65, faceYaw, faceYaw + 30, faceYaw - 30] : [0, 20, -20, 40, -40, faceYaw, faceYaw + 30, faceYaw - 30]) for (const el of [0.25, 0.45]) {
+        const sy = Math.abs(Math.cos(y * DEG)) * half[0] + Math.abs(Math.sin(y * DEG)) * half[2];
+        const dist = Math.max((sy * k + 0.3) / (tanV(fov) * (9 / 16)), (half[1] * k + 0.3) / tanV(fov)) + Math.max(half[0], half[2]);
+        push(`${spec.intent === 'wide' ? 'wide' : 'prop'}${vk}`, spec.intent, cc, Math.round(y), dist, Math.min(dist * el, 3.7 - cc[1]), fov);
+      }
     }
   }
   return out;
 }
 
-export interface ShotCamera { id: string; intent: CameraIntent; kind: string; position: Vec3; target: Vec3; fovDeg: number }
-interface Ranked { cand: CameraCandidate; minScore: number; results: CameraSafetyResult[] }
+export interface ShotCamera {
+  id: string; intent: CameraIntent; kind: string; position: Vec3; target: Vec3; fovDeg: number;
+  /** static: one transform for the whole shot; tracking: one deterministic transform per owned frame */
+  motion: 'static' | 'tracking';
+  /** tracking only: [px, py, pz, tx, ty, tz] for every frame of `IntegratedShot.frames` (first → last) */
+  track?: number[][];
+  trackSubject?: string;
+  /** candidate fields the evaluator needs to reproduce the planning decision exactly at every frame */
+  eval: { activeSubjectId: string; requiresHeroProp: boolean; framedSubjectIds?: string[]; profileScale?: 'medium' | 'close'; eyelineTargetId?: string; scaleReferenceIds?: string[] };
+}
+/** a camera choice for one planned shot: static candidate, or a tracking trajectory over the shot's frames */
+interface Ranked { cand: CameraCandidate; minScore: number; results: CameraSafetyResult[]; track: TrackFrame[] | null; trackSubject?: string }
+export interface TrackFrame { position: Vec3; target: Vec3 }
+
+// ───────────────────────────── frame ownership / envelope ─────────────────────────────
+
+/** canonical frame ownership: frame i belongs to the shot with start <= i/fps < end (first frame = ceil(start*fps)) */
+export const firstFrameAt = (t: number, fps: number) => Math.max(0, Math.ceil(t * fps - 1e-6));
+export function shotFrames(start: number, end: number, fps: number, N: number, last = false): [number, number] {
+  const a = Math.min(N, Math.max(0, firstFrameAt(start, fps))), b = last ? N : Math.min(N, Math.max(a, firstFrameAt(end, fps)));
+  return [a, b];
+}
+
+/** swept geometry of one shot interval (every owned frame): what a static camera must stay valid for */
+export interface ShotEnvelope {
+  frames: [number, number];
+  bounds: Record<string, Bounds3>;
+  actors: Record<string, { bodySwept: Bounds3; headSwept: Bounds3; rootStart: Vec3; rootEnd: Vec3; displacementM: number; maxStepM: number; movementDir: Vec3 | null; postures: string[]; lookTargets: string[]; meanFaceYawDeg: number; faceYawRangeDeg: number; seated: boolean; waistY: number }>;
+  props: Record<string, { swept: Bounds3 | null; scale: [number, number] }>;
+  interaction: Bounds3 | null;
+  requiredFaceVisibility: number | null;
+  headHeightRange: [number, number] | null;
+  moves: boolean;
+}
+export function shotEnvelope(geos: FrameGeo[], a: number, b: number, spec: ShotSpec): ShotEnvelope {
+  const fr = geos.slice(a, b), bounds: Record<string, Bounds3> = {}, actors: ShotEnvelope['actors'] = {}, props: ShotEnvelope['props'] = {};
+  for (const id of Object.keys(fr[0].actors).sort()) {
+    const bs = fr.map((g) => g.actors[id]).filter(Boolean);
+    const body = union(bs.map((x) => union([x.body, x.head])!))!, head = union(bs.map((x) => x.head))!;
+    let step = 0;
+    for (let k = 1; k < bs.length; k++) step = Math.max(step, d3(bs[k].root, bs[k - 1].root));
+    const r0 = bs[0].root, r1 = bs[bs.length - 1].root, disp = d2(r0, r1);
+    let sx = 0, sz = 0;
+    const yaws = bs.map((x) => { const n = x.face.normal, l = Math.hypot(n[0], n[2]) || 1; sx += n[0] / l; sz += n[2] / l; return Math.atan2(n[0], n[2]) / DEG; });
+    const meanYaw = Math.atan2(sx, sz) / DEG, dev = Math.max(...yaws.map((y) => Math.abs(((y - meanYaw + 540) % 360) - 180)));
+    actors[id] = { bodySwept: body, headSwept: head, rootStart: [...r0] as Vec3, rootEnd: [...r1] as Vec3, displacementM: r4(disp), maxStepM: r4(step), movementDir: disp > 0.02 ? [r4((r1[0] - r0[0]) / disp), 0, r4((r1[2] - r0[2]) / disp)] : null, postures: [...new Set(bs.map((x) => x.posture))], lookTargets: [...new Set(bs.map((x) => x.lookTarget ?? 'none'))], meanFaceYawDeg: r3(meanYaw), faceYawRangeDeg: r3(dev), seated: bs.some((x) => x.waistUp), waistY: r4(Math.max(...bs.map((x) => x.waistY))) };
+    bounds[id] = body;
+  }
+  for (const id of PROP_OBSTACLES) {
+    const bs = fr.map((g) => g.props[id]).filter((x): x is Bounds3 => !!x);
+    props[id] = { swept: union(bs), scale: id === 'coin' ? [r4(Math.min(...fr.map((g) => g.coinScale))), r4(Math.max(...fr.map((g) => g.coinScale)))] : [1, 1] };
+    if (bs.length) bounds[id] = union(bs)!;
+  }
+  const ints = fr.map((g) => g.interaction).filter((x): x is Vec3 => !!x).map((q) => pad(q, 0.05));
+  const band = CAMERA_SAFETY_DEFAULTS.headHeight[spec.intent];
+  const moves = Object.values(actors).some((x) => x.displacementM > 0.05) || Object.values(props).some((x) => x.scale[1] - x.scale[0] > 0.01);
+  return { frames: [a, b], bounds, actors, props, interaction: union(ints), requiredFaceVisibility: spec.intent === 'wide' || spec.intent === 'prop' || spec.intent === 'scale_reveal' ? null : CAMERA_SAFETY_DEFAULTS.minFaceVisibility, headHeightRange: band[1] > 5 ? null : band, moves };
+}
+
+/** planning sample frames: first, last, events, mark arrivals/departures, pose/expression transitions, every <=100 ms */
+export function planSampleFrames(plan: WorldPlan, a: number, b: number): number[] {
+  const fps = plan.fps, set = new Set<number>([a, b - 1]);
+  for (let k = a; k < b; k += CAMERA_SAMPLE_FRAMES) set.add(k);
+  const at = (t: number) => { const k = firstFrameAt(t, fps); if (k >= a && k < b) set.add(k); if (k - 1 >= a && k - 1 < b) set.add(k - 1); };
+  for (const e of plan.events) at(e.t);
+  for (const act of Object.values(plan.actors)) for (const q of act.segs) { at(q.t0); at(q.t1); }
+  for (const x of plan.instances) { at(x.t0); at(x.t1); }
+  return [...set].sort((x, y) => x - y);
+}
+
+/** per-candidate planning trace (diagnostics only; never changes a decision) */
+export interface CandidateTrace {
+  id: string; intent: CameraIntent; samplesPassed: number; failedAtFrame: number | null; accepted: boolean; reasons: string[];
+  metrics: { faceVisibilityMin: number | null; headHeightPctMin: number | null; heroPropVisibilityMin: number | null; foregroundClutter: number; lensClearanceM: number; screenDirection: string };
+}
+export interface ShotTrace { shotId: string; sampleFrames: number[]; spec: ShotSpec; candidatesAttempted: number; candidates: CandidateTrace[] }
+function candidateMetrics(r: CameraSafetyResult, spec: ShotSpec): CandidateTrace['metrics'] {
+  const req = r.diagnostics.requiredSubjects.filter((id) => r.faceVisibility[id] !== undefined);
+  const hh = Object.values(r.diagnostics.requiredHeadHeightPct);
+  const pv = spec.heroProps.map((id) => r.propVisibility[id]).filter((v) => v !== undefined);
+  return {
+    faceVisibilityMin: req.length ? Math.min(...req.map((id) => r.faceVisibility[id])) : null, headHeightPctMin: hh.length ? Math.min(...hh) : null,
+    heroPropVisibilityMin: pv.length ? Math.min(...pv) : null, foregroundClutter: r.foregroundCoverage, lensClearanceM: r.lensClearance, screenDirection: r.screenDirectionResult,
+  };
+}
+
+/** exported for tests / diagnostics: the deterministic tracking trajectory builder */
+export const buildTrackingTrajectory = (seed: CameraCandidate, geos: FrameGeo[], a: number, b: number, subject: string, sd: ScreenDirectionState | undefined) => trackFrom(seed, geos, a, b, subject, sd);
 
 function inCameraVolume(prod: Production, p: Vec3): boolean {
   const cs = prod.env.manifest.cameraSafe;
   return p[0] >= cs.min[0] && p[0] <= cs.max[0] && p[1] >= cs.min[1] && p[1] <= cs.max[1] && p[2] >= cs.min[2] && p[2] <= cs.max[2];
 }
 
-/** every candidate evaluated on the posed scene at EVERY sample of the shot; only fully accepted candidates survive */
-function rankOverShot(prod: Production, geos: FrameGeo[], spec: ShotSpec, W: number, H: number, sd: ScreenDirectionState | undefined, shotId: string, limit = 8): { ranked: Ranked[]; rejections: Record<string, number>; evaluated: number } {
-  const mid = geos[Math.floor(geos.length / 2)];
-  const cands = candidatesFor(cameraScene(mid, spec, W, H, sd), spec, shotId).filter((c) => inCameraVolume(prod, c.transform.position));
-  const rejections: Record<string, number> = {};
-  const ranked: Ranked[] = [];
-  let evaluated = 0;
-  for (const c of cands.sort((a, b) => (a.id < b.id ? -1 : 1))) {
-    const results: CameraSafetyResult[] = [];
-    let ok = true;
-    // mid first (cheap rejection), then every sample (first sample carries the previous shot's screen direction)
-    for (const g of [mid, ...geos]) {
-      const r = evaluateCameraCandidate(cameraScene(g, spec, W, H, g === geos[0] ? sd : { ...sd, previousCameraSide: undefined }), c); evaluated++;
-      results.push(r);
-      if (!r.accepted) { ok = false; for (const x of r.rejectionReasons) { const k = x.split(':')[0]; rejections[k] = (rejections[k] ?? 0) + 1; } break; }
-    }
-    if (ok) ranked.push({ cand: c, minScore: Math.min(...results.map((r) => r.score)), results: results.slice(1) });
+/** the eyeline entity of an actor: its current world look target, re-resolved at every frame */
+const lookEntity = (g: FrameGeo, id: string): string | null => (g.actors[id]?.lookTarget ? `eyeline:${id}` : null);
+/** candidate for frame k of a choice (static: the same transform; tracking: that frame's transform + the lens path) */
+function candAtFrame(r: Pick<Ranked, 'cand' | 'track'>, k: number, a: number): CameraCandidate {
+  if (!r.track) return r.cand;
+  const f = r.track[k - a];
+  return { ...r.cand, transform: { position: f.position }, target: f.target, ...(k > a ? { lensPath: [r.track[k - a - 1].position] } : {}) };
+}
+/** evaluate a choice on the listed frames (first owned frame carries the previous shot's screen direction) */
+function evalFrames(r: Pick<Ranked, 'cand' | 'track'>, frames: number[], geos: FrameGeo[], spec: ShotSpec, W: number, H: number, sd: ScreenDirectionState | undefined, a: number, counter: { n: number }): { ok: boolean; results: CameraSafetyResult[]; failedAt: number | null } {
+  const results: CameraSafetyResult[] = [];
+  for (const k of frames) {
+    const res = evaluateCameraCandidate(cameraScene(geos[k], spec, W, H, k === a ? sd : { ...sd, previousCameraSide: undefined }), candAtFrame(r, k, a)); counter.n++;
+    results.push(res);
+    if (!res.accepted) return { ok: false, results, failedAt: k };
   }
-  ranked.sort((a, b) => b.minScore - a.minScore || (a.cand.id < b.cand.id ? -1 : 1));
-  return { ranked: ranked.slice(0, limit), rejections, evaluated };
+  return { ok: true, results, failedAt: null };
+}
+
+/**
+ * Deterministic tracking trajectory from a static seed camera: the seed's offset from the subject anchor (active actor
+ * head, or hero-prop centre) is kept, the anchor is smoothed with a centred moving average, and for a growing prop the
+ * offset scales with the (smoothed) prop size (pull-back). Rejected if any per-frame lens/aim step exceeds
+ * MAX_TRACK_STEP_M (no teleport) or the camera changes side of the action axis (screen direction).
+ */
+function trackFrom(seed: CameraCandidate, geos: FrameGeo[], a: number, b: number, subject: string, sd: ScreenDirectionState | undefined): { track: TrackFrame[] | null; reason: string | null } {
+  const anchorAt = (g: FrameGeo): Vec3 | null => { const x = g.actors[subject]; if (x) return [(x.head.min[0] + x.head.max[0]) / 2, (x.head.min[1] + x.head.max[1]) / 2, (x.head.min[2] + x.head.max[2]) / 2]; const q = g.props[subject]; return q ? [(q.min[0] + q.max[0]) / 2, (q.min[1] + q.max[1]) / 2, (q.min[2] + q.max[2]) / 2] : null; };
+  const sizeAt = (g: FrameGeo): number => { const q = g.props[subject]; return !g.actors[subject] && q ? Math.max(q.max[0] - q.min[0], q.max[1] - q.min[1], q.max[2] - q.min[2]) : 1; };
+  const raw: Vec3[] = [], size: number[] = [];
+  for (let k = a; k < b; k++) { const p = anchorAt(geos[k]); if (!p) return { track: null, reason: 'TRACK_SUBJECT_MISSING' }; raw.push(p); size.push(sizeAt(geos[k])); }
+  const isProp = !geos[a].actors[subject], W = isProp ? 15 : TRACK_SMOOTH_FRAMES, n = raw.length;
+  const sm = raw.map((_, k) => { let x = 0, y = 0, z = 0, m = 0, sz = 0; for (let j = Math.max(0, k - W); j <= Math.min(n - 1, k + W); j++) { x += raw[j][0]; y += raw[j][1]; z += raw[j][2]; sz += size[j]; m++; } return { p: [x / m, y / m, z / m] as Vec3, s: sz / m }; });
+  const mid = Math.floor(n / 2), s0 = sm[mid].s;
+  const off: Vec3 = [seed.transform.position[0] - sm[mid].p[0], seed.transform.position[1] - sm[mid].p[1], seed.transform.position[2] - sm[mid].p[2]];
+  const aim: Vec3 = [seed.target[0] - sm[mid].p[0], seed.target[1] - sm[mid].p[1], seed.target[2] - sm[mid].p[2]];
+  // growing prop: pull back with the square root of the size ratio (the prop grows on screen but stays framed)
+  const track: TrackFrame[] = sm.map(({ p, s: sz }) => { const k = Math.max(0.4, Math.min(2.5, Math.pow(sz / s0, 0.35))); return { position: [r4(p[0] + off[0] * k), r4(p[1] + off[1] * k), r4(p[2] + off[2] * k)] as Vec3, target: [r4(p[0] + aim[0] * k), r4(p[1] + aim[1] * k), r4(p[2] + aim[2] * k)] as Vec3 }; });
+  for (let k = 1; k < n; k++) if (d3(track[k].position, track[k - 1].position) > MAX_TRACK_STEP_M || d3(track[k].target, track[k - 1].target) > MAX_TRACK_STEP_M) return { track: null, reason: `TRACKING_STEP_TOO_LARGE:frame ${a + k}` };
+  let side: string | null = null;
+  for (let k = 0; k < n; k++) {
+    const g = geos[a + k], acts = ['zapp', 'kira'].filter((id) => g.actors[id]).map((id) => ({ id, position: g.actors[id].root }));
+    const sNow = cameraAxisSide({ ...(sd ?? {}), actors: acts }, track[k].position);
+    if (sNow === 'left' || sNow === 'right') { if (side && sNow !== side) return { track: null, reason: `TRACKING_SCREEN_DIRECTION_FLIP:frame ${a + k}` }; side = sNow; }
+  }
+  return { track, reason: null };
+}
+
+
+/**
+ * Plan one shot over its WHOLE interval: candidates are ranked on the planning samples (first/last/events/marks/pose
+ * transitions/<=100 ms), then validated on EVERY owned frame; only fully valid candidates survive. If no static camera
+ * survives and the subject moves (swept envelope), deterministic tracking candidates are generated and validated the
+ * same way (plus the lens path between consecutive frames).
+ */
+function rankOverShot(prod: Production, plan: WorldPlan, geos: FrameGeo[], a: number, b: number, spec: ShotSpec, W: number, H: number, sd: ScreenDirectionState | undefined, shotId: string, trace?: ShotTrace[]): { ranked: Ranked[]; rejections: Record<string, number>; evaluated: number; envelope: ShotEnvelope; tracking: string } {
+  const env = shotEnvelope(geos, a, b, spec);
+  const samples = planSampleFrames(plan, a, b), all = Array.from({ length: b - a }, (_, k) => a + k);
+  const midK = samples[Math.floor(samples.length / 2)], mid = geos[midK];
+  const eyeline = lookEntity(mid, spec.active);
+  const cands = candidatesFor(cameraScene(mid, spec, W, H, sd), spec, shotId, env, eyeline).filter((c) => inCameraVolume(prod, c.transform.position));
+  const rejections: Record<string, number> = {};
+  const counter = { n: 0 };
+  const tr: ShotTrace | undefined = trace ? { shotId, sampleFrames: samples, spec, candidatesAttempted: 0, candidates: [] } : undefined;
+  const note = (r: Ranked | { cand: CameraCandidate; track: TrackFrame[] | null }, e: { ok: boolean; results: CameraSafetyResult[]; failedAt: number | null }, stage: string) => {
+    if (!e.ok) for (const x of e.results[e.results.length - 1].rejectionReasons) { const k = x.split(':')[0]; rejections[k] = (rejections[k] ?? 0) + 1; }
+    if (tr) { const last = e.results[e.results.length - 1]; tr.candidatesAttempted++; tr.candidates.push({ id: `${r.cand.id}${r.track ? ':tracking' : ''}@${stage}`, intent: r.cand.intent, samplesPassed: e.results.length - (e.ok ? 0 : 1), failedAtFrame: e.failedAt, accepted: e.ok, reasons: e.ok ? [] : last.rejectionReasons, metrics: candidateMetrics(last, spec) }); }
+  };
+  const run = (list: Array<{ cand: CameraCandidate; track: TrackFrame[] | null; trackSubject?: string }>): Ranked[] => {
+    const sparse: Ranked[] = [];
+    for (const r of list) {
+      const e = evalFrames(r, [midK, ...samples.filter((k) => k !== midK)], geos, spec, W, H, sd, a, counter);
+      if (!e.ok) { note(r, e, 'samples'); continue; }
+      sparse.push({ ...r, minScore: Math.min(...e.results.map((x) => x.score)), results: e.results });
+    }
+    sparse.sort((x, y) => y.minScore - x.minScore || (x.cand.id < y.cand.id ? -1 : 1));
+    const full: Ranked[] = [];
+    for (const r of sparse) {
+      if (full.length >= FULL_VALIDATED_PER_SHOT) break;
+      const e = evalFrames(r, all, geos, spec, W, H, sd, a, counter);
+      note(r, e, 'every-frame');
+      if (e.ok) full.push({ ...r, minScore: Math.min(...e.results.map((x) => x.score)), results: e.results });
+    }
+    return full.sort((x, y) => y.minScore - x.minScore || (x.cand.id < y.cand.id ? -1 : 1));
+  };
+  const statics = cands.sort((x, y) => (x.id < y.id ? -1 : 1)).map((cand) => ({ cand, track: null }));
+  let ranked = run(statics), tracking = 'not needed';
+  if (!ranked.length && env.moves) {
+    // static coverage failed on a moving subject: follow the active actor (or the growing hero prop for prop-led beats)
+    const subject = (spec.intent === 'scale_reveal' || spec.intent === 'prop') && spec.heroProps.length && (env.props[spec.heroProps[0]]?.scale[1] ?? 1) - (env.props[spec.heroProps[0]]?.scale[0] ?? 1) > 0.01 ? spec.heroProps[0] : spec.active;
+    const tracks: Array<{ cand: CameraCandidate; track: TrackFrame[]; trackSubject: string }> = [];
+    const why: Record<string, number> = {};
+    for (const { cand } of statics) {
+      const t = trackFrom(cand, geos, a, b, subject, sd);
+      if (!t.track) { const k = t.reason!.split(':')[0]; why[k] = (why[k] ?? 0) + 1; continue; }
+      if (!t.track.every((f) => inCameraVolume(prod, f.position))) { why.TRACK_OUTSIDE_CAMERA_VOLUME = (why.TRACK_OUTSIDE_CAMERA_VOLUME ?? 0) + 1; continue; }
+      tracks.push({ cand: { ...cand, id: `${cand.id}:track:${subject}`, transform: { position: t.track[0].position }, target: t.track[0].target }, track: t.track, trackSubject: subject });
+    }
+    ranked = run(tracks);
+    tracking = ranked.length ? `tracking ${subject} (static failed on moving subject)` : `tracking attempted on ${subject}: ${tracks.length} trajectories, none valid${Object.keys(why).length ? ` (${Object.entries(why).map(([k, v]) => `${k}×${v}`).join(', ')})` : ''}`;
+    for (const [k, v] of Object.entries(why)) rejections[k] = (rejections[k] ?? 0) + v;
+  }
+  if (tr) trace!.push(tr);
+  return { ranked, rejections, evaluated: counter.n, envelope: env, tracking };
 }
 
 // ───────────────────────────── caption projection ─────────────────────────────
@@ -378,7 +650,7 @@ export function coordinateChunk<T>(lists: T[][], place: (choice: T[]) => Caption
 
 // ───────────────────────────── integrated timeline ─────────────────────────────
 
-export interface IntegratedShot { id: string; sourceShot: string; start: number; end: number; phraseId: string; chunkId: string; spec: ShotSpec; camera: ShotCamera | null; coverage: 'single' | 'sequential_speaker' | 'sequential_listener'; blocked: string | null; screenDirection: string; minScore: number | null; droppedOptional: string[]; cameraRejections: Record<string, number> }
+export interface IntegratedShot { id: string; sourceShot: string; start: number; end: number; frames: [number, number]; phraseId: string; chunkId: string; spec: ShotSpec; camera: ShotCamera | null; coverage: 'single' | 'sequential_speaker' | 'sequential_listener'; blocked: string | null; screenDirection: string; minScore: number | null; droppedOptional: string[]; cameraRejections: Record<string, number>; tracking: string; envelope: { moves: boolean; actors: Record<string, { displacementM: number; maxStepM: number; postures: string[] }>; coinScale: [number, number] } }
 export type IntegratedCaption = CaptionEvent;
 export interface IntegratedTimeline {
   schema: typeof INTEGRATED_TIMELINE_SCHEMA; storyboardId: string; storyboardSha256: string; audioHash: string; seed: number; fps: number; frames: number; width: number; height: number;
@@ -386,7 +658,7 @@ export interface IntegratedTimeline {
   sequentialCoverage: Array<{ sourceShot: string; phraseId: string; reason: string; split: [string, string] | null; outcome: string }>;
 }
 
-export interface IntegrationInput { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldPlan; prod: Production; width: number; height: number; onProgress?: (stage: string, done: number, total: number) => void }
+export interface IntegrationInput { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldPlan; prod: Production; width: number; height: number; onProgress?: (stage: string, done: number, total: number) => void; trace?: ShotTrace[] }
 export interface IntegrationResult { timeline: IntegratedTimeline; analysis: ReturnType<typeof analyze>; geos: FrameGeo[] }
 
 export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
@@ -420,70 +692,84 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
   const shots: IntegratedShot[] = [], placements: IntegratedTimeline['captionPlacements'] = [], seq: IntegratedTimeline['sequentialCoverage'] = [];
   const captions: IntegratedCaption[] = [];
   let sd: ScreenDirectionState | undefined;
-  const frameRange = (s: number, e: number) => { const a = Math.round(s * fps), b = Math.max(a + 1, Math.min(N, Math.round(e * fps))); return [a, b] as const; };
-  const samplesOf = (s: number, e: number) => { const [a, b] = frameRange(s, e); const out: FrameGeo[] = []; for (let k = a; k < b; k += CAMERA_SAMPLE_FRAMES) out.push(geos[k]); if (out[out.length - 1] !== geos[b - 1]) out.push(geos[b - 1]); return out; };
+  const lastSrc = tl.shots[tl.shots.length - 1];
+  const framesOf = (s0: number, e0: number, last = false) => shotFrames(s0, e0, fps, N, last);
   const byPhraseIdx = new Map<string, number>();
   const chunkIds = [...new Set(tl.shots.map((s) => s.chunkId))];
   let chunkNo = 0;
+  const shotCam = (r: Ranked, spec: ShotSpec): ShotCamera => {
+    const c = r.cand;
+    return {
+      id: c.id, intent: c.intent, kind: c.id.split(':')[1], position: (r.track ? r.track[0].position : c.transform.position).map(r4) as Vec3, target: (r.track ? r.track[0].target : c.target).map(r4) as Vec3, fovDeg: c.fov,
+      motion: r.track ? 'tracking' : 'static', ...(r.track ? { track: r.track.map((f) => [...f.position, ...f.target].map(r4)), trackSubject: r.trackSubject } : {}),
+      eval: { activeSubjectId: c.activeSubjectId ?? spec.active, requiresHeroProp: !!c.requiresHeroProp, ...(c.framedSubjectIds ? { framedSubjectIds: [...c.framedSubjectIds] } : {}), ...(c.profileScale ? { profileScale: c.profileScale } : {}), ...(c.eyelineTargetId ? { eyelineTargetId: c.eyelineTargetId } : {}), ...(c.scaleReferenceIds ? { scaleReferenceIds: [...c.scaleReferenceIds] } : {}) },
+    };
+  };
   for (const chunkId of chunkIds) {
     inp.onProgress?.('cameras', chunkNo++, chunkIds.length);
     const src = tl.shots.filter((s) => s.chunkId === chunkId);
     const cap = tl.captions.find((c) => c.chunkId === chunkId)!;
     // build the shot list for this chunk (sequential coverage may split a source shot in two)
-    type Plan = { id: string; sourceShot: string; start: number; end: number; phraseId: string; spec: ShotSpec; coverage: IntegratedShot['coverage']; ranked: Ranked[]; rej: Record<string, number> };
+    type Plan = { id: string; sourceShot: string; start: number; end: number; frames: [number, number]; phraseId: string; spec: ShotSpec; coverage: IntegratedShot['coverage']; ranked: Ranked[]; rej: Record<string, number>; env: ShotEnvelope; tracking: string };
     const planned: Plan[] = [];
     let sdLocal = sd;
     for (const s of src) {
       const p = phrase.get(s.phraseId)!, k = byPhraseIdx.get(p.id) ?? 0; byPhraseIdx.set(p.id, k + 1);
-      const facts = windowFacts(plan, s.start, s.end, p.id === sb.script.phrases[0].id, s === tl.shots[tl.shots.length - 1]);
-      const geosS = samplesOf(s.start, s.end), spec = shotSpec(p, facts, geosS[Math.floor(geosS.length / 2)], k);
-      const rk = rankOverShot(prod, geosS, spec, W, H, sdLocal, s.id);
+      const isLast = s === lastSrc, fr = framesOf(s.start, s.end, isLast);
+      const facts = windowFacts(plan, s.start, s.end, p.id === sb.script.phrases[0].id, isLast);
+      const spec = shotSpec(p, facts, geos[Math.floor((fr[0] + fr[1] - 1) / 2)], k);
+      const rk = rankOverShot(prod, plan, geos, fr[0], fr[1], spec, W, H, sdLocal, s.id, inp.trace);
       const required = spec.subjects.filter((x) => !spec.optional.includes(x));
       if (rk.ranked.length || required.length < 2 || s.end - s.start < 2 * MIN_SHOT_SEC) {
-        planned.push({ id: s.id, sourceShot: s.id, start: s.start, end: s.end, phraseId: s.phraseId, spec, coverage: 'single', ranked: rk.ranked, rej: rk.rejections });
+        planned.push({ id: s.id, sourceShot: s.id, start: s.start, end: s.end, frames: fr, phraseId: s.phraseId, spec, coverage: 'single', ranked: rk.ranked, rej: rk.rejections, env: rk.envelope, tracking: rk.tracking });
         if (!rk.ranked.length && required.length >= 2) seq.push({ sourceShot: s.id, phraseId: p.id, reason: 'two required actors; no safe simultaneous camera', split: null, outcome: 'blocked: shot too short for sequential coverage' });
       } else {
-        // sequential coverage inside the same interval: speaker/active first, listener/affected reaction second
-        const mid = r3((s.start + s.end) / 2), other = required.find((x) => x !== spec.active)!;
+        // sequential coverage inside the same interval (same caption/audio, same continuous world): speaker/active
+        // first, listener/affected reaction second — each individually meets its own head-size and visibility rules
+        const midT = r3((s.start + s.end) / 2), other = required.find((x) => x !== spec.active)!;
+        const frA = framesOf(s.start, midT), frB = framesOf(midT, s.end, isLast);
         const a: ShotSpec = { ...spec, intent: spec.intent === 'wide' ? 'wide' : 'medium', subjects: [spec.active, other], optional: [other], reason: `${spec.reason} — sequential 1/2: ${spec.active}` };
         const b: ShotSpec = { ...spec, intent: 'reaction', active: other, subjects: [other, spec.active], optional: [spec.active], heroProps: [], requiresHeroProp: false, reason: `${spec.reason} — sequential 2/2: ${other} reaction` };
-        const ra = rankOverShot(prod, samplesOf(s.start, mid), a, W, H, sdLocal, `${s.id}a`);
-        const rb = rankOverShot(prod, samplesOf(mid, s.end), b, W, H, undefined, `${s.id}b`);
+        const ra = rankOverShot(prod, plan, geos, frA[0], frA[1], a, W, H, sdLocal, `${s.id}a`, inp.trace);
+        const sdMid = ra.ranked[0] ? nextScreenDirectionState(cameraScene(geos[frA[1] - 1], a, W, H, sdLocal), candAtFrame(ra.ranked[0], frA[1] - 1, frA[0])) : undefined;
+        const rb = rankOverShot(prod, plan, geos, frB[0], frB[1], b, W, H, sdMid, `${s.id}b`, inp.trace);
         const ok = ra.ranked.length > 0 && rb.ranked.length > 0;
         seq.push({ sourceShot: s.id, phraseId: p.id, reason: `two required actors (${spec.active}, ${other}); no readable simultaneous portrait medium (rejections: ${Object.entries(rk.rejections).sort((x, y) => y[1] - x[1]).slice(0, 3).map(([k2, v]) => `${k2}×${v}`).join(', ') || 'none'})`, split: [`${s.id}a`, `${s.id}b`], outcome: ok ? 'sequential coverage accepted' : 'blocked: no safe sequential coverage' });
-        planned.push({ id: `${s.id}a`, sourceShot: s.id, start: s.start, end: mid, phraseId: s.phraseId, spec: a, coverage: 'sequential_speaker', ranked: ra.ranked, rej: ra.rejections });
-        planned.push({ id: `${s.id}b`, sourceShot: s.id, start: mid, end: s.end, phraseId: s.phraseId, spec: b, coverage: 'sequential_listener', ranked: rb.ranked, rej: rb.rejections });
+        planned.push({ id: `${s.id}a`, sourceShot: s.id, start: s.start, end: midT, frames: frA, phraseId: s.phraseId, spec: a, coverage: 'sequential_speaker', ranked: ra.ranked, rej: ra.rejections, env: ra.envelope, tracking: ra.tracking });
+        planned.push({ id: `${s.id}b`, sourceShot: s.id, start: midT, end: s.end, frames: frB, phraseId: s.phraseId, spec: b, coverage: 'sequential_listener', ranked: rb.ranked, rej: rb.rejections, env: rb.envelope, tracking: rb.tracking });
       }
-      const best = planned[planned.length - 1].ranked[0];
-      if (best) sdLocal = nextScreenDirectionState(cameraScene(geos[frameRange(s.start, s.end)[1] - 1], planned[planned.length - 1].spec, W, H, sdLocal), best.cand);
+      const q = planned[planned.length - 1], best = q.ranked[0];
+      if (best) sdLocal = nextScreenDirectionState(cameraScene(geos[q.frames[1] - 1], q.spec, W, H, sdLocal), candAtFrame(best, q.frames[1] - 1, q.frames[0]));
     }
-    // caption co-ordination: choose a camera per shot so the chunk has a hard-rule-safe caption band
-    const [ca, cb] = frameRange(cap.start, cap.end);
-    const tryPlace = (choice: CameraCandidate[]): CaptionPlacementResult => {
+    // caption co-ordination over EVERY frame of the chunk, each frame projected through the camera active at that frame
+    const [ca, cb] = framesOf(cap.start, cap.end, cap === tl.captions[tl.captions.length - 1]);
+    const owner = (k: number) => planned.findIndex((q) => k >= q.frames[0] && k < q.frames[1]);
+    const tryPlace = (choice: Ranked[]): CaptionPlacementResult => {
       const frames = [];
       for (let k = ca; k < cb; k += CAPTION_SAMPLE_FRAMES) {
-        const t = k / fps, j = planned.findIndex((q) => t >= q.start - 1e-9 && t < q.end - 1e-9);
+        const j = owner(k);
         if (j < 0) continue;
-        frames.push({ time: t, occupied: occupiedRegions(geos[k], planned[j].spec, choice[j], W, H) });
+        frames.push({ time: k / fps, occupied: occupiedRegions(geos[k], planned[j].spec, candAtFrame(choice[j], k, planned[j].frames[0]), W, H) });
       }
       return placeCaption({ frameWidth: W, frameHeight: H, lines: cap.lines, chunkStart: cap.start, chunkEnd: cap.end, frames });
     };
-    const lists = planned.map((q) => q.ranked.map((r) => r.cand));
-    const co = coordinateChunk(lists, tryPlace);
+    const co = coordinateChunk(planned.map((q) => q.ranked), tryPlace);
     const chosen = co.chosen, retries = co.retries, capBlocked = co.blocked;
     const pl = co.placement;
     placements.push({ chunkId, band: pl?.band ?? 'none', centerY: pl?.centerY ?? NaN, violations: pl?.violations ?? [], warnings: pl?.warnings ?? [], overlap: pl?.overlapMetrics ?? {}, cameraRetries: retries, blocked: capBlocked });
-    captions.push(pl && !capBlocked ? { ...cap, lines: [...cap.lines], emphasisWords: [...cap.emphasisWords], placement: { centerY: pl.centerY } } : { ...cap, lines: [...cap.lines], emphasisWords: [...cap.emphasisWords] });
+    captions.push(pl && !capBlocked && chosen ? { ...cap, lines: [...cap.lines], emphasisWords: [...cap.emphasisWords], placement: { centerY: pl.centerY } } : { ...cap, lines: [...cap.lines], emphasisWords: [...cap.emphasisWords] });
     planned.forEach((q, j) => {
-      const c = chosen?.[j] ?? q.ranked[0]?.cand ?? null, r = c ? q.ranked.find((x) => x.cand === c)! : null;
-      const g0 = geos[frameRange(q.start, q.end)[0]];
-      const sdRes = c ? evaluateCameraCandidate(cameraScene(g0, q.spec, W, H, sd), c).screenDirectionResult : 'n/a';
+      // a camera is kept only when its chunk has a hard-rule-safe caption band (no unresolved CAPTION_PLACEMENT_CONFLICT)
+      const r = chosen ? chosen[j] : null;
+      const sdRes = r ? evaluateCameraCandidate(cameraScene(geos[q.frames[0]], q.spec, W, H, sd), candAtFrame(r, q.frames[0], q.frames[0])).screenDirectionResult : 'n/a';
       shots.push({
-        id: q.id, sourceShot: q.sourceShot, start: q.start, end: q.end, phraseId: q.phraseId, chunkId, spec: q.spec, coverage: q.coverage,
-        camera: c ? { id: c.id, intent: c.intent, kind: c.id.split(':')[1], position: c.transform.position.map(r4) as Vec3, target: c.target.map(r4) as Vec3, fovDeg: c.fov } : null,
-        blocked: c ? null : 'CAMERA_SAFETY_BLOCKED', screenDirection: sdRes, minScore: r ? r4(r.minScore) : null, droppedOptional: r ? [...new Set(r.results.flatMap((x) => x.diagnostics.droppedOptionalSubjects))].sort() : [], cameraRejections: q.rej,
+        id: q.id, sourceShot: q.sourceShot, start: q.start, end: q.end, frames: q.frames, phraseId: q.phraseId, chunkId, spec: q.spec, coverage: q.coverage,
+        camera: r ? shotCam(r, q.spec) : null,
+        blocked: r ? null : q.ranked.length ? 'CAPTION_CAMERA_COMPOSITION_BLOCKED' : 'CAMERA_SAFETY_BLOCKED', screenDirection: sdRes, minScore: r ? r4(r.minScore) : null,
+        droppedOptional: r ? [...new Set(r.results.flatMap((x) => x.diagnostics.droppedOptionalSubjects))].sort() : [], cameraRejections: q.rej, tracking: q.tracking,
+        envelope: { moves: q.env.moves, actors: Object.fromEntries(Object.entries(q.env.actors).map(([id, v]) => [id, { displacementM: v.displacementM, maxStepM: v.maxStepM, postures: v.postures }])), coinScale: q.env.props.coin?.scale ?? [0, 0] },
       });
-      if (c) sd = nextScreenDirectionState(cameraScene(geos[frameRange(q.start, q.end)[1] - 1], q.spec, W, H, sd), c);
+      if (r) sd = nextScreenDirectionState(cameraScene(geos[q.frames[1] - 1], q.spec, W, H, sd), candAtFrame(r, q.frames[1] - 1, q.frames[0]));
     });
   }
   const timeline: IntegratedTimeline = { schema: INTEGRATED_TIMELINE_SCHEMA, storyboardId: sb.id, storyboardSha256: tl.storyboardSha256, audioHash: tl.audioHash, seed: sb.seed, fps, frames: N, width: W, height: H, shots, captions, captionPlacements: placements, sequentialCoverage: seq };
@@ -561,17 +847,27 @@ function analyze(x: { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldP
   g('W18', 'world', 'coin keeps its thickness (uniform scale)', thkDev <= 1e-4 && !adapterBlocking.includes('NON_UNIFORM_PROP_SCALE'), `thickness/radius ratio spread ${thkDev.toExponential(2)} (diagnostics rounded to 1e-6 m); final thickness ${coinFinal?.thicknessM} m`);
   g('W19', 'world', 'no adapter blocking diagnostics', adapterBlocking.length === 0, adapterBlocking.join(', ') || 'none');
   // ---- camera: the chosen camera re-evaluated on the posed scene at EVERY frame ----
-  const shotAt = (t: number) => timeline.shots.find((s) => t >= s.start - 1e-9 && t < s.end - 1e-9) ?? timeline.shots[timeline.shots.length - 1];
-  const cam = { collisions: 0, pathCollisions: 0, faceMin: Infinity, faceMinAt: 0, propMin: Infinity, propMinAt: 0, clutterMax: 0, clutterAt: 0, headCropped: 0, subjectSmall: 0, screenDir: 0, requiredDropped: 0, occlusion: 0, frames: 0, rejectedFrames: [] as Array<{ t: number; shot: string; reasons: string[] }>, headHeights: {} as Record<string, { min: number; max: number }> };
+  // canonical frame ownership (the same ceil(start*fps) rule the planner and cameraAt use): every frame has one owner
+  const ownerOf: number[] = new Array(N).fill(-1);
+  const overlaps: number[] = [];
+  timeline.shots.forEach((s, k) => { for (let i = s.frames[0]; i < s.frames[1]; i++) { if (ownerOf[i] >= 0) overlaps.push(i); ownerOf[i] = k; } });
+  const gaps = ownerOf.map((o, i) => (o < 0 ? i : -1)).filter((i) => i >= 0);
+  const fc = { totalFrames: N, assigned: N - gaps.length, withCamera: 0, evaluated: 0, passing: 0, failing: 0, firstFailingFrame: null as number | null, lastFailingFrame: null as number | null, failuresByShot: {} as Record<string, number>, gaps: gaps.slice(0, 20), gapCount: gaps.length, overlapCount: overlaps.length, ownership: 'frame i -> shot with start <= i/fps < end (first frame = ceil(start*fps)); last shot owns through the final frame', trackingFrames: 0 };
+  const failFrame = (i: number, shot: string) => { fc.failing++; fc.firstFailingFrame ??= i; fc.lastFailingFrame = i; fc.failuresByShot[shot] = (fc.failuresByShot[shot] ?? 0) + 1; };
+  const cam = { nonFaceMin: Infinity, collisions: 0, pathCollisions: 0, faceMin: Infinity, faceMinAt: 0, propMin: Infinity, propMinAt: 0, clutterMax: 0, clutterAt: 0, headCropped: 0, subjectSmall: 0, screenDir: 0, requiredDropped: 0, occlusion: 0, frames: 0, rejectedFrames: [] as Array<{ t: number; shot: string; reasons: string[] }>, headHeights: {} as Record<string, { min: number; max: number }> };
   let sdState: ScreenDirectionState | undefined, lastShot = '';
   for (let i = 0; i < N; i++) {
-    const s = shotAt(i / fps);
-    if (!s.camera) continue;
-    const c: CameraCandidate = { id: s.camera.id, intent: s.camera.intent, transform: { position: s.camera.position }, target: s.camera.target, fov: s.camera.fovDeg, activeSubjectId: s.spec.active, requiresHeroProp: s.spec.requiresHeroProp && s.spec.heroProps.length > 0, ...(s.camera.kind === 'two_character_medium' ? { framedSubjectIds: s.spec.subjects.filter((q) => !s.spec.optional.includes(q)) } : {}) };
+    if (ownerOf[i] < 0) { failFrame(i, 'unassigned'); continue; }
+    const s = timeline.shots[ownerOf[i]];
+    if (!s.camera) { failFrame(i, s.id); continue; }
+    fc.withCamera++;
+    const c = cameraForFrame(s, i);
+    if (s.camera.motion === 'tracking') fc.trackingFrames++;
     const first = s.id !== lastShot;
     const sc = cameraScene(geos[i], s.spec, W, H, first ? sdState : { ...sdState, previousCameraSide: undefined });
     const r = evaluateCameraCandidate(sc, c);
-    cam.frames++;
+    cam.frames++; fc.evaluated++;
+    if (r.accepted) fc.passing++; else failFrame(i, s.id);
     const R = r.rejectionReasons.join(' ');
     if (/COLLISION|LENS/i.test(R) && !/PATH/i.test(R)) cam.collisions++;
     if (/PATH/i.test(R)) cam.pathCollisions++;
@@ -580,29 +876,35 @@ function analyze(x: { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldP
     if (/TOO_SMALL|TOO_LARGE/i.test(R)) cam.subjectSmall++;
     if (/SCREEN_DIRECTION|reversed_unmotivated/i.test(R) || r.screenDirectionResult.startsWith('reversed_unmotivated')) cam.screenDir++;
     cam.requiredDropped += r.diagnostics.droppedRequiredSubjects.length ? 1 : 0;
-    // prop inserts do not require faces (the evaluator exempts them); every other intent reports its required faces
-    if (s.spec.intent !== 'prop') for (const id of r.diagnostics.requiredSubjects) { const v = r.faceVisibility[id]; if (v !== undefined && v < cam.faceMin) { cam.faceMin = v; cam.faceMinAt = i / fps; } }
+    // faces are required only by face-carrying intents (medium/close/reaction/OTS/ECU/profile): prop inserts, wides and
+    // scale reveals of a falling / walking / turned-away actor carry no face requirement (they still may not hide it)
+    if (FACE_REQUIRED_INTENTS.has(c.intent)) for (const id of r.diagnostics.requiredSubjects) { const v = r.faceVisibility[id]; if (v !== undefined && v < cam.faceMin) { cam.faceMin = v; cam.faceMinAt = i / fps; } }
+    else for (const id of r.diagnostics.requiredSubjects) { const v = r.faceVisibility[id]; if (v !== undefined && v < cam.nonFaceMin) cam.nonFaceMin = v; }
     for (const id of sc.heroPropIds) { const v = r.propVisibility[id]; if (v !== undefined && v < cam.propMin) { cam.propMin = v; cam.propMinAt = i / fps; } }
     if (r.foregroundCoverage > cam.clutterMax) { cam.clutterMax = r.foregroundCoverage; cam.clutterAt = i / fps; }
     for (const [id, hh] of Object.entries(r.diagnostics.requiredHeadHeightPct)) { const m = (cam.headHeights[`${s.spec.intent}:${id}`] ??= { min: Infinity, max: -Infinity }); m.min = Math.min(m.min, hh); m.max = Math.max(m.max, hh); }
     if (!r.accepted) cam.rejectedFrames.push({ t: r3(i / fps), shot: s.id, reasons: r.rejectionReasons.slice(0, 4) });
     if (first) lastShot = s.id;
-    const nextIsNew = i + 1 >= N || shotAt((i + 1) / fps).id !== s.id;
+    const nextIsNew = i + 1 >= N || ownerOf[i + 1] !== ownerOf[i];
     if (nextIsNew) sdState = nextScreenDirectionState(sc, c);
   }
   const blockedShots = timeline.shots.filter((s) => !s.camera);
   const seqBlocked = timeline.sequentialCoverage.filter((q) => q.outcome.startsWith('blocked'));
   const requiredInFrames = timeline.shots.every((s) => s.camera && s.spec.subjects.filter((q) => !s.spec.optional.includes(q)).every((q) => !s.droppedOptional.includes(q)));
+  // every beat's required actors appear in at least one of its shots (sequential coverage splits them, never drops them)
+  const bySource = new Map<string, IntegratedShot[]>();
+  for (const s of timeline.shots) bySource.set(s.sourceShot, [...(bySource.get(s.sourceShot) ?? []), s]);
   g('C01', 'camera', 'no lens/body/head/hair/prop collision', cam.collisions === 0, `${cam.collisions} frames with lens collision over ${cam.frames} evaluated frames`);
   g('C02', 'camera', 'no camera path collision', cam.pathCollisions === 0, `${cam.pathCollisions} frames (static cameras: path = lens position)`);
-  g('C03', 'camera', 'required face visibility threshold', cam.faceMin >= CAMERA_SAFETY_DEFAULTS.ecuMinFaceVisibility && cam.rejectedFrames.every((f) => !f.reasons.some((q) => /FACE/i.test(q))), `min required-face visibility ${r3(cam.faceMin)} at ${r3(cam.faceMinAt)} s`);
+  g('C03', 'camera', 'required face visibility threshold', cam.faceMin >= CAMERA_SAFETY_DEFAULTS.ecuMinFaceVisibility && cam.rejectedFrames.every((f) => !f.reasons.some((q) => /FACE/i.test(q))), `min required-face visibility ${cam.faceMin === Infinity ? 'n/a' : r3(cam.faceMin)} at ${r3(cam.faceMinAt)} s over face-carrying intents (floor ${CAMERA_SAFETY_DEFAULTS.ecuMinFaceVisibility}: motivated profile/ECU; 0.8 elsewhere per camera); wide/scale-reveal/prop min ${cam.nonFaceMin === Infinity ? 'n/a' : r3(cam.nonFaceMin)} (no face requirement)`);
   g('C04', 'camera', 'hero-prop visibility threshold', cam.propMin === Infinity || cam.propMin >= CAMERA_SAFETY_DEFAULTS.minHeroPropVisibility, `min hero-prop visibility ${cam.propMin === Infinity ? 'n/a' : r3(cam.propMin)} at ${r3(cam.propMinAt)} s`);
   g('C05', 'camera', 'foreground clutter <= 35%', cam.clutterMax <= CAMERA_SAFETY_DEFAULTS.maxForegroundCoverage, `max ${r3(cam.clutterMax)} at ${r3(cam.clutterAt)} s`);
   g('C06', 'camera', 'non-ECU head not cropped', cam.headCropped === 0, `${cam.headCropped} frames`);
   g('C07', 'camera', 'required subject size appropriate for intent', cam.subjectSmall === 0, `${cam.subjectSmall} frames outside the intent head-size band`);
   g('C08', 'camera', 'no unmotivated screen-direction reversal', cam.screenDir === 0, `${cam.screenDir} frames`);
   g('C09', 'camera', 'no required actor silently dropped', cam.requiredDropped === 0 && requiredInFrames && seqBlocked.length === 0, `${cam.requiredDropped} frames; sequential-coverage blocks ${seqBlocked.length}`);
-  g('C10', 'camera', 'no camera safety fallback failure (every shot has an accepted camera on every frame)', blockedShots.length === 0 && cam.rejectedFrames.length === 0, blockedShots.length ? `CAMERA_SAFETY_BLOCKED: ${blockedShots.map((s) => s.id).join(', ')}` : `${cam.rejectedFrames.length} rejected frames${cam.rejectedFrames[0] ? ` (first ${cam.rejectedFrames[0].t} s ${cam.rejectedFrames[0].shot}: ${cam.rejectedFrames[0].reasons.join('; ')})` : ''}`);
+  const covered = fc.assigned === N && fc.evaluated === N && fc.gapCount === 0 && fc.overlapCount === 0 && fc.failing === 0;
+  g('C10', 'camera', 'no camera safety fallback failure (every frame assigned one camera and accepted)', blockedShots.length === 0 && cam.rejectedFrames.length === 0 && covered, blockedShots.length ? `${blockedShots.map((s) => `${s.blocked}: ${s.id}`).join(', ')}; frames ${fc.evaluated}/${N} evaluated` : `${fc.assigned}/${N} frames assigned, ${fc.evaluated}/${N} evaluated, ${fc.passing} passing, ${fc.failing} failing${cam.rejectedFrames[0] ? ` (first ${cam.rejectedFrames[0].t} s ${cam.rejectedFrames[0].shot}: ${cam.rejectedFrames[0].reasons.join('; ')})` : ''}`);
   g('C11', 'camera', 'head/face/prop occlusion', cam.occlusion === 0, `${cam.occlusion} frames with an occlusion rejection`);
   // ---- captions ----
   const pls = timeline.captionPlacements;
@@ -654,7 +956,8 @@ function analyze(x: { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldP
       coinFinal: coinFinal ? { phase: worlds[N - 1].props.coin.phase, thicknessM: coinFinal.thicknessM, radiusM: coinFinal.radiusM, rotDeg: coinFinal.rotDeg } : null,
       adapterBlocking,
     },
-    camera: { evaluatedFrames: cam.frames, collisions: cam.collisions, pathCollisions: cam.pathCollisions, occlusionFrames: cam.occlusion, faceVisibilityMin: r3(cam.faceMin), faceVisibilityMinAt: r3(cam.faceMinAt), heroPropVisibilityMin: cam.propMin === Infinity ? null : r3(cam.propMin), heroPropVisibilityMinAt: r3(cam.propMinAt), foregroundClutterMax: r3(cam.clutterMax), foregroundClutterAt: r3(cam.clutterAt), headCroppedFrames: cam.headCropped, subjectSizeFrames: cam.subjectSmall, screenDirectionViolations: cam.screenDir, requiredActorDropFrames: cam.requiredDropped, subjectHeadHeights: Object.fromEntries(Object.entries(cam.headHeights).map(([k, v]) => [k, { min: r4(v.min), max: r4(v.max) }])), rejectedFrames: cam.rejectedFrames.slice(0, 60), rejectedFrameCount: cam.rejectedFrames.length, blockedShots: blockedShots.map((s) => ({ id: s.id, spec: s.spec.reason, rejections: s.cameraRejections })) },
+    frameCoverage: fc,
+    camera: { nonFaceIntentFaceVisibilityMin: cam.nonFaceMin === Infinity ? null : r3(cam.nonFaceMin), evaluatedFrames: cam.frames, collisions: cam.collisions, pathCollisions: cam.pathCollisions, occlusionFrames: cam.occlusion, faceVisibilityMin: r3(cam.faceMin), faceVisibilityMinAt: r3(cam.faceMinAt), heroPropVisibilityMin: cam.propMin === Infinity ? null : r3(cam.propMin), heroPropVisibilityMinAt: r3(cam.propMinAt), foregroundClutterMax: r3(cam.clutterMax), foregroundClutterAt: r3(cam.clutterAt), headCroppedFrames: cam.headCropped, subjectSizeFrames: cam.subjectSmall, screenDirectionViolations: cam.screenDir, requiredActorDropFrames: cam.requiredDropped, subjectHeadHeights: Object.fromEntries(Object.entries(cam.headHeights).map(([k, v]) => [k, { min: r4(v.min), max: r4(v.max) }])), rejectedFrames: cam.rejectedFrames.slice(0, 60), rejectedFrameCount: cam.rejectedFrames.length, blockedShots: blockedShots.map((s) => ({ id: s.id, spec: s.spec.reason, rejections: s.cameraRejections })) },
     captions: { chunks: pls.length, primaryFaceMax: r4(faceMax), heroPropMax: r4(propMax), interactionHits: inter, conflicts: conflicts.map((p) => p.chunkId), compositionBlocked: blocked.map((p) => p.chunkId), cameraRetries: pls.reduce((a, p) => a + p.cameraRetries, 0), bands: Object.fromEntries(['upper', 'middle', 'lower'].map((b) => [b, pls.filter((p) => p.band === b).length])) },
     shots: { count: timeline.shots.length, meanSec: r3(shotDur.reduce((a, b) => a + b, 0) / shotDur.length), minSec: r3(Math.min(...shotDur)), maxSec: r3(Math.max(...shotDur)), sequentialCoverage: timeline.sequentialCoverage, requiredActorDrops: timeline.shots.filter((s) => !s.camera).length },
     gates,
@@ -663,9 +966,20 @@ function analyze(x: { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldP
 
 // ───────────────────────────── render-time camera ─────────────────────────────
 
-/** the integrated camera for frame time t (static per shot; cameras never touch the world) */
-export function cameraAt(tl: Pick<IntegratedTimeline, 'shots'>, t: number): CameraState {
-  const s = tl.shots.find((x) => t >= x.start - 1e-9 && t < x.end - 1e-9) ?? tl.shots[tl.shots.length - 1];
+/** the camera candidate of an integrated shot at owned frame i (static transform, or that frame's tracking transform) */
+export function cameraForFrame(s: IntegratedShot, i: number): CameraCandidate {
+  const c = s.camera!, e = c.eval;
+  const base: CameraCandidate = { id: c.id, intent: c.intent, transform: { position: c.position }, target: c.target, fov: c.fovDeg, activeSubjectId: e.activeSubjectId, requiresHeroProp: e.requiresHeroProp, ...(e.framedSubjectIds ? { framedSubjectIds: e.framedSubjectIds } : {}), ...(e.profileScale ? { profileScale: e.profileScale } : {}), ...(e.eyelineTargetId ? { eyelineTargetId: e.eyelineTargetId } : {}), ...(e.scaleReferenceIds ? { scaleReferenceIds: e.scaleReferenceIds } : {}) };
+  if (c.motion !== 'tracking' || !c.track) return base;
+  const k = Math.max(0, Math.min(c.track.length - 1, i - s.frames[0])), f = c.track[k], prev = k > 0 ? c.track[k - 1] : null;
+  return { ...base, transform: { position: [f[0], f[1], f[2]] }, target: [f[3], f[4], f[5]], ...(prev ? { lensPath: [[prev[0], prev[1], prev[2]] as Vec3] } : {}) };
+}
+
+/** the integrated camera for frame time t (frame i = round(t*fps) -> its owning shot; cameras never touch the world) */
+export function cameraAt(tl: Pick<IntegratedTimeline, 'shots' | 'fps'>, t: number): CameraState {
+  const i = Math.round(t * tl.fps);
+  const s = tl.shots.find((x) => i >= x.frames[0] && i < x.frames[1]) ?? tl.shots[tl.shots.length - 1];
   if (!s.camera) throw new Error(`CAMERA_SAFETY_BLOCKED: shot ${s.id} has no safe camera; refusing to render`);
-  return { pos: [...s.camera.position] as Vec3, target: [...s.camera.target] as Vec3, fovY: s.camera.fovDeg * DEG };
+  const c = cameraForFrame(s, i);
+  return { pos: [...c.transform.position] as Vec3, target: [...c.target] as Vec3, fovY: c.fov * DEG };
 }

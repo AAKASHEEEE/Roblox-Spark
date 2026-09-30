@@ -15,7 +15,14 @@ import { add, sub, scale, dot, cross, len, norm, clamp, lerp3, DEG, type Vec3 } 
 
 export interface Bounds3 { min: Vec3; max: Vec3 }
 export type ObstacleType = 'environment' | 'body' | 'head' | 'hair' | 'prop';
-export interface CameraObstacle { entityId: string; type: ObstacleType; bounds: Bounds3 }
+/** oriented box (unit axes) of the true part geometry */
+export interface OrientedBox { center: Vec3; axes: [Vec3, Vec3, Vec3]; half: Vec3 }
+/**
+ * `bounds` (AABB) is always used for lens collision / clearance (conservative). When `oriented` is present, visibility
+ * rays and screen coverage use the oriented part box instead: the AABB of a yawed torso or head is up to ~40% larger
+ * than the part and falsely occludes the actor's own chin or a neighbour's face.
+ */
+export interface CameraObstacle { entityId: string; type: ObstacleType; bounds: Bounds3; oriented?: OrientedBox }
 
 /** Optional explicit face anchors; derived from the head obstacle + facing when absent. */
 export interface FaceAnchors {
@@ -45,6 +52,26 @@ export interface ProjectedEntity {
   waistY?: number;
   /** entity the subject must be framed behind (e.g. a desk); camera must be on that entity's side */
   behindEntityId?: string;
+  /**
+   * World-space corners of the ORIENTED head (+ hair) part boxes. When present they replace the head/hair AABB for
+   * screen-size, crop and in-frame measurement: the world AABB of a yawed block head overstates its projected size by
+   * up to ~40%, which both rejects valid close-ups and lets too-small heads pass minimums. Collision/occlusion keep AABBs.
+   */
+  headCorners?: Vec3[];
+  /** identity landmarks of a hero prop (used by `scale_reveal`): emblem face, thickness edge and base contact */
+  identity?: PropIdentity;
+}
+
+export interface PropIdentity {
+  center: Vec3;
+  /** unit normal of the identity (emblem) face that must read; the camera may not be behind it */
+  frontNormal: Vec3;
+  /** emblem / identity landmark (centre of the identity face) */
+  emblem: Vec3;
+  /** points on the thickness edge (rim); the silhouette is judged from them */
+  rim: Vec3[];
+  /** base / ground contact that shows the fixed-base relationship */
+  base: Vec3;
 }
 
 export interface ScreenDirectionActor { id: string; position: Vec3; facing?: Vec3; movement?: Vec3 }
@@ -87,7 +114,14 @@ export interface CameraSafetyScene {
 
 export interface CameraTransform { position: Vec3; /** degrees */ roll?: number }
 
-export type CameraIntent = 'wide' | 'medium' | 'close' | 'reaction' | 'prop' | 'over_shoulder' | 'extreme_close';
+export type CameraIntent = 'wide' | 'medium' | 'close' | 'reaction' | 'prop' | 'over_shoulder' | 'extreme_close'
+  /** face read at 25–60° off its normal: normal 80% face visibility, near eye + mouth, eyeline toward `eyelineTargetId` */
+  | 'three_quarter_profile'
+  /** motivated profile (45–85° off the face normal) for listening/warning beats: near eye, mouth, brow, face area,
+   *  no foreign obstruction, eyeline toward `eyelineTargetId`; 60% face visibility. Never applied to other intents. */
+  | 'motivated_profile'
+  /** giant hero-prop scale reveal: silhouette, emblem, thickness edge, base and a readable scale-reference actor */
+  | 'scale_reveal';
 
 export interface CameraCandidate {
   id: string;
@@ -108,6 +142,14 @@ export interface CameraCandidate {
   /** action requires the hero prop / active hand to be visible */
   requiresHeroProp?: boolean;
   disorientationIntended?: boolean;
+  /** profile intents: which head-size band applies (never lower than that band's minimum). Default 'close'. */
+  profileScale?: 'medium' | 'close';
+  /** profile intents: the entity the active subject looks at; its screen side must match the face direction */
+  eyelineTargetId?: string;
+  /** extra lens positions the camera passes through (e.g. a tracking camera's inter-frame path): collision-checked */
+  lensPath?: Vec3[];
+  /** scale reveal: actors that must read as the scale reference (default: the required characters) */
+  scaleReferenceIds?: string[];
 }
 
 export interface CameraSafetyDiagnostics {
@@ -183,6 +225,19 @@ export interface CameraSafetyConfig {
   pathStep: number;
   grid: number;
   neutralAxisSin: number;
+  /** face angle windows (deg off the face normal, horizontal) for the profile intents */
+  threeQuarterAngleDeg: [number, number];
+  motivatedProfileAngleDeg: [number, number];
+  /** motivated profile: minimum five-ray face visibility (centre + near-side corners) */
+  profileMinFaceVisibility: number;
+  /** profile intents: minimum projected face area (fraction of the frame area) */
+  profileMinFaceArea: number;
+  /** profile intents: max horizontal angle between the face normal and the direction to the eyeline target */
+  eyelineToleranceDeg: number;
+  /** scale reveal: min fraction of rim (silhouette) points in frame and unoccluded by other entities */
+  scaleRevealMinSilhouette: number;
+  /** scale reveal: view angle off the identity-face normal that shows both the emblem and the thickness edge */
+  scaleRevealViewAngleDeg: [number, number];
 }
 
 export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
@@ -205,11 +260,23 @@ export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
   headHeight: {
     wide: [0, 0.2], medium: [0.18, 0.32], close: [0.26, 0.7], reaction: [0.26, 0.7],
     prop: [0, 10], over_shoulder: [0.08, 0.45], extreme_close: [0.35, 10],
+    // profile intents resolve to headHeight[profileScale] (medium or close) at evaluation; listed for completeness
+    three_quarter_profile: [0.26, 0.7], motivated_profile: [0.26, 0.7], scale_reveal: [0, 10],
   },
   twoShotMinHeadHeight: 0.14,
   pathStep: 0.05,
   grid: 24,
   neutralAxisSin: 0.2,
+  threeQuarterAngleDeg: [15, 60],
+  // lower bound 30 deg: the 60% visibility relaxation can only come from far-side rays turned away from the lens
+  // (any foreign occluder is rejected outright), never from an occluded near-frontal face
+  motivatedProfileAngleDeg: [30, 88],
+  profileMinFaceVisibility: 0.6,
+  profileMinFaceArea: 0.01,
+  // half-angle of the gaze cone: a head shake / nod oscillates around the look target
+  eyelineToleranceDeg: 45,
+  scaleRevealMinSilhouette: 0.75,
+  scaleRevealViewAngleDeg: [15, 78],
 };
 
 // ───────────────────────────── geometry ─────────────────────────────
@@ -298,6 +365,18 @@ function projectBox(c: Cam, b: Bounds3): Rect {
   return { x0, y0, x1, y1, behind };
 }
 const clip01 = (v: number) => clamp(v, 0, 1);
+/** screen rect of explicit world points (points behind the lens flag `behind`) */
+function projectPts(c: Cam, pts: Vec3[]): Rect {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, behind = false;
+  for (const p of pts) {
+    const q = project(c, p);
+    if (!(q.z > NEAR)) { behind = true; continue; }
+    x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y);
+  }
+  return { x0, y0, x1, y1, behind };
+}
+const insideBox = (b: Bounds3, p: Vec3, e = 1e-6) => p[0] >= b.min[0] - e && p[0] <= b.max[0] + e && p[1] >= b.min[1] - e && p[1] <= b.max[1] + e && p[2] >= b.min[2] - e && p[2] <= b.max[2] + e;
+const PROFILE_INTENTS = new Set<CameraIntent>(['three_quarter_profile', 'motivated_profile']);
 const overlapsFrame = (r: Rect) => isFinite(r.x0) && r.x1 > 0 && r.x0 < 1 && r.y1 > 0 && r.y0 < 1;
 const clippedHeight = (r: Rect) => (overlapsFrame(r) ? Math.max(0, clip01(r.y1) - clip01(r.y0)) : 0);
 const clippedWidth = (r: Rect) => (overlapsFrame(r) ? Math.max(0, clip01(r.x1) - clip01(r.x0)) : 0);
@@ -309,7 +388,7 @@ export function projectToScreen(cand: CameraCandidate, p: Vec3, aspect: number):
 
 // ───────────────────────────── scene index ─────────────────────────────
 
-interface FaceFrame { entityId: string; center: Vec3; normal: Vec3; right: Vec3; up: Vec3; samples: Vec3[]; eyes: [Vec3, Vec3]; mouth: Vec3; head: Bounds3; headTop: Bounds3 }
+interface FaceFrame { entityId: string; center: Vec3; normal: Vec3; right: Vec3; up: Vec3; samples: Vec3[]; eyes: [Vec3, Vec3]; mouth: Vec3; head: Bounds3; headTop: Bounds3; corners?: Vec3[] }
 interface SceneIndex {
   scene: CameraSafetyScene;
   meta: Map<string, ProjectedEntity>;
@@ -361,15 +440,29 @@ function faceFrame(id: string, head: Bounds3, headTop: Bounds3, m?: ProjectedEnt
   const samples = [center, at(-1, 1), at(1, 1), at(-1, -1), at(1, -1)];
   const eyes: [Vec3, Vec3] = [m?.face?.leftEye ?? at(-0.55, 0.45), m?.face?.rightEye ?? at(0.55, 0.45)];
   const mouth = m?.face?.mouth ?? at(0, -0.55);
-  return { entityId: id, center, normal, right, up, samples, eyes, mouth, head, headTop };
+  return { entityId: id, center, normal, right, up, samples, eyes, mouth, head, headTop, ...(m?.headCorners?.length ? { corners: m.headCorners } : {}) };
 }
 
+/** ray / obstacle intersection: oriented part box when available (visibility), else the AABB */
+function rayObstacle(o: CameraObstacle, org: Vec3, d: Vec3): [number, number] | null {
+  const ob = o.oriented, hb = rayBox(org, d, o.bounds);
+  if (!ob || !hb) return hb; // the oriented box lies inside its AABB: an AABB miss is an OBB miss (broad phase)
+  const r = sub(org, ob.center);
+  const lo: Vec3 = [dot(r, ob.axes[0]), dot(r, ob.axes[1]), dot(r, ob.axes[2])], ld: Vec3 = [dot(d, ob.axes[0]), dot(d, ob.axes[1]), dot(d, ob.axes[2])];
+  return rayBox(lo, ld, { min: [-ob.half[0], -ob.half[1], -ob.half[2]], max: [ob.half[0], ob.half[1], ob.half[2]] });
+}
+function insideObstacle(o: CameraObstacle, p: Vec3): boolean {
+  const ob = o.oriented;
+  if (!ob) return insideBox(o.bounds, p);
+  const r = sub(p, ob.center);
+  return [0, 1, 2].every((k) => Math.abs(dot(r, ob.axes[k])) <= ob.half[k] + 1e-6);
+}
 /** is the segment cam→p blocked by any obstacle not excluded? returns blockers */
 function blockers(ix: SceneIndex, from: Vec3, p: Vec3, exclude: (o: CameraObstacle) => boolean): CameraObstacle[] {
   const d = sub(p, from), out: CameraObstacle[] = [];
   for (const o of ix.scene.obstacles) {
     if (exclude(o)) continue;
-    const h = rayBox(from, d, o.bounds);
+    const h = rayObstacle(o, from, d);
     if (h && h[0] < 1 - 1e-4 && h[1] > 1e-4) out.push(o);
   }
   return out;
@@ -421,6 +514,11 @@ function evaluateScreenDirection(sd: ScreenDirectionState | undefined, cand: Cam
   return { result: `reversed_unmotivated:${prev}->${side}${suffix}`, reject: true, penalty: penalty + 0.5 };
 }
 
+/** Which side of the action axis a lens position is on (generic helper for trajectory checks). */
+export function cameraAxisSide(sd: ScreenDirectionState | undefined, p: Vec3, cfg: CameraSafetyConfig = CAMERA_SAFETY_DEFAULTS): 'left' | 'right' | 'neutral' | 'none' {
+  return sideOf(axisOf(sd), p, cfg.neutralAxisSin);
+}
+
 /** State to carry into the next shot after `cand` is chosen. */
 export function nextScreenDirectionState(scene: CameraSafetyScene, cand: CameraCandidate, cfg: CameraSafetyConfig = CAMERA_SAFETY_DEFAULTS): ScreenDirectionState | undefined {
   const sd = scene.screenDirection;
@@ -461,7 +559,7 @@ interface SampleEval {
   sizeTerm: number;
 }
 
-const FACE_INTENTS = new Set<CameraIntent>(['medium', 'close', 'reaction', 'over_shoulder', 'extreme_close']);
+const FACE_INTENTS = new Set<CameraIntent>(['medium', 'close', 'reaction', 'over_shoulder', 'extreme_close', 'three_quarter_profile', 'motivated_profile']);
 
 function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target: Vec3, roll: number, cfg: CameraSafetyConfig): SampleEval {
   const { scene } = ix;
@@ -478,7 +576,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     fgActor = required.filter((id) => id !== active && ix.faces.has(id)).sort((a, b) => len(sub(ix.faces.get(a)!.center, pos)) - len(sub(ix.faces.get(b)!.center, pos)) || (a < b ? -1 : 1))[0];
     if (!fgActor) reasons.push('OTS_NO_FOREGROUND_SUBJECT');
   }
-  const focusIds = new Set<string>(intent === 'prop' ? heroes : required.filter((id) => id !== fgActor));
+  const focusIds = new Set<string>(intent === 'prop' ? heroes : intent === 'scale_reveal' ? [...heroes, ...required] : required.filter((id) => id !== fgActor));
   if (intent !== 'prop' && active) focusIds.add(active);
 
   // ── lens → head distance (the 0.43–0.86 m obstruction class)
@@ -499,7 +597,9 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     const q = project(cam, p);
     if (!inFrame(q)) return false;
     if (dot(f.normal, norm(sub(pos, p))) <= 0.1) return false; // facing away
-    const bl = blockers(ix, pos, p, (o) => o.entityId === id && o.type === 'head');
+    // an actor's own head never occludes its face; an own-BODY box that CONTAINS the face sample is AABB inflation of a
+    // yawed torso (the true torso sits below the head), not a surface in front of the face — own limbs in front still block
+    const bl = blockers(ix, pos, p, (o) => o.entityId === id && (o.type === 'head' || (o.type === 'body' && insideObstacle(o, p))));
     for (const b of bl) occ.add(`${b.type}:${b.entityId}`);
     return bl.length === 0;
   };
@@ -511,7 +611,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     const toCam = norm([pos[0] - f.center[0], 0, pos[2] - f.center[2]]);
     profile[id] = dot(toCam, norm([f.normal[0], 0, f.normal[2]])) < Math.cos(cfg.profileAngleDeg * DEG);
     faceOccluders[id] = [...occ].sort();
-    const hr = projectBox(cam, f.headTop);
+    const hr = f.corners ? projectPts(cam, f.corners) : projectBox(cam, f.headTop);
     headInFrame[id] = overlapsFrame(hr);
     headScreenHeight[id] = r6(isFinite(hr.y0) ? hr.y1 - hr.y0 : 0);
     headCropped[id] = hr.behind || !isFinite(hr.y0) || hr.y0 < cfg.safeMargin.top || hr.y1 > 1 - cfg.safeMargin.bottom || hr.x0 < cfg.safeMargin.side || hr.x1 > 1 - cfg.safeMargin.side;
@@ -547,7 +647,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     const dir = norm(add(cam.f, add(scale(cam.r, nx * cam.tanH), scale(cam.u, ny * cam.tanV))));
     let best = Infinity, who: CameraObstacle | undefined;
     for (const o of scene.obstacles) {
-      const h = rayBox(pos, dir, o.bounds);
+      const h = rayObstacle(o, pos, dir);
       if (!h || h[1] <= NEAR) continue;
       const t = Math.max(0, h[0]);
       if (t < best || (t === best && who && o.entityId < who.entityId)) { best = t; who = o; }
@@ -567,12 +667,15 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   if (FACE_INTENTS.has(intent)) {
     if (!af) reasons.push(`ACTIVE_FACE_UNKNOWN:${active}`);
     else {
-      const need = intent === 'extreme_close' ? cfg.ecuMinFaceVisibility : cfg.minFaceVisibility;
+      const need = intent === 'extreme_close' ? cfg.ecuMinFaceVisibility : intent === 'motivated_profile' ? cfg.profileMinFaceVisibility : cfg.minFaceVisibility;
       if (face[active!] < need) reasons.push(`FACE_VISIBILITY_LOW:${active}:${face[active!]}<${need}`);
     }
   }
-  if (af && intent !== 'prop' && face[active!] === 0 && !reasons.some((r) => r.startsWith('FACE_VISIBILITY_LOW'))) reasons.push(`ACTIVE_SUBJECT_HIDDEN:${active}`);
-  if (af && !cand.allowPropOverFace && intent !== 'prop') {
+  // "fully hidden": for face intents the face rule applies; in a wide an actor walking / turned away from the lens is not
+  // hidden — it is hidden when nothing of it covers the screen or something occludes its face
+  const hiddenInWide = intent !== 'wide' || !(entityCoverage[active!] > 0) || faceOccluders[active!].some((o) => !o.endsWith(`:${active}`));
+  if (af && intent !== 'prop' && intent !== 'scale_reveal' && face[active!] === 0 && hiddenInWide && !reasons.some((r) => r.startsWith('FACE_VISIBILITY_LOW'))) reasons.push(`ACTIVE_SUBJECT_HIDDEN:${active}`);
+  if (af && !cand.allowPropOverFace && intent !== 'prop' && intent !== 'scale_reveal') {
     const props = faceOccluders[active!].filter((o) => o.startsWith('prop:'));
     if (props.length) reasons.push(`PROP_COVERS_FACE:${active}:${props.map((p) => p.slice(5)).join(',')}`);
   }
@@ -585,23 +688,50 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     const clutter = faceOccluders[active!].filter((o) => !o.endsWith(`:${active}`));
     if (clutter.length) reasons.push(`ECU_FOREGROUND_OVER_FACE:${active}:${clutter.join(',')}`);
   }
-  const heroNeed = intent === 'prop' || cand.requiresHeroProp;
+  // ── profile intents (explicit only; never applied to frontal intents)
+  if (af && PROFILE_INTENTS.has(intent)) {
+    const nxz = norm([af.normal[0], 0, af.normal[2]]), toCam = norm([pos[0] - af.center[0], 0, pos[2] - af.center[2]]);
+    const ang = Math.acos(clamp(dot(toCam, nxz), -1, 1)) / DEG;
+    const [a0, a1] = intent === 'three_quarter_profile' ? cfg.threeQuarterAngleDeg : cfg.motivatedProfileAngleDeg;
+    if (ang < a0 || ang > a1) reasons.push(`PROFILE_ANGLE_OUT_OF_RANGE:${active}:${ang.toFixed(0)}deg`);
+    if (eyesVisible[active!] < 1) reasons.push(`NEAR_EYE_NOT_VISIBLE:${active}`);
+    if (!mouthVisible[active!]) reasons.push(`MOUTH_NOT_VISIBLE:${active}`);
+    if (![af.samples[1], af.samples[2]].some((p) => pointVisible(active!, af, p, new Set()))) reasons.push(`BROW_NOT_READABLE:${active}`);
+    const q = [af.samples[1], af.samples[2], af.samples[4], af.samples[3]].map((p) => project(cam, p));
+    const area = q.every((x) => x.z > NEAR) ? Math.abs(q.reduce((a, x, k) => a + x.x * q[(k + 1) % 4].y - q[(k + 1) % 4].x * x.y, 0)) / 2 : 0;
+    if (area < cfg.profileMinFaceArea) reasons.push(`FACE_AREA_TOO_SMALL:${active}:${area.toFixed(4)}<${cfg.profileMinFaceArea}`);
+    // any occluder over the face — another actor, a prop, or the actor's own hair / hoodie / arm — is an obstruction
+    if (faceOccluders[active!].length) reasons.push(`PROFILE_FACE_OBSTRUCTED:${active}:${faceOccluders[active!].join(',')}`);
+    const tid = cand.eyelineTargetId, tf = tid ? ix.faces.get(tid) : undefined, tb = tid ? ix.bounds.get(tid) : undefined;
+    const tp = tf ? tf.center : tb ? centerOf(tb) : undefined;
+    if (!tp) reasons.push(`EYELINE_TARGET_UNKNOWN:${active}:${tid ?? 'none'}`);
+    else {
+      const toT = norm([tp[0] - af.center[0], 0, tp[2] - af.center[2]]);
+      const off = Math.acos(clamp(dot(toT, nxz), -1, 1)) / DEG;
+      if (off > cfg.eyelineToleranceDeg) reasons.push(`EYELINE_OFF_TARGET:${active}:${tid}:${off.toFixed(0)}deg`);
+      // the face must look toward the screen side the target is on (or the eyeline reads backwards)
+      const lookX = dot(nxz, cam.r), tgtX = dot(sub(tp, af.center), cam.r);
+      if (Math.abs(lookX) > 0.05 && Math.abs(tgtX) > 0.05 && Math.sign(lookX) !== Math.sign(tgtX)) reasons.push(`EYELINE_SCREEN_MISMATCH:${active}:${tid}`);
+    }
+  }
+  const heroNeed = intent === 'prop' || intent === 'scale_reveal' || cand.requiresHeroProp;
   for (const id of heroes) {
     if (heroNeed && prop[id] < cfg.minHeroPropVisibility) reasons.push(`HERO_PROP_VISIBILITY_LOW:${id}:${prop[id]}<${cfg.minHeroPropVisibility}`);
     if (intent === 'wide' && prop[id] === 0) reasons.push(`WIDE_MISSING_HERO_PROP:${id}`);
   }
 
   // ── framing rules
-  const [hMin, hMax] = cfg.headHeight[intent];
+  const [hMin, hMax] = PROFILE_INTENTS.has(intent) ? cfg.headHeight[cand.profileScale ?? 'close'] : cfg.headHeight[intent];
   // readable actors: required + explicitly framed characters (the OTS foreground shoulder is exempt)
   const readable = [...new Set([...roles.required, ...(cand.framedSubjectIds ?? [])])].filter((id) => ix.faces.has(id) && id !== fgActor).sort();
   const twoShot = intent === 'medium' && readable.length >= 2;
   const minHead = twoShot ? cfg.twoShotMinHeadHeight : hMin;
   let sizeTerm = 1;
   if (intent !== 'prop' && intent !== 'extreme_close') {
-    for (const id of required) if (ix.faces.has(id) && id !== fgActor && headCropped[id] && (id === active || (intent === 'wide' && requiredSet.has(id)) || headInFrame[id])) reasons.push(`HEAD_CROPPED:${id}`);
+    const refs = cand.scaleReferenceIds ?? roles.required;
+    for (const id of required) if (ix.faces.has(id) && id !== fgActor && headCropped[id] && ((id === active && intent !== 'scale_reveal') || (intent === 'wide' && requiredSet.has(id)) || (intent === 'scale_reveal' && refs.includes(id)) || headInFrame[id])) reasons.push(`HEAD_CROPPED:${id}`);
   }
-  if (intent !== 'prop' && intent !== 'wide') {
+  if (intent !== 'prop' && intent !== 'wide' && intent !== 'scale_reveal') {
     // a required actor is never silently dropped from a character shot
     for (const id of roles.required) if (ix.faces.has(id) && id !== fgActor && !headInFrame[id]) reasons.push(`REQUIRED_SUBJECT_NOT_IN_FRAME:${id}`);
     // readable portrait scale: two-shot → every readable head ≥ twoShotMinHeadHeight; otherwise the active head ≥ intent min
@@ -636,7 +766,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
       if (!inFrame(project(cam, sh))) reasons.push(`UPPER_BODY_NOT_READABLE:${active}`);
     }
   }
-  if ((intent === 'close' || intent === 'reaction') && af) {
+  if ((intent === 'close' || intent === 'reaction' || PROFILE_INTENTS.has(intent)) && af) {
     const fr = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
     let bad = false;
     for (const p of af.samples) { const q = project(cam, p); if (!(q.z > NEAR)) { bad = true; continue; } fr.x0 = Math.min(fr.x0, q.x); fr.x1 = Math.max(fr.x1, q.x); fr.y0 = Math.min(fr.y0, q.y); fr.y1 = Math.max(fr.y1, q.y); }
@@ -658,9 +788,38 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     if (!heroes.length) reasons.push('PROP_SHOT_WITHOUT_HERO_PROP');
     sizeTerm = heroes.length ? clamp(Math.min(...heroes.map((id) => propScreenSize[id])) / 0.5, 0, 1) : 0;
   }
+  // ── giant hero-prop scale reveal (explicit intent only): identity, thickness, base, scale reference, no hidden face
+  if (intent === 'scale_reveal') {
+    if (!heroes.length) reasons.push('SCALE_REVEAL_WITHOUT_HERO_PROP');
+    for (const id of heroes) {
+      if (propScreenSize[id] < cfg.minPropScreenSize) reasons.push(`HERO_PROP_UNREADABLE:${id}:${propScreenSize[id].toFixed(3)}<${cfg.minPropScreenSize}`);
+      const idn = ix.meta.get(id)?.identity;
+      if (!idn) { reasons.push(`SCALE_REVEAL_IDENTITY_UNKNOWN:${id}`); continue; }
+      const seen = (p: Vec3) => inFrame(project(cam, p)) && blockers(ix, pos, p, (o) => o.entityId === id).length === 0;
+      const fn = norm(idn.frontNormal), toCam = sub(pos, idn.emblem);
+      const ang = Math.acos(clamp(dot(fn, norm(toCam)), -1, 1)) / DEG;
+      if (dot(fn, toCam) <= 0) reasons.push(`CAMERA_BEHIND_HERO_PROP:${id}`);
+      else if (ang > cfg.scaleRevealViewAngleDeg[1]) reasons.push(`SCALE_REVEAL_EMBLEM_UNREADABLE:${id}:${ang.toFixed(0)}deg`);
+      else if (ang < cfg.scaleRevealViewAngleDeg[0]) reasons.push(`SCALE_REVEAL_NO_THICKNESS_EDGE:${id}:${ang.toFixed(0)}deg`);
+      if (!seen(idn.emblem)) reasons.push(`SCALE_REVEAL_EMBLEM_HIDDEN:${id}`);
+      const rim = idn.rim.filter(seen).length / Math.max(1, idn.rim.length);
+      if (rim < cfg.scaleRevealMinSilhouette) reasons.push(`SCALE_REVEAL_SILHOUETTE_LOW:${id}:${rim.toFixed(2)}<${cfg.scaleRevealMinSilhouette}`);
+      if (!inFrame(project(cam, idn.base))) reasons.push(`SCALE_REVEAL_BASE_NOT_VISIBLE:${id}`);
+      // no face may be hidden by the giant prop (actors facing away have no visible face to hide)
+      for (const [cid, occ] of Object.entries(faceOccluders)) if (!cand.allowPropOverFace && occ.includes(`prop:${id}`)) reasons.push(`PROP_COVERS_FACE:${cid}:${id}`);
+    }
+    for (const id of (cand.scaleReferenceIds ?? roles.required).filter((x) => ix.kind.get(x) === 'character')) {
+      if (!(entityCoverage[id] > 0)) reasons.push(`SCALE_REFERENCE_NOT_VISIBLE:${id}`);
+      else if (subjectScreenHeight[id] < cfg.minWideSubjectHeight) reasons.push(`SCALE_REFERENCE_TOO_SMALL:${id}:${subjectScreenHeight[id].toFixed(3)}<${cfg.minWideSubjectHeight}`);
+    }
+    const ps = heroes.length ? Math.min(...heroes.map((id) => propScreenSize[id])) : 0;
+    sizeTerm = clamp(ps / 0.6, 0, 1);
+  }
 
-  // ── implied seated / waist-up constraints
-  for (const id of required) {
+  // ── implied seated / waist-up constraints: ANY character whose legs must not show (subject or not) — an optional or
+  // off-subject seated actor may be left out of frame or hidden, but never shown standing on missing chair legs
+  const seatedIds = [...ix.meta.values()].filter((m) => m.waistUpRequired).map((m) => m.entityId).sort();
+  for (const id of seatedIds) {
     const m = ix.meta.get(id);
     if (!m?.waistUpRequired) continue;
     const bb = ix.bounds.get(id);
@@ -673,7 +832,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     const legs = [0.15, 0.5, 0.85].map((k): Vec3 => [front[0], bb.min[1] + (waist - bb.min[1]) * k, front[2]]);
     const shown = legs.filter((p) => inFrame(project(cam, p)) && blockers(ix, pos, p, (o) => o.entityId === id).length === 0).length;
     if (shown) reasons.push(`WAIST_UP_REQUIRED_LEGS_VISIBLE:${id}:${shown}/3`);
-    if (m.behindEntityId) {
+    if (m.behindEntityId && required.includes(id)) {
       const d = ix.bounds.get(m.behindEntityId);
       if (d) {
         const toDesk = sub(centerOf(d), c), toCam = sub(pos, c);
@@ -732,6 +891,14 @@ function evaluateIndexed(ix: SceneIndex, cand: CameraCandidate, cfg: CameraSafet
   const t0 = cand.target, t1 = cand.motion?.toTarget ?? t0;
   const r0 = cand.transform.roll ?? 0, r1 = cand.motion?.to.roll ?? r0;
   const col = pathCollision(ix, p0, p1, cfg);
+  // explicit lens path (e.g. a tracking camera's previous frame positions → this frame): every segment is checked
+  const lp = cand.lensPath ?? [];
+  for (let k = 0; k < lp.length; k++) {
+    const seg = pathCollision(ix, lp[k], k + 1 < lp.length ? lp[k + 1] : p0, cfg);
+    col.clearance = Math.min(col.clearance, seg.clearance); col.samples += seg.samples;
+    for (const h of seg.hits) { const x = h.replace(/^LENS_COLLISION/, 'CAMERA_PATH_COLLISION'); if (!col.hits.includes(x)) col.hits.push(x); }
+  }
+  col.hits.sort();
   // visibility/framing at start, middle and end of the move (worst case wins)
   const us = cand.motion ? [0, 0.5, 1] : [0];
   const evals = us.map((u) => evaluateSample(ix, cand, lerp3(p0, p1, u), lerp3(t0, t1, u), r0 + (r1 - r0) * u, cfg));
