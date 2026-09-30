@@ -19,7 +19,15 @@ export const ARCHETYPES = ['protagonist', 'sidekick', 'skeptic', 'rival', 'mento
 /** pinned component reference: "<id>@<semver>" — ranges, tags and "latest" are not accepted */
 export const COMPONENT_REF = /^[a-z][a-z0-9]*(-[a-z0-9]+)*@\d+\.\d+\.\d+$/;
 export const CHARACTER_ID = /^[a-z][a-z0-9_]*(-[a-z0-9_]+)*$/;
-export const CONTENT_HASH = /^sha256:[0-9a-f]{64}$/;
+/**
+ * Two hash formats, deliberately distinct:
+ * - REFERENCE_CONTENT_HASH: algorithm-qualified digest of an uploaded file's actual bytes ("sha256:<hex>"), mirrored by
+ *   its CAS key. Used only on reference evidence.
+ * - PROFILE_CONTENT_HASH: bare lowercase SHA-256 digest of a profile's identity payload. Used for locked profiles and
+ *   episode pins, matching the Environment Catalog and Bulk Core exact-resource pins. Exactly one format is accepted.
+ */
+export const REFERENCE_CONTENT_HASH = /^sha256:[0-9a-f]{64}$/;
+export const PROFILE_CONTENT_HASH = /^[0-9a-f]{64}$/;
 /** opaque content-addressed storage key; never a filesystem path or URL */
 export const STORAGE_REF = /^cas:\/\/references\/sha256\/[0-9a-f]{64}$/;
 
@@ -52,7 +60,7 @@ export type Attestation = SchemaT<typeof AttestationSchema>;
 export const ReferenceSchema = v.object({
   referenceId: v.string({ pattern: /^ref_[a-z0-9_]{1,48}$/ }),
   type: v.enum(REFERENCE_TYPES),
-  contentHash: v.string({ pattern: CONTENT_HASH }).optional(),
+  contentHash: v.string({ pattern: REFERENCE_CONTENT_HASH }).optional(),
   mimeType: v.string({ min: 3, max: 100 }).optional(),
   byteSize: v.int({ min: 1, max: 50 * 1024 * 1024 }).optional(),
   dimensions: v.object({ width: v.int({ min: 1, max: 8192 }), height: v.int({ min: 1, max: 8192 }) }).optional(),
@@ -94,7 +102,7 @@ export const ProfileSchema = v.object({
   substitutions: v.array(v.object({ requested: componentRef(), substitute: componentRef(), approvedBy: text(120), reason: text(300) }), { max: 16 }).optional(),
   identityRules: v.array(text(200), { max: 12 }).optional(),
   locked: v.boolean(),
-  contentHash: v.string({ pattern: CONTENT_HASH }).optional(),
+  contentHash: v.string({ pattern: PROFILE_CONTENT_HASH }).optional(),
   deprecation: v.object({ reason: text(300), supersededBy: v.semver().optional() }).optional(),
 });
 export type CharacterProfile = SchemaT<typeof ProfileSchema>;

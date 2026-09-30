@@ -63,8 +63,8 @@ export function sha256Hex(input: string): string {
   return Array.from(H, (x) => x.toString(16).padStart(8, '0')).join('');
 }
 
-/** "sha256:<hex>" of the canonical JSON of a value */
-export const contentHashOf = (v: unknown): string => 'sha256:' + sha256Hex(canonicalJson(v));
+/** bare lowercase SHA-256 hex of the canonical JSON of a value (profile identity, pins, component/catalog hashes) */
+export const contentHashOf = (v: unknown): string => sha256Hex(canonicalJson(v));
 
 export function deepFreeze<T>(v: T): T {
   if (v && typeof v === 'object' && !Object.isFrozen(v)) {

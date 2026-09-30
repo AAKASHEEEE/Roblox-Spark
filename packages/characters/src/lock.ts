@@ -9,7 +9,7 @@ import { checkLicensing } from './licensing.ts';
 import { resolveRecipe, type ResolvedRecipe } from './recipe.ts';
 import { validateReference } from './references.ts';
 import { checkAuthenticatedActor, type TrustedWorkflow } from './trust.ts';
-import { CONTENT_HASH, err, findForbiddenKeys, parseProfile, type CharacterProfile, type Finding, type ProfileStatus } from './schema.ts';
+import { PROFILE_CONTENT_HASH, err, findForbiddenKeys, parseProfile, type CharacterProfile, type Finding, type ProfileStatus } from './schema.ts';
 
 /**
  * CONTENT-HASH RULE. contentHash = sha256(canonicalJson(profile WITHOUT the fields below, PLUS the resolved recipe)).
@@ -223,7 +223,7 @@ export class CharacterRegistry {
     const p = pin as Partial<CharacterPin> | null;
     if (!p || typeof p !== 'object' || Object.keys(p).sort().join(',') !== 'characterId,contentHash,version') return fail('PIN_INVALID', '$', 'pin must be exactly {characterId, version, contentHash}');
     if (typeof p.version !== 'string' || !EXACT_SEMVER.test(p.version)) return fail('PIN_NOT_EXACT', '$.version', `version ${JSON.stringify(p.version)} is not an exact version; "latest"/ranges are never resolved at render time`);
-    if (typeof p.contentHash !== 'string' || !CONTENT_HASH.test(p.contentHash)) return fail('PIN_INVALID', '$.contentHash', 'pin needs a sha256 contentHash');
+    if (typeof p.contentHash !== 'string' || !PROFILE_CONTENT_HASH.test(p.contentHash)) return fail('PIN_INVALID', '$.contentHash', 'pin contentHash must be a bare lowercase 64-hex SHA-256 digest');
     const r = this.records.get(CharacterRegistry.key(String(p.characterId), p.version));
     if (!r) return fail('PIN_NOT_FOUND', '$', `${p.characterId}@${p.version} is not registered`);
     if (!r.manifest) return fail('PIN_NOT_LOCKED', '$', `${p.characterId}@${p.version} is ${r.state}; only locked versions can be rendered`);

@@ -241,7 +241,7 @@ test('a registered profile resolves to a pinned modular recipe with palette over
   assert.equal(recipe.body.ref, 'block-teen-slim@1.0.0');
   assert.deepEqual(recipe.hair.palette, { primary: '#ff0000', streak: '#19d3e6' });
   assert.deepEqual(recipe.clothing.map((c) => [c.ref, c.slot]), [['top-zip-hoodie@1.0.0', 'outer'], ['top-tshirt@1.0.0', 'top'], ['bottom-cargo@1.0.0', 'bottom']]);
-  for (const e of [recipe.body, recipe.head, recipe.hair, recipe.shoes, recipe.faceSet, recipe.motion]) assert.match(e.hash, /^sha256:[0-9a-f]{64}$/);
+  for (const e of [recipe.body, recipe.head, recipe.hair, recipe.shoes, recipe.faceSet, recipe.motion]) assert.match(e.hash, /^[0-9a-f]{64}$/);
   const bad = base(); bad.appearance.hair.palette = { glitter: '#ffffff' };
   assert.deepEqual(errCodes(bad), ['PALETTE_SLOT_UNKNOWN']);
   const unpinned = base(); unpinned.appearance.hair.assetId = 'hair-spiky-front@latest';
@@ -387,6 +387,33 @@ test('accessory limits, anchors, clothing intersections and environment scale', 
   const tall = base(); tall.bodyPreset = 'block-teen-standard@1.0.0'; tall.proportions.heightM = 1.85; tall.proportions.headScale = 1.3;
   assert.ok(errCodes(tall, { environments: ['classroom@1.1.0'] }).includes('ENVIRONMENT_SCALE_INCOMPATIBLE'));
   assert.deepEqual(errCodes(base(), { environments: ['moonbase@9.9.9'] }), ['ENVIRONMENT_UNKNOWN']);
+});
+
+test('hash formats: reference evidence is "sha256:<hex>", profile locks and pins are bare 64-hex', () => {
+  const BARE = /^[0-9a-f]{64}$/;
+  // reference evidence keeps the algorithm-qualified digest and exact CAS matching
+  assert.match(FRONT.contentHash!, /^sha256:[0-9a-f]{64}$/);
+  const bareRef = base(); bareRef.references[0].contentHash = FRONT.contentHash!.slice('sha256:'.length);
+  assert.ok(errCodes(bareRef).includes('SCHEMA_INVALID'));
+  const upperRef = base(); upperRef.references[0].contentHash = 'SHA256:' + FRONT.contentHash!.slice(7);
+  assert.ok(errCodes(upperRef).includes('SCHEMA_INVALID'));
+  const casOff = base(); casOff.references[0].storageRef = 'cas://references/sha256/' + NOTES.contentHash!.slice(7);
+  assert.ok(errCodes(casOff).includes('REFERENCE_HASH_MISMATCH'));
+  assert.equal(FRONT.storageRef, `cas://references/sha256/${FRONT.contentHash!.slice(7)}`);
+  assert.deepEqual(errCodes(base()), []);
+  // profile identity hash, locked manifest and pin: one bare format only
+  const h = hashOf(base())!;
+  assert.match(h, BARE); assert.equal(contentHashOf({ a: 1 }), sha256Hex('{"a":1}'));
+  const reg = registry();
+  const { manifest, pin } = lockNew(reg, base());
+  assert.equal(manifest.contentHash, h); assert.match(pin.contentHash, BARE);
+  assert.deepEqual(Object.keys(pin).sort(), ['characterId', 'contentHash', 'version']);
+  assert.equal(ok(reg.resolvePin(structuredClone(pin))).manifest.contentHash, h);
+  for (const bad of [`sha256:${h}`, h.toUpperCase(), h.slice(1), h + '0', `${h.slice(0, 63)}g`, ` ${h}`, '']) assert.deepEqual(errsOf(reg.resolvePin({ ...pin, contentHash: bad })), ['PIN_INVALID'], bad);
+  const prefixed = { ...base(), status: 'locked', locked: true, contentHash: `sha256:${h}` };
+  assert.ok(errCodes(prefixed).includes('SCHEMA_INVALID'), 'prefixed profile hash is not accepted anywhere');
+  const changed = base(); changed.appearance.hair.palette.primary = '#ff7a26';
+  assert.notEqual(hashOf(changed), h);
 });
 
 test('deterministic hashing primitives', () => {

@@ -46,7 +46,7 @@ export function validateReference(ref: Reference, path: string, trust?: TrustedW
   if (ref.storageRef !== undefined) {
     if (STORAGE_TRAVERSAL.test(ref.storageRef)) out.push(err('REFERENCE_PATH_TRAVERSAL', `${path}.storageRef`, 'storage references may not contain traversal, absolute paths or encoded characters'));
     if (!STORAGE_REF.test(ref.storageRef)) out.push(err('REFERENCE_STORAGE_INVALID', `${path}.storageRef`, 'storageRef must be an opaque cas://references/sha256/<hex> key (no paths or URLs)'));
-    else if (ref.contentHash && ref.storageRef.slice(-64) !== ref.contentHash.slice(-64)) out.push(err('REFERENCE_HASH_MISMATCH', `${path}.storageRef`, 'storageRef is not addressed by the declared contentHash'));
+    else if (ref.contentHash && ref.storageRef !== `cas://references/sha256/${ref.contentHash.slice('sha256:'.length)}`) out.push(err('REFERENCE_HASH_MISMATCH', `${path}.storageRef`, 'storageRef is not addressed by the declared contentHash'));
   }
   if (name !== undefined) {
     if (TRAVERSAL.test(name)) out.push(err('REFERENCE_PATH_TRAVERSAL', `${path}.displayFilename`, 'display filenames may not contain path separators, traversal or control characters'));

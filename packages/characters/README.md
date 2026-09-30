@@ -28,9 +28,21 @@ This package turns character details and reference-file **metadata** into locked
 - **Where actor checks apply:** at validation (for attesters), and at approval and `importLocked` (for approvers).
 - **Evidence is re-verified at approval and again at lock.**
 
+## Hash formats
+
+The package uses two hash formats, and each field accepts exactly one of them:
+
+| Hash | Format | Regex constant |
+| --- | --- | --- |
+| Reference evidence `references[].contentHash` (digest of the uploaded bytes) | algorithm-qualified `sha256:<64 lowercase hex>`; its `storageRef` must be exactly `cas://references/sha256/<same hex>` | `REFERENCE_CONTENT_HASH` |
+| Profile lock / episode pin (`CharacterProfile.contentHash`, `LockedManifest.contentHash`, `CharacterPin.contentHash`) | bare `<64 lowercase hex>` SHA-256 digest, the same as Environment Catalog and Bulk Core exact-resource pins | `PROFILE_CONTENT_HASH` |
+
+- **No second format:** there is no prefix stripping, and no field accepts both formats.
+- **Component and catalog hashes** inside the recipe are also bare digests (`contentHashOf`).
+
 ## Content-hash rule
 
-`contentHash = sha256(canonicalJson(profile minus LIFECYCLE_FIELDS, plus resolved recipe))`.
+`contentHash = sha256(canonicalJson(profile minus LIFECYCLE_FIELDS, plus resolved recipe))`, as bare hex.
 
 - **Excluded:** only `status`, `locked`, `contentHash` and `deprecation`. The approver and verification results are lifecycle facts kept by the registry. There are no lock timestamps.
 - **Included:** every other field, automatically. This covers:
