@@ -258,7 +258,6 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       const face = resolveExpression(c.expressionId, ch.manifest, library);
       const labels: string[] = [];
       if (play.placeholder) labels.push(`ACTION ${c.actionId}`);
-      if (face.resolution === 'fallback') labels.push(`FACE ${c.expressionId}`);
       if (play.note) issue('info', play.status === 'planned' ? 'ACTION_PLACEHOLDER' : 'ACTION_FALLBACK', B, `${id}: ${play.note}`, { entity: id });
       if (face.note) issue('info', 'EXPRESSION_FALLBACK', B, `${id}: ${face.note}`, { entity: id });
       const enterE = kind === 'enter' ? firstEvent(b, (e) => e.type === 'enter' && bare(e.characterId) === id && e.doorId === target) : undefined;

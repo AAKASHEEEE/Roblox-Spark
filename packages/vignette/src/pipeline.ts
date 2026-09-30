@@ -8,6 +8,7 @@ import { CAMERA_RECIPES, PLANNED_RECIPES } from './camera-recipes.ts';
 import { beatSamples, sampleBeat, solveBeatCamera, type ShotChoice } from './camera.ts';
 import { coverageCheck, type CoverageReport } from './coverage.ts';
 import { VignetteScene } from './scene.ts';
+import { registerRuntimeLibrary } from './runtime-library.ts';
 import { stageBeatSheet, type StagePlan } from './stage.ts';
 
 export const REPORT_SCHEMA = 'blockspark.vignette-analysis/1';
@@ -41,6 +42,8 @@ const bare = (r: string) => r.split('@')[0];
 const r3 = (v: readonly number[]) => v.map((x) => Math.round(x * 1000) / 1000);
 
 export function runVignette(input: unknown, lib: ManifestLibrary, opts: VignetteOptions = {}): VignetteRun {
+  // Activate the exact locked S3 character recipes and S4 prop rigs before resolution decides what is real.
+  registerRuntimeLibrary(lib);
   const validation = validateBeatSheet(input, { ...(opts.phrases ? { phrases: opts.phrases } : {}) });
   if (!validation.value || validation.unknown.length || !validation.ok) {
     if (!validation.value) throw new Error(`beat sheet invalid: ${validation.issues.slice(0, 5).map((i) => `${i.path} ${i.message}`).join('; ')}`);
@@ -88,7 +91,7 @@ function buildReport(sheet: BeatSheet, validation: BeatSheetResult, stage: Stage
       contracts: stage.contracts, bridges: stage.world.bridges, worldEvents: stage.world.events.length, issues: stage.issues,
       beats: stage.beats.map((b) => ({
         beat: b.phraseId, set: b.setId, lighting: b.lighting,
-        cast: b.cast.map((c) => ({ id: c.id, placement: c.placement, action: c.actionId, played: c.play.pose, contract: c.play.contract, face: c.face.applied === c.face.requested ? c.face.applied : `${c.face.requested}->${c.face.applied}`, from: r3(c.from), to: r3(c.to), move: c.moveT0 !== null ? [Math.round(c.moveT0 * 1000) / 1000, Math.round(c.moveT1! * 1000) / 1000] : null, enterAt: c.enterAt, exitAt: c.exitAt, labels: c.labels })),
+        cast: b.cast.map((c) => ({ id: c.id, placement: c.placement, action: c.actionId, played: c.play.runtime === 'fallback' ? c.play.pose : c.actionId, contract: c.play.contract, face: c.face.applied === c.face.requested ? c.face.applied : `${c.face.requested}->${c.face.applied}`, from: r3(c.from), to: r3(c.to), move: c.moveT0 !== null ? [Math.round(c.moveT0 * 1000) / 1000, Math.round(c.moveT1! * 1000) / 1000] : null, enterAt: c.enterAt, exitAt: c.exitAt, labels: c.labels })),
         props: b.props.map((id) => { const s = stage.props[id].spans.find((x) => x.beat === b.phraseId)!; return { id, placement: s.target, state: s.state, pos: r3(s.pos) }; }),
       })),
     },

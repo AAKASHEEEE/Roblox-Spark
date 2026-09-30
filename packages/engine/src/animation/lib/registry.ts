@@ -2,7 +2,7 @@
 //   - the 29 engine actions (ACTION_DEFS) under their existing IDs; jump / victory_pose gain landing squash and the
 //     object actions (pick_up, hold, put_down, throw, drink) gain prop cues and anchor-aware poses
 //   - the 21 planned library actions (sit ... flattened)
-//   - enter_door / exit_door: door-mark entrances and exits (IDs still to be reserved by S0)
+//   - enter_door / exit_door: public door-mark entrances and exits
 // ACTION_DEFS / ActorTrack are untouched (byte-frozen), so existing episodes, goldens and the narrated path render exactly
 // as before; library actions play through LibraryTrack (track.ts).
 import type { ActionName } from '../../../../schema/src/episode.ts';
@@ -72,10 +72,10 @@ export const LIB_ACTIONS: Readonly<Record<string, LibActionDef>> = Object.freeze
   ...Object.fromEntries(ENGINE_IDS.map((id) => [id, engineEntry(id)])),
   ...Object.fromEntries(Object.entries({ ...BODY_ACTIONS, ...PROP_ACTIONS, ...DOOR_ACTIONS }).map(([id, d]) => [id, make(id, d)])),
 });
-/** IDs of actions that did not exist in the engine before this library (planned IDs + door transits) */
+/** S5 action definitions that did not exist in the legacy ACTION_DEFS table. */
 export const NEW_ACTION_IDS: readonly string[] = Object.keys({ ...BODY_ACTIONS, ...PROP_ACTIONS, ...DOOR_ACTIONS }).filter((id) => !(id in ACTION_DEFS));
-/** door transits: implemented here, not yet reserved in packages/library/src/ids.ts (reported to S0) */
-export const UNRESERVED_ACTION_IDS = ['enter_door', 'exit_door'] as const;
+/** Door transit IDs are now public library entries; retained as an empty compatibility export. */
+export const UNRESERVED_ACTION_IDS: readonly string[] = [];
 
 export type ActionResolver = (name: string) => LibActionDef | undefined;
 /** vignette path: the full library (upgraded prop interactions and squash included) */

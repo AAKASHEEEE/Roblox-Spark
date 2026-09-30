@@ -31,8 +31,8 @@ test('library loads locked with the new cast and kira@1.2.0', () => {
   assert.deepEqual(lib.errors, []);
   for (const id of NEW) assert.ok(lib.characters[`${id}@1.0.0`], id);
   assert.ok(lib.characters['kira@1.2.0']);
-  // every planned S3 character has a recipe
-  for (const id of idsOf('characters', 'planned')) assert.ok(recipes[id], `recipe for ${id}`);
+  // every published S3 character is available through a recipe
+  for (const id of idsOf('characters', 'available')) assert.ok(recipes[id], `recipe for ${id}`);
 });
 
 test('every allowed expression has a locked face state; defaults are drawable', () => {
@@ -66,10 +66,14 @@ test('cast silhouettes and colours differ', () => {
   for (const c of [n.torsoColor, n.sleeveColor, n.legColor, n.shoeColor]) assert.ok(sat(c) < 0.1, c);
 });
 
-test('face set v2 covers exactly the planned library expressions', () => {
-  assert.deepEqual([...FACE_SET_V2_IDS].sort(), idsOf('expressions', 'planned').sort());
+test('face set v2 covers the published S3 expression definitions', () => {
   assert.deepEqual(EXPRESSION_DEFS.map((d) => d.id).sort(), [...FACE_SET_V2_IDS].sort());
-  for (const d of EXPRESSION_DEFS) assert.equal(LIBRARY.expressions.find((e) => e.id === d.id)?.owner, 'S3');
+  for (const d of EXPRESSION_DEFS) {
+    const e = LIBRARY.expressions.find((x) => x.id === d.id);
+    assert.equal(e?.owner, 'S3');
+    assert.equal(e?.status, 'available');
+    assert.deepEqual(e?.versions, ['1.0.0']);
+  }
   assert.deepEqual([...MOUTH_SHAPES], ['closed', 'open', 'wide', 'o']);
 });
 

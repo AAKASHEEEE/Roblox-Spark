@@ -15,6 +15,7 @@ import type { LibActionCtx, LibActionDef } from './types.ts';
 export interface LibTrackAction { actor?: string; action: string; start: number; duration: number; to?: string; target?: string; params?: Record<string, number | string | boolean> }
 export interface LibSegment { a: LibTrackAction; def: LibActionDef; start: number; end: number; fromPos: Vec3; toPos: Vec3; dist: number; fromYaw: number; travelYaw: number; endYaw: number; run: boolean }
 export interface LibDiag { handError?: number; stance?: 'l' | 'r'; grounded: boolean; scale: Vec3 }
+export interface LibRootOverride { pos: Vec3; yaw: number }
 
 const yawTo = (a: Vec3, b: Vec3): number => Math.atan2(b[0] - a[0], b[2] - a[2]) / DEG;
 const wrap = (d: number): number => { let x = ((d + 180) % 360 + 360) % 360 - 180; if (x === -180) x = 180; return x; };
@@ -91,39 +92,42 @@ export class LibraryTrack {
   }
 
   /** ctx the segment's pose / cues see at t */
-  ctxAt(s: LibSegment, t: number): LibActionCtx {
-    const d = s.end - s.start, lt = clamp(t - s.start, 0, d), root = this.rootAt(Math.min(t, s.end - 1e-4)), r = this.rig.dims;
+  ctxAt(s: LibSegment, t: number, rootOverride?: LibRootOverride): LibActionCtx {
+    const d = s.end - s.start, lt = clamp(t - s.start, 0, d), computedRoot = this.rootAt(Math.min(t, s.end - 1e-4));
+    const root = rootOverride ? { ...computedRoot, ...rootOverride } : computedRoot;
+    const r = this.rig.dims;
     return {
       lt, d, u: lt / d, t, seed: this.seed, target: s.a.target ? this.res.point(s.a.target, t) : undefined, params: s.a.params ?? {},
-      loco: { dist: t >= s.end ? s.dist : root.dist, speed: t >= s.end ? 0 : root.speed, run: s.run, legLen: r.legLen, total: s.dist },
+      loco: { dist: t >= s.end ? s.dist : computedRoot.dist, speed: t >= s.end ? 0 : computedRoot.speed, run: s.run, legLen: r.legLen, total: s.dist },
       root: { pos: root.pos, yaw: root.yaw },
       body: { legLen: r.legLen, torsoH: r.torsoH, headH: r.headH, headD: this.rig.manifest.body.headSize[2], upperArm: r.upperArm, lowerArm: r.lowerArm, shoulderX: r.shoulderX, shoulderY: r.shoulderY },
     };
   }
   /** the body action (and its ctx) at t: the current segment, else the last one (holding / releasing) */
-  activeAt(t: number): { s: LibSegment; c: LibActionCtx } | undefined {
+  activeAt(t: number, rootOverride?: LibRootOverride): { s: LibSegment; c: LibActionCtx } | undefined {
     const { cur, prev } = this.segAt(t), s = cur ?? prev;
-    return s ? { s, c: this.ctxAt(s, t) } : undefined;
+    return s ? { s, c: this.ctxAt(s, t, rootOverride) } : undefined;
   }
 
-  poseAt(t: number): ActionPose {
+  poseAt(t: number, rootOverride?: LibRootOverride): ActionPose {
     const { cur, prev } = this.segAt(t);
     const idle: ActionPose = { joints: IDLE_POSE };
-    const rest = (s?: LibSegment): ActionPose => (s && s.def.holds ? s.def.pose(this.ctxAt(s, s.end)) : idle);
+    const rest = (s?: LibSegment): ActionPose => (s && s.def.holds ? s.def.pose(this.ctxAt(s, s.end, rootOverride)) : idle);
     if (cur) {
-      const p = cur.def.pose(this.ctxAt(cur, t)), w = smooth01((t - cur.start) / Math.max(1e-6, cur.def.blendIn));
+      const p = cur.def.pose(this.ctxAt(cur, t, rootOverride)), w = smooth01((t - cur.start) / Math.max(1e-6, cur.def.blendIn));
       return w >= 1 ? p : blendAction(rest(prev), p, w);
     }
     if (prev && !prev.def.holds) {
       const w = smooth01((t - prev.end) / 0.3);
-      return w >= 1 ? idle : blendAction(prev.def.pose(this.ctxAt(prev, prev.end)), idle, w);
+      return w >= 1 ? idle : blendAction(prev.def.pose(this.ctxAt(prev, prev.end, rootOverride)), idle, w);
     }
     return rest(prev);
   }
 
-  /** pose the rig at t (all world matrices updated) */
-  apply(t: number): LibDiag {
-    const rig = this.rig, pose = this.poseAt(t), root = this.rootAt(t), pitch = pose.pitch ?? 0;
+  /** Pose the rig at t using either compiled root motion or an authoritative external root. */
+  private applyWithRoot(t: number, rootOverride?: LibRootOverride): LibDiag {
+    const rig = this.rig, pose = this.poseAt(t, rootOverride), compiled = this.rootAt(t);
+    const root = rootOverride ? { ...compiled, ...rootOverride } : compiled, pitch = pose.pitch ?? 0;
     rig.root.pos = [root.pos[0], 0, root.pos[2]];
     rig.root.rot = qMul(qEuler(0, root.yaw * DEG, 0), qEuler(pitch * DEG, 0, 0));
     rig.root.scl = [1, 1, 1];
@@ -177,4 +181,9 @@ export class LibraryTrack {
     rig.root.updateWorld();
     return { handError, stance: pose.stance, grounded: !(pose.lift && pose.lift > 0.01), scale: [...rig.root.scl] as Vec3 };
   }
+
+  /** Original standalone behavior: LibraryTrack owns root motion. */
+  apply(t: number): LibDiag { return this.applyWithRoot(t); }
+  /** Vignette behavior: LibraryTrack owns the body pose while the staged WorldPlan remains authoritative for the root. */
+  applyAtRoot(t: number, pos: Vec3, yaw: number): LibDiag { return this.applyWithRoot(t, { pos, yaw }); }
 }

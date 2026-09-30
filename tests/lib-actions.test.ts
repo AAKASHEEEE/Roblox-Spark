@@ -83,14 +83,16 @@ test('seedPhase is deterministic and spreads over [0, 1)', () => {
 
 // ---------------------------------------------------------------- registry
 
-test('registry: every planned + available library action is implemented; only the door transits are unreserved', () => {
+test('registry: every published library action is implemented and versioned', () => {
   const lib = LIBRARY.actions.map((e) => e.id);
-  for (const id of lib) assert.ok(LIB_ACTIONS[id], `${id} missing from LIB_ACTIONS`);
+  for (const e of LIBRARY.actions) {
+    assert.ok(LIB_ACTIONS[e.id], `${e.id} missing from LIB_ACTIONS`);
+    assert.equal(e.status, 'available', e.id);
+    assert.deepEqual(e.versions, ['1.0.0'], e.id);
+  }
   const extra = Object.keys(LIB_ACTIONS).filter((id) => !lib.includes(id)).sort();
   assert.deepEqual(extra, [...UNRESERVED_ACTION_IDS].sort());
-  const planned = LIBRARY.actions.filter((e) => e.status === 'planned').map((e) => e.id);
-  assert.equal(planned.length, 21);
-  for (const id of planned) assert.ok(NEW_ACTION_IDS.includes(id), `${id} is new`);
+  for (const id of NEW_ACTION_IDS) assert.ok(lib.includes(id), `${id} not reserved in library`);
   for (const [id, d] of Object.entries(LIB_ACTIONS)) {
     assert.equal(d.id, id); assert.equal(d.kind, 'action'); assert.match(d.version, /^\d+\.\d+\.\d+$/);
     assert.ok(d.defaultDuration > 0 && d.blendIn >= 0, id);

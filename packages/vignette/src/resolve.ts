@@ -3,6 +3,8 @@
 // a placeholder label (actions, expressions, VFX, text graphics). Audio IDs are resolved but never drawn.
 import { LIBRARY, lookup, type Library, type LibraryKind } from '../../library/src/ids.ts';
 import { registeredBuilder, resolveManifestKey, type ManifestLibrary } from '../../engine/src/build-dispatch.ts';
+import { hasFace } from '../../engine/src/faces/index.ts';
+import { LIB_ACTIONS, NEW_ACTION_IDS, UPGRADED_ENGINE_ACTIONS } from '../../engine/src/animation/lib/registry.ts';
 import type { CharacterManifest } from '../../schema/src/assets.ts';
 
 export type Resolution = 'available' | 'placeholder' | 'fallback' | 'audio_only' | 'unknown';
@@ -15,7 +17,7 @@ export function resolveAsset(kind: 'sets' | 'characters' | 'props', ref: string,
   const e = lookup(kind, ref, library), id = bare(ref);
   const rk = kind === 'sets' ? 'set' : kind === 'characters' ? 'character' : 'prop';
   const records = kind === 'sets' ? lib.environments : kind === 'characters' ? lib.characters : lib.props;
-  const b = registeredBuilder(rk, ref) ?? registeredBuilder(rk, id);
+  const b = registeredBuilder(rk, ref) ?? (!ref.includes('@') ? registeredBuilder(rk, id) : undefined);
   if (b) return { kind, id, status: e?.status ?? 'unknown', resolution: 'available', source: `builder ${b.id}@${b.version}` };
   // a planned entry is never rendered from a stray manifest; an available entry needs its locked asset
   const key = e?.status === 'available' ? resolveManifestKey(ref, records) : undefined;
@@ -37,9 +39,7 @@ const EXPRESSION_NEAREST: Record<string, string[]> = {
 export interface FaceResolution { requested: string; applied: string; resolution: 'available' | 'fallback'; note?: string }
 export function resolveExpression(expr: string, m: CharacterManifest, library: Library = LIBRARY): FaceResolution {
   const states = m.face.states;
-  const planned = lookup('expressions', expr, library)?.status === 'planned';
-  if (states[expr] && !planned) return { requested: expr, applied: expr, resolution: 'available' };
-  if (states[expr]) return { requested: expr, applied: expr, resolution: 'fallback', note: `planned expression drawn with the placeholder face set` };
+  if (hasFace(m, expr)) return { requested: expr, applied: expr, resolution: 'available' };
   const pick = (EXPRESSION_NEAREST[expr] ?? []).find((s) => states[s]) ?? Object.keys(states)[0];
   return { requested: expr, applied: pick, resolution: 'fallback', note: `${m.id} has no "${expr}" face; nearest drawable "${pick}"` };
 }
@@ -48,12 +48,13 @@ export function resolveExpression(expr: string, m: CharacterManifest, library: L
 
 /**
  * How staging plays a beat-sheet action: the world contract (packages/narrated/src/contracts.ts) it runs under and the
- * procedural engine pose. `placeholder` = the library action is planned: the pose is the closest existing behaviour and
- * a label names the missing action.
+ * procedural bridge keeps authoritative root staging intact; `runtime: library` means VignetteScene overlays the real
+ * S5 LibraryTrack pose/cues. `placeholder` is reserved for an unknown or genuinely missing implementation.
  */
-export interface ActionPlay { contract: 'move_to' | 'look_at' | 'press_button' | 'jump' | 'celebrate' | 'warning' | 'confident_pose' | 'remain_still' | 'fall_prone'; pose: string; hold: boolean; seconds: number; posture: 'standing' | 'implied_seated' | 'prone'; locomotion?: 'walk' | 'run'; placeholder: boolean }
-const P = (contract: ActionPlay['contract'], pose: string, hold: boolean, seconds: number, extra: Partial<ActionPlay> = {}): Omit<ActionPlay, 'placeholder'> => ({ contract, pose, hold, seconds, posture: 'standing', ...extra });
-const ACTION_PLAY: Record<string, Omit<ActionPlay, 'placeholder'>> = {
+export interface ActionPlay { contract: 'move_to' | 'look_at' | 'press_button' | 'jump' | 'celebrate' | 'warning' | 'confident_pose' | 'remain_still' | 'fall_prone'; pose: string; hold: boolean; seconds: number; posture: 'standing' | 'implied_seated' | 'prone'; locomotion?: 'walk' | 'run'; placeholder: boolean; runtime: 'library' | 'legacy' | 'fallback' }
+type ActionPlayBase = Omit<ActionPlay, 'placeholder' | 'runtime'>;
+const P = (contract: ActionPlay['contract'], pose: string, hold: boolean, seconds: number, extra: Partial<ActionPlayBase> = {}): ActionPlayBase => ({ contract, pose, hold, seconds, posture: 'standing', ...extra });
+const ACTION_PLAY: Record<string, ActionPlayBase> = {
   idle: P('remain_still', 'idle', true, 0.8), walk: P('move_to', 'idle', true, 0, { locomotion: 'walk' }), run: P('move_to', 'idle', true, 0, { locomotion: 'run' }),
   chase: P('move_to', 'idle', true, 0, { locomotion: 'run' }), enter_frame: P('move_to', 'idle', true, 0, { locomotion: 'walk' }), exit_frame: P('move_to', 'idle', true, 0, { locomotion: 'walk' }),
   press_button: P('press_button', 'press_button', false, 0.9), jump: P('jump', 'jump', false, 0.9), fall: P('fall_prone', 'fall', true, 0.6, { posture: 'prone' }),
@@ -72,15 +73,17 @@ const ACTION_PLAY: Record<string, Omit<ActionPlay, 'placeholder'>> = {
   shrug: P('look_at', 'curious_lean', true, 1.0), wave: P('look_at', 'point', true, 1.0), clap: P('celebrate', 'victory_pose', false, 1.2), sneak: P('move_to', 'idle', true, 0, { locomotion: 'walk' }),
   push: P('look_at', 'point', true, 1.0), flattened: P('fall_prone', 'fall', true, 0.6, { posture: 'prone' }),
 };
-const ENGINE_UNAVAILABLE = new Set(['pick_up', 'hold', 'put_down', 'drink', 'throw', 'hover']);
+const LIBRARY_TRACK_ACTIONS = new Set<string>([...NEW_ACTION_IDS, ...UPGRADED_ENGINE_ACTIONS, 'pick_up', 'hold', 'put_down', 'hover']);
 export function resolveAction(actionId: string, library: Library = LIBRARY): ActionPlay & { status: 'available' | 'planned' | 'unknown'; note?: string } {
   const e = lookup('actions', actionId, library);
   const play = ACTION_PLAY[actionId] ?? P('look_at', 'look_at', true, 1.2);
-  const planned = e?.status === 'planned';
-  const unavailable = ENGINE_UNAVAILABLE.has(actionId);
+  const implemented = !!LIB_ACTIONS[actionId];
   return {
-    ...play, placeholder: planned || !e || unavailable || !ACTION_PLAY[actionId], status: e?.status ?? 'unknown',
-    ...(planned ? { note: `planned action (${e!.owner}); played as ${play.contract}/${play.pose}` } : unavailable ? { note: `engine cannot play ${actionId} (no hand attachment / floating rig); played as ${play.pose}` } : !e ? { note: 'not in the library' } : {}),
+    ...play,
+    runtime: !implemented ? 'fallback' : LIBRARY_TRACK_ACTIONS.has(actionId) ? 'library' : 'legacy',
+    placeholder: !e || !implemented,
+    status: e?.status ?? 'unknown',
+    ...(!e ? { note: 'not in the library' } : !implemented ? { note: `action ${actionId} has no LIB_ACTIONS implementation; played as ${play.pose}` } : {}),
   };
 }
 

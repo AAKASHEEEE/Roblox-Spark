@@ -77,12 +77,12 @@ const SETS: SetEntry[] = [
 ];
 
 // ---------------------------------------------------------------- characters (S3)
-const CHARACTERS: LibraryEntry[] = [
+const CHARACTER_ROWS: LibraryEntry[] = [
   ...rows('S3', 'available', [
     ['zapp', 'Zapp: impulsive lead who presses every button', ['zapp'], { versions: ['1.0.0'], source: 'assets/characters/zapp@1.0.0.json' }],
     ['kira', 'Kira: smart, calm foil', ['kira'], { versions: ['1.0.0', '1.1.0'], source: 'assets/characters/kira@1.1.0.json' }],
   ]),
-  ...rows('S3', 'planned', [
+  ...rows('S3', 'available', [
     ['teacher', 'Teacher (adult); leaves and returns through the door', ['teacher', 'sir', 'miss', 'professor']],
     ['mom', 'Mom (adult)', ['mom', 'mum', 'mother']],
     ['dad', 'Dad (adult)', ['dad', 'father']],
@@ -93,16 +93,22 @@ const CHARACTERS: LibraryEntry[] = [
     ['crowd_kid', 'Background kid for crowds (varied by seed)', ['crowd', 'kids', 'students', 'everyone', 'class']],
   ]),
 ];
+const CHARACTER_VERSIONS: Record<string, string[]> = { kira: ['1.0.0', '1.1.0', '1.2.0'] };
+const CHARACTERS: LibraryEntry[] = CHARACTER_ROWS.map((e) => {
+  const versions = CHARACTER_VERSIONS[e.id] ?? ['1.0.0'];
+  const latest = versions[versions.length - 1];
+  return { ...e, status: 'available', versions, source: `assets/characters/${e.id}@${latest}.json + packages/engine/src/faces/recipes.ts` };
+});
 
 // ---------------------------------------------------------------- props (S4)
-const PROPS: LibraryEntry[] = [
+const PROP_ROWS: LibraryEntry[] = [
   ...rows('S4', 'available', [
     ['spark_coin', 'Spark Coin: spawns, grows, tips over', ['coin', 'coins', 'money', 'robux'], { versions: ['1.0.0'], source: 'assets/props/spark_coin@1.0.0.json' }],
     ['student_desk', 'Student desk', ['desk', 'front desk', 'table'], { versions: ['1.0.0'], source: 'assets/props/student_desk@1.0.0.json' }],
     ['suspicious_button', 'Suspicious free-coins button: press, flash, reset', ['button', 'free coins', 'free-coins'], { versions: ['1.0.0'], source: 'assets/props/suspicious_button@1.0.0.json' }],
   ]),
-  ...rows('S4', 'planned', [
-    ['door', 'Hinged door with open/closed states', ['door', 'doorway']],
+  ...rows('S4', 'available', [
+    ['door', 'Hinged door with open/closed states and a 1.25 m x 2.90 m clear opening', ['door', 'doorway']],
     ['phone', 'Smartphone', ['phone', 'mobile', 'texting', 'call']],
     ['laptop', 'Laptop computer', ['laptop', 'computer', 'pc']],
     ['book', 'Book', ['book', 'textbook', 'homework']],
@@ -129,10 +135,16 @@ const PROPS: LibraryEntry[] = [
     ['gift_box', 'Gift box', ['gift', 'present', 'box']],
   ]),
 ];
+const PROP_MULTI_VERSION = new Set(['door', 'spark_coin', 'student_desk', 'suspicious_button']);
+const PROPS: LibraryEntry[] = PROP_ROWS.map((e) => {
+  const versions = PROP_MULTI_VERSION.has(e.id) ? ['1.0.0', '1.1.0'] : ['1.0.0'];
+  const latest = versions[versions.length - 1];
+  return { ...e, status: 'available', versions, source: `assets/props/${e.id}@${latest}.json + packages/engine/src/props/index.ts` };
+});
 
-// ---------------------------------------------------------------- actions (S5); available = engine ACTIONS (schema/episode.ts)
+// ---------------------------------------------------------------- actions (S5); available = S5 LIB_ACTIONS
 const ACT = (id: string, description: string, tags: string[]): Row => [id, description, tags, { source: 'engine ACTION_DEFS' }];
-const ACTIONS: LibraryEntry[] = [
+const ACTION_ROWS: LibraryEntry[] = [
   ...rows('S5', 'available', [
     ACT('idle', 'Idle breathing stance', ['stands', 'waits']),
     ACT('walk', 'Walk to a mark', ['walk', 'walks', 'goes', 'moves']),
@@ -164,7 +176,7 @@ const ACTIONS: LibraryEntry[] = [
     ACT('head_shake', 'Shake head no', ['no', 'refuses', 'warns', 'tells him not']),
     ACT('dive_prone', 'Dive to the floor', ['dives']),
   ]),
-  ...rows('S5', 'planned', [
+  ...rows('S5', 'available', [
     ['sit', 'Sit down on a seat/desk mark and hold', ['sit', 'sits', 'sitting', 'seated']],
     ['stand_up', 'Stand up from sitting', ['stands up', 'gets up']],
     ['celebrate', 'Full-body celebration (arms up, bounce)', ['celebrate', 'celebrates', 'party', 'yay']],
@@ -186,19 +198,24 @@ const ACTIONS: LibraryEntry[] = [
     ['sneak', 'Sneak walk (crouched locomotion)', ['sneak', 'sneaks', 'tiptoes']],
     ['push', 'Push something/someone', ['push', 'pushes', 'shoves']],
     ['flattened', 'Lie flattened under an object and hold', ['flattened', 'flattens', 'squashed', 'crushed']],
+    ['enter_door', 'Enter through a door and continue to an interior mark', ['enters through door', 'peeks in']],
+    ['exit_door', 'Exit through a door with a glance back', ['exits through door', 'leaves through door']],
   ]),
 ];
+const ACTIONS: LibraryEntry[] = ACTION_ROWS.map((e) => ({
+  ...e, status: 'available', versions: ['1.0.0'], source: 'packages/engine/src/animation/lib/registry.ts (LIB_ACTIONS)',
+}));
 
-// ---------------------------------------------------------------- expressions (S3); available = engine EXPRESSIONS
+// ---------------------------------------------------------------- expressions (S3); available = S3 face sets
 const EXPR = (id: string, description: string, tags: string[]): Row => [id, description, tags, { source: 'engine EXPRESSIONS / faces.ts' }];
-const EXPRESSIONS: LibraryEntry[] = [
+const EXPRESSION_ROWS: LibraryEntry[] = [
   ...rows('S3', 'available', [
     EXPR('neutral', 'Neutral face', ['calm', 'normal']), EXPR('curious', 'Curious', ['curious', 'wonders']), EXPR('shock', 'Shock', ['shock', 'shocked']),
     EXPR('determined', 'Determined', ['determined']), EXPR('regret', 'Regret', ['regret', 'sorry']), EXPR('smug', 'Smug', ['smug', 'knows']),
     EXPR('skeptical', 'Skeptical', ['skeptical', 'doubt']), EXPR('surprised', 'Surprised', ['surprised']), EXPR('laughing', 'Laughing', ['laughing']),
     EXPR('happy', 'Happy', ['happy', 'glad']), EXPR('angry', 'Angry', ['angry', 'mad']), EXPR('calm', 'Calm', ['calm', 'still']), EXPR('strict', 'Strict', ['strict', 'stern']),
   ]),
-  ...rows('S3', 'planned', [
+  ...rows('S3', 'available', [
     ['big_grin', 'Big toothy grin', ['grin', 'grins']], ['laugh', 'Open-mouth laugh', ['laugh', 'laughs']], ['furious', 'Furious', ['furious', 'rage']],
     ['scream', 'Screaming face', ['scream', 'screams']], ['shocked', 'Wide-eyed shock (face set v2)', ['shocked', 'omg']], ['scared', 'Scared', ['scared', 'afraid']],
     ['sad', 'Sad', ['sad', 'upset']], ['crying', 'Crying with tears', ['crying', 'cries']], ['suspicious', 'Suspicious squint', ['suspicious', 'sus']],
@@ -206,10 +223,13 @@ const EXPRESSIONS: LibraryEntry[] = [
     ['love_eyes', 'Heart eyes', ['love', 'crush']],
   ]),
 ];
+const EXPRESSIONS: LibraryEntry[] = EXPRESSION_ROWS.map((e) => ({
+  ...e, status: 'available', versions: ['1.0.0'], source: 'packages/engine/src/faces/index.ts',
+}));
 
-// ---------------------------------------------------------------- camera recipes (S6); available = engine CAMERA_PRESETS
+// ---------------------------------------------------------------- camera recipes (S6); available = vignette camera safety recipes
 const CAM = (id: string, description: string, tags: string[]): Row => [id, description, tags, { source: 'engine CAMERA_PRESETS' }];
-const CAMERA_RECIPES: LibraryEntry[] = [
+const CAMERA_RECIPE_ROWS: LibraryEntry[] = [
   ...rows('S6', 'available', [
     CAM('prop_ecu', 'Extreme close-up on a prop', ['close', 'button']), CAM('frontal_medium', 'Frontal medium single', ['medium']),
     CAM('two_shot', 'Two characters in frame', ['both', 'together']), CAM('over_shoulder', 'Over-the-shoulder', ['looks at', 'notices']),
@@ -217,7 +237,7 @@ const CAMERA_RECIPES: LibraryEntry[] = [
     CAM('wide_environment', 'Wide of the whole set', ['room', 'entire']), CAM('reaction_punch_in', 'Fast punch-in on a reaction', ['reacts', 'shocked']),
     CAM('chase_cam', 'Tracking chase camera', ['chase', 'runs']), CAM('final_loop', 'Loop-closing final shot', ['again', 'next victim']),
   ]),
-  ...rows('S6', 'planned', [
+  ...rows('S6', 'available', [
     ['hook_closeup', 'Opening hook close-up on the lead', ['this is', 'imagine']], ['establishing_wide', 'Establishing wide of a new set', ['meanwhile', 'at school', 'at home']],
     ['medium_single', 'Medium single on one character', ['says', 'thinks']], ['low_angle_hero', 'Low-angle hero shot', ['confident', 'hero', 'boss']],
     ['pov', 'Point-of-view shot', ['sees', 'pov']], ['insert_prop', 'Insert on a prop (v2 of prop_ecu)', ['the button', 'the phone']],
@@ -225,6 +245,9 @@ const CAMERA_RECIPES: LibraryEntry[] = [
     ['slow_push_in', 'Slow push-in for tension', ['slowly', 'quietly', 'realizes']],
   ]),
 ];
+const CAMERA_RECIPES: LibraryEntry[] = CAMERA_RECIPE_ROWS.map((e) => ({
+  ...e, status: 'available', versions: ['1.0.0'], source: 'packages/vignette/src/camera-recipes.ts',
+}));
 
 // ---------------------------------------------------------------- VFX (S7); available = engine VFX
 const FX = (id: string, description: string, tags: string[]): Row => [id, description, tags, { source: 'engine VFX (vfx.ts)' }];

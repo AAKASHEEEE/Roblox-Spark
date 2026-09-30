@@ -59,10 +59,10 @@ export function dispatchCharacter(ref: string, lib: ManifestLibrary, opts: { see
   return { rig: buildCharacter(m), source: 'placeholder', key: `${m.id}@${m.version}` };
 }
 
-export interface DispatchedProp { inst: PropInstance; built?: BuiltProp; source: BuildSource; key: string }
+export interface DispatchedProp { inst: PropInstance; built?: BuiltProp; builder?: PropBuilder; source: BuildSource; key: string }
 export function dispatchProp(ref: string, instance: string, lib: ManifestLibrary, opts: { seed: number; placeholder: (id: string) => PropManifest }): DispatchedProp {
   const b = registeredBuilder('prop', ref);
-  if (b) { const built = b.build(instance, { seed: opts.seed }); return { inst: built.instance, built, source: 'builder', key: `${b.id}@${b.version}` }; }
+  if (b) { const built = b.build(instance, { seed: opts.seed }); return { inst: built.instance, built, builder: b, source: 'builder', key: `${b.id}@${b.version}` }; }
   const key = resolveManifestKey(ref, lib.props);
   if (key) return { inst: buildProp(lib.props[key], instance), source: 'manifest', key };
   const m = opts.placeholder(ref.split('@')[0]);

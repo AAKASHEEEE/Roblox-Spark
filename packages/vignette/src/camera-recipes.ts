@@ -2,10 +2,7 @@
 // default framing, plus a family of variants (angle / size / height) that the beat camera (camera.ts) evaluates with the
 // camera-safety evaluator (packages/engine/src/camera-safety.ts) on every sampled frame. A recipe never bypasses safety:
 // it only proposes lens paths and says which safety intent and subject roles judge them.
-//   planned (ids.ts): hook_closeup, establishing_wide, medium_single, low_angle_hero, pov, insert_prop, top_down,
-//                     whip_pan, slow_push_in
-//   available (engine CAMERA_PRESETS ids, re-built on camera safety): prop_ecu, frontal_medium, two_shot, over_shoulder,
-//                     low_angle_reveal, top_down_insert, wide_environment, reaction_punch_in, chase_cam, final_loop
+// Every S6 recipe below is now registered as available; each candidate still goes through camera safety before use.
 import type { CameraIntent, CameraCandidate } from '../../engine/src/camera-safety.ts';
 import type { CameraRecipe, CameraSubject } from '../../library/src/types.ts';
 import type { Vec3 } from '../../engine/src/math.ts';
@@ -129,33 +126,33 @@ const R = (d: Def): VignetteCameraRecipe => ({
 const charOrProp = (c: RecipeCtx, charIntent: CameraIntent): CameraIntent => (c.subjectKind === 'prop' ? 'prop' : charIntent);
 
 export const CAMERA_RECIPES: Record<string, VignetteCameraRecipe> = {
-  // ---------------- planned recipes
+  // ---------------- S6 vignette recipes
   hook_closeup: R({
-    id: 'hook_closeup', planned: true, subjects: 1, description: 'Opening hook close-up on the lead: frontal, head fills ~38% of frame, eye-level',
+    id: 'hook_closeup', planned: false, subjects: 1, description: 'Opening hook close-up on the lead: frontal, head fills ~38% of frame, eye-level',
     plan: (c) => ({ intent: charOrProp(c, 'close'), motion: 'static', framingFrom: 0, extras: {}, secondaryRole: 'optional', heroSubject: c.subjectKind === 'prop', ...(c.subjectKind === 'character' ? { headSize: (v: Variant) => v.size } : {}) }),
     variants: (c) => grid([0, 15, -15, 30, -30], c.subjectKind === 'prop' ? [0.55] : [0.34, 0.42], [0.0], [38]),
     pose: (c, v) => singlePose(c, c.subject, c.subjectKind, v, v.size, 0.04),
   }),
   establishing_wide: R({
-    id: 'establishing_wide', planned: true, subjects: 1, description: 'Establishing wide of the set: whole cast + props, elevated 14-24 deg, audience side',
+    id: 'establishing_wide', planned: false, subjects: 1, description: 'Establishing wide of the set: whole cast + props, elevated 14-24 deg, audience side',
     plan: (c) => ({ intent: 'wide', motion: 'static', framingFrom: 0, extras: {}, secondaryRole: 'optional', heroSubject: c.subjectKind === 'prop', fit: 'content' }),
     variants: () => grid([0, 15, -15, 30, -30], [1], [16, 24], [46, 56]),
     pose: (c, v) => widePose(c, c.content, v),
   }),
   medium_single: R({
-    id: 'medium_single', planned: true, subjects: 1, description: 'Medium single: chest-up, head ~24% of frame, others optional',
+    id: 'medium_single', planned: false, subjects: 1, description: 'Medium single: chest-up, head ~24% of frame, others optional',
     plan: (c) => ({ intent: charOrProp(c, 'medium'), motion: 'static', framingFrom: 0, extras: {}, secondaryRole: 'optional', heroSubject: c.subjectKind === 'prop', ...(c.subjectKind === 'character' ? { headSize: (v: Variant) => v.size } : {}) }),
     variants: (c) => grid([0, 20, -20, 35, -35, 50, -50], c.subjectKind === 'prop' ? [0.4] : [0.22, 0.27], [-0.08, 0.2], [38]),
     pose: (c, v) => singlePose(c, c.subject, c.subjectKind, v, v.size, 0.3),
   }),
   low_angle_hero: R({
-    id: 'low_angle_hero', planned: true, subjects: 1, description: 'Low-angle hero: lens at hip height looking up, head ~22% of frame',
+    id: 'low_angle_hero', planned: false, subjects: 1, description: 'Low-angle hero: lens at hip height looking up, head ~22% of frame',
     plan: (c) => ({ intent: charOrProp(c, 'medium'), motion: 'static', framingFrom: 0, extras: {}, secondaryRole: 'optional', heroSubject: c.subjectKind === 'prop', ...(c.subjectKind === 'character' ? { headSize: (v: Variant) => v.size } : {}) }),
     variants: () => grid([0, 20, -20, 35, -35, 50, -50], [0.23, 0.27], [-0.75, -0.95], [40]),
     pose: (c, v) => { const p = singlePose(c, c.subject, c.subjectKind, v, v.size, 0.12); return p; },
   }),
   pov: R({
-    id: 'pov', planned: true, subjects: 2, description: 'Point of view of the character looking at the subject (secondary, or a cast member whose lookAt is the subject): lens just in front of the viewer\'s face',
+    id: 'pov', planned: false, subjects: 2, description: 'Point of view of the character looking at the subject (secondary, or a cast member whose lookAt is the subject): lens just in front of the viewer\'s face',
     plan: (c) => ({ intent: c.subjectKind === 'prop' ? 'prop' : 'medium', motion: 'static', framingFrom: 0, extras: {}, secondaryRole: c.viewer || c.secondaryKind === 'character' ? 'optional' : 'none', heroSubject: c.subjectKind === 'prop' }),
     variants: () => grid([0, 6, -6], [0.45, 0.6], [0.02], [44, 52]),
     pose: (c, v) => {
@@ -168,13 +165,13 @@ export const CAMERA_RECIPES: Record<string, VignetteCameraRecipe> = {
     },
   }),
   insert_prop: R({
-    id: 'insert_prop', planned: true, subjects: 1, description: 'Prop insert (v2 of prop_ecu): prop fills ~40% of frame, 3/4 elevated 30-45 deg',
+    id: 'insert_prop', planned: false, subjects: 1, description: 'Prop insert (v2 of prop_ecu): prop fills ~40% of frame, 3/4 elevated 30-45 deg',
     plan: (c) => ({ intent: charOrProp(c, 'close'), motion: 'static', framingFrom: 0, extras: { requiresHeroProp: c.subjectKind === 'prop' }, secondaryRole: 'none', heroSubject: c.subjectKind === 'prop' }),
     variants: () => grid([0, 25, -25, 45, -45], [0.26, 0.34, 0.44], [30, 45], [38]),
     pose: (c, v) => (c.subjectKind === 'prop' ? propPose(c, c.subject, v, v.size) : singlePose(c, c.subject, 'character', { ...v, height: 0 }, 0.36, 0.04)),
   }),
   top_down: R({
-    id: 'top_down', planned: true, subjects: 1, description: 'Top-down overhead: 58-76 deg pitch over the subject and what surrounds it (a prop with no actor near is a neutral insert)',
+    id: 'top_down', planned: false, subjects: 1, description: 'Top-down overhead: 58-76 deg pitch over the subject and what surrounds it (a prop with no actor near is a neutral insert)',
     plan: (c) => ({ intent: c.subjectKind === 'prop' && !c.secondary && !c.actorsNear ? 'neutral_top_down_prop_insert' : 'wide', motion: 'static', framingFrom: 0, extras: { requiresHeroProp: c.subjectKind === 'prop' }, secondaryRole: 'optional', heroSubject: c.subjectKind === 'prop', fit: c.actorsNear ? 'content' : undefined }),
     variants: () => grid([0, 20, -20, 40, -40], [1], [52, 60, 70], [52, 62, 70]),
     pose: (c, v) => {
@@ -183,7 +180,7 @@ export const CAMERA_RECIPES: Record<string, VignetteCameraRecipe> = {
     },
   }),
   whip_pan: R({
-    id: 'whip_pan', planned: true, subjects: 2, description: 'Whip pan: 0.35 s pan from the secondary (or off-frame) onto the subject, then a medium hold; framing rules apply after the pan',
+    id: 'whip_pan', planned: false, subjects: 2, description: 'Whip pan: 0.35 s pan from the secondary (or off-frame) onto the subject, then a medium hold; framing rules apply after the pan',
     plan: (c) => ({ intent: charOrProp(c, 'medium'), motion: 'pan', framingFrom: 0.35, extras: {}, secondaryRole: 'optional', heroSubject: c.subjectKind === 'prop', ...(c.subjectKind === 'character' ? { headSize: (v: Variant) => v.size } : {}) }),
     variants: (c) => grid([0, 20, -20, 35, -35], c.subjectKind === 'prop' ? [0.4] : [0.23], [-0.08], [38]),
     pose: (c, v, lt) => {
@@ -194,7 +191,7 @@ export const CAMERA_RECIPES: Record<string, VignetteCameraRecipe> = {
     },
   }),
   slow_push_in: R({
-    id: 'slow_push_in', planned: true, subjects: 1, description: 'Slow push-in for tension: dolly from head ~19% to ~29% of frame over the whole beat',
+    id: 'slow_push_in', planned: false, subjects: 1, description: 'Slow push-in for tension: dolly from head ~19% to ~29% of frame over the whole beat',
     plan: (c) => ({ intent: charOrProp(c, 'medium'), motion: 'dolly', framingFrom: 0, extras: {}, secondaryRole: 'optional', heroSubject: c.subjectKind === 'prop', ...(c.subjectKind === 'character' ? { headSize: (v: Variant, lt: number) => lerp(v.size, v.size1 ?? v.size, smooth(lt / Math.max(c.d, 0.1))) } : {}) }),
     variants: (c) => grid([0, 20, -20, 35, -35, 50, -50], [c.subjectKind === 'prop' ? 0.3 : 0.2], [-0.05, 0.2], [38], { size1: c.subjectKind === 'prop' ? 0.42 : 0.29 }),
     pose: (c, v, lt) => { const u = smooth(lt / Math.max(c.d, 0.1)); return singlePose(c, c.subject, c.subjectKind, v, lerp(v.size, v.size1 ?? v.size, u), 0.28); },

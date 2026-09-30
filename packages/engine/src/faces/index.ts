@@ -56,15 +56,17 @@ export function drawV2(g: Ctx, d: FaceDesign, state: string, size: number, blink
  * Face texture for a character. `mouth` = talking shape (S5 drives it; null/undefined = the expression's own mouth).
  * `skin` overrides the skin the v2 tints mix with (crowd colour variants). Throws for an unknown state.
  */
-export function faceTexture(ch: CharacterManifest, state: string, blink: number, mouth?: MouthShape | null, skin?: string): TextureSource {
+export function faceTexture(ch: CharacterManifest, state: string, blink: number, mouth?: MouthShape | null, skin?: string, talkAmount = 1): TextureSource {
   const b = Math.round(blink * 4) / 4; // quantize -> small cache
+  const amount = Math.round(Math.max(0, Math.min(1, talkAmount)) * 4) / 4;
   const src = faceSource(ch, state);
   if (!src) throw new Error(`${ch.id} has no face state "${state}"`);
   if (mouth != null && !isMouthShape(mouth)) throw new Error(`unknown mouth shape "${mouth}" (use ${MOUTH_SHAPES.join(', ')})`);
   // v1 without talking keeps the exact pre-v2 cache key and drawing
+  const amountKey = mouth && amount !== 1 ? `:a=${amount}` : '';
   const key = src === 'v1'
-    ? (mouth ? `face:${ch.id}@${ch.version}:${state}:${b}:m=${mouth}` : `face:${ch.id}@${ch.version}:${state}:${b}:0`)
-    : `face2:${ch.id}@${ch.version}:${skin ?? ch.body.skin}:${state}:${b}:${mouth ?? '-'}`;
+    ? (mouth ? `face:${ch.id}@${ch.version}:${state}:${b}:m=${mouth}${amountKey}` : `face:${ch.id}@${ch.version}:${state}:${b}:0`)
+    : `face2:${ch.id}@${ch.version}:${skin ?? ch.body.skin}:${state}:${b}:${mouth ?? '-'}${amountKey}`;
   let t = cache.get(key);
   if (t) return t;
   const { c, g } = canvas();
@@ -72,9 +74,9 @@ export function faceTexture(ch: CharacterManifest, state: string, blink: number,
     drawLegacyFace(g, ch, state, b, { mouth: !mouth });
     if (mouth) {
       g.lineCap = 'round'; g.lineJoin = 'round';
-      drawTalk(g, layout(designOf(ch, skin), S), mouth, LEGACY_TALK[ch.face.states[state].mouth] ?? { bias: 0, scale: 1 });
+      drawTalk(g, layout(designOf(ch, skin), S), mouth, LEGACY_TALK[ch.face.states[state].mouth] ?? { bias: 0, scale: 1 }, amount);
     }
-  } else drawV2(g, designOf(ch, skin), state, S, b, mouth ?? null);
+  } else drawV2(g, designOf(ch, skin), state, S, b, mouth ?? null, amount);
   t = { key, canvas: c };
   cache.set(key, t);
   return t;
@@ -109,6 +111,6 @@ export function setFaceSkin(rig: FaceRig, skin: string | null): void {
  * is null/undefined; `mouth` swaps the expression's mouth for closed / open / wide / o. Call it after the animator's
  * own setFace in the frame (it only replaces the face decal texture).
  */
-export function setFace(rig: FaceRig, state: string, blink: number, mouth?: MouthShape | null): void {
-  rig.face.material!.texture = faceTexture(rig.manifest, state, blink, mouth, skinOverride.get(rig.face));
+export function setFace(rig: FaceRig, state: string, blink: number, mouth?: MouthShape | null, talkAmount = 1): void {
+  rig.face.material!.texture = faceTexture(rig.manifest, state, blink, mouth, skinOverride.get(rig.face), talkAmount);
 }
