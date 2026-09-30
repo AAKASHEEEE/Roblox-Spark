@@ -1,0 +1,374 @@
+{
+  "kind": "prop",
+  "id": "door",
+  "version": "1.1.0",
+  "displayName": "Door",
+  "category": "architecture",
+  "dimensions": [
+    1.45,
+    3,
+    0.205
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      1.45,
+      3,
+      0.16
+    ],
+    "offset": [
+      0,
+      1.5,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "jamb_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.1,
+        3,
+        0.16
+      ],
+      "pos": [
+        -0.675,
+        1.5,
+        0
+      ],
+      "color": "#eef1f4",
+      "bevel": 0.01
+    },
+    {
+      "id": "jamb_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.1,
+        3,
+        0.16
+      ],
+      "pos": [
+        0.675,
+        1.5,
+        0
+      ],
+      "color": "#eef1f4",
+      "bevel": 0.01
+    },
+    {
+      "id": "header",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.45,
+        0.1,
+        0.16
+      ],
+      "pos": [
+        0,
+        2.95,
+        0
+      ],
+      "color": "#eef1f4",
+      "bevel": 0.01
+    },
+    {
+      "id": "threshold",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.25,
+        0.02,
+        0.16
+      ],
+      "pos": [
+        0,
+        0.01,
+        0
+      ],
+      "color": "#9aa3ad"
+    },
+    {
+      "id": "hinge_top",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.12,
+        0.03
+      ],
+      "pos": [
+        -0.63,
+        2.45,
+        0.08
+      ],
+      "color": "#c3c9d0",
+      "sheen": 0.9
+    },
+    {
+      "id": "hinge_bot",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.12,
+        0.03
+      ],
+      "pos": [
+        -0.63,
+        0.45,
+        0.08
+      ],
+      "color": "#c3c9d0",
+      "sheen": 0.9
+    },
+    {
+      "id": "leaf",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        1.23,
+        2.87,
+        0.05
+      ],
+      "pos": [
+        0,
+        1.445,
+        0.055
+      ],
+      "color": "#c0703a",
+      "bevel": 0.01
+    },
+    {
+      "id": "panel_top_f",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        0.95,
+        1.15,
+        0.012
+      ],
+      "pos": [
+        0,
+        2.18,
+        0.082
+      ],
+      "color": "#a95f2f",
+      "bevel": 0.004
+    },
+    {
+      "id": "panel_bot_f",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        0.95,
+        1.05,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.68,
+        0.082
+      ],
+      "color": "#a95f2f",
+      "bevel": 0.004
+    },
+    {
+      "id": "panel_top_b",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        0.95,
+        1.15,
+        0.012
+      ],
+      "pos": [
+        0,
+        2.18,
+        0.028
+      ],
+      "color": "#a95f2f",
+      "bevel": 0.004
+    },
+    {
+      "id": "panel_bot_b",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        0.95,
+        1.05,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.68,
+        0.028
+      ],
+      "color": "#a95f2f",
+      "bevel": 0.004
+    },
+    {
+      "id": "plate_f",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.18,
+        0.01
+      ],
+      "pos": [
+        0.525,
+        1.1,
+        0.085
+      ],
+      "color": "#c3c9d0",
+      "sheen": 0.9
+    },
+    {
+      "id": "lever_f",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.035,
+        0.035
+      ],
+      "pos": [
+        0.475,
+        1.1,
+        0.105
+      ],
+      "color": "#c3c9d0",
+      "bevel": 0.01,
+      "sheen": 0.9
+    },
+    {
+      "id": "plate_b",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.18,
+        0.01
+      ],
+      "pos": [
+        0.525,
+        1.1,
+        0.025
+      ],
+      "color": "#c3c9d0",
+      "sheen": 0.9
+    },
+    {
+      "id": "lever_b",
+      "attach": "hinge",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.035,
+        0.035
+      ],
+      "pos": [
+        0.475,
+        1.1,
+        0.005
+      ],
+      "color": "#c3c9d0",
+      "bevel": 0.01,
+      "sheen": 0.9
+    }
+  ],
+  "grips": {
+    "grip": [
+      0.475,
+      1.1,
+      0.105
+    ],
+    "grip_back": [
+      0.475,
+      1.1,
+      0.005
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      1.45,
+      0.08
+    ],
+    "threshold": [
+      0,
+      0,
+      0
+    ],
+    "hinge_axis": [
+      -0.625,
+      0,
+      0.08
+    ],
+    "use_front": [
+      0.875,
+      0,
+      0.5
+    ],
+    "use_back": [
+      0.35,
+      0,
+      -0.65
+    ],
+    "enter_front": [
+      0,
+      0,
+      1.65
+    ],
+    "enter_back": [
+      0,
+      0,
+      -1.1
+    ]
+  },
+  "effectAnchors": {
+    "knock": [
+      0,
+      1.75,
+      0.09
+    ],
+    "slam_dust": [
+      0,
+      0.05,
+      0.3
+    ]
+  },
+  "defaultMaterial": "wood",
+  "defaultColor": "#c0703a",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "open"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/door.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Hinged leaf on pivot \"hinge\" (anchors.hinge_axis). Front (+z) is the swing side. Place with door.ts doorPlacement()."
+  }
+}

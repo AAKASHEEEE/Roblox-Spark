@@ -1,0 +1,495 @@
+{
+  "kind": "character",
+  "id": "dad",
+  "version": "1.0.0",
+  "displayName": "Dad",
+  "description": "Adult parent. Tallest and broadest in the cast with a deep chest, dark flat-top hair and sideburns, burgundy sweater with a pink chest stripe over a white collared shirt, silver watch on the left wrist, khaki trousers, brown shoes.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.52,
+      0.5,
+      0.5
+    ],
+    "headBevel": 0.06,
+    "skin": "#8d5a3b",
+    "torso": [
+      0.7,
+      0.78,
+      0.38
+    ],
+    "torsoColor": "#7a2c44",
+    "armWidth": 0.17,
+    "upperArm": 0.4,
+    "lowerArm": 0.38,
+    "sleeveColor": "#7a2c44",
+    "handColor": "#8d5a3b",
+    "legWidth": 0.25,
+    "upperLeg": 0.55,
+    "lowerLeg": 0.54,
+    "legColor": "#b49a6c",
+    "shoeColor": "#5a3a24",
+    "soleColor": "#2a1c12"
+  },
+  "parts": [
+    {
+      "id": "hair_flattop",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.15,
+        0.52
+      ],
+      "pos": [
+        0,
+        0.57,
+        -0.01
+      ],
+      "color": "#2a1d15",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_back",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.22,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.41,
+        -0.25
+      ],
+      "color": "#2a1d15",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_side_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.16,
+        0.36
+      ],
+      "pos": [
+        0.27,
+        0.43,
+        -0.06
+      ],
+      "color": "#2a1d15",
+      "bevel": 0.01
+    },
+    {
+      "id": "hair_side_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.16,
+        0.36
+      ],
+      "pos": [
+        -0.27,
+        0.43,
+        -0.06
+      ],
+      "color": "#2a1d15",
+      "bevel": 0.01
+    },
+    {
+      "id": "hair_sideburn_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.12,
+        0.07
+      ],
+      "pos": [
+        0.265,
+        0.33,
+        0.13
+      ],
+      "color": "#2a1d15",
+      "bevel": 0.008
+    },
+    {
+      "id": "hair_sideburn_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.12,
+        0.07
+      ],
+      "pos": [
+        -0.265,
+        0.33,
+        0.13
+      ],
+      "color": "#2a1d15",
+      "bevel": 0.008
+    },
+    {
+      "id": "shirt_v",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.14,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.7,
+        0.192
+      ],
+      "color": "#f2f2f2"
+    },
+    {
+      "id": "shirt_collar_l",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.12,
+        0.05,
+        0.02
+      ],
+      "pos": [
+        0.07,
+        0.765,
+        0.195
+      ],
+      "color": "#f2f2f2",
+      "rotDeg": [
+        0,
+        0,
+        -25
+      ]
+    },
+    {
+      "id": "shirt_collar_r",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.12,
+        0.05,
+        0.02
+      ],
+      "pos": [
+        -0.07,
+        0.765,
+        0.195
+      ],
+      "color": "#f2f2f2",
+      "rotDeg": [
+        0,
+        0,
+        25
+      ]
+    },
+    {
+      "id": "sweater_stripe",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.705,
+        0.06,
+        0.385
+      ],
+      "pos": [
+        0,
+        0.5,
+        0
+      ],
+      "color": "#9c3b58"
+    },
+    {
+      "id": "sweater_hem",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.72,
+        0.08,
+        0.4
+      ],
+      "pos": [
+        0,
+        0.04,
+        0
+      ],
+      "color": "#62223a",
+      "bevel": 0.02
+    },
+    {
+      "id": "watch",
+      "attach": "forearm_l",
+      "shape": "box",
+      "size": [
+        0.185,
+        0.05,
+        0.185
+      ],
+      "pos": [
+        0,
+        -0.34,
+        0
+      ],
+      "color": "#c0c4ca",
+      "bevel": 0.01
+    },
+    {
+      "id": "watch_face",
+      "attach": "forearm_l",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.04,
+        0.06
+      ],
+      "pos": [
+        0.095,
+        -0.34,
+        0
+      ],
+      "color": "#1d2a44"
+    }
+  ],
+  "face": {
+    "eyeColor": "#111114",
+    "browColor": "#20150f",
+    "mouthColor": "#3a1a12",
+    "eyeSpacing": 0.33,
+    "eyeY": 0.52,
+    "eyeW": 0.09,
+    "eyeH": 0.15,
+    "browThickness": 0.065,
+    "browWidth": 0.22,
+    "mouthY": 0.77,
+    "mouthW": 0.21,
+    "hasNose": false,
+    "states": {
+      "neutral": {
+        "eyes": "oval",
+        "browL": [
+          0.1,
+          0
+        ],
+        "browR": [
+          0.1,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "curious": {
+        "eyes": "oval",
+        "browL": [
+          0.55,
+          6
+        ],
+        "browR": [
+          -0.08,
+          -8
+        ],
+        "mouth": "tight"
+      },
+      "shock": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "determined": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -24
+        ],
+        "browR": [
+          -0.2,
+          -24
+        ],
+        "mouth": "flat"
+      },
+      "regret": {
+        "eyes": "half_lid",
+        "browL": [
+          0.15,
+          20
+        ],
+        "browR": [
+          0.15,
+          20
+        ],
+        "mouth": "flat"
+      },
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.25,
+          4
+        ],
+        "browR": [
+          -0.05,
+          -8
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.85,
+          8
+        ],
+        "browR": [
+          0.85,
+          8
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      },
+      "happy": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          6
+        ],
+        "browR": [
+          0.3,
+          6
+        ],
+        "mouth": "grin"
+      },
+      "angry": {
+        "eyes": "narrow",
+        "browL": [
+          -0.35,
+          -30
+        ],
+        "browR": [
+          -0.35,
+          -30
+        ],
+        "mouth": "frown"
+      },
+      "calm": {
+        "eyes": "half_lid",
+        "browL": [
+          0.05,
+          0
+        ],
+        "browR": [
+          0.05,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "strict": {
+        "eyes": "narrow",
+        "browL": [
+          -0.15,
+          -14
+        ],
+        "browR": [
+          -0.15,
+          -14
+        ],
+        "mouth": "flat"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "calm",
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret",
+    "smug",
+    "skeptical",
+    "surprised",
+    "laughing",
+    "happy",
+    "angry",
+    "strict"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.1,
+    "runSpeed": 2.9
+  },
+  "personality": "Big, calm, terrible jokes. Pretends not to know how the button works.",
+  "identityRules": [
+    "Adult proportions: broadest shoulders and deepest chest in the cast.",
+    "Flat-top hair with sideburns.",
+    "Silver watch on the LEFT wrist only."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

@@ -3,12 +3,27 @@ import type { Episode } from '../../../packages/schema/src/episode.ts';
 import { Renderer } from '../../../packages/engine/src/gl/renderer.ts';
 import { Production, type Library, type FrameIssue } from '../../../packages/engine/src/production.ts';
 import { FrameCapture, encodeOpus, sha256Hex } from '../../../packages/engine/src/capture.ts';
+import { evalVfx } from '../../../packages/engine/src/vfx.ts';
+import { buildWorldPlan, worldAssets, type WorldState } from '../../../packages/narrated/src/world.ts';
+import type { NarratedStoryboard } from '../../../packages/narrated/src/schema.ts';
+import { NarratedScene, cameraAt, type IntegratedTimeline } from '../../render-worker/narrated-integration.ts';
 
 let prod: Production | null = null;
 let renderer: Renderer | null = null;
 let canvas: HTMLCanvasElement | null = null;
 let cap: FrameCapture | null = null;
 let fps = 30;
+let library: Library | null = null;
+/** Narrated Story drafts only (Continuity Checkpoint 2): WorldState-driven scene + integrated safe cameras */
+let narrated: { scene: NarratedScene; tl: IntegratedTimeline; prev: WorldState | null } | null = null;
+/** draw frame time t: the narrated integrated path, or the unchanged Visual Comedy Production.render */
+function drawAt(t: number): void {
+  if (!narrated) { prod!.render(renderer!, t); return; }
+  const { world } = narrated.scene.pose(t, narrated.prev && narrated.prev.t < t ? narrated.prev : null);
+  narrated.prev = world;
+  const post = evalVfx([], t, () => undefined, prod!.ep.episode.seed).post;
+  renderer!.render(prod!.root, cameraAt(narrated.tl, t), narrated.scene.lighting(world), post, []);
+}
 const lastIssues: FrameIssue[] = [];
 
 function ensure(w: number, h: number): void {
@@ -22,7 +37,16 @@ const api = {
     ensure(w, h);
     prod = new Production(ep, lib);
     fps = ep.episode.fps;
+    library = lib; narrated = null;
     return { renderer: renderer!.gl.getParameter(renderer!.gl.RENDERER) as string, render: prod.renderDecl, renderKey: prod.renderKey, contacts: prod.contacts(), impacts: [...prod.props].flatMap(([id, p]) => p.track.impacts.map((i) => ({ prop: id, ...i }))) };
+  },
+  /** Narrated drafts only: pose through the WorldState adapter and use the integrated (pre-validated) cameras */
+  loadNarrated(sb: NarratedStoryboard, tl: IntegratedTimeline) {
+    const plan = buildWorldPlan(sb, worldAssets(library as never));
+    if (plan.status !== 'ok') throw new Error(`WORLD_PLAN_UNAVAILABLE: ${plan.errors.map((e) => e.code).join(', ')}`);
+    if (tl.shots.some((s) => !s.camera)) throw new Error('CAMERA_SAFETY_BLOCKED: the integrated timeline has shots without a safe camera');
+    narrated = { scene: new NarratedScene(prod!, plan), tl, prev: null };
+    return { shots: tl.shots.length, captions: tl.captions.filter((c) => c.placement).length };
   },
   /**
    * Golden-hash path: render frame i at t = i / fps and hash the raw RGBA exactly like FrameCapture does (same draw call,
@@ -30,11 +54,12 @@ const api = {
    */
   async hashFrames(frames: number[]): Promise<Array<[number, string]>> {
     const out: Array<[number, string]> = [];
-    for (const i of frames) { prod!.render(renderer!, i / fps); out.push([i, await sha256Hex(renderer!.readPixels())]); }
+    for (const i of frames) { drawAt(i / fps); out.push([i, await sha256Hex(renderer!.readPixels())]); }
     return out;
   },
   /** Render one frame at time t and return it as PNG data URL (QA stills / thumbnails / contact sheets). */
   still(t: number): string {
+    if (narrated) { drawAt(t); return canvas!.toDataURL('image/png'); }
     const f = prod!.render(renderer!, t);
     lastIssues.splice(0, lastIssues.length, ...prod!.validateFrame(renderer!, f), ...prod!.handPenetrations(t));
     return canvas!.toDataURL('image/png');
@@ -67,11 +92,11 @@ const api = {
       return { t, actors, props };
     });
   },
-  initCapture(cfg: { bitrate: number; hashEvery: number; keyframeInterval?: number; overlay?: Array<{ from: number; to: number; text: string }> | null }) {
-    cap = new FrameCapture({ width: renderer!.width, height: renderer!.height, fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery, overlay: cfg.overlay ?? null }, canvas!, () => renderer!.readPixels());
+  initCapture(cfg: { bitrate: number; hashEvery: number; keyframeInterval?: number; overlay?: Array<{ from: number; to: number; text: string }> | null; captions?: Array<{ start: number; end: number; lines: string[]; emphasisWords: string[]; placement?: { centerY: number } | null }> | null; captionStyle?: { centerY: number; bottomSafe: number } | null }) {
+    cap = new FrameCapture({ width: renderer!.width, height: renderer!.height, fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery, overlay: cfg.overlay ?? null, captions: cfg.captions ?? null, captionStyle: cfg.captionStyle ?? null }, canvas!, () => renderer!.readPixels());
     return true;
   },
-  encodeRange: (a: number, b: number, final: boolean) => cap!.encodeRange(a, b, (i) => { prod!.render(renderer!, i / fps); }, final),
+  encodeRange: (a: number, b: number, final: boolean) => cap!.encodeRange(a, b, (i) => { drawAt(i / fps); }, final),
   meta: () => cap!.meta,
   stats: () => renderer!.stats,
   encodeOpus: (pcmB64: string, sr: number, ch: number, br: number) => encodeOpus(pcmB64, sr, ch, br),

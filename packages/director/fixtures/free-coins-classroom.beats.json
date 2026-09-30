@@ -1,0 +1,1435 @@
+{
+  "schemaVersion": "1.0",
+  "id": "free_coins_classroom",
+  "title": "Zapp vs Kira When the Teacher Leaves",
+  "seed": 17,
+  "source": {
+    "narrated": "tests/fixtures/narrated/approved-narrated-v0.1.json",
+    "narratedId": "nr-b8757cf22e2c"
+  },
+  "music": [
+    {
+      "musicId": "amb_classroom@1.0.0",
+      "start": 0,
+      "end": 69.146,
+      "gainDb": -24
+    },
+    {
+      "musicId": "bed_upbeat",
+      "start": 9.58,
+      "end": 20.26,
+      "gainDb": -18
+    },
+    {
+      "musicId": "bed_suspense",
+      "start": 20.96,
+      "end": 34.9,
+      "gainDb": -18
+    },
+    {
+      "musicId": "bed_silly",
+      "start": 55.06,
+      "end": 69.08,
+      "gainDb": -18
+    }
+  ],
+  "beats": [
+    {
+      "phraseId": "p01",
+      "start": 0.06,
+      "end": 4.3,
+      "text": "This is the difference between Zapp and Kira when the teacher leaves the classroom.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "teacher",
+          "role": "authority",
+          "placement": "exit:classroom_door",
+          "actionId": "walk",
+          "expressionId": "strict",
+          "lookAt": "classroom_door"
+        },
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "zapp_desk",
+          "actionId": "sit",
+          "expressionId": "neutral",
+          "lookAt": "teacher"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "calm",
+          "lookAt": "teacher"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        }
+      ],
+      "events": [
+        {
+          "type": "sfx",
+          "at": 0.4,
+          "sfxId": "footsteps"
+        },
+        {
+          "type": "door_open",
+          "at": 2.4,
+          "doorId": "classroom_door",
+          "by": "teacher"
+        },
+        {
+          "type": "sfx",
+          "at": 2.4,
+          "sfxId": "door_open"
+        },
+        {
+          "type": "exit",
+          "at": 3.9,
+          "characterId": "teacher",
+          "doorId": "classroom_door"
+        }
+      ],
+      "camera": {
+        "recipeId": "establishing_wide",
+        "subject": "teacher"
+      },
+      "captions": [
+        {
+          "start": 0.06,
+          "end": 0.97,
+          "text": "This is the"
+        },
+        {
+          "start": 0.97,
+          "end": 1.57,
+          "text": "DIFFERENCE between",
+          "highlight": "DIFFERENCE"
+        },
+        {
+          "start": 1.57,
+          "end": 2.48,
+          "text": "Zapp and Kira"
+        },
+        {
+          "start": 2.48,
+          "end": 3.39,
+          "text": "when the teacher",
+          "highlight": "teacher"
+        },
+        {
+          "start": 3.39,
+          "end": 4.3,
+          "text": "leaves the classroom.",
+          "highlight": "leaves"
+        }
+      ],
+      "carryOver": []
+    },
+    {
+      "phraseId": "p02",
+      "start": 4.6,
+      "end": 9.32,
+      "text": "The second the door closes, Zapp thinks the entire classroom belongs to him.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "zapp_desk",
+          "actionId": "look_around",
+          "expressionId": "evil_grin",
+          "lookAt": "classroom_door"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "calm",
+          "lookAt": "zapp"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        }
+      ],
+      "events": [
+        {
+          "type": "door_close",
+          "at": 4.9,
+          "doorId": "classroom_door"
+        },
+        {
+          "type": "sfx",
+          "at": 4.9,
+          "sfxId": "door_slam"
+        },
+        {
+          "type": "vfx",
+          "at": 6.2,
+          "vfxId": "emote_exclaim",
+          "target": "zapp"
+        }
+      ],
+      "camera": {
+        "recipeId": "establishing_wide",
+        "subject": "zapp"
+      },
+      "captions": [
+        {
+          "start": 4.6,
+          "end": 5.69,
+          "text": "The second the"
+        },
+        {
+          "start": 5.69,
+          "end": 6.42,
+          "text": "door CLOSES,",
+          "highlight": "CLOSES"
+        },
+        {
+          "start": 6.42,
+          "end": 7.5,
+          "text": "Zapp thinks the"
+        },
+        {
+          "start": 7.5,
+          "end": 8.23,
+          "text": "entire classroom"
+        },
+        {
+          "start": 8.23,
+          "end": 9.32,
+          "text": "belongs to HIM.",
+          "highlight": "HIM"
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button"
+      ]
+    },
+    {
+      "phraseId": "p03",
+      "start": 9.58,
+      "end": 15.44,
+      "text": "He jumps up, celebrates, and starts acting like he just escaped school forever.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "center_stage",
+          "actionId": "celebrate",
+          "expressionId": "big_grin",
+          "lookAt": "camera"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "skeptical",
+          "lookAt": "zapp"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        }
+      ],
+      "events": [
+        {
+          "type": "sfx",
+          "at": 9.8,
+          "sfxId": "whoosh"
+        },
+        {
+          "type": "vfx",
+          "at": 11,
+          "vfxId": "confetti",
+          "target": "zapp"
+        },
+        {
+          "type": "sfx",
+          "at": 11,
+          "sfxId": "sfx_tada"
+        }
+      ],
+      "camera": {
+        "recipeId": "low_angle_hero",
+        "subject": "zapp"
+      },
+      "captions": [
+        {
+          "start": 9.58,
+          "end": 10.93,
+          "text": "He JUMPS up,",
+          "highlight": "JUMPS"
+        },
+        {
+          "start": 10.93,
+          "end": 11.38,
+          "text": "CELEBRATES,",
+          "highlight": "CELEBRATES"
+        },
+        {
+          "start": 11.38,
+          "end": 12.74,
+          "text": "and starts acting"
+        },
+        {
+          "start": 12.74,
+          "end": 14.09,
+          "text": "like he just"
+        },
+        {
+          "start": 14.09,
+          "end": 14.99,
+          "text": "ESCAPED school",
+          "highlight": "ESCAPED"
+        },
+        {
+          "start": 14.99,
+          "end": 15.44,
+          "text": "forever."
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button"
+      ]
+    },
+    {
+      "phraseId": "p04",
+      "start": 15.68,
+      "end": 20.26,
+      "text": "Kira stays at her desk because she knows the teacher could return at any moment.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "smug",
+          "lookAt": "classroom_door"
+        },
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "center_stage",
+          "actionId": "dance",
+          "expressionId": "happy"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        }
+      ],
+      "events": [],
+      "camera": {
+        "recipeId": "two_shot",
+        "subject": "kira",
+        "secondary": "zapp"
+      },
+      "captions": [
+        {
+          "start": 15.68,
+          "end": 16.29,
+          "text": "Kira STAYS",
+          "highlight": "STAYS"
+        },
+        {
+          "start": 16.29,
+          "end": 17.21,
+          "text": "at her desk"
+        },
+        {
+          "start": 17.21,
+          "end": 18.12,
+          "text": "because she knows"
+        },
+        {
+          "start": 18.12,
+          "end": 19.04,
+          "text": "the teacher could"
+        },
+        {
+          "start": 19.04,
+          "end": 19.65,
+          "text": "RETURN at",
+          "highlight": "RETURN"
+        },
+        {
+          "start": 19.65,
+          "end": 20.26,
+          "text": "any moment."
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button"
+      ]
+    },
+    {
+      "phraseId": "p05",
+      "start": 20.96,
+      "end": 25.62,
+      "text": "Then Zapp notices a suspicious free-coins button sitting on the front desk.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "center_stage",
+          "actionId": "look_at",
+          "expressionId": "suspicious",
+          "lookAt": "suspicious_button"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "skeptical",
+          "lookAt": "zapp"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        }
+      ],
+      "events": [
+        {
+          "type": "vfx",
+          "at": 21.5,
+          "vfxId": "emote_exclaim",
+          "target": "zapp"
+        },
+        {
+          "type": "sfx",
+          "at": 22,
+          "sfxId": "sfx_beep"
+        },
+        {
+          "type": "vfx",
+          "at": 22,
+          "vfxId": "glow_pulse",
+          "target": "suspicious_button"
+        }
+      ],
+      "camera": {
+        "recipeId": "insert_prop",
+        "subject": "suspicious_button"
+      },
+      "captions": [
+        {
+          "start": 20.96,
+          "end": 22.13,
+          "text": "Then Zapp NOTICES",
+          "highlight": "NOTICES"
+        },
+        {
+          "start": 22.13,
+          "end": 22.9,
+          "text": "a SUSPICIOUS",
+          "highlight": "SUSPICIOUS"
+        },
+        {
+          "start": 22.9,
+          "end": 23.68,
+          "text": "free-coins button"
+        },
+        {
+          "start": 23.68,
+          "end": 24.84,
+          "text": "sitting on the"
+        },
+        {
+          "start": 24.84,
+          "end": 25.62,
+          "text": "front desk."
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button"
+      ]
+    },
+    {
+      "phraseId": "p06",
+      "start": 25.94,
+      "end": 31.3,
+      "text": "Kira tells him not to touch it, which obviously makes him want to press it even more.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "head_shake",
+          "expressionId": "strict",
+          "lookAt": "zapp"
+        },
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "press_spot",
+          "actionId": "walk",
+          "expressionId": "evil_grin",
+          "lookAt": "suspicious_button"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        }
+      ],
+      "events": [
+        {
+          "type": "sfx",
+          "at": 26.2,
+          "sfxId": "sfx_blip_question"
+        }
+      ],
+      "camera": {
+        "recipeId": "two_shot",
+        "subject": "kira",
+        "secondary": "zapp"
+      },
+      "captions": [
+        {
+          "start": 25.94,
+          "end": 26.89,
+          "text": "Kira tells him"
+        },
+        {
+          "start": 26.89,
+          "end": 28.15,
+          "text": "NOT to touch it,",
+          "highlight": "NOT"
+        },
+        {
+          "start": 28.15,
+          "end": 29.09,
+          "text": "which obviously makes"
+        },
+        {
+          "start": 29.09,
+          "end": 29.72,
+          "text": "him WANT",
+          "highlight": "WANT"
+        },
+        {
+          "start": 29.72,
+          "end": 30.67,
+          "text": "to press it"
+        },
+        {
+          "start": 30.67,
+          "end": 31.3,
+          "text": "even more."
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button"
+      ]
+    },
+    {
+      "phraseId": "p07",
+      "start": 31.52,
+      "end": 34.9,
+      "text": "He slams the button, and one shiny coin appears.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "press_spot",
+          "actionId": "press_button",
+          "expressionId": "determined",
+          "lookAt": "suspicious_button"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "shock",
+          "lookAt": "zapp"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "pressed"
+        },
+        {
+          "propId": "spark_coin",
+          "placement": "coin_spawn",
+          "state": "spawned"
+        }
+      ],
+      "events": [
+        {
+          "type": "sfx",
+          "at": 32.248,
+          "sfxId": "sfx_click"
+        },
+        {
+          "type": "vfx",
+          "at": 32.2,
+          "vfxId": "zoom_punch"
+        },
+        {
+          "type": "sfx",
+          "at": 32.8,
+          "sfxId": "sfx_coin_pop"
+        },
+        {
+          "type": "vfx",
+          "at": 32.8,
+          "vfxId": "sparkle_burst",
+          "target": "spark_coin"
+        }
+      ],
+      "camera": {
+        "recipeId": "wide_environment",
+        "subject": "spark_coin",
+        "secondary": "zapp"
+      },
+      "captions": [
+        {
+          "start": 31.52,
+          "end": 32.27,
+          "text": "He SLAMS",
+          "highlight": "SLAMS"
+        },
+        {
+          "start": 32.27,
+          "end": 33.02,
+          "text": "the button,"
+        },
+        {
+          "start": 33.02,
+          "end": 34.15,
+          "text": "and one shiny",
+          "highlight": "shiny"
+        },
+        {
+          "start": 34.15,
+          "end": 34.9,
+          "text": "COIN appears.",
+          "highlight": "COIN"
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button"
+      ]
+    },
+    {
+      "phraseId": "p08",
+      "start": 35.2,
+      "end": 39.86,
+      "text": "Zapp celebrates so loudly that he completely forgets why the classroom is empty.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "press_spot",
+          "actionId": "celebrate",
+          "expressionId": "laugh",
+          "lookAt": "spark_coin"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "facepalm",
+          "expressionId": "skeptical"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        },
+        {
+          "propId": "spark_coin",
+          "placement": "coin_spawn",
+          "state": "spawned"
+        }
+      ],
+      "events": [
+        {
+          "type": "vfx",
+          "at": 35.6,
+          "vfxId": "confetti",
+          "target": "zapp"
+        },
+        {
+          "type": "sfx",
+          "at": 35.6,
+          "sfxId": "sfx_tada"
+        },
+        {
+          "type": "text_graphic",
+          "at": 36,
+          "textStyleId": "ui_popup",
+          "text": "+1 COIN",
+          "duration": 1.6,
+          "target": "spark_coin"
+        }
+      ],
+      "camera": {
+        "recipeId": "medium_single",
+        "subject": "zapp"
+      },
+      "captions": [
+        {
+          "start": 35.2,
+          "end": 35.92,
+          "text": "Zapp celebrates"
+        },
+        {
+          "start": 35.92,
+          "end": 36.63,
+          "text": "so LOUDLY",
+          "highlight": "LOUDLY"
+        },
+        {
+          "start": 36.63,
+          "end": 37.71,
+          "text": "that he completely"
+        },
+        {
+          "start": 37.71,
+          "end": 38.43,
+          "text": "FORGETS why",
+          "highlight": "FORGETS"
+        },
+        {
+          "start": 38.43,
+          "end": 39.14,
+          "text": "the classroom"
+        },
+        {
+          "start": 39.14,
+          "end": 39.86,
+          "text": "is empty."
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button",
+        "spark_coin"
+      ]
+    },
+    {
+      "phraseId": "p09",
+      "start": 40.24,
+      "end": 43.96,
+      "text": "Then the button flashes again, and the coin begins growing.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "press_spot",
+          "actionId": "shock_recoil",
+          "expressionId": "shocked",
+          "lookAt": "spark_coin"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "scared",
+          "lookAt": "spark_coin"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "flashing"
+        },
+        {
+          "propId": "spark_coin",
+          "placement": "coin_spawn",
+          "state": "growing"
+        }
+      ],
+      "events": [
+        {
+          "type": "vfx",
+          "at": 40.6,
+          "vfxId": "screen_flash"
+        },
+        {
+          "type": "sfx",
+          "at": 40.6,
+          "sfxId": "sfx_beep"
+        },
+        {
+          "type": "sfx",
+          "at": 41.8,
+          "sfxId": "sfx_boing"
+        }
+      ],
+      "camera": {
+        "recipeId": "wide_environment",
+        "subject": "spark_coin",
+        "secondary": "zapp"
+      },
+      "captions": [
+        {
+          "start": 40.24,
+          "end": 41.36,
+          "text": "Then the button"
+        },
+        {
+          "start": 41.36,
+          "end": 42.1,
+          "text": "FLASHES again,",
+          "highlight": "FLASHES"
+        },
+        {
+          "start": 42.1,
+          "end": 43.22,
+          "text": "and the coin"
+        },
+        {
+          "start": 43.22,
+          "end": 43.96,
+          "text": "begins GROWING.",
+          "highlight": "GROWING"
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button",
+        "spark_coin"
+      ]
+    },
+    {
+      "phraseId": "p10",
+      "start": 44.22,
+      "end": 49.5,
+      "text": "It gets taller than the desk, wider than Zapp, and almost fills the entire room.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "press_spot",
+          "actionId": "shock_recoil",
+          "expressionId": "shocked",
+          "lookAt": "spark_coin"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "stand_up",
+          "expressionId": "scared",
+          "lookAt": "spark_coin"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        },
+        {
+          "propId": "spark_coin",
+          "placement": "coin_spawn",
+          "state": "giant"
+        }
+      ],
+      "events": [
+        {
+          "type": "sfx",
+          "at": 44.5,
+          "sfxId": "sfx_rumble"
+        },
+        {
+          "type": "vfx",
+          "at": 46,
+          "vfxId": "screen_shake"
+        }
+      ],
+      "camera": {
+        "recipeId": "wide_environment",
+        "subject": "spark_coin"
+      },
+      "captions": [
+        {
+          "start": 44.22,
+          "end": 45.28,
+          "text": "It gets TALLER",
+          "highlight": "TALLER"
+        },
+        {
+          "start": 45.28,
+          "end": 46.33,
+          "text": "than the desk,"
+        },
+        {
+          "start": 46.33,
+          "end": 47.39,
+          "text": "WIDER than Zapp,",
+          "highlight": "WIDER"
+        },
+        {
+          "start": 47.39,
+          "end": 48.44,
+          "text": "and almost fills"
+        },
+        {
+          "start": 48.44,
+          "end": 49.5,
+          "text": "the ENTIRE room.",
+          "highlight": "ENTIRE"
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button",
+        "spark_coin"
+      ]
+    },
+    {
+      "phraseId": "p11",
+      "start": 49.86,
+      "end": 54.7,
+      "text": "Zapp tries to look confident, but Kira has already moved safely out of the way.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "zapp_impact",
+          "actionId": "arms_crossed",
+          "expressionId": "smug",
+          "lookAt": "camera"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_safe",
+          "actionId": "walk",
+          "expressionId": "scared",
+          "lookAt": "spark_coin"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        },
+        {
+          "propId": "spark_coin",
+          "placement": "coin_spawn",
+          "state": "giant"
+        }
+      ],
+      "events": [
+        {
+          "type": "sfx",
+          "at": 50.2,
+          "sfxId": "footsteps"
+        },
+        {
+          "type": "vfx",
+          "at": 52.5,
+          "vfxId": "emote_sweat",
+          "target": "zapp"
+        }
+      ],
+      "camera": {
+        "recipeId": "wide_environment",
+        "subject": "zapp",
+        "secondary": "kira"
+      },
+      "captions": [
+        {
+          "start": 49.86,
+          "end": 50.83,
+          "text": "Zapp tries to"
+        },
+        {
+          "start": 50.83,
+          "end": 51.47,
+          "text": "look CONFIDENT,",
+          "highlight": "CONFIDENT"
+        },
+        {
+          "start": 51.47,
+          "end": 52.44,
+          "text": "but Kira has"
+        },
+        {
+          "start": 52.44,
+          "end": 53.41,
+          "text": "already moved SAFELY",
+          "highlight": "SAFELY"
+        },
+        {
+          "start": 53.41,
+          "end": 54.7,
+          "text": "out of the way."
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button",
+        "spark_coin"
+      ]
+    },
+    {
+      "phraseId": "p12",
+      "start": 55.06,
+      "end": 59.48,
+      "text": "The giant coin tips forward and flattens Zapp against the classroom floor.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "zapp_impact",
+          "actionId": "flattened",
+          "expressionId": "shocked",
+          "lookAt": "spark_coin"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_safe",
+          "actionId": "shock_recoil",
+          "expressionId": "shock",
+          "lookAt": "zapp"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "closed"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        },
+        {
+          "propId": "spark_coin",
+          "placement": "giant_front",
+          "state": "tipped"
+        }
+      ],
+      "events": [
+        {
+          "type": "sfx",
+          "at": 55.3,
+          "sfxId": "sfx_creak"
+        },
+        {
+          "type": "sfx",
+          "at": 56.936,
+          "sfxId": "sfx_thud_big"
+        },
+        {
+          "type": "vfx",
+          "at": 56.936,
+          "vfxId": "dust_puff",
+          "target": "zapp"
+        },
+        {
+          "type": "vfx",
+          "at": 56.936,
+          "vfxId": "screen_shake"
+        }
+      ],
+      "camera": {
+        "recipeId": "wide_environment",
+        "subject": "spark_coin",
+        "secondary": "zapp"
+      },
+      "captions": [
+        {
+          "start": 55.06,
+          "end": 56.17,
+          "text": "The giant coin"
+        },
+        {
+          "start": 56.17,
+          "end": 56.9,
+          "text": "TIPS forward",
+          "highlight": "TIPS"
+        },
+        {
+          "start": 56.9,
+          "end": 58.01,
+          "text": "and FLATTENS Zapp",
+          "highlight": "FLATTENS"
+        },
+        {
+          "start": 58.01,
+          "end": 58.74,
+          "text": "against the"
+        },
+        {
+          "start": 58.74,
+          "end": 59.48,
+          "text": "classroom floor."
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button",
+        "spark_coin"
+      ]
+    },
+    {
+      "phraseId": "p13",
+      "start": 59.86,
+      "end": 64.94,
+      "text": "At that exact moment, the teacher returns and sees Kira sitting perfectly still.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "teacher",
+          "role": "authority",
+          "placement": "enter:classroom_door",
+          "actionId": "walk",
+          "expressionId": "strict",
+          "lookAt": "kira"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "calm",
+          "lookAt": "teacher"
+        },
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "zapp_impact",
+          "actionId": "flattened",
+          "expressionId": "regret"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "open"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "idle"
+        },
+        {
+          "propId": "spark_coin",
+          "placement": "giant_front",
+          "state": "tipped"
+        }
+      ],
+      "events": [
+        {
+          "type": "sfx",
+          "at": 60,
+          "sfxId": "footsteps"
+        },
+        {
+          "type": "door_open",
+          "at": 60.3,
+          "doorId": "classroom_door",
+          "by": "teacher"
+        },
+        {
+          "type": "sfx",
+          "at": 60.3,
+          "sfxId": "door_open"
+        },
+        {
+          "type": "enter",
+          "at": 60.6,
+          "characterId": "teacher",
+          "doorId": "classroom_door"
+        },
+        {
+          "type": "vfx",
+          "at": 62.4,
+          "vfxId": "emote_question",
+          "target": "teacher"
+        }
+      ],
+      "camera": {
+        "recipeId": "wide_environment",
+        "subject": "teacher",
+        "secondary": "kira"
+      },
+      "captions": [
+        {
+          "start": 59.86,
+          "end": 61.03,
+          "text": "At that EXACT",
+          "highlight": "EXACT"
+        },
+        {
+          "start": 61.03,
+          "end": 62.2,
+          "text": "moment, the teacher"
+        },
+        {
+          "start": 62.2,
+          "end": 63.38,
+          "text": "RETURNS and sees",
+          "highlight": "RETURNS"
+        },
+        {
+          "start": 63.38,
+          "end": 64.16,
+          "text": "Kira sitting"
+        },
+        {
+          "start": 64.16,
+          "end": 64.94,
+          "text": "perfectly STILL.",
+          "highlight": "STILL"
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "door",
+        "suspicious_button",
+        "spark_coin"
+      ]
+    },
+    {
+      "phraseId": "p14",
+      "start": 65.3,
+      "end": 69.08,
+      "text": "And the free-coins button quietly resets for its next victim.",
+      "setId": "classroom",
+      "lighting": "morning",
+      "cast": [
+        {
+          "characterId": "teacher",
+          "role": "authority",
+          "placement": "classroom_door_inside",
+          "actionId": "look_at",
+          "expressionId": "strict",
+          "lookAt": "zapp"
+        },
+        {
+          "characterId": "kira",
+          "role": "foil",
+          "placement": "kira_desk",
+          "actionId": "sit",
+          "expressionId": "smug",
+          "lookAt": "camera"
+        },
+        {
+          "characterId": "zapp",
+          "role": "lead",
+          "placement": "zapp_impact",
+          "actionId": "flattened",
+          "expressionId": "regret"
+        }
+      ],
+      "props": [
+        {
+          "propId": "door",
+          "placement": "classroom_door",
+          "state": "open"
+        },
+        {
+          "propId": "suspicious_button",
+          "placement": "button_desk",
+          "state": "reset"
+        },
+        {
+          "propId": "spark_coin",
+          "placement": "giant_front",
+          "state": "tipped"
+        }
+      ],
+      "events": [
+        {
+          "type": "vfx",
+          "at": 66,
+          "vfxId": "glow_pulse",
+          "target": "suspicious_button"
+        },
+        {
+          "type": "sfx",
+          "at": 66.2,
+          "sfxId": "sfx_ding_reset"
+        }
+      ],
+      "camera": {
+        "recipeId": "final_loop",
+        "subject": "suspicious_button"
+      },
+      "captions": [
+        {
+          "start": 65.3,
+          "end": 66.43,
+          "text": "And the free-coins"
+        },
+        {
+          "start": 66.43,
+          "end": 67.19,
+          "text": "button quietly"
+        },
+        {
+          "start": 67.19,
+          "end": 68.32,
+          "text": "RESETS for its",
+          "highlight": "RESETS"
+        },
+        {
+          "start": 68.32,
+          "end": 69.08,
+          "text": "NEXT victim.",
+          "highlight": "NEXT"
+        }
+      ],
+      "carryOver": [
+        "zapp",
+        "kira",
+        "teacher",
+        "door",
+        "suspicious_button",
+        "spark_coin"
+      ]
+    }
+  ]
+}

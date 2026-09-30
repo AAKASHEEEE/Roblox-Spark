@@ -18,6 +18,8 @@
     "spike": "node scripts/spike-render.ts",
     "stills": "node scripts/stills.ts",
     "assets:lock": "node scripts/assets-lock.ts",
+    "environments:lock:check": "node scripts/environment-lock.ts",
+    "environments:lock:update": "node scripts/environment-lock.ts --write",
     "test": "node --test tests/*.test.ts",
     "golden:check": "node scripts/golden.ts check",
     "episode:upgrade": "node scripts/episode-version.ts upgrade",
@@ -26,7 +28,8 @@
     "bench": "node scripts/bench-generate.ts --set bench/ideas.json --provider rules --out out/bench/rules",
     "bench:holdout": "node scripts/bench-generate.ts --set bench/holdout-ideas.json --provider rules --out out/bench/holdout",
     "bench:render": "node scripts/bench-render.ts",
-    "action-reel": "node scripts/action-reel.ts --scale 0.5"
+    "action-reel": "node scripts/action-reel.ts --scale 0.5",
+    "vignette:stage": "node scripts/vignette-stage.ts"
   },
   "devDependencies": {
     "typescript": "7.0.2",

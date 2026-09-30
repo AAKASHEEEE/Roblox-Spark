@@ -70,7 +70,7 @@ The form and the current storyboard, approval and render job survive a browser r
 
 ## Narrated Storyboard — Phase 1
 
-A second Studio mode. It takes a script and your uploaded voice-over and produces phrase-timed captions and a constrained storyboard, downloadable as JSON. **Narrated Story rendering is not implemented yet**: this mode produces no MP4. Visual Comedy is unchanged.
+A second Studio mode. It takes a script and your uploaded voice-over and produces phrase-timed captions and a constrained storyboard, downloadable as JSON. After approval it can render a **low-resolution draft MP4** (see *Narrated Draft Render — Phase 2A*); final-quality narrated rendering is not implemented yet. Visual Comedy is unchanged.
 
 **Start:** `npm start`, open http://localhost:5173, then choose **Narrated Story** in the header.
 
@@ -140,6 +140,34 @@ FFMPEG_PATH=/usr/bin/ffmpeg npm start     # optional: enable MP3/M4A (or just ha
 - There is one caption preset. Captions are not burned in.
 - The mode is single-user and local.
 - Only the metadata and hash of the voice-over are remembered across a refresh. If the file is gone, the UI asks you to re-upload the same file and verifies its hash.
+
+## Narrated Draft Render — Phase 2A
+Flow: Input → Alignment Review → Storyboard → **Approve** → **Draft Render** → Complete.
+
+**Approval**
+- Freezes the exact storyboard: script, audio content hash, phrase timing, caption chunks, actors/actions, cameras and seed.
+- It is content-addressed (`na-<sha256>`) and written once under `out/studio/narrated-approved/`.
+- Editing the input never changes it. A different voice-over hash is refused at render time, so approve again.
+- Only 35–75 s voice-overs can be approved; the 14–22 s Visual Comedy limit is unchanged.
+
+**Draft render**
+- Re-verifies the voice-over hash and copies the file into an isolated job directory.
+- Compiles a deterministic timeline (`packages/narrated/src/timeline.ts`), with at least one hard cut per caption chunk and no shot longer than 2.8 s.
+- Burns in the caption chunks at their exact times and mixes the voice-over as the primary track. The only other sound is low procedural SFX ducked under it.
+- Output: 540×960, 30 fps, H.264 + AAC 48 kHz, labelled **Draft Preview — Not Final Quality**.
+- The Complete screen offers the draft MP4, the approved JSON, the render timeline JSON, the manifest and 18 narrated quality gates.
+- A draft of about 70 s takes about 5 minutes on 8 CPU cores and needs the Chromium from *Setup*. MP3/M4A voice-overs need FFmpeg (`FFMPEG_PATH` or `PATH`).
+- Uploaded audio stays in `.scratch/narrated-uploads/` until you delete it; there is no automatic cleanup yet.
+
+## BlockSpark Vignette MVP
+The Vignette path currently validates and stages beat sheets, solves camera safety/coverage, and renders review stills; beat-sheet generation and final MP4 export are not implemented yet.
+
+```bash
+npm run vignette:stage -- --no-stills  # validate + stage the reference sheet
+npm run vignette:stage                 # also render one PNG still per beat
+```
+
+See [PRODUCT_STATUS](docs/PRODUCT_STATUS.md) for exact custom-sheet commands, outputs, verified status, gaps, and next work. Use [RESUME_KIRO_PROMPT](docs/RESUME_KIRO_PROMPT.md) to continue the integration in a future Kiro session.
 
 ## Documents
 - [VALIDATION_REPORT](docs/VALIDATION_REPORT.md) — results, measurements, limitations, recommendation

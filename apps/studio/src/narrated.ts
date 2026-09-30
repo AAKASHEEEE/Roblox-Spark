@@ -1,10 +1,10 @@
 // Narrated Story mode (Phase 1): INPUT -> ALIGNMENT REVIEW -> STORYBOARD. Storyboard JSON download only; no rendering.
 // Visual Comedy (app.ts) is untouched: this module only toggles which mode container is visible.
 // Raw audio is never kept in localStorage: only form fields, audio metadata/hash and the generation id.
-type NScreen = 'input' | 'alignment' | 'storyboard';
+type NScreen = 'input' | 'alignment' | 'storyboard' | 'approved' | 'render';
 interface AudioMeta { originalFilename: string; format: string; codec: string; durationSeconds: number; sampleRate: number; channels: number; contentHash: string }
 interface Form { title: string; script: string; characters: string[]; storyPattern: string; seed: number; captionPreset: string }
-interface Options { characters: Array<{ id: string; name: string }>; patterns: Array<{ id: string; title: string }>; captionPresets: Array<{ id: string; title: string }>; formats: string[]; ffmpeg: { available: boolean; source: string; version: string | null; problem: string | null }; ffmpegSetup: string; maxUploadMB: number; renderNotice: string; reupload: string }
+interface Options { draftLabel: string; characters: Array<{ id: string; name: string }>; patterns: Array<{ id: string; title: string }>; captionPresets: Array<{ id: string; title: string }>; formats: string[]; ffmpeg: { available: boolean; source: string; version: string | null; problem: string | null }; ffmpegSetup: string; maxUploadMB: number; renderNotice: string; reupload: string }
 interface Gen { generationId: string; status: 'accepted' | 'rejected'; rejection: { category: string; title: string; reason: string; also: Array<{ category: string; reason: string }> } | null; storyboard: any; speechRegions: Array<{ start: number; end: number }>; renderNotice: string; audioAvailable: boolean }
 
 const KEY = 'blockspark.narrated.v1';
@@ -21,8 +21,11 @@ let audio: AudioMeta | null = null;
 /** set when a restored session's audio is no longer on the server: only the same content hash may be re-uploaded */
 let expectedHash: string | null = null;
 let gen: Gen | null = null, busy = false, msg = '';
+/** frozen server-side approval (never mutated by input edits) and the current draft job */
+let approval: any = null, job: any = null, poll: number | undefined;
+const DRAFT_STAGES: Array<[string, string]> = [['queued', 'Queued'], ['preparing', 'Preparing'], ['compiling', 'Compiling timeline'], ['encoding', 'Encoding captions/audio'], ['rendering', 'Rendering'], ['validating', 'Validating'], ['complete', 'Complete']];
 
-function persist(): void { localStorage.setItem(KEY, JSON.stringify({ mode, form, audio, generationId: gen?.generationId ?? null, screen: nscreen })); }
+function persist(): void { localStorage.setItem(KEY, JSON.stringify({ mode, form, audio, generationId: gen?.generationId ?? null, approvalId: approval?.approvalId ?? null, jobId: job?.id ?? null, screen: nscreen })); }
 function setMode(m: 'visual' | 'narrated'): void {
   mode = m;
   $('mode-visual').hidden = m !== 'visual'; $('steps').hidden = m !== 'visual'; $('mode-narrated').hidden = m !== 'narrated';
@@ -92,15 +95,67 @@ function storyboardHtml(g: Gen): string {
       ${p.substitutions.length ? `<div class="cue">substituted: ${p.substitutions.map((s: any) => esc(`${s.requested} -> ${s.used}`)).join(' · ')}</div>` : ''}${warnList(p.warnings)}</div>`).join('')}</div>
     <p class="remind">${esc(g.renderNotice)}</p>
     <div class="actions"><button data-nact="back" class="ghost">Back to input</button><button data-nact="to-alignment" class="ghost">Alignment review</button><button data-nact="regen" class="ghost" ${busy || !g.audioAvailable ? 'disabled' : ''}>Regenerate with same seed</button><button data-nact="newseed" class="ghost" ${busy || !g.audioAvailable ? 'disabled' : ''}>Generate with new seed</button>
-      <a class="btn primary" href="/api/narrated/generations/${esc(g.generationId)}/storyboard.json" download>Download Narrated Storyboard JSON</a></div>
+      <a class="btn" href="/api/narrated/generations/${esc(g.generationId)}/storyboard.json" download>Download Narrated Storyboard JSON</a>
+      <button data-nact="approve" class="primary" ${busy || !g.audioAvailable || sb.audio.durationSeconds < 35 || sb.audio.durationSeconds > 75 ? 'disabled' : ''}>Approve storyboard</button></div>
+    ${sb.audio.durationSeconds < 35 || sb.audio.durationSeconds > 75 ? `<p class="warn">Draft rendering needs a 35–75 s voice-over (this one is ${f2(sb.audio.durationSeconds)} s).</p>` : ''}<div></div>
     ${g.audioAvailable ? '' : `<p class="warn">${esc(opt.reupload)}</p>`}`;
 }
+function approvedHtml(): string {
+  const a = approval;
+  const rows: Array<[string, unknown]> = [['Episode ID', a.storyboardId], ['Audio hash', `${a.audioHash.slice(0, 16)}…`], ['Phrase count', a.phraseCount], ['Caption chunks', a.captionChunks], ['Duration', `${f2(a.durationSeconds)} s`], ['Seed', a.seed], ['Schema version', a.schemaVersion], ['Motion profile', a.motionProfile], ['Approval hash', `${a.storyboardSha256.slice(0, 16)}…`], ['Approval', a.approvalId], ['Approved at', a.approvedAt]];
+  return `<div class="panel good"><h2>Approved</h2><p>This exact storyboard, voice-over hash, timing, caption chunks, actors/actions, cameras and seed are frozen. Editing the input does not change it; a different voice-over needs a new approval.</p></div>
+    <div class="facts">${rows.map(([k, v]) => `<div><b>${esc(k)}</b>${esc(v)}</div>`).join('')}</div>
+    ${a.warnings?.length ? `<p class="warn">${a.warnings.map(esc).join('<br>')}</p>` : ''}${a.intact ? '' : '<div class="panel bad">The approved file no longer matches its hash. Rendering is disabled.</div>'}${a.audioAvailable ? '' : `<div class="panel bad">${esc(opt.reupload)}</div>`}
+    <div class="actions"><button data-nact="draft" class="primary" ${a.intact && a.audioAvailable && (!job || job.state === 'done' || job.state === 'failed') ? '' : 'disabled'}>Render Draft Preview (540×960)</button>
+      <a class="btn" href="/api/narrated/approved/${esc(a.approvalId)}/storyboard.json" download>Download Approved Narrated JSON</a>
+      <button data-nact="discard" class="ghost">Back to storyboard (discard this approval)</button></div>`;
+}
+function renderHtml(): string {
+  const j = job, o = j.outputs ?? {}, idx = DRAFT_STAGES.findIndex(([k]) => k === j.stage);
+  const stages = DRAFT_STAGES.map(([k, l], i) => `<li class="${j.state === 'done' || i < idx ? 'done' : i === idx ? 'on' : ''}">${esc(l)}</li>`).join('') + (j.state === 'failed' ? '<li class="bad">Failed</li>' : '');
+  const active = j.state === 'queued' || j.state === 'running';
+  const bar = !active ? '' : j.stage === 'rendering' && j.total > 1 ? `<p><progress max="${j.total}" value="${j.done}"></progress> ${j.done}/${j.total} frames</p>` : `<p><progress></progress> <span class="dim">this step reports no exact progress</span></p>`;
+  let body = '';
+  if (j.state === 'failed') body = `<div class="panel bad"><h2>Draft render failed</h2><p>${esc(j.error)}</p><p class="dim">The approval is unchanged. No automatic retries.</p><div class="actions"><button data-nact="draft" class="primary">Retry draft render</button>${o.quality ? `<a class="btn" href="${esc(o.quality)}" target="_blank">Quality report</a>` : ''}</div></div>`;
+  if (j.state === 'done') body = `<div class="result"><video controls playsinline src="${esc(o.mp4)}"></video><div><h2>Complete</h2><p class="remind">${esc(opt.draftLabel)}</p>
+      <p>Quality gates: <b>${j.quality ? `${j.quality.passed}/${j.quality.total} passed` : '—'}</b>${j.quality?.failed?.length ? ` (failed: ${esc(j.quality.failed.join(', '))})` : ''}</p><div id="n-gates" class="dim">loading validation results…</div>
+      <div class="actions"><a class="btn primary" href="${esc(o.mp4)}" download>Download Draft MP4</a><a class="btn" href="${esc(o.approvedJsonApi ?? o.approvedJson)}" download>Download Approved Narrated JSON</a><a class="btn" href="${esc(o.timelineJson)}" download>Download Render Timeline JSON</a>${o.manifest ? `<a class="btn" href="${esc(o.manifest)}" download>Render manifest</a>` : ''}</div></div></div>`;
+  return `<h2>Draft render — ${esc(approval?.title ?? '')}</h2><p class="dim">${esc(j.id)} · ${esc(j.approvalId)} · ${esc(opt.draftLabel)}</p><ol class="stages">${stages}</ol>${bar}${body}`;
+}
+async function loadGates(): Promise<void> {
+  const el = document.getElementById('n-gates');
+  if (!el || !job?.outputs?.quality) return;
+  const q = await (await fetch(job.outputs.quality, { cache: 'no-store' })).json().catch(() => null);
+  if (q?.gates) el.innerHTML = `<table>${q.gates.map((g: any) => `<tr><td>${esc(g.id)} ${g.pass ? 'PASS' : '<b class="warn">FAIL</b>'}</td><td>${esc(g.name)}</td><td class="dim">${esc(g.detail)}</td></tr>`).join('')}</table>`;
+}
+function watchJob(): void {
+  window.clearTimeout(poll);
+  if (!job || (job.state !== 'queued' && job.state !== 'running')) { if (job?.state === 'done') void loadGates(); return; }
+  poll = window.setTimeout(async () => { const r = await fetch(`/api/narrated/jobs/${job.id}`, { cache: 'no-store' }); if (r.status === 200) { job = await r.json(); view(); } watchJob(); }, 1000);
+}
+async function approve(): Promise<void> {
+  if (!gen) return;
+  const r = await fetch('/api/narrated/approve', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ generationId: gen.generationId }) });
+  const d = await r.json().catch(() => ({}));
+  if (r.status !== 200) { alert(d.error ?? `approval failed (HTTP ${r.status})`); return; }
+  approval = d; job = null; nscreen = 'approved'; view();
+}
+async function startDraft(): Promise<void> {
+  if (!approval) return;
+  const r = await fetch('/api/narrated/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ approvalId: approval.approvalId, audioHash: audio?.contentHash }) });
+  const d = await r.json().catch(() => ({}));
+  if (r.status !== 202) { alert(d.error ?? `draft render could not start (HTTP ${r.status})`); return; }
+  job = d; nscreen = 'render'; view(); watchJob();
+}
+
 function view(): void {
-  for (const id of ['input', 'alignment', 'storyboard'] as const) $(`n-${id}`).hidden = nscreen !== id;
+  for (const id of ['input', 'alignment', 'storyboard', 'approved', 'render'] as const) $(`n-${id}`).hidden = nscreen !== id;
   document.querySelectorAll<HTMLElement>('#n-steps span').forEach((el) => el.classList.toggle('on', el.dataset.s === nscreen));
   if (nscreen === 'input') { $('n-input').innerHTML = inputHtml(); bind(); }
   if (nscreen === 'alignment' && gen) $('n-alignment').innerHTML = alignmentHtml(gen);
   if (nscreen === 'storyboard' && gen) $('n-storyboard').innerHTML = storyboardHtml(gen);
+  if (nscreen === 'approved' && approval) $('n-approved').innerHTML = approvedHtml();
+  if (nscreen === 'render' && job) $('n-render').innerHTML = renderHtml();
   persist();
 }
 function bind(): void {
@@ -125,6 +180,7 @@ async function upload(file: File | undefined): Promise<void> {
   if (r.status !== 200) { msg = `Rejected: ${d.error ?? `HTTP ${r.status}`}`; view(); return; }
   if (expectedHash && d.contentHash !== expectedHash) { msg = `This is a different file (SHA-256 ${String(d.contentHash).slice(0, 12)}… ≠ ${expectedHash.slice(0, 12)}…). Upload the same voice-over, or choose "Use a different voice-over instead".`; view(); return; }
   if (expectedHash && gen) gen = { ...gen, audioAvailable: true };
+  if (approval && approval.audioHash !== d.contentHash) { approval = null; job = null; } // a replaced voice-over invalidates the approval
   expectedHash = null; audio = d; msg = d.displayNameSanitized ? `Voice-over validated (display name sanitized to "${d.originalFilename}").` : 'Voice-over validated.'; view();
 }
 async function generate(seed?: number): Promise<void> {
@@ -149,7 +205,10 @@ document.addEventListener('click', (ev) => {
   else if (a === 'to-alignment') { nscreen = 'alignment'; view(); }
   else if (a === 'regen') { if (gen?.storyboard) form = { ...form, seed: gen.storyboard.seed }; void generate(); }
   else if (a === 'newseed') void generate(newSeed());
-  else if (a === 'forget-audio') { expectedHash = null; audio = null; msg = ''; view(); }
+  else if (a === 'forget-audio') { expectedHash = null; audio = null; approval = null; job = null; msg = ''; view(); }
+  else if (a === 'approve') void approve();
+  else if (a === 'draft') void startDraft();
+  else if (a === 'discard') { if (confirm('Discard this approval and return to the storyboard? The approved files stay on disk.')) { approval = null; job = null; nscreen = 'storyboard'; view(); } }
 });
 
 async function init(): Promise<void> {
@@ -167,7 +226,13 @@ async function init(): Promise<void> {
     const r = await fetch(`/api/narrated/generations/${saved.generationId}`, { cache: 'no-store' });
     if (r.status === 200) { gen = await r.json(); nscreen = saved.screen && saved.screen !== 'input' ? saved.screen : 'input'; }
   }
+  const sv = saved as { approvalId?: string; jobId?: string } | null;
+  if (sv?.approvalId && /^na-[0-9a-f]{16}$/.test(sv.approvalId)) { const r = await fetch(`/api/narrated/approved/${sv.approvalId}`, { cache: 'no-store' }); if (r.status === 200) { approval = await r.json(); if (nscreen !== 'render') nscreen = 'approved'; } }
+  if (approval && sv?.jobId && /^nj\d+$/.test(sv.jobId)) { const r = await fetch(`/api/narrated/jobs/${sv.jobId}`, { cache: 'no-store' }); if (r.status === 200) { const j = await r.json(); if (j.approvalId === approval.approvalId) { job = j; nscreen = 'render'; } } }
+  if ((nscreen === 'approved' || nscreen === 'render') && !approval) nscreen = gen ? 'storyboard' : 'input';
+  if (nscreen === 'render' && !job) nscreen = 'approved';
   setMode(saved?.mode === 'narrated' ? 'narrated' : 'visual');
+  watchJob();
   view();
 }
 void init();

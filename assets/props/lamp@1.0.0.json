@@ -1,0 +1,176 @@
+{
+  "kind": "prop",
+  "id": "lamp",
+  "version": "1.0.0",
+  "displayName": "Lamp",
+  "category": "decor",
+  "dimensions": [
+    0.44,
+    1.65,
+    0.44
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.44,
+      1.65,
+      0.44
+    ],
+    "offset": [
+      0,
+      0.825,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "base",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.16,
+        0.04
+      ],
+      "pos": [
+        0,
+        0.02,
+        0
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.01
+    },
+    {
+      "id": "pole",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.018,
+        1.34
+      ],
+      "pos": [
+        0,
+        0.71,
+        0
+      ],
+      "color": "#c3c9d0",
+      "sheen": 0.9
+    },
+    {
+      "id": "switch",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.05,
+        0.03
+      ],
+      "pos": [
+        0.025,
+        1.1,
+        0
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "socket",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.03,
+        0.06
+      ],
+      "pos": [
+        0,
+        1.38,
+        0
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "shade",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.22,
+        0.3
+      ],
+      "pos": [
+        0,
+        1.5,
+        0
+      ],
+      "color": "#cdbb94",
+      "bevel": 0.01
+    },
+    {
+      "id": "shade_trim",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.224,
+        0.025
+      ],
+      "pos": [
+        0,
+        1.36,
+        0
+      ],
+      "color": "#e2a83a"
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      1,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      1.65,
+      0
+    ],
+    "switch": [
+      0.045,
+      1.1,
+      0
+    ]
+  },
+  "effectAnchors": {
+    "light": [
+      0,
+      1.3,
+      0
+    ]
+  },
+  "defaultMaterial": "fabric",
+  "defaultColor": "#cdbb94",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "glow"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/lamp.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

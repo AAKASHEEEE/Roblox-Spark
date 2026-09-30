@@ -1,0 +1,147 @@
+{
+  "kind": "prop",
+  "id": "phone",
+  "version": "1.0.0",
+  "displayName": "Phone",
+  "category": "handheld",
+  "dimensions": [
+    0.085,
+    0.016,
+    0.165
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.085,
+      0.016,
+      0.165
+    ],
+    "offset": [
+      0,
+      0.008,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "body",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.085,
+        0.016,
+        0.165
+      ],
+      "pos": [
+        0,
+        0.008,
+        0
+      ],
+      "color": "#22252c",
+      "bevel": 0.006,
+      "sheen": 0.8
+    },
+    {
+      "id": "screen",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.075,
+        0.145
+      ],
+      "pos": [
+        0,
+        0.0165,
+        0
+      ],
+      "color": "#0d0f14",
+      "rotDeg": [
+        -90,
+        0,
+        0
+      ],
+      "sheen": 1
+    },
+    {
+      "id": "side_button",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.004,
+        0.006,
+        0.025
+      ],
+      "pos": [
+        0.0445,
+        0.008,
+        -0.03
+      ],
+      "color": "#9aa3ad"
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.008,
+      0.02
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.016,
+      0
+    ],
+    "screen_center": [
+      0,
+      0.0165,
+      0
+    ],
+    "ear": [
+      0,
+      0.008,
+      -0.07
+    ]
+  },
+  "effectAnchors": {
+    "glow": [
+      0,
+      0.03,
+      0
+    ],
+    "notification": [
+      0,
+      0.05,
+      -0.08
+    ]
+  },
+  "defaultMaterial": "electronics",
+  "defaultColor": "#22252c",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "glow"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/phone.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

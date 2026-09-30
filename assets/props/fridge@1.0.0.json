@@ -1,0 +1,493 @@
+{
+  "kind": "prop",
+  "id": "fridge",
+  "version": "1.0.0",
+  "displayName": "Fridge",
+  "category": "appliance",
+  "dimensions": [
+    0.85,
+    2,
+    0.8
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.85,
+      2,
+      0.8
+    ],
+    "offset": [
+      0,
+      1,
+      0.025
+    ]
+  },
+  "parts": [
+    {
+      "id": "back",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.85,
+        2,
+        0.04
+      ],
+      "pos": [
+        0,
+        1,
+        -0.355
+      ],
+      "color": "#eef1f4"
+    },
+    {
+      "id": "side_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        2,
+        0.68
+      ],
+      "pos": [
+        0.405,
+        1,
+        -0.035
+      ],
+      "color": "#eef1f4"
+    },
+    {
+      "id": "side_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        2,
+        0.68
+      ],
+      "pos": [
+        -0.405,
+        1,
+        -0.035
+      ],
+      "color": "#eef1f4"
+    },
+    {
+      "id": "top",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.77,
+        0.04,
+        0.64
+      ],
+      "pos": [
+        0,
+        1.98,
+        -0.015
+      ],
+      "color": "#eef1f4"
+    },
+    {
+      "id": "bottom",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.77,
+        0.1,
+        0.64
+      ],
+      "pos": [
+        0,
+        0.05,
+        -0.015
+      ],
+      "color": "#eef1f4"
+    },
+    {
+      "id": "divider",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.77,
+        0.04,
+        0.64
+      ],
+      "pos": [
+        0,
+        1.45,
+        -0.015
+      ],
+      "color": "#eef1f4"
+    },
+    {
+      "id": "interior_back",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.77,
+        1.35,
+        0.01
+      ],
+      "pos": [
+        0,
+        0.775,
+        -0.33
+      ],
+      "color": "#dfe9f2"
+    },
+    {
+      "id": "shelf_low",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.76,
+        0.02,
+        0.55
+      ],
+      "pos": [
+        0,
+        0.55,
+        -0.06
+      ],
+      "color": "#c8e4f5",
+      "sheen": 0.8
+    },
+    {
+      "id": "shelf_mid",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.76,
+        0.02,
+        0.55
+      ],
+      "pos": [
+        0,
+        1,
+        -0.06
+      ],
+      "color": "#c8e4f5",
+      "sheen": 0.8
+    },
+    {
+      "id": "milk",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.1,
+        0.22,
+        0.1
+      ],
+      "pos": [
+        0.2,
+        0.67,
+        -0.1
+      ],
+      "color": "#ffffff",
+      "bevel": 0.006
+    },
+    {
+      "id": "milk_band",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.102,
+        0.06,
+        0.102
+      ],
+      "pos": [
+        0.2,
+        0.7,
+        -0.1
+      ],
+      "color": "#3f7fd9"
+    },
+    {
+      "id": "bottle",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.04,
+        0.26
+      ],
+      "pos": [
+        -0.05,
+        0.69,
+        -0.12
+      ],
+      "color": "#39b56a",
+      "sheen": 0.8
+    },
+    {
+      "id": "cake",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.1,
+        0.18
+      ],
+      "pos": [
+        0.12,
+        1.06,
+        -0.12
+      ],
+      "color": "#f5b3c8",
+      "bevel": 0.01
+    },
+    {
+      "id": "apple",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.08,
+        0.08
+      ],
+      "pos": [
+        -0.22,
+        1.05,
+        -0.05
+      ],
+      "color": "#e8322b",
+      "bevel": 0.025
+    },
+    {
+      "id": "kick",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.77,
+        0.1,
+        0.02
+      ],
+      "pos": [
+        0,
+        0.05,
+        0.3
+      ],
+      "color": "#9aa3ad"
+    },
+    {
+      "id": "door",
+      "attach": "door",
+      "shape": "box",
+      "size": [
+        0.85,
+        1.98,
+        0.07
+      ],
+      "pos": [
+        0,
+        1,
+        0.34
+      ],
+      "color": "#eef1f4",
+      "bevel": 0.02
+    },
+    {
+      "id": "seam",
+      "attach": "door",
+      "shape": "box",
+      "size": [
+        0.85,
+        0.012,
+        0.004
+      ],
+      "pos": [
+        0,
+        1.45,
+        0.3765
+      ],
+      "color": "#c3c9d0"
+    },
+    {
+      "id": "handle_main",
+      "attach": "door",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.6,
+        0.05
+      ],
+      "pos": [
+        -0.34,
+        1.05,
+        0.4
+      ],
+      "color": "#9aa3ad",
+      "bevel": 0.012,
+      "sheen": 0.8
+    },
+    {
+      "id": "handle_freezer",
+      "attach": "door",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.25,
+        0.05
+      ],
+      "pos": [
+        -0.34,
+        1.62,
+        0.4
+      ],
+      "color": "#9aa3ad",
+      "bevel": 0.012,
+      "sheen": 0.8
+    },
+    {
+      "id": "door_bin_low",
+      "attach": "door",
+      "shape": "box",
+      "size": [
+        0.7,
+        0.08,
+        0.06
+      ],
+      "pos": [
+        0,
+        0.6,
+        0.275
+      ],
+      "color": "#c8e4f5"
+    },
+    {
+      "id": "door_bin_high",
+      "attach": "door",
+      "shape": "box",
+      "size": [
+        0.7,
+        0.08,
+        0.06
+      ],
+      "pos": [
+        0,
+        1.1,
+        0.275
+      ],
+      "color": "#c8e4f5"
+    },
+    {
+      "id": "juice",
+      "attach": "door",
+      "shape": "box",
+      "size": [
+        0.07,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -0.2,
+        0.72,
+        0.275
+      ],
+      "color": "#ffb020",
+      "bevel": 0.006
+    },
+    {
+      "id": "note",
+      "attach": "door",
+      "shape": "box",
+      "size": [
+        0.12,
+        0.15,
+        0.004
+      ],
+      "pos": [
+        0.15,
+        1.3,
+        0.3775
+      ],
+      "color": "#ffe066"
+    }
+  ],
+  "grips": {
+    "grip": [
+      -0.34,
+      1.05,
+      0.43
+    ],
+    "grip_freezer": [
+      -0.34,
+      1.62,
+      0.43
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      2,
+      -0.015
+    ],
+    "door_axis": [
+      0.425,
+      0,
+      0.375
+    ],
+    "shelf_mid": [
+      0,
+      1.01,
+      -0.05
+    ],
+    "shelf_low": [
+      0,
+      0.56,
+      -0.05
+    ],
+    "use_front": [
+      -0.7,
+      0,
+      0.6
+    ],
+    "look_in": [
+      -0.1,
+      0,
+      0.9
+    ]
+  },
+  "effectAnchors": {
+    "cold_mist": [
+      0,
+      1,
+      0.45
+    ],
+    "light": [
+      0,
+      1.2,
+      0.1
+    ]
+  },
+  "defaultMaterial": "glossy_plastic",
+  "defaultColor": "#eef1f4",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "open",
+    "glow"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/fridge.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Door on pivot \"door\" (anchors.door_axis), swings toward +z. Interior light turns on with door_open."
+  }
+}

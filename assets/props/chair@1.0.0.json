@@ -1,0 +1,226 @@
+{
+  "kind": "prop",
+  "id": "chair",
+  "version": "1.0.0",
+  "displayName": "Chair",
+  "category": "furniture",
+  "dimensions": [
+    0.48,
+    0.93,
+    0.46
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.48,
+      0.93,
+      0.46
+    ],
+    "offset": [
+      0,
+      0.465,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "seat",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.48,
+        0.05,
+        0.46
+      ],
+      "pos": [
+        0,
+        0.425,
+        0
+      ],
+      "color": "#3f7fd9",
+      "bevel": 0.012
+    },
+    {
+      "id": "leg_0",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.045,
+        0.4,
+        0.045
+      ],
+      "pos": [
+        -0.2,
+        0.2,
+        0.19
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "leg_1",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.045,
+        0.4,
+        0.045
+      ],
+      "pos": [
+        0.2,
+        0.2,
+        0.19
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "leg_2",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.045,
+        0.4,
+        0.045
+      ],
+      "pos": [
+        -0.2,
+        0.2,
+        -0.19
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "leg_3",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.045,
+        0.4,
+        0.045
+      ],
+      "pos": [
+        0.2,
+        0.2,
+        -0.19
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "post_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.045,
+        0.5,
+        0.045
+      ],
+      "pos": [
+        0.2,
+        0.65,
+        -0.19
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "post_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.045,
+        0.5,
+        0.045
+      ],
+      "pos": [
+        -0.2,
+        0.65,
+        -0.19
+      ],
+      "color": "#2b2f36"
+    },
+    {
+      "id": "backrest",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.46,
+        0.22,
+        0.04
+      ],
+      "pos": [
+        0,
+        0.8,
+        -0.2
+      ],
+      "color": "#3f7fd9",
+      "bevel": 0.012
+    },
+    {
+      "id": "rail",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.4,
+        0.04,
+        0.03
+      ],
+      "pos": [
+        0,
+        0.6,
+        -0.2
+      ],
+      "color": "#2b2f36"
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.91,
+      -0.2
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.45,
+      0.02
+    ],
+    "seat": [
+      0,
+      0.45,
+      0.02
+    ],
+    "sit_front": [
+      0,
+      0,
+      0.5
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "matte_plastic",
+  "defaultColor": "#3f7fd9",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/chair.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

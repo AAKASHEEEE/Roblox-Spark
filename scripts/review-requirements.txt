@@ -1,0 +1,2 @@
+# Pinned only for deterministic review-sheet generation; not a runtime dependency.
+Pillow==11.3.0

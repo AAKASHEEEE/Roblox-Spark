@@ -1,0 +1,271 @@
+{
+  "kind": "prop",
+  "id": "gift_box",
+  "version": "1.0.0",
+  "displayName": "Gift Box",
+  "category": "collectible",
+  "dimensions": [
+    0.395,
+    0.44,
+    0.395
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.395,
+      0.44,
+      0.395
+    ],
+    "offset": [
+      0,
+      0.22,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "body",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.36,
+        0.3,
+        0.36
+      ],
+      "pos": [
+        0,
+        0.15,
+        0
+      ],
+      "color": "#3f7fd9",
+      "bevel": 0.01
+    },
+    {
+      "id": "ribbon_x",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.07,
+        0.302,
+        0.365
+      ],
+      "pos": [
+        0,
+        0.15,
+        0
+      ],
+      "color": "#ffd21a"
+    },
+    {
+      "id": "ribbon_z",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.365,
+        0.302,
+        0.07
+      ],
+      "pos": [
+        0,
+        0.15,
+        0
+      ],
+      "color": "#ffd21a"
+    },
+    {
+      "id": "inside",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.33,
+        0.33
+      ],
+      "pos": [
+        0,
+        0.303,
+        0
+      ],
+      "color": "#1d2b52",
+      "rotDeg": [
+        -90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "lid",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.39,
+        0.08,
+        0.39
+      ],
+      "pos": [
+        0,
+        0.33,
+        0
+      ],
+      "color": "#3f7fd9",
+      "bevel": 0.01
+    },
+    {
+      "id": "lid_ribbon_x",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.07,
+        0.082,
+        0.395
+      ],
+      "pos": [
+        0,
+        0.33,
+        0
+      ],
+      "color": "#ffd21a"
+    },
+    {
+      "id": "lid_ribbon_z",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.395,
+        0.082,
+        0.07
+      ],
+      "pos": [
+        0,
+        0.33,
+        0
+      ],
+      "color": "#ffd21a"
+    },
+    {
+      "id": "bow_a",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.14,
+        0.07,
+        0.05
+      ],
+      "pos": [
+        0,
+        0.405,
+        0
+      ],
+      "color": "#ffd21a",
+      "rotDeg": [
+        0,
+        45,
+        0
+      ],
+      "bevel": 0.015
+    },
+    {
+      "id": "bow_b",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.14,
+        0.07,
+        0.05
+      ],
+      "pos": [
+        0,
+        0.405,
+        0
+      ],
+      "color": "#ffd21a",
+      "rotDeg": [
+        0,
+        -45,
+        0
+      ],
+      "bevel": 0.015
+    },
+    {
+      "id": "knot",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.05,
+        0.05
+      ],
+      "pos": [
+        0,
+        0.415,
+        0
+      ],
+      "color": "#ffb400",
+      "bevel": 0.01
+    }
+  ],
+  "grips": {
+    "grip": [
+      0.18,
+      0.15,
+      0
+    ],
+    "grip_r": [
+      -0.18,
+      0.15,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.37,
+      0
+    ],
+    "surprise": [
+      0,
+      0.35,
+      0
+    ],
+    "lid_axis": [
+      0,
+      0.29,
+      -0.195
+    ]
+  },
+  "effectAnchors": {
+    "confetti": [
+      0,
+      0.55,
+      0
+    ]
+  },
+  "defaultMaterial": "paper",
+  "defaultColor": "#3f7fd9",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "open",
+    "uniform_scale"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change"
+  ],
+  "maxScale": 10,
+  "thumbnail": "assets/thumbnails/gift_box.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

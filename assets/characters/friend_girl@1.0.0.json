@@ -1,0 +1,520 @@
+{
+  "kind": "character",
+  "id": "friend_girl",
+  "version": "1.0.0",
+  "displayName": "Mika",
+  "description": "Kid friend (girl). Light skin, golden-blonde hair with a straight fringe and two round side puffs tied in mint, lavender hoodie with hood and drawstrings, mint skirt, plum leggings, white sneakers with lavender soles.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.52,
+      0.52,
+      0.5
+    ],
+    "headBevel": 0.07,
+    "skin": "#f3cfb0",
+    "torso": [
+      0.5,
+      0.56,
+      0.27
+    ],
+    "torsoColor": "#8b5cf0",
+    "armWidth": 0.145,
+    "upperArm": 0.31,
+    "lowerArm": 0.29,
+    "sleeveColor": "#8b5cf0",
+    "handColor": "#f3cfb0",
+    "legWidth": 0.2,
+    "upperLeg": 0.38,
+    "lowerLeg": 0.38,
+    "legColor": "#3b2450",
+    "shoeColor": "#f4f4f2",
+    "soleColor": "#8b5cf0"
+  },
+  "parts": [
+    {
+      "id": "hair_top",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.08,
+        0.54
+      ],
+      "pos": [
+        0,
+        0.54,
+        -0.01
+      ],
+      "color": "#e3b24a",
+      "bevel": 0.025
+    },
+    {
+      "id": "hair_back",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.36,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.36,
+        -0.24
+      ],
+      "color": "#e3b24a",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_side_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.26,
+        0.3
+      ],
+      "pos": [
+        0.27,
+        0.4,
+        -0.09
+      ],
+      "color": "#e3b24a",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_side_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.26,
+        0.3
+      ],
+      "pos": [
+        -0.27,
+        0.4,
+        -0.09
+      ],
+      "color": "#e3b24a",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_fringe",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.075,
+        0.06
+      ],
+      "pos": [
+        0,
+        0.5,
+        0.24
+      ],
+      "color": "#e3b24a",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_puff_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.2,
+        0.2
+      ],
+      "pos": [
+        0.37,
+        0.5,
+        -0.06
+      ],
+      "color": "#e3b24a",
+      "bevel": 0.07
+    },
+    {
+      "id": "hair_puff_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.2,
+        0.2
+      ],
+      "pos": [
+        -0.37,
+        0.5,
+        -0.06
+      ],
+      "color": "#e3b24a",
+      "bevel": 0.07
+    },
+    {
+      "id": "hair_tie_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.1,
+        0.1
+      ],
+      "pos": [
+        0.285,
+        0.5,
+        -0.06
+      ],
+      "color": "#6fe0b8",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_tie_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.1,
+        0.1
+      ],
+      "pos": [
+        -0.285,
+        0.5,
+        -0.06
+      ],
+      "color": "#6fe0b8",
+      "bevel": 0.015
+    },
+    {
+      "id": "hood",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.42,
+        0.14,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.5,
+        -0.165
+      ],
+      "color": "#7447d6",
+      "bevel": 0.03
+    },
+    {
+      "id": "hoodie_pocket",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.3,
+        0.12,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.15,
+        0.137
+      ],
+      "color": "#7447d6"
+    },
+    {
+      "id": "drawstring_l",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.016,
+        0.13,
+        0.012
+      ],
+      "pos": [
+        0.05,
+        0.47,
+        0.14
+      ],
+      "color": "#f4f4f2"
+    },
+    {
+      "id": "drawstring_r",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.016,
+        0.13,
+        0.012
+      ],
+      "pos": [
+        -0.05,
+        0.47,
+        0.14
+      ],
+      "color": "#f4f4f2"
+    },
+    {
+      "id": "skirt",
+      "attach": "hips",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.16,
+        0.33
+      ],
+      "pos": [
+        0,
+        -0.05,
+        0
+      ],
+      "color": "#6fe0b8",
+      "bevel": 0.02
+    },
+    {
+      "id": "skirt_flare",
+      "attach": "hips",
+      "shape": "box",
+      "size": [
+        0.62,
+        0.06,
+        0.37
+      ],
+      "pos": [
+        0,
+        -0.11,
+        0
+      ],
+      "color": "#6fe0b8",
+      "bevel": 0.02
+    }
+  ],
+  "face": {
+    "eyeColor": "#1a1224",
+    "browColor": "#8a5e1c",
+    "mouthColor": "#5a2230",
+    "eyeSpacing": 0.34,
+    "eyeY": 0.53,
+    "eyeW": 0.11,
+    "eyeH": 0.2,
+    "browThickness": 0.045,
+    "browWidth": 0.19,
+    "mouthY": 0.755,
+    "mouthW": 0.21,
+    "hasNose": false,
+    "states": {
+      "neutral": {
+        "eyes": "oval",
+        "browL": [
+          0.1,
+          0
+        ],
+        "browR": [
+          0.1,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "curious": {
+        "eyes": "oval",
+        "browL": [
+          0.55,
+          6
+        ],
+        "browR": [
+          -0.08,
+          -8
+        ],
+        "mouth": "tight"
+      },
+      "shock": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "determined": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -24
+        ],
+        "browR": [
+          -0.2,
+          -24
+        ],
+        "mouth": "flat"
+      },
+      "regret": {
+        "eyes": "half_lid",
+        "browL": [
+          0.15,
+          20
+        ],
+        "browR": [
+          0.15,
+          20
+        ],
+        "mouth": "flat"
+      },
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.25,
+          4
+        ],
+        "browR": [
+          -0.05,
+          -8
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.85,
+          8
+        ],
+        "browR": [
+          0.85,
+          8
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      },
+      "happy": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          6
+        ],
+        "browR": [
+          0.3,
+          6
+        ],
+        "mouth": "grin"
+      },
+      "angry": {
+        "eyes": "narrow",
+        "browL": [
+          -0.35,
+          -30
+        ],
+        "browR": [
+          -0.35,
+          -30
+        ],
+        "mouth": "frown"
+      },
+      "calm": {
+        "eyes": "half_lid",
+        "browL": [
+          0.05,
+          0
+        ],
+        "browR": [
+          0.05,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "strict": {
+        "eyes": "narrow",
+        "browL": [
+          -0.15,
+          -14
+        ],
+        "browR": [
+          -0.15,
+          -14
+        ],
+        "mouth": "flat"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "happy",
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret",
+    "smug",
+    "skeptical",
+    "surprised",
+    "laughing",
+    "angry",
+    "calm",
+    "strict"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.3,
+    "runSpeed": 3.6
+  },
+  "personality": "Bright, bossy, always has a plan B. Films everything on her phone.",
+  "identityRules": [
+    "Two side puffs, tied in mint; never a single ponytail.",
+    "Lavender hoodie, mint skirt, plum leggings."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "kind": "prop",
+  "id": "trash_can",
+  "version": "1.0.0",
+  "displayName": "Trash Can",
+  "category": "decor",
+  "dimensions": [
+    0.45,
+    0.71,
+    0.45
+  ],
+  "collision": {
+    "shape": "cylinder",
+    "size": [
+      0.225,
+      0.71,
+      0.225
+    ],
+    "offset": [
+      0,
+      0.355,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "can",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.21,
+        0.62
+      ],
+      "pos": [
+        0,
+        0.31,
+        0
+      ],
+      "color": "#6b7785",
+      "bevel": 0.01
+    },
+    {
+      "id": "band_low",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.215,
+        0.03
+      ],
+      "pos": [
+        0,
+        0.18,
+        0
+      ],
+      "color": "#58626e"
+    },
+    {
+      "id": "band_high",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.215,
+        0.03
+      ],
+      "pos": [
+        0,
+        0.45,
+        0
+      ],
+      "color": "#58626e"
+    },
+    {
+      "id": "rim",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.225,
+        0.035
+      ],
+      "pos": [
+        0,
+        0.6175,
+        0
+      ],
+      "color": "#58626e"
+    },
+    {
+      "id": "badge",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.1,
+        0.1
+      ],
+      "pos": [
+        0,
+        0.33,
+        0.212
+      ],
+      "color": "#39b56a"
+    },
+    {
+      "id": "lid",
+      "attach": "lid",
+      "shape": "cylinder",
+      "size": [
+        0.22,
+        0.04
+      ],
+      "pos": [
+        0,
+        0.655,
+        0
+      ],
+      "color": "#6b7785",
+      "bevel": 0.012
+    },
+    {
+      "id": "lid_handle",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.14,
+        0.035,
+        0.035
+      ],
+      "pos": [
+        0,
+        0.69,
+        0
+      ],
+      "color": "#3a3f47",
+      "bevel": 0.01
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.71,
+      0
+    ],
+    "grip_rim": [
+      0.225,
+      0.61,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.675,
+      0
+    ],
+    "mouth": [
+      0,
+      0.64,
+      0
+    ],
+    "lid_axis": [
+      0,
+      0.635,
+      -0.22
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "matte_plastic",
+  "defaultColor": "#6b7785",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "open"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/trash_can.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

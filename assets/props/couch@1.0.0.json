@@ -1,0 +1,295 @@
+{
+  "kind": "prop",
+  "id": "couch",
+  "version": "1.0.0",
+  "displayName": "Couch",
+  "category": "furniture",
+  "dimensions": [
+    2.2,
+    0.875,
+    0.9
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      2.2,
+      0.875,
+      0.9
+    ],
+    "offset": [
+      0,
+      0.4375,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "foot_0",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.08,
+        0.08
+      ],
+      "pos": [
+        -1,
+        0.04,
+        0.36
+      ],
+      "color": "#6b4a2e"
+    },
+    {
+      "id": "foot_1",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.08,
+        0.08
+      ],
+      "pos": [
+        1,
+        0.04,
+        0.36
+      ],
+      "color": "#6b4a2e"
+    },
+    {
+      "id": "foot_2",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.08,
+        0.08
+      ],
+      "pos": [
+        -1,
+        0.04,
+        -0.36
+      ],
+      "color": "#6b4a2e"
+    },
+    {
+      "id": "foot_3",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.08,
+        0.08
+      ],
+      "pos": [
+        1,
+        0.04,
+        -0.36
+      ],
+      "color": "#6b4a2e"
+    },
+    {
+      "id": "base",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        2.2,
+        0.25,
+        0.9
+      ],
+      "pos": [
+        0,
+        0.2,
+        0
+      ],
+      "color": "#5b6fb5",
+      "bevel": 0.03
+    },
+    {
+      "id": "cushion_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.86,
+        0.14,
+        0.7
+      ],
+      "pos": [
+        0.44,
+        0.39,
+        0.08
+      ],
+      "color": "#6f84cc",
+      "bevel": 0.04
+    },
+    {
+      "id": "cushion_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.86,
+        0.14,
+        0.7
+      ],
+      "pos": [
+        -0.44,
+        0.39,
+        0.08
+      ],
+      "color": "#6f84cc",
+      "bevel": 0.04
+    },
+    {
+      "id": "back",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        2.2,
+        0.55,
+        0.22
+      ],
+      "pos": [
+        0,
+        0.6,
+        -0.34
+      ],
+      "color": "#5b6fb5",
+      "bevel": 0.04
+    },
+    {
+      "id": "back_cushion_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.86,
+        0.4,
+        0.14
+      ],
+      "pos": [
+        0.44,
+        0.66,
+        -0.18
+      ],
+      "color": "#6f84cc",
+      "bevel": 0.04
+    },
+    {
+      "id": "back_cushion_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.86,
+        0.4,
+        0.14
+      ],
+      "pos": [
+        -0.44,
+        0.66,
+        -0.18
+      ],
+      "color": "#6f84cc",
+      "bevel": 0.04
+    },
+    {
+      "id": "arm_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.62,
+        0.9
+      ],
+      "pos": [
+        1,
+        0.39,
+        0
+      ],
+      "color": "#5b6fb5",
+      "bevel": 0.04
+    },
+    {
+      "id": "arm_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.62,
+        0.9
+      ],
+      "pos": [
+        -1,
+        0.39,
+        0
+      ],
+      "color": "#5b6fb5",
+      "bevel": 0.04
+    }
+  ],
+  "grips": {
+    "grip": [
+      1,
+      0.7,
+      0.2
+    ],
+    "grip_r": [
+      -1,
+      0.7,
+      0.2
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.46,
+      0.1
+    ],
+    "seat_l": [
+      0.44,
+      0.46,
+      0.1
+    ],
+    "seat_r": [
+      -0.44,
+      0.46,
+      0.1
+    ],
+    "sit_front_l": [
+      0.44,
+      0,
+      0.75
+    ],
+    "sit_front_r": [
+      -0.44,
+      0,
+      0.75
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "fabric",
+  "defaultColor": "#5b6fb5",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/couch.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

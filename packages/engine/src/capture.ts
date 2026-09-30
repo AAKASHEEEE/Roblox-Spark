@@ -12,6 +12,25 @@ export interface CaptureConfig {
   hashEvery: number;
   /** DEBUG ONLY: burn a text label into frames (action reels). Never set for production renders. */
   overlay?: Array<{ from: number; to: number; text: string }> | null;
+  /** Narrated drafts: burned-in caption chunks, shown for exactly [start, end) with the planned line breaks */
+  captions?: Array<{ start: number; end: number; lines: string[]; emphasisWords: string[]; placement?: CaptionChunkPlacement | null }> | null;
+  /** caption placement (fractions of the frame height): block centre and the bottom UI-safe margin kept clear */
+  captionStyle?: { centerY: number; bottomSafe: number } | null;
+}
+/** caption text is plain words: pictographs / invisible format characters are never drawn (no tofu boxes) */
+export const captionText = (s: string): string => s.replace(/[\p{Extended_Pictographic}\p{Cf}\p{Co}\u{FE0F}]/gu, '').replace(/\s+/g, ' ').trim();
+const CAPTION_FONT = '"DejaVu Sans", "Liberation Sans", Arial, Helvetica, sans-serif';
+/** Optional per-chunk placement (from caption-placement.ts). Absent => the fixed captionStyle / 72% default, unchanged. */
+export interface CaptionChunkPlacement { /** block centre as a fraction of frame height; constant for the whole chunk */ centerY: number }
+/** default caption style when none is configured (Visual Comedy / legacy narrated behaviour) */
+export const CAPTION_DEFAULT_STYLE: Readonly<{ centerY: number; bottomSafe: number }> = Object.freeze({ centerY: 0.72, bottomSafe: 0.16 });
+/** caption metrics shared with the placement module: nominal font px, line height and outline width */
+export const CAPTION_FONT_FRACTION = 0.036, CAPTION_LINE_HEIGHT = 1.22, CAPTION_OUTLINE = 0.2, CAPTION_MAX_WIDTH = 0.9;
+export const captionFontPx = (H: number): number => Math.round(H * CAPTION_FONT_FRACTION);
+/** top y (px) of the caption block: centred on centerY, never below the bottom UI-safe margin */
+export function captionBlockTop(H: number, block: number, st: { centerY: number; bottomSafe: number }, placement?: CaptionChunkPlacement | null): number {
+  const cy = placement && Number.isFinite(placement.centerY) ? placement.centerY : st.centerY;
+  return Math.min(H * cy - block / 2, H * (1 - st.bottomSafe) - block);
 }
 
 export interface EncodedBatch {
@@ -86,13 +105,41 @@ export class FrameCapture {
     const g = c.getContext('2d')!;
     g.drawImage(this.canvas, 0, 0);
     const t = i / this.cfg.fps;
-    const lab = this.cfg.overlay!.find((o) => t >= o.from && t < o.to);
+    if (this.cfg.captions?.length) this.drawCaption(g, t);
+    const lab = (this.cfg.overlay ?? []).find((o) => t >= o.from && t < o.to);
     if (lab) {
       const px = Math.round(this.cfg.height / 40);
       g.font = `bold ${px}px monospace`; g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillRect(0, 0, this.cfg.width, px * 1.8);
       g.fillStyle = '#ffe44d'; g.fillText(lab.text, px * 0.5, px * 1.3);
     }
     return c;
+  }
+
+  /** lower-middle caption: white bold text, dark outline, emphasis in electric yellow; auto-fit to 90% width */
+  private drawCaption(g: CanvasRenderingContext2D, t: number): void {
+    const c = this.cfg.captions!.find((x) => t >= x.start - 1e-9 && t < x.end - 1e-9);
+    if (!c) return;
+    const W = this.cfg.width, H = this.cfg.height, st = this.cfg.captionStyle ?? CAPTION_DEFAULT_STYLE;
+    const lines = c.lines.map(captionText).filter(Boolean).slice(0, 2);
+    const emph = new Set(c.emphasisWords.map((w) => w.toLowerCase()));
+    let px = captionFontPx(H);
+    g.font = `800 ${px}px ${CAPTION_FONT}`;
+    const widest = Math.max(...lines.map((l) => g.measureText(l).width));
+    if (widest > W * CAPTION_MAX_WIDTH) px = Math.floor((px * W * CAPTION_MAX_WIDTH) / widest);
+    g.font = `800 ${px}px ${CAPTION_FONT}`; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.miterLimit = 2;
+    const lh = px * CAPTION_LINE_HEIGHT, block = lh * lines.length;
+    const top = captionBlockTop(H, block, st, c.placement);
+    lines.forEach((l, k) => {
+      const words = l.split(' '), space = g.measureText(' ').width;
+      const widths = words.map((w) => g.measureText(w).width), total = widths.reduce((a, b) => a + b, 0) + space * (words.length - 1);
+      let x = (W - total) / 2;
+      const y = top + lh * (k + 0.5);
+      words.forEach((w, j) => {
+        g.lineWidth = Math.max(2, px * CAPTION_OUTLINE); g.strokeStyle = 'rgba(8,10,16,0.95)'; g.strokeText(w, x, y);
+        g.fillStyle = emph.has(w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').toLowerCase()) ? '#ffe600' : '#ffffff'; g.fillText(w, x, y);
+        x += widths[j] + space;
+      });
+    });
   }
 
   /** Render + encode frames [from, to). renderFrame must draw frame i synchronously into the canvas. */
@@ -103,7 +150,7 @@ export class FrameCapture {
       const t0 = performance.now();
       renderFrame(i);
       if (this.cfg.hashEvery && i % this.cfg.hashEvery === 0) hashes.push([i, await sha256Hex(this.readPixels())]);
-      const src = this.cfg.overlay?.length ? this.composite(i) : this.canvas;
+      const src = this.cfg.overlay?.length || this.cfg.captions?.length ? this.composite(i) : this.canvas;
       const frame = new VideoFrame(src, { timestamp: Math.round((i * 1e6) / this.cfg.fps), duration: Math.round(1e6 / this.cfg.fps) });
       renderMs += performance.now() - t0;
       this.encoder.encode(frame, { keyFrame: i % this.cfg.keyframeInterval === 0 });

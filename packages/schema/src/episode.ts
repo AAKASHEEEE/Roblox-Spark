@@ -36,11 +36,16 @@ export const COMEDY_ENGINES = ['escalation_backfire', 'skeptic_reversal', 'too_g
 
 /** reference to a mark, anchor, actor or prop; optional .sub (e.g. button.press_surface, zapp.face) */
 const ref = () => v.string({ pattern: /^[a-z][a-z0-9_-]*(\.[a-z0-9_]+)?$/, max: 80 });
-const time = () => v.number({ min: 0, max: 60 });
 
 const numericParams = v.record(v.union<number | string | boolean>(v.number(), v.string({ max: 64 }), v.boolean()), /^[a-zA-Z][a-zA-Z0-9]*$/);
 
-export const EpisodeSchema = v.object({
+/** mode-specific limits: Visual Comedy keeps its channel limits; Narrated Story drafts follow the uploaded voice-over */
+export interface EpisodeLimits { durationSec: [number, number]; timeMax: number; beats: number; shots: number; actions: number; engines: readonly string[] }
+export const VISUAL_COMEDY_LIMITS: EpisodeLimits = { durationSec: [14, 22], timeMax: 60, beats: 30, shots: 40, actions: 200, engines: COMEDY_ENGINES };
+export const NARRATED_DRAFT_LIMITS: EpisodeLimits = { durationSec: [35, 75], timeMax: 80, beats: 80, shots: 120, actions: 400, engines: [...COMEDY_ENGINES, 'narrated_story'] };
+export function episodeSchema(L: EpisodeLimits) {
+  const time = () => v.number({ min: 0, max: L.timeMax });
+  return v.object({
   schemaVersion: v.literal(SCHEMA_VERSION),
   // explicit rendering compatibility declaration: required, never defaulted (see docs/RENDERING_COMPATIBILITY.md)
   render: v.object({
@@ -52,12 +57,12 @@ export const EpisodeSchema = v.object({
     id: v.id(),
     title: v.string({ min: 1, max: 80 }),
     logline: v.string({ min: 1, max: 280 }),
-    duration: v.number({ min: 14, max: 22 }),
+    duration: v.number({ min: L.durationSec[0], max: L.durationSec[1] }),
     format: v.literal('vertical'),
     resolution: v.tuple<[1080, 1920]>(v.literal(1080), v.literal(1920)),
     fps: v.union<30 | 60>(v.literal(30), v.literal(60)),
     seed: v.int({ min: 0, max: 2 ** 31 - 1 }),
-    comedyEngine: v.enum(COMEDY_ENGINES),
+    comedyEngine: v.enum(L.engines as typeof COMEDY_ENGINES),
   }),
   environment: v.object({ id: v.id(), version: v.semver(), lighting: v.id() }),
   cast: v.array(v.object({
@@ -74,13 +79,13 @@ export const EpisodeSchema = v.object({
   beats: v.array(v.object({
     id: v.id(), start: time(), end: time(), intent: v.enum(BEAT_INTENTS), summary: v.string({ min: 1, max: 160 }),
     informationChange: v.boolean(),
-  }), { min: 3, max: 30 }),
+  }), { min: 3, max: L.beats }),
   actions: v.array(v.object({
     actor: v.id(), action: v.enum(ACTIONS), start: time(), duration: v.number({ min: 0.1, max: 20 }),
     target: ref().optional(), to: ref().optional(), expression: v.enum(EXPRESSIONS).optional(),
     params: numericParams.optional(),
-  }), { max: 200 }),
-  expressions: v.array(v.object({ actor: v.id(), state: v.enum(EXPRESSIONS), at: time() }), { max: 200 }),
+  }), { max: L.actions }),
+  expressions: v.array(v.object({ actor: v.id(), state: v.enum(EXPRESSIONS), at: time() }), { max: L.actions }),
   propEvents: v.array(v.object({
     prop: v.id(), event: v.enum(PROP_EVENTS), start: time(), duration: v.number({ min: 0, max: 20 }),
     to: ref().optional(), params: numericParams.optional(),
@@ -89,7 +94,7 @@ export const EpisodeSchema = v.object({
     id: v.id(), start: time(), end: time(), preset: v.enum(CAMERA_PRESETS), subjects: v.array(ref(), { min: 1, max: 4 }),
     purpose: v.string({ min: 1, max: 120 }),
     params: numericParams.optional(),
-  }), { min: 6, max: 40 }),
+  }), { min: 6, max: L.shots }),
   vfx: v.array(v.object({ type: v.enum(VFX), at: time(), duration: v.number({ min: 0, max: 10 }), target: ref().optional(), params: numericParams.optional() }), { max: 200 }),
   audio: v.object({
     cues: v.array(v.object({ sfx: v.id(), at: time(), gainDb: v.number({ min: -40, max: 6 }), pitch: v.number({ min: 0.25, max: 4 }).optional(), sync: v.string({ max: 80 }).optional() }), { max: 300 }),
@@ -113,6 +118,9 @@ export const EpisodeSchema = v.object({
     realMoneyOrGiveawayClaims: v.literal(false), notes: v.string({ max: 400 }),
   }),
 });
+}
+export const EpisodeSchema = episodeSchema(VISUAL_COMEDY_LIMITS);
+export const NarratedEpisodeSchema = episodeSchema(NARRATED_DRAFT_LIMITS);
 
 export type Episode = SchemaT<typeof EpisodeSchema>;
 export type EpisodeAction = Episode['actions'][number];
