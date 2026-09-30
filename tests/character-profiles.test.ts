@@ -360,6 +360,32 @@ test('deprecation keeps old versions resolvable; episode pins resolve exact vers
   assert.equal((reg as any).latest, undefined);
 });
 
+test('resolvePin validates characterId with v.id() and rejects non-plain pins before any lookup', () => {
+  const reg = registry();
+  const { pin } = lockNew(reg, base());
+  const records = (reg as any).records as Map<string, unknown>;
+  let lookups = 0;
+  const get = records.get.bind(records);
+  records.get = (k: string) => { lookups++; return get(k); };
+  for (const characterId of ['1abc', 'abc-', 'Zapp', 'za pp', '', 42, null]) {
+    const r = reg.resolvePin({ ...pin, characterId }) as any;
+    assert.deepEqual(codes(r.errors), ['PIN_INVALID'], String(characterId));
+    assert.equal(r.errors[0].path, '$.characterId', String(characterId));
+  }
+  class PinLike { characterId = pin.characterId; version = pin.version; contentHash = pin.contentHash; }
+  const inherited = Object.assign(Object.create({ inheritedField: true }), pin);
+  for (const [label, x] of [['class instance', new PinLike()], ['inherited prototype', inherited]] as const) {
+    const r = reg.resolvePin(x) as any;
+    assert.deepEqual(codes(r.errors), ['PIN_INVALID'], label);
+    assert.equal(r.errors[0].path, '$', label);
+  }
+  assert.equal(lookups, 0, 'invalid IDs and non-plain pins are rejected before any registry lookup');
+  // plain data still resolves: an object literal and a null-prototype copy
+  assert.equal(ok(reg.resolvePin({ ...pin })).manifest.contentHash, pin.contentHash);
+  assert.equal(ok(reg.resolvePin(Object.assign(Object.create(null), pin))).manifest.contentHash, pin.contentHash);
+  assert.equal(lookups, 2);
+});
+
 test('expression and motion compatibility', () => {
   const p = base(); p.expressions = ['neutral', 'smug'];
   assert.deepEqual(errCodes(p), ['EXPRESSION_UNAVAILABLE']);

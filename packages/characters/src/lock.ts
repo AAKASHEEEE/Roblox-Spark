@@ -10,6 +10,7 @@ import { resolveRecipe, type ResolvedRecipe } from './recipe.ts';
 import { validateReference } from './references.ts';
 import { checkAuthenticatedActor, type TrustedWorkflow } from './trust.ts';
 import { PROFILE_CONTENT_HASH, err, findForbiddenKeys, parseProfile, type CharacterProfile, type Finding, type ProfileStatus } from './schema.ts';
+import { v } from '../../schema/src/v.ts';
 
 /**
  * CONTENT-HASH RULE. contentHash = sha256(canonicalJson(profile WITHOUT the fields below, PLUS the resolved recipe)).
@@ -88,6 +89,10 @@ export const pinOf = (m: LockedManifest): CharacterPin => ({ characterId: m.char
 
 const semverCmp = (a: string, b: string) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] - y[i]; return 0; };
 const EXACT_SEMVER = /^\d+\.\d+\.\d+$/;
+/** pin characterId: the shared v.id() pattern (same as the environment catalog and bulk pins) */
+const PIN_ID = v.id();
+/** a pin must be plain JSON data: Object.prototype or a null prototype, never a class instance or inherited fields */
+const isPlainObject = (x: object) => { const proto = Object.getPrototypeOf(x); return proto === Object.prototype || proto === null; };
 
 interface VersionRecord {
   state: ProfileStatus;
@@ -222,6 +227,8 @@ export class CharacterRegistry {
     if (findForbiddenKeys(pin).length) return fail('PROTOTYPE_KEY_REJECTED', '$', 'forbidden key in pin');
     const p = pin as Partial<CharacterPin> | null;
     if (!p || typeof p !== 'object' || Object.keys(p).sort().join(',') !== 'characterId,contentHash,version') return fail('PIN_INVALID', '$', 'pin must be exactly {characterId, version, contentHash}');
+    if (!isPlainObject(p)) return fail('PIN_INVALID', '$', 'pin must be a plain object (prototype Object.prototype or null)');
+    if (!PIN_ID.parse(p.characterId).ok) return fail('PIN_INVALID', '$.characterId', `characterId ${JSON.stringify(p.characterId)} does not match the shared v.id() pattern`);
     if (typeof p.version !== 'string' || !EXACT_SEMVER.test(p.version)) return fail('PIN_NOT_EXACT', '$.version', `version ${JSON.stringify(p.version)} is not an exact version; "latest"/ranges are never resolved at render time`);
     if (typeof p.contentHash !== 'string' || !PROFILE_CONTENT_HASH.test(p.contentHash)) return fail('PIN_INVALID', '$.contentHash', 'pin contentHash must be a bare lowercase 64-hex SHA-256 digest');
     const r = this.records.get(CharacterRegistry.key(String(p.characterId), p.version));
