@@ -7,29 +7,29 @@
     "motion": "static",
     "framingFrom": 0,
     "source": "recipe",
-    "candidateId": "establishing_wide:y-15_s1_h24_f46",
+    "candidateId": "establishing_wide:y-15_s1_h16_f56",
     "variant": {
-      "id": "y-15_s1_h24_f46",
+      "id": "y-15_s1_h16_f56",
       "yaw": -15,
       "size": 1,
-      "height": 24,
-      "fov": 46
+      "height": 16,
+      "fov": 56
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            -0.5436879076677914,
-            3.2148265218279435,
-            6.504744014309906
+            -0.17812322852795748,
+            3.2086940823701515,
+            5.080841237416994
           ],
           "target": [
-            1.8465879099071025,
-            1.1317190326657145,
-            -2.415886780982837
+            1.8644458987377581,
+            1.4978155416157095,
+            -2.542130523510277
           ],
-          "fovDeg": 46
+          "fovDeg": 56
         }
       }
     ],
@@ -37,41 +37,41 @@
       {
         "t": 0.11,
         "accepted": true,
-        "score": 0.69211,
+        "score": 0.667834,
         "reasons": [],
         "screenDirection": "established:right"
       },
       {
         "t": 0.4,
         "accepted": true,
-        "score": 0.69462,
+        "score": 0.666265,
         "reasons": [],
         "screenDirection": "established:right"
       },
       {
         "t": 2.18,
         "accepted": true,
-        "score": 0.667922,
+        "score": 0.69345,
         "reasons": [],
         "screenDirection": "established:right"
       },
       {
         "t": 2.4,
         "accepted": true,
-        "score": 0.666503,
+        "score": 0.691723,
         "reasons": [],
         "screenDirection": "established:right"
       },
       {
         "t": 3.9,
         "accepted": true,
-        "score": 0.64883,
+        "score": 0.668253,
         "reasons": [],
         "screenDirection": "established:right"
       }
     ],
     "accepted": true,
-    "minScore": 0.6488,
+    "minScore": 0.6663,
     "coverageAtSelection": 1,
     "evaluated": {
       "candidates": 20,
@@ -92,12 +92,12 @@
     },
     "diagnostics": {
       "headHeightPct": {
-        "teacher": 6.2
+        "teacher": 8.1
       },
       "faceVisibility": {
-        "kira": 0,
+        "kira": 0.8,
         "teacher": 0,
-        "zapp": 0.8
+        "zapp": 1
       },
       "selfOccludedFeatures": [],
       "cameraSide": "right"
@@ -105,130 +105,33 @@
   },
   "p02": {
     "beat": "p02",
-    "recipeId": "slow_push_in",
+    "recipeId": "establishing_wide",
     "recipeKnown": true,
-    "intent": "medium",
-    "motion": "dolly",
+    "intent": "wide",
+    "motion": "static",
     "framingFrom": 0,
-    "source": "blocked_best_effort",
-    "candidateId": "slow_push_in:y50_s0.2_h0.2_f38_w",
+    "source": "recipe",
+    "candidateId": "establishing_wide:y-15_s1_h16_f46",
     "variant": {
-      "id": "y50_s0.2_h0.2_f38_w",
-      "yaw": 50,
-      "size": 0.2,
-      "height": 0.2,
-      "fov": 46,
-      "size1": 0.29
+      "id": "y-15_s1_h16_f46",
+      "yaw": -15,
+      "size": 1,
+      "height": 16,
+      "fov": 46
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            4.3,
-            1.8657016109092013,
-            -3.475963902919246
+            -0.5516512800470017,
+            3.196399013137297,
+            6.477379698603094
           ],
           "target": [
-            0.4914758801460266,
-            1.398652286529541,
-            -0.4707067906856537
-          ],
-          "fovDeg": 46
-        }
-      },
-      {
-        "lt": 0.05,
-        "pose": {
-          "pos": [
-            4.3,
-            1.8657016109092013,
-            -3.4755091277441834
-          ],
-          "target": [
-            0.4914758801460266,
-            1.398652286529541,
-            -0.4707067906856537
-          ],
-          "fovDeg": 46
-        }
-      },
-      {
-        "lt": 0.3,
-        "pose": {
-          "pos": [
-            4.3,
-            1.8656989503393242,
-            -3.467355145412382
-          ],
-          "target": [
-            0.4914758801460266,
-            1.398652286529541,
-            -0.4707067906856537
-          ],
-          "fovDeg": 46
-        }
-      },
-      {
-        "lt": 1.6,
-        "pose": {
-          "pos": [
-            4.3,
-            1.8658904584764162,
-            -3.141668417924038
-          ],
-          "target": [
-            0.4914758801460266,
-            1.398652286529541,
-            -0.4707067906856537
-          ],
-          "fovDeg": 46
-        }
-      },
-      {
-        "lt": 2.36,
-        "pose": {
-          "pos": [
-            4.095852100335834,
-            1.8657766199378731,
-            -2.91508722895527
-          ],
-          "target": [
-            0.4914758801460266,
-            1.398652286529541,
-            -0.4707067906856537
-          ],
-          "fovDeg": 46
-        }
-      },
-      {
-        "lt": 4.67,
-        "pose": {
-          "pos": [
-            3.5469448941371433,
-            1.8659017143267098,
-            -2.5275866603270973
-          ],
-          "target": [
-            0.4914758801460266,
-            1.398652286529541,
-            -0.4707067906856537
-          ],
-          "fovDeg": 46
-        }
-      },
-      {
-        "lt": 4.72,
-        "pose": {
-          "pos": [
-            3.546635904194565,
-            1.8659017143267098,
-            -2.527370303241038
-          ],
-          "target": [
-            0.4914758801460266,
-            1.398652286529541,
-            -0.4707067906856537
+            1.86500001123175,
+            1.4978519510757178,
+            -2.5416857046261425
           ],
           "fovDeg": 46
         }
@@ -238,61 +141,48 @@
       {
         "t": 4.65,
         "accepted": true,
-        "score": 0.91297,
+        "score": 0.979987,
         "reasons": [],
-        "screenDirection": "consistent:right"
+        "screenDirection": "established:left"
       },
       {
         "t": 4.9,
-        "accepted": false,
-        "score": 0.912324,
-        "reasons": [
-          "HEAD_CROPPED:kira"
-        ],
-        "screenDirection": "consistent:right"
+        "accepted": true,
+        "score": 0.912637,
+        "reasons": [],
+        "screenDirection": "established:left"
       },
       {
         "t": 6.2,
-        "accepted": false,
-        "score": 0.914917,
-        "reasons": [
-          "HEAD_CROPPED:kira"
-        ],
-        "screenDirection": "consistent:right"
+        "accepted": true,
+        "score": 0.914689,
+        "reasons": [],
+        "screenDirection": "established:left"
       },
       {
         "t": 6.96,
-        "accepted": false,
-        "score": 0.926134,
-        "reasons": [
-          "HEAD_CROPPED:kira"
-        ],
-        "screenDirection": "consistent:right"
+        "accepted": true,
+        "score": 0.98031,
+        "reasons": [],
+        "screenDirection": "established:left"
       },
       {
         "t": 9.27,
-        "accepted": false,
-        "score": 0.956332,
-        "reasons": [
-          "HEAD_CROPPED:kira"
-        ],
-        "screenDirection": "consistent:right"
+        "accepted": true,
+        "score": 0.979599,
+        "reasons": [],
+        "screenDirection": "established:left"
       }
     ],
-    "accepted": false,
-    "minScore": 0.9123,
-    "coverageAtSelection": 0.5,
+    "accepted": true,
+    "minScore": 0.9126,
+    "coverageAtSelection": 1,
     "evaluated": {
-      "candidates": 42,
-      "accepted": 0,
-      "fallbacks": 3
+      "candidates": 20,
+      "accepted": 20,
+      "fallbacks": 0
     },
-    "rejectionSummary": {
-      "FACE_VISIBILITY_LOW": 114,
-      "SCREEN_DIRECTION_REVERSED": 106,
-      "HEAD_CROPPED": 165,
-      "SHOT_TOO_TIGHT_FOR_INTENT": 47
-    },
+    "rejectionSummary": {},
     "subjects": {
       "active": "zapp",
       "required": [
@@ -305,14 +195,14 @@
     },
     "diagnostics": {
       "headHeightPct": {
-        "zapp": 28.4
+        "zapp": 14.8
       },
       "faceVisibility": {
-        "kira": 0,
+        "kira": 0.8,
         "zapp": 1
       },
       "selfOccludedFeatures": [],
-      "cameraSide": "right"
+      "cameraSide": "left"
     }
   },
   "p03": {
@@ -322,13 +212,13 @@
     "intent": "medium",
     "motion": "static",
     "framingFrom": 0,
-    "source": "blocked_best_effort",
-    "candidateId": "low_angle_hero:y-50_s0.27_h-0.95_f40_n",
+    "source": "recipe",
+    "candidateId": "low_angle_hero:y-50_s0.23_h-0.75_f40_n",
     "variant": {
-      "id": "y-50_s0.27_h-0.95_f40_n",
+      "id": "y-50_s0.23_h-0.75_f40_n",
       "yaw": -50,
-      "size": 0.27,
-      "height": -0.95,
+      "size": 0.23,
+      "height": -0.75,
       "fov": 32
     },
     "keys": [
@@ -337,13 +227,13 @@
         "pose": {
           "pos": [
             -4.3,
-            0.15,
-            4.5212445890714985
+            0.4742828543688433,
+            5.22875881430876
           ],
           "target": [
-            0.25116472576558596,
-            1.568322941462199,
-            0.002410251332970792
+            0.23307288384111596,
+            1.6330426780382794,
+            0.04242803869324274
           ],
           "fovDeg": 32
         }
@@ -352,68 +242,58 @@
     "samples": [
       {
         "t": 9.63,
-        "accepted": false,
-        "score": 0.142869,
-        "reasons": [
-          "FACE_VISIBILITY_LOW:zapp:0<0.8",
-          "SCREEN_DIRECTION_REVERSED:reversed_unmotivated:right->left"
-        ],
-        "screenDirection": "reversed_unmotivated:right->left"
+        "accepted": true,
+        "score": 0.976385,
+        "reasons": [],
+        "screenDirection": "consistent:left"
       },
       {
         "t": 9.8,
-        "accepted": false,
-        "score": 0.141791,
-        "reasons": [
-          "FACE_VISIBILITY_LOW:zapp:0<0.8",
-          "SCREEN_DIRECTION_REVERSED:reversed_unmotivated:right->left"
-        ],
-        "screenDirection": "reversed_unmotivated:right->left"
+        "accepted": true,
+        "score": 0.974897,
+        "reasons": [],
+        "screenDirection": "consistent:left"
       },
       {
         "t": 11,
-        "accepted": false,
-        "score": 0.600107,
-        "reasons": [
-          "FACE_VISIBILITY_LOW:zapp:0<0.8"
-        ],
-        "screenDirection": "neutral"
+        "accepted": true,
+        "score": 0.981889,
+        "reasons": [],
+        "screenDirection": "consistent:left"
       },
       {
         "t": 12.51,
         "accepted": true,
-        "score": 0.889084,
+        "score": 0.968689,
         "reasons": [],
         "screenDirection": "neutral"
       },
       {
         "t": 13.2281,
         "accepted": true,
-        "score": 0.883524,
+        "score": 0.98738,
         "reasons": [],
-        "screenDirection": "neutral"
+        "screenDirection": "consistent:left"
       },
       {
         "t": 15.39,
         "accepted": true,
-        "score": 0.888529,
+        "score": 0.968572,
         "reasons": [],
         "screenDirection": "neutral"
       }
     ],
-    "accepted": false,
-    "minScore": 0.1418,
+    "accepted": true,
+    "minScore": 0.9686,
     "coverageAtSelection": 1,
     "evaluated": {
       "candidates": 84,
-      "accepted": 0,
-      "fallbacks": 3
+      "accepted": 14,
+      "fallbacks": 0
     },
     "rejectionSummary": {
-      "SUBJECT_TOO_SMALL_FOR_INTENT": 87,
-      "SCREEN_DIRECTION_REVERSED": 460,
-      "FACE_VISIBILITY_LOW": 115,
-      "HEAD_CROPPED": 313
+      "HEAD_CROPPED": 322,
+      "SUBJECT_TOO_SMALL_FOR_INTENT": 53
     },
     "subjects": {
       "active": "zapp",
@@ -427,10 +307,10 @@
     },
     "diagnostics": {
       "headHeightPct": {
-        "zapp": 28.7
+        "zapp": 26.1
       },
       "faceVisibility": {
-        "kira": 0,
+        "kira": 0.4,
         "zapp": 1
       },
       "selfOccludedFeatures": [],
@@ -444,78 +324,77 @@
     "intent": "medium",
     "motion": "static",
     "framingFrom": 0,
-    "source": "blocked_best_effort",
-    "candidateId": "two_shot:y-15_s1_h0.3_f40",
+    "source": "recipe",
+    "candidateId": "two_shot:y-60_s1_h-0.12_f34",
     "variant": {
-      "id": "y-15_s1_h0.3_f40",
-      "yaw": -15,
+      "id": "y-60_s1_h-0.12_f34",
+      "yaw": -60,
       "size": 1,
-      "height": 0.3,
-      "fov": 40
+      "height": -0.12,
+      "fov": 34
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            -4.214995504103664,
-            2.1316193188667296,
-            -3.6
+            -1.2515927604300603,
+            1.294773539123535,
+            5.483326237755137
           ],
           "target": [
-            0.5495656793937087,
-            1.3586483120918273,
-            0.1294785588979721
+            0.5263857152312994,
+            1.1577629566192627,
+            0.3139847442507744
           ],
-          "fovDeg": 40
+          "fovDeg": 34
         }
       }
     ],
     "samples": [
       {
         "t": 15.73,
-        "accepted": false,
-        "score": 0.910536,
-        "reasons": [
-          "HEAD_CROPPED:kira"
-        ],
-        "screenDirection": "consistent:right"
+        "accepted": true,
+        "score": 0.977149,
+        "reasons": [],
+        "screenDirection": "consistent:left"
       },
       {
         "t": 16.53,
         "accepted": true,
-        "score": 0.909277,
+        "score": 0.918583,
         "reasons": [],
-        "screenDirection": "consistent:right"
+        "screenDirection": "consistent:left"
       },
       {
         "t": 17.97,
         "accepted": true,
-        "score": 0.909278,
+        "score": 0.97689,
         "reasons": [],
-        "screenDirection": "consistent:right"
+        "screenDirection": "consistent:left"
       },
       {
         "t": 20.21,
         "accepted": true,
-        "score": 0.909173,
+        "score": 0.976753,
         "reasons": [],
-        "screenDirection": "consistent:right"
+        "screenDirection": "consistent:left"
       }
     ],
-    "accepted": false,
-    "minScore": 0.9092,
-    "coverageAtSelection": 0.75,
+    "accepted": true,
+    "minScore": 0.9186,
+    "coverageAtSelection": 1,
     "evaluated": {
       "candidates": 56,
-      "accepted": 0,
-      "fallbacks": 3
+      "accepted": 22,
+      "fallbacks": 0
     },
     "rejectionSummary": {
-      "HEAD_CROPPED": 148,
-      "FACE_VISIBILITY_LOW": 132,
-      "SHOT_TOO_TIGHT_FOR_INTENT": 65,
-      "UPPER_BODY_NOT_READABLE": 16
+      "HEAD_CROPPED": 70,
+      "SUBJECT_TOO_SMALL_FOR_INTENT": 18,
+      "FACE_VISIBILITY_LOW": 56,
+      "SHOT_TOO_TIGHT_FOR_INTENT": 57,
+      "UPPER_BODY_NOT_READABLE": 7
     },
     "subjects": {
       "active": "kira",
@@ -528,15 +407,15 @@
     },
     "diagnostics": {
       "headHeightPct": {
-        "kira": 16.3,
-        "zapp": 20.9
+        "kira": 19.4,
+        "zapp": 28.3
       },
       "faceVisibility": {
         "kira": 1,
-        "zapp": 0
+        "zapp": 1
       },
       "selfOccludedFeatures": [],
-      "cameraSide": "right"
+      "cameraSide": "left"
     }
   },
   "p05": {
@@ -728,7 +607,7 @@
     ],
     "accepted": true,
     "minScore": 0.9082,
-    "coverageAtSelection": 0.75,
+    "coverageAtSelection": 1,
     "evaluated": {
       "candidates": 56,
       "accepted": 4,
@@ -763,109 +642,95 @@
   },
   "p07": {
     "beat": "p07",
-    "recipeId": "over_shoulder",
+    "recipeId": "wide_environment",
     "recipeKnown": true,
-    "intent": "medium",
+    "intent": "wide",
     "motion": "static",
     "framingFrom": 0,
-    "source": "fallback",
-    "candidateId": "fallback:two_character_medium",
-    "variant": null,
-    "fallback": "two_character_medium",
+    "source": "recipe",
+    "candidateId": "wide_environment:y-15_s1_h12_f44",
+    "variant": {
+      "id": "y-15_s1_h12_f44",
+      "yaw": -15,
+      "size": 1,
+      "height": 12,
+      "fov": 44
+    },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            0.8352222453501874,
-            1.602196622916081,
-            6.154505481443795
+            -3.4245963492524245,
+            3.5837808695182733,
+            11.248391971981384
           ],
           "target": [
-            0.6614264490596543,
-            1.3521966229160811,
-            -0.3316116440854967
+            0.9050000596605239,
+            1.4978241364844143,
+            -2.5417845777422188
           ],
-          "fovDeg": 38
+          "fovDeg": 44
         }
       }
     ],
     "samples": [
       {
-        "t": 31.57,
-        "accepted": true,
-        "score": 0.97138,
-        "reasons": [],
-        "screenDirection": "no_axis"
-      },
-      {
-        "t": 32.2,
-        "accepted": true,
-        "score": 0.973097,
-        "reasons": [],
-        "screenDirection": "no_axis"
-      },
-      {
         "t": 32.8,
         "accepted": true,
-        "score": 0.972407,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 33.21,
         "accepted": true,
-        "score": 0.971724,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 33.45,
         "accepted": true,
-        "score": 0.971636,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 34.85,
         "accepted": true,
-        "score": 0.971475,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       }
     ],
     "accepted": true,
-    "minScore": 0.9714,
-    "coverageAtSelection": 0.6,
+    "minScore": 0.85,
+    "coverageAtSelection": 1,
     "evaluated": {
-      "candidates": 32,
-      "accepted": 0,
-      "fallbacks": 3
+      "candidates": 20,
+      "accepted": 20,
+      "fallbacks": 0
     },
-    "rejectionSummary": {
-      "HEAD_CROPPED": 186,
-      "SHOT_TOO_TIGHT_FOR_INTENT": 192
-    },
+    "rejectionSummary": {},
     "subjects": {
-      "active": "zapp",
+      "active": "spark_coin",
       "required": [
-        "zapp",
-        "suspicious_button"
+        "spark_coin"
       ],
       "optional": [
+        "zapp",
         "kira"
       ],
-      "heroProps": [],
-      "foreground": "suspicious_button"
+      "heroProps": [
+        "spark_coin"
+      ]
     },
     "diagnostics": {
-      "headHeightPct": {
-        "kira": 16.5,
-        "zapp": 18.6
-      },
+      "headHeightPct": {},
       "faceVisibility": {
-        "kira": 0,
-        "zapp": 1
+        "kira": 1,
+        "zapp": 0.8
       },
       "selfOccludedFeatures": [],
       "cameraSide": "none"
@@ -879,11 +744,11 @@
     "motion": "static",
     "framingFrom": 0,
     "source": "recipe",
-    "candidateId": "medium_single:y20_s0.27_h-0.08_f38_w",
+    "candidateId": "medium_single:y50_s0.22_h-0.08_f38_w",
     "variant": {
-      "id": "y20_s0.27_h-0.08_f38_w",
-      "yaw": 20,
-      "size": 0.27,
+      "id": "y50_s0.22_h-0.08_f38_w",
+      "yaw": 50,
+      "size": 0.22,
       "height": -0.08,
       "fov": 46
     },
@@ -892,14 +757,14 @@
         "lt": 0,
         "pose": {
           "pos": [
-            -3.684708362098234,
-            1.3145697359701827,
-            -0.6934722732042573
+            -4.2522105120394,
+            2.1191228691110453,
+            1.9911339372789751
           ],
           "target": [
-            0.00016381140449084342,
-            1.2110349655151367,
-            -0.6101285815238953
+            0.2116980403661728,
+            1.824469518661499,
+            -0.5342304110527039
           ],
           "fovDeg": 46
         }
@@ -909,58 +774,58 @@
       {
         "t": 35.25,
         "accepted": true,
-        "score": 0.988905,
+        "score": 0.918367,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 35.6,
         "accepted": true,
-        "score": 0.990461,
+        "score": 0.921231,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 36,
         "accepted": true,
-        "score": 0.990093,
+        "score": 0.926578,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
-        "t": 36.2366,
+        "t": 36.2431,
         "accepted": true,
-        "score": 0.992293,
+        "score": 0.917039,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 37.53,
         "accepted": true,
-        "score": 0.991419,
+        "score": 0.921731,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 39.81,
         "accepted": true,
-        "score": 0.990464,
+        "score": 0.924597,
         "reasons": [],
         "screenDirection": "no_axis"
       }
     ],
     "accepted": true,
-    "minScore": 0.9889,
-    "coverageAtSelection": 0.6,
+    "minScore": 0.917,
+    "coverageAtSelection": 0.8,
     "evaluated": {
       "candidates": 84,
-      "accepted": 12,
+      "accepted": 20,
       "fallbacks": 0
     },
     "rejectionSummary": {
-      "FACE_VISIBILITY_LOW": 39,
-      "HEAD_CROPPED": 295,
-      "SHOT_TOO_TIGHT_FOR_INTENT": 109
+      "FACE_VISIBILITY_LOW": 38,
+      "SHOT_TOO_TIGHT_FOR_INTENT": 120,
+      "HEAD_CROPPED": 177
     },
     "subjects": {
       "active": "zapp",
@@ -974,10 +839,10 @@
     },
     "diagnostics": {
       "headHeightPct": {
-        "zapp": 26.6
+        "zapp": 20.6
       },
       "faceVisibility": {
-        "kira": 0.6,
+        "kira": 0.8,
         "zapp": 1
       },
       "selfOccludedFeatures": [],
@@ -986,196 +851,35 @@
   },
   "p09": {
     "beat": "p09",
-    "recipeId": "reaction_punch_in",
+    "recipeId": "wide_environment",
     "recipeKnown": true,
-    "intent": "reaction",
-    "motion": "punch",
+    "intent": "wide",
+    "motion": "static",
     "framingFrom": 0,
     "source": "recipe",
-    "candidateId": "reaction_punch_in:y0_s0.29_h0.15_f38",
+    "candidateId": "wide_environment:y-15_s1_h12_f44",
     "variant": {
-      "id": "y0_s0.29_h0.15_f38",
-      "yaw": 0,
-      "size": 0.29,
-      "height": 0.15,
-      "fov": 38,
-      "size1": 0.4
+      "id": "y-15_s1_h12_f44",
+      "yaw": -15,
+      "size": 1,
+      "height": 12,
+      "fov": 44
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            -3.7532438208481365,
-            1.6348742992028085,
-            -1.9219251243527053
+            -3.8401985420837303,
+            3.7685731551320316,
+            12.464262397031153
           ],
           "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
+            0.6800000596605238,
+            1.493470972292125,
+            -2.6332081439386816
           ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 0.05,
-        "pose": {
-          "pos": [
-            -3.650153465536015,
-            1.6348742992028085,
-            -1.88599178840862
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 0.1,
-        "pose": {
-          "pos": [
-            -3.415503034694762,
-            1.6348742992028085,
-            -1.804201666187053
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 0.2,
-        "pose": {
-          "pos": [
-            -2.925848646109777,
-            1.6348742992028085,
-            -1.6335269644824284
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 0.3,
-        "pose": {
-          "pos": [
-            -2.762279081210899,
-            1.617251914971981,
-            -1.573202775757533
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 0.36,
-        "pose": {
-          "pos": [
-            -2.762279081210899,
-            1.617251914971981,
-            -1.573202775757533
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 1.56,
-        "pose": {
-          "pos": [
-            -2.748252032410577,
-            1.6211217777749518,
-            -1.5675417946572945
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 1.86,
-        "pose": {
-          "pos": [
-            -2.748167213141883,
-            1.6211456591699305,
-            -1.567464030565779
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 2.74,
-        "pose": {
-          "pos": [
-            -2.7529881253230886,
-            1.6177945039578412,
-            -1.5690705774032145
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 3.67,
-        "pose": {
-          "pos": [
-            -2.754389066566396,
-            1.6169511310925948,
-            -1.569441817551025
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
-        }
-      },
-      {
-        "lt": 3.72,
-        "pose": {
-          "pos": [
-            -2.754389066566396,
-            1.6169511310925948,
-            -1.569441817551025
-          ],
-          "target": [
-            -0.003918925300240517,
-            1.4627694606781005,
-            -0.6071589589118958
-          ],
-          "fovDeg": 38
+          "fovDeg": 44
         }
       }
     ],
@@ -1183,74 +887,73 @@
       {
         "t": 40.29,
         "accepted": true,
-        "score": 0.944423,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 40.6,
         "accepted": true,
-        "score": 0.974242,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 41.8,
         "accepted": true,
-        "score": 0.973629,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 42.1,
         "accepted": true,
-        "score": 0.973622,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 42.98,
         "accepted": true,
-        "score": 0.952653,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 43.91,
         "accepted": true,
-        "score": 0.952477,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       }
     ],
     "accepted": true,
-    "minScore": 0.9444,
-    "coverageAtSelection": 0.6,
+    "minScore": 0.85,
+    "coverageAtSelection": 1,
     "evaluated": {
-      "candidates": 42,
-      "accepted": 8,
+      "candidates": 20,
+      "accepted": 20,
       "fallbacks": 0
     },
-    "rejectionSummary": {
-      "HEAD_CROPPED": 191
-    },
+    "rejectionSummary": {},
     "subjects": {
-      "active": "zapp",
+      "active": "spark_coin",
       "required": [
-        "zapp"
+        "spark_coin"
       ],
       "optional": [
+        "zapp",
         "kira"
       ],
-      "heroProps": []
+      "heroProps": [
+        "spark_coin"
+      ]
     },
     "diagnostics": {
-      "headHeightPct": {
-        "zapp": 40.2
-      },
+      "headHeightPct": {},
       "faceVisibility": {
         "kira": 0,
-        "zapp": 1
+        "zapp": 0
       },
       "selfOccludedFeatures": [],
       "cameraSide": "none"
@@ -1258,125 +961,98 @@
   },
   "p10": {
     "beat": "p10",
-    "recipeId": "low_angle_reveal",
+    "recipeId": "wide_environment",
     "recipeKnown": true,
-    "intent": "scale_reveal",
+    "intent": "wide",
     "motion": "static",
     "framingFrom": 0,
-    "source": "blocked_best_effort",
-    "candidateId": "low_angle_reveal:y50_s0.74_h0.6_f48",
+    "source": "recipe",
+    "candidateId": "wide_environment:y-15_s1_h12_f44",
     "variant": {
-      "id": "y50_s0.74_h0.6_f48",
-      "yaw": 50,
-      "size": 0.74,
-      "height": 0.6,
-      "fov": 48
+      "id": "y-15_s1_h12_f44",
+      "yaw": -15,
+      "size": 1,
+      "height": 12,
+      "fov": 44
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            3.6793614563778716,
-            0.5072842407393814,
-            3.313820206343621
+            -4.3,
+            4,
+            14
           ],
           "target": [
-            -1.7000000476837158,
-            1.2162732124328615,
-            -1.2000000476837158
+            0.1985000253282483,
+            1.4964709932729603,
+            -2.644024865329265
           ],
-          "fovDeg": 48
+          "fovDeg": 44
         }
       }
     ],
     "samples": [
       {
         "t": 44.27,
-        "accepted": false,
-        "score": 0.910037,
-        "reasons": [
-          "HEAD_CROPPED:kira",
-          "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-        ],
+        "accepted": true,
+        "score": 0.85,
+        "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 44.5,
-        "accepted": false,
-        "score": 0.93074,
-        "reasons": [
-          "HEAD_CROPPED:kira",
-          "SCALE_REVEAL_EMBLEM_HIDDEN:spark_coin",
-          "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-        ],
+        "accepted": true,
+        "score": 0.85,
+        "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 44.78,
-        "accepted": false,
-        "score": 0.96075,
-        "reasons": [
-          "HEAD_CROPPED:kira"
-        ],
+        "accepted": true,
+        "score": 0.85,
+        "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 46,
-        "accepted": false,
-        "score": 1,
-        "reasons": [
-          "HEAD_CROPPED:kira",
-          "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.50<0.75"
-        ],
+        "accepted": true,
+        "score": 0.85,
+        "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 46.18,
-        "accepted": false,
-        "score": 1,
-        "reasons": [
-          "HEAD_CROPPED:kira",
-          "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-        ],
+        "accepted": true,
+        "score": 0.85,
+        "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 46.86,
-        "accepted": false,
-        "score": 1,
-        "reasons": [
-          "HEAD_CROPPED:kira",
-          "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-        ],
+        "accepted": true,
+        "score": 0.85,
+        "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 49.45,
-        "accepted": false,
-        "score": 1,
-        "reasons": [
-          "HEAD_CROPPED:kira",
-          "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-        ],
+        "accepted": true,
+        "score": 0.85,
+        "reasons": [],
         "screenDirection": "no_axis"
       }
     ],
-    "accepted": false,
-    "minScore": 0.91,
-    "coverageAtSelection": 0.8,
+    "accepted": true,
+    "minScore": 0.85,
+    "coverageAtSelection": 1,
     "evaluated": {
-      "candidates": 24,
-      "accepted": 0,
-      "fallbacks": 1
+      "candidates": 20,
+      "accepted": 20,
+      "fallbacks": 0
     },
-    "rejectionSummary": {
-      "HEAD_CROPPED": 189,
-      "SCALE_REVEAL_NO_THICKNESS_EDGE": 7,
-      "SCALE_REVEAL_EMBLEM_HIDDEN": 4,
-      "SCALE_REVEAL_SILHOUETTE_LOW": 21,
-      "HERO_PROP_VISIBILITY_LOW": 2
-    },
+    "rejectionSummary": {},
     "subjects": {
       "active": "spark_coin",
       "required": [
@@ -1402,35 +1078,35 @@
   },
   "p11": {
     "beat": "p11",
-    "recipeId": "two_shot",
+    "recipeId": "wide_environment",
     "recipeKnown": true,
-    "intent": "medium",
+    "intent": "wide",
     "motion": "static",
     "framingFrom": 0,
-    "source": "blocked_best_effort",
-    "candidateId": "two_shot:y-60_s1_h0.3_f40",
+    "source": "recipe",
+    "candidateId": "wide_environment:y0_s1_h12_f44",
     "variant": {
-      "id": "y-60_s1_h0.3_f40",
-      "yaw": -60,
+      "id": "y0_s1_h12_f44",
+      "yaw": 0,
       "size": 1,
-      "height": 0.3,
-      "fov": 40
+      "height": 12,
+      "fov": 44
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            -4.3,
-            2.467182330131531,
-            3.8661722330366137
+            0.1985000253282483,
+            4,
+            14
           ],
           "target": [
-            0.6531446008323691,
-            1.3520386457443239,
-            -0.18019518442801197
+            0.1985000253282483,
+            1.4964709932729603,
+            -1.8500324803148394
           ],
-          "fovDeg": 40
+          "fovDeg": 44
         }
       }
     ],
@@ -1438,89 +1114,74 @@
       {
         "t": 49.91,
         "accepted": true,
-        "score": 0.913377,
+        "score": 0.638915,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 50.2,
         "accepted": true,
-        "score": 0.913938,
+        "score": 0.636051,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 52.28,
-        "accepted": false,
-        "score": 0.621062,
-        "reasons": [
-          "FACE_VISIBILITY_LOW:zapp:0<0.8",
-          "HEAD_CROPPED:zapp",
-          "HEAD_CROPPED:kira",
-          "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
-          "UPPER_BODY_NOT_READABLE:zapp"
-        ],
+        "accepted": true,
+        "score": 0.642031,
+        "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 52.5,
-        "accepted": false,
-        "score": 0.613763,
-        "reasons": [
-          "FACE_VISIBILITY_LOW:zapp:0<0.8",
-          "HEAD_CROPPED:zapp",
-          "HEAD_CROPPED:kira",
-          "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
-          "UPPER_BODY_NOT_READABLE:zapp"
-        ],
+        "accepted": true,
+        "score": 0.64411,
+        "reasons": [],
+        "screenDirection": "no_axis"
+      },
+      {
+        "t": 53.4037,
+        "accepted": true,
+        "score": 0.646531,
+        "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 54.65,
-        "accepted": false,
-        "score": 0.614858,
-        "reasons": [
-          "FACE_VISIBILITY_LOW:zapp:0<0.8",
-          "HEAD_CROPPED:zapp",
-          "HEAD_CROPPED:kira",
-          "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
-          "UPPER_BODY_NOT_READABLE:zapp"
-        ],
+        "accepted": true,
+        "score": 0.947549,
+        "reasons": [],
         "screenDirection": "no_axis"
       }
     ],
-    "accepted": false,
-    "minScore": 0.6138,
-    "coverageAtSelection": 0.6,
+    "accepted": true,
+    "minScore": 0.6361,
+    "coverageAtSelection": 1,
     "evaluated": {
-      "candidates": 56,
-      "accepted": 0,
-      "fallbacks": 3
+      "candidates": 20,
+      "accepted": 12,
+      "fallbacks": 0
     },
     "rejectionSummary": {
-      "FACE_VISIBILITY_LOW": 152,
-      "SUBJECT_TOO_SMALL_FOR_INTENT": 516,
-      "HEAD_CROPPED": 188,
-      "UPPER_BODY_NOT_READABLE": 24,
-      "REQUIRED_SUBJECT_NOT_IN_FRAME": 16
+      "HEAD_CROPPED": 16
     },
     "subjects": {
       "active": "zapp",
       "required": [
-        "zapp",
+        "zapp"
+      ],
+      "optional": [
         "kira"
       ],
-      "optional": [],
       "heroProps": []
     },
     "diagnostics": {
       "headHeightPct": {
-        "kira": 14.8,
-        "zapp": 0
+        "zapp": 8.5
       },
       "faceVisibility": {
-        "kira": 0.4,
-        "zapp": 0
+        "kira": 0,
+        "zapp": 1
       },
       "selfOccludedFeatures": [],
       "cameraSide": "none"
@@ -1528,35 +1189,35 @@
   },
   "p12": {
     "beat": "p12",
-    "recipeId": "top_down",
+    "recipeId": "wide_environment",
     "recipeKnown": true,
     "intent": "wide",
     "motion": "static",
     "framingFrom": 0,
     "source": "recipe",
-    "candidateId": "top_down:y20_s1_h52_f62",
+    "candidateId": "wide_environment:y-15_s1_h12_f52",
     "variant": {
-      "id": "y20_s1_h52_f62",
-      "yaw": 20,
+      "id": "y-15_s1_h12_f52",
+      "yaw": -15,
       "size": 1,
-      "height": 52,
-      "fov": 62
+      "height": 12,
+      "fov": 52
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            3.697897448800907,
-            4,
-            14
+            -4.130374876606835,
+            3.9055058249665358,
+            13.402560938851611
           ],
           "target": [
-            -1.7000000476837158,
-            1.5186655795574189,
-            -0.5238777175545694
+            0.18814243560656863,
+            1.4997611886635422,
+            -1.8077503461204465
           ],
-          "fovDeg": 62
+          "fovDeg": 52
         }
       }
     ],
@@ -1578,19 +1239,12 @@
       {
         "t": 55.7,
         "accepted": true,
-        "score": 0.81,
+        "score": 0.85,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
-        "t": 56.3791,
-        "accepted": true,
-        "score": 0.81,
-        "reasons": [],
-        "screenDirection": "no_axis"
-      },
-      {
-        "t": 56.9791,
+        "t": 56.936,
         "accepted": true,
         "score": 0.85,
         "reasons": [],
@@ -1598,6 +1252,13 @@
       },
       {
         "t": 57.27,
+        "accepted": true,
+        "score": 0.85,
+        "reasons": [],
+        "screenDirection": "no_axis"
+      },
+      {
+        "t": 57.536,
         "accepted": true,
         "score": 0.85,
         "reasons": [],
@@ -1615,13 +1276,12 @@
     "minScore": 0.81,
     "coverageAtSelection": 1,
     "evaluated": {
-      "candidates": 45,
-      "accepted": 15,
+      "candidates": 20,
+      "accepted": 12,
       "fallbacks": 0
     },
     "rejectionSummary": {
-      "HEAD_CROPPED": 164,
-      "HERO_PROP_VISIBILITY_LOW": 7
+      "HEAD_CROPPED": 32
     },
     "subjects": {
       "active": "spark_coin",
@@ -1639,8 +1299,8 @@
     "diagnostics": {
       "headHeightPct": {},
       "faceVisibility": {
-        "kira": 0,
-        "zapp": 0.6
+        "kira": 0.6,
+        "zapp": 0
       },
       "selfOccludedFeatures": [],
       "cameraSide": "none"
@@ -1648,36 +1308,35 @@
   },
   "p13": {
     "beat": "p13",
-    "recipeId": "over_shoulder",
+    "recipeId": "wide_environment",
     "recipeKnown": true,
-    "intent": "over_shoulder",
+    "intent": "wide",
     "motion": "static",
     "framingFrom": 0,
     "source": "recipe",
-    "candidateId": "over_shoulder:s1_l0.8_b1.3_h0.35_f28",
+    "candidateId": "wide_environment:y15_s1_h12_f44",
     "variant": {
-      "id": "s1_l0.8_b1.3_h0.35_f28",
-      "yaw": 0,
-      "side": 0.8,
-      "size": 1.3,
-      "height": 0.35,
-      "fov": 28
+      "id": "y15_s1_h12_f44",
+      "yaw": 15,
+      "size": 1,
+      "height": 12,
+      "fov": 44
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            2.614145333229879,
-            1.9190033038457233,
-            2.2304419715521138
+            4.3,
+            4,
+            14
           ],
           "target": [
-            2.499779875312224,
-            1.769383144378662,
-            -3.472020718283318
+            0.18814243560656863,
+            1.495486930222978,
+            -1.8077503461204465
           ],
-          "fovDeg": 28
+          "fovDeg": 44
         }
       }
     ],
@@ -1685,61 +1344,57 @@
       {
         "t": 60.6,
         "accepted": true,
-        "score": 0.84117,
+        "score": 0.932444,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 61.9932,
         "accepted": true,
-        "score": 0.965822,
+        "score": 0.938172,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 62.4,
         "accepted": true,
-        "score": 0.965304,
+        "score": 0.937342,
         "reasons": [],
         "screenDirection": "no_axis"
       },
       {
         "t": 64.89,
         "accepted": true,
-        "score": 0.965393,
+        "score": 0.937397,
         "reasons": [],
         "screenDirection": "no_axis"
       }
     ],
     "accepted": true,
-    "minScore": 0.8412,
-    "coverageAtSelection": 0.5,
+    "minScore": 0.9324,
+    "coverageAtSelection": 0.8333,
     "evaluated": {
-      "candidates": 32,
-      "accepted": 8,
+      "candidates": 20,
+      "accepted": 12,
       "fallbacks": 0
     },
     "rejectionSummary": {
-      "FOREGROUND_CLUTTER": 34,
-      "FACE_VISIBILITY_LOW": 56,
-      "OTS_FOREGROUND_OBSTRUCTION": 56
+      "PROP_COVERS_FACE": 8
     },
     "subjects": {
       "active": "teacher",
       "required": [
-        "teacher",
-        "kira"
+        "teacher"
       ],
       "optional": [
+        "kira",
         "zapp"
       ],
-      "heroProps": [],
-      "foreground": "kira"
+      "heroProps": []
     },
     "diagnostics": {
       "headHeightPct": {
-        "kira": 0,
-        "teacher": 20.4
+        "teacher": 6.1
       },
       "faceVisibility": {
         "kira": 0,
@@ -1758,10 +1413,10 @@
     "motion": "dolly",
     "framingFrom": 0,
     "source": "recipe",
-    "candidateId": "final_loop:ctx_y0_s1_h10_f46",
+    "candidateId": "final_loop:ctx_y-15_s1_h10_f46",
     "variant": {
-      "id": "ctx_y0_s1_h10_f46",
-      "yaw": 0,
+      "id": "ctx_y-15_s1_h10_f46",
+      "yaw": -15,
       "size": 1,
       "height": 10,
       "fov": 46,
@@ -1774,14 +1429,14 @@
         "lt": 0,
         "pose": {
           "pos": [
-            0.38008785247802734,
+            -4.3,
             4,
             14
           ],
           "target": [
-            0.38008785247802734,
-            1.0188359530828892,
-            -1.3190079280734062
+            0.18814243560656863,
+            1.4954713060799985,
+            -1.5083753699623044
           ],
           "fovDeg": 46
         }
@@ -1790,14 +1445,14 @@
         "lt": 0.05,
         "pose": {
           "pos": [
-            0.3799629642098319,
+            -4.3,
             4,
             14
           ],
           "target": [
-            0.3799629642098319,
-            1.0187869168313874,
-            -1.3186960226111308
+            0.18806747930499762,
+            1.4952982796810592,
+            -1.5080142031582255
           ],
           "fovDeg": 46
         }
@@ -1806,14 +1461,14 @@
         "lt": 0.7,
         "pose": {
           "pos": [
-            0.3584408489523083,
+            -4.3,
             4,
             14
           ],
           "target": [
-            0.3584408489523083,
-            1.0103364524934169,
-            -1.2649450546015977
+            0.17515018783319528,
+            1.4654804740987193,
+            -1.4457739807827075
           ],
           "fovDeg": 46
         }
@@ -1822,14 +1477,14 @@
         "lt": 0.9,
         "pose": {
           "pos": [
-            0.34574402316651726,
+            -4.3,
             4,
             14
           ],
           "target": [
-            0.34574402316651726,
-            1.0053511584261554,
-            -1.2332350359315647
+            0.16752971942294337,
+            1.4478896621239896,
+            -1.4090557841317257
           ],
           "fovDeg": 46
         }
@@ -1838,14 +1493,14 @@
         "lt": 1.89,
         "pose": {
           "pos": [
-            0.26006588898599153,
-            4,
+            -4.3,
+            3.8541438427415367,
             14
           ],
           "target": [
-            0.26006588898599153,
-            0.9717104122089222,
-            -1.0192559453845025
+            0.11610682633239747,
+            1.3291869269567542,
+            -1.1612815268011762
           ],
           "fovDeg": 46
         }
@@ -1854,14 +1509,14 @@
         "lt": 3.73,
         "pose": {
           "pos": [
-            0.14016881376215104,
-            4,
-            14
+            -4.1141139786458565,
+            3.48351928048813,
+            13.553947748872181
           ],
           "target": [
-            0.14016881376215104,
-            0.9246339075864567,
-            -0.7198158681578738
+            0.04414617335979726,
+            1.163075574232449,
+            -0.8145488504441265
           ],
           "fovDeg": 46
         }
@@ -1870,14 +1525,14 @@
         "lt": 3.78,
         "pose": {
           "pos": [
-            0.1400439254939556,
-            4,
-            14
+            -4.1138071884700285,
+            3.4831332272033095,
+            13.55298982481571
           ],
           "target": [
-            0.1400439254939556,
-            0.924584871334955,
-            -0.7195039626955986
+            0.04407121705822625,
+            1.1629025478335095,
+            -0.8141876836400477
           ],
           "fovDeg": 46
         }
@@ -1922,18 +1577,14 @@
     ],
     "accepted": true,
     "minScore": 0.85,
-    "coverageAtSelection": 1,
+    "coverageAtSelection": 0.8333,
     "evaluated": {
       "candidates": 30,
-      "accepted": 25,
+      "accepted": 26,
       "fallbacks": 0
     },
     "rejectionSummary": {
-      "FOREGROUND_CLUTTER": 20,
-      "HERO_PROP_VISIBILITY_LOW": 22,
-      "INTERACTION_POINT_HIDDEN": 8,
-      "CAMERA_PATH_COLLISION": 1,
-      "LENS_COLLISION": 1
+      "HEAD_CROPPED": 4
     },
     "subjects": {
       "active": "suspicious_button",
@@ -1954,7 +1605,7 @@
       "faceVisibility": {
         "kira": 0,
         "teacher": 1,
-        "zapp": 0.6
+        "zapp": 0
       },
       "selfOccludedFeatures": [],
       "cameraSide": "none"

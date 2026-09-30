@@ -7,6 +7,110 @@
     "motion": "static",
     "framingFrom": 0,
     "source": "recipe",
+    "candidateId": "establishing_wide:y-15_s1_h16_f56",
+    "variant": {
+      "id": "y-15_s1_h16_f56",
+      "yaw": -15,
+      "size": 1,
+      "height": 16,
+      "fov": 56
+    },
+    "keys": [
+      {
+        "lt": 0,
+        "pose": {
+          "pos": [
+            -4,
+            3.95,
+            7.6
+          ],
+          "target": [
+            -1.6500467649230848,
+            1.131829949757084,
+            0.6728590333238245
+          ],
+          "fovDeg": 56
+        }
+      }
+    ],
+    "samples": [
+      {
+        "t": 0.05,
+        "accepted": true,
+        "score": 0.925406,
+        "reasons": [],
+        "screenDirection": "established:right"
+      },
+      {
+        "t": 0.5,
+        "accepted": true,
+        "score": 0.928801,
+        "reasons": [],
+        "screenDirection": "established:right"
+      },
+      {
+        "t": 1.5,
+        "accepted": true,
+        "score": 0.92943,
+        "reasons": [],
+        "screenDirection": "established:right"
+      },
+      {
+        "t": 2,
+        "accepted": true,
+        "score": 0.929488,
+        "reasons": [],
+        "screenDirection": "established:right"
+      },
+      {
+        "t": 3.95,
+        "accepted": true,
+        "score": 0.928998,
+        "reasons": [],
+        "screenDirection": "established:right"
+      }
+    ],
+    "accepted": true,
+    "minScore": 0.9254,
+    "coverageAtSelection": 1,
+    "evaluated": {
+      "candidates": 20,
+      "accepted": 7,
+      "fallbacks": 0
+    },
+    "rejectionSummary": {
+      "HEAD_CROPPED": 81
+    },
+    "subjects": {
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "heroProps": []
+    },
+    "diagnostics": {
+      "headHeightPct": {
+        "zapp": 9.8
+      },
+      "faceVisibility": {
+        "kira": 0,
+        "zapp": 1
+      },
+      "selfOccludedFeatures": [],
+      "cameraSide": "right"
+    }
+  },
+  "p02": {
+    "beat": "p02",
+    "recipeId": "establishing_wide",
+    "recipeKnown": true,
+    "intent": "wide",
+    "motion": "static",
+    "framingFrom": 0,
+    "source": "recipe",
     "candidateId": "establishing_wide:y30_s1_h16_f56",
     "variant": {
       "id": "y30_s1_h16_f56",
@@ -20,14 +124,14 @@
         "lt": 0,
         "pose": {
           "pos": [
-            2.278683069400757,
-            2.4423720379641702,
-            3.9095505359337035
+            4,
+            3.95,
+            7.6
           ],
           "target": [
-            -0.0065186344366521265,
-            1.131829949757084,
-            -0.04853492065565662
+            -2.2558717941053326,
+            1.1426265789475292,
+            0.645811474263668
           ],
           "fovDeg": 56
         }
@@ -35,50 +139,48 @@
     ],
     "samples": [
       {
-        "t": 0.05,
+        "t": 4.05,
         "accepted": true,
-        "score": 0.955703,
+        "score": 0.64238,
         "reasons": [],
-        "screenDirection": "established:left"
+        "screenDirection": "consistent:right"
       },
       {
-        "t": 0.5,
+        "t": 5,
         "accepted": true,
-        "score": 0.952771,
+        "score": 0.636271,
         "reasons": [],
-        "screenDirection": "established:left"
+        "screenDirection": "consistent:right"
       },
       {
-        "t": 1.5,
+        "t": 6,
         "accepted": true,
-        "score": 0.951521,
+        "score": 0.621145,
         "reasons": [],
-        "screenDirection": "established:left"
+        "screenDirection": "consistent:right"
       },
       {
-        "t": 2,
+        "t": 7,
         "accepted": true,
-        "score": 0.951376,
+        "score": 0.586424,
         "reasons": [],
-        "screenDirection": "established:left"
-      },
-      {
-        "t": 3.95,
-        "accepted": true,
-        "score": 0.952408,
-        "reasons": [],
-        "screenDirection": "established:left"
+        "screenDirection": "neutral"
       }
     ],
     "accepted": true,
-    "minScore": 0.9514,
+    "minScore": 0.5864,
     "coverageAtSelection": 1,
     "evaluated": {
       "candidates": 20,
-      "accepted": 20,
+      "accepted": 2,
       "fallbacks": 0
     },
-    "rejectionSummary": {},
+    "rejectionSummary": {
+      "ACTIVE_SUBJECT_HIDDEN": 8,
+      "HEAD_CROPPED": 32,
+      "SCREEN_DIRECTION_REVERSED": 12,
+      "WIDE_SUBJECT_TOO_SMALL": 4
+    },
     "subjects": {
       "active": "zapp",
       "required": [
@@ -91,135 +193,14 @@
     },
     "diagnostics": {
       "headHeightPct": {
-        "zapp": 17.8
+        "zapp": 7.6
       },
       "faceVisibility": {
-        "kira": 0,
-        "zapp": 1
+        "kira": 0.8,
+        "zapp": 0
       },
       "selfOccludedFeatures": [],
-      "cameraSide": "left"
-    }
-  },
-  "p02": {
-    "beat": "p02",
-    "recipeId": "medium_single",
-    "recipeKnown": true,
-    "intent": "medium",
-    "motion": "static",
-    "framingFrom": 0,
-    "source": "blocked_best_effort",
-    "candidateId": "medium_single:y50_s0.22_h-0.08_f38",
-    "variant": {
-      "id": "y50_s0.22_h-0.08_f38",
-      "yaw": 50,
-      "size": 0.22,
-      "height": -0.08,
-      "fov": 38
-    },
-    "keys": [
-      {
-        "lt": 0,
-        "pose": {
-          "pos": [
-            -3.8271242200770645,
-            1.473750161284023,
-            2.892062110100831
-          ],
-          "target": [
-            0.42980098724365234,
-            1.3253461837768554,
-            0.031314119696617126
-          ],
-          "fovDeg": 38
-        }
-      }
-    ],
-    "samples": [
-      {
-        "t": 4.05,
-        "accepted": false,
-        "score": 0.969966,
-        "reasons": [
-          "HEAD_CROPPED:zapp"
-        ],
-        "screenDirection": "consistent:left"
-      },
-      {
-        "t": 5,
-        "accepted": false,
-        "score": 0.918926,
-        "reasons": [
-          "PROP_COVERS_FACE:kira:backpack",
-          "HEAD_CROPPED:zapp"
-        ],
-        "screenDirection": "consistent:left"
-      },
-      {
-        "t": 6,
-        "accepted": false,
-        "score": 0.920588,
-        "reasons": [
-          "PROP_COVERS_FACE:kira:backpack"
-        ],
-        "screenDirection": "consistent:left"
-      },
-      {
-        "t": 7,
-        "accepted": false,
-        "score": 0.920559,
-        "reasons": [
-          "PROP_COVERS_FACE:kira:backpack"
-        ],
-        "screenDirection": "consistent:left"
-      },
-      {
-        "t": 7.95,
-        "accepted": false,
-        "score": 0.922194,
-        "reasons": [
-          "PROP_COVERS_FACE:kira:backpack"
-        ],
-        "screenDirection": "no_axis"
-      }
-    ],
-    "accepted": false,
-    "minScore": 0.9189,
-    "coverageAtSelection": 1,
-    "evaluated": {
-      "candidates": 84,
-      "accepted": 0,
-      "fallbacks": 3
-    },
-    "rejectionSummary": {
-      "FACE_VISIBILITY_LOW": 71,
-      "HEAD_CROPPED": 135,
-      "SCREEN_DIRECTION_REVERSED": 164,
-      "PROP_COVERS_FACE": 336,
-      "CAMERA_PATH_COLLISION": 9,
-      "LENS_COLLISION": 9,
-      "LENS_TOO_CLOSE_TO_HEAD": 4,
-      "SHOT_TOO_TIGHT_FOR_INTENT": 8
-    },
-    "subjects": {
-      "active": "kira",
-      "required": [
-        "kira"
-      ],
-      "optional": [
-        "zapp"
-      ],
-      "heroProps": []
-    },
-    "diagnostics": {
-      "headHeightPct": {
-        "kira": 22
-      },
-      "faceVisibility": {
-        "kira": 0.8
-      },
-      "selfOccludedFeatures": [],
-      "cameraSide": "none"
+      "cameraSide": "neutral"
     }
   },
   "p03": {
@@ -243,14 +224,14 @@
         "lt": 0,
         "pose": {
           "pos": [
-            41.84658950805664,
-            2.4412360123612675,
-            10.278394676424472
+            41.86500077491626,
+            2.8493079698926556,
+            10.329020506550417
           ],
           "target": [
-            41.84658950805664,
-            1.1140839049592612,
-            -2.34861415958777
+            41.86500077491626,
+            1.4957286489382384,
+            -2.5494264707090326
           ],
           "fovDeg": 44
         }
@@ -260,42 +241,43 @@
       {
         "t": 8.6,
         "accepted": true,
-        "score": 0.935976,
+        "score": 0.936072,
         "reasons": [],
         "screenDirection": "established:right"
       },
       {
         "t": 10,
         "accepted": true,
-        "score": 0.942859,
+        "score": 0.94299,
         "reasons": [],
         "screenDirection": "established:right"
       },
       {
         "t": 10.5,
         "accepted": true,
-        "score": 0.942011,
+        "score": 0.942149,
         "reasons": [],
         "screenDirection": "established:right"
       },
       {
         "t": 11.95,
         "accepted": true,
-        "score": 0.941995,
+        "score": 0.942132,
         "reasons": [],
         "screenDirection": "established:right"
       }
     ],
     "accepted": true,
-    "minScore": 0.936,
+    "minScore": 0.9361,
     "coverageAtSelection": 1,
     "evaluated": {
       "candidates": 20,
-      "accepted": 18,
+      "accepted": 12,
       "fallbacks": 0
     },
     "rejectionSummary": {
-      "ACTIVE_SUBJECT_HIDDEN": 2
+      "ACTIVE_SUBJECT_HIDDEN": 3,
+      "PROP_COVERS_FACE": 8
     },
     "subjects": {
       "active": "zapp",
@@ -321,36 +303,35 @@
   },
   "p04": {
     "beat": "p04",
-    "recipeId": "two_shot",
+    "recipeId": "wide_environment",
     "recipeKnown": true,
-    "intent": "medium",
+    "intent": "wide",
     "motion": "static",
     "framingFrom": 0,
     "source": "recipe",
-    "candidateId": "two_shot:aud_y-40_s1_h0.3_f34",
+    "candidateId": "wide_environment:y-30_s1_h6_f52",
     "variant": {
-      "id": "aud_y-40_s1_h0.3_f34",
-      "yaw": -40,
+      "id": "y-30_s1_h6_f52",
+      "yaw": -30,
       "size": 1,
-      "height": 0.3,
-      "fov": 34,
-      "side": 1
+      "height": 6,
+      "fov": 52
     },
     "keys": [
       {
         "lt": 0,
         "pose": {
           "pos": [
-            75.7,
-            2.158906533050537,
-            5.7922756972950245
+            72.6,
+            3.570659899894631,
+            7.4
           ],
           "target": [
-            79.91278076171875,
-            1.5237004280090332,
-            0.13600703235715628
+            80.43510587337427,
+            1.3723196682240812,
+            1.2651552604883922
           ],
-          "fovDeg": 34
+          "fovDeg": 52
         }
       }
     ],
@@ -358,72 +339,72 @@
       {
         "t": 12.05,
         "accepted": true,
-        "score": 0.99013,
+        "score": 0.837509,
         "reasons": [],
-        "screenDirection": "established:left"
-      },
-      {
-        "t": 12.5,
-        "accepted": true,
-        "score": 0.990115,
-        "reasons": [],
-        "screenDirection": "established:left"
+        "screenDirection": "neutral"
       },
       {
         "t": 12.8,
         "accepted": true,
-        "score": 0.99035,
+        "score": 0.90931,
         "reasons": [],
-        "screenDirection": "established:left"
+        "screenDirection": "neutral"
+      },
+      {
+        "t": 13.0126,
+        "accepted": true,
+        "score": 0.908447,
+        "reasons": [],
+        "screenDirection": "neutral"
       },
       {
         "t": 14,
         "accepted": true,
-        "score": 0.991102,
+        "score": 0.898481,
         "reasons": [],
-        "screenDirection": "established:left"
+        "screenDirection": "neutral"
       },
       {
         "t": 15.95,
         "accepted": true,
-        "score": 0.990914,
+        "score": 0.897176,
         "reasons": [],
-        "screenDirection": "established:left"
+        "screenDirection": "neutral"
       }
     ],
     "accepted": true,
-    "minScore": 0.9901,
-    "coverageAtSelection": 1,
+    "minScore": 0.8375,
+    "coverageAtSelection": 0.6667,
     "evaluated": {
-      "candidates": 56,
+      "candidates": 20,
       "accepted": 12,
       "fallbacks": 0
     },
     "rejectionSummary": {
-      "SUBJECT_TOO_SMALL_FOR_INTENT": 74,
-      "HEAD_CROPPED": 54,
-      "FACE_VISIBILITY_LOW": 6
+      "ACTIVE_SUBJECT_HIDDEN": 6,
+      "HEAD_CROPPED": 60,
+      "WIDE_SUBJECT_TOO_SMALL": 4
     },
     "subjects": {
       "active": "zapp",
       "required": [
-        "zapp",
+        "zapp"
+      ],
+      "optional": [
         "kira"
       ],
-      "optional": [],
       "heroProps": []
     },
     "diagnostics": {
       "headHeightPct": {
-        "kira": 16.1,
-        "zapp": 21.6
+        "zapp": 11.2
       },
       "faceVisibility": {
         "kira": 1,
         "zapp": 1
       },
       "selfOccludedFeatures": [],
-      "cameraSide": "left"
+      "cameraSide": "neutral"
     }
   }
 }

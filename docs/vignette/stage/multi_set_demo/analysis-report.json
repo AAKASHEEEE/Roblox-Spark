@@ -5,19 +5,16 @@
   "beats": 4,
   "duration": 16,
   "summary": {
-    "blocking": true,
-    "reasons": [
-      "camera safety blocked 1 beat(s): p02",
-      "script coverage 80.0% < 90%"
-    ],
-    "coveragePct": 0.8,
+    "blocking": false,
+    "reasons": [],
+    "coveragePct": 1,
     "coverageThreshold": 0.9,
-    "camerasAccepted": 3,
+    "camerasAccepted": 4,
     "camerasFallback": 0,
-    "camerasBlocked": 1,
+    "camerasBlocked": 0,
     "stagingErrors": 0,
     "stagingWarnings": 0,
-    "placeholders": 9
+    "placeholders": 0
   },
   "validation": {
     "ok": true,
@@ -29,58 +26,13 @@
         "uses": 1
       },
       {
-        "kind": "sets",
-        "id": "school_hallway",
-        "uses": 2
-      },
-      {
-        "kind": "props",
-        "id": "backpack",
-        "uses": 2
-      },
-      {
         "kind": "sfx",
         "id": "bell",
         "uses": 1
       },
       {
-        "kind": "cameraRecipes",
-        "id": "establishing_wide",
-        "uses": 1
-      },
-      {
-        "kind": "actions",
-        "id": "shrug",
-        "uses": 1
-      },
-      {
         "kind": "sfx",
         "id": "door_open",
-        "uses": 1
-      },
-      {
-        "kind": "cameraRecipes",
-        "id": "medium_single",
-        "uses": 1
-      },
-      {
-        "kind": "props",
-        "id": "door",
-        "uses": 1
-      },
-      {
-        "kind": "sets",
-        "id": "playground",
-        "uses": 1
-      },
-      {
-        "kind": "actions",
-        "id": "wave",
-        "uses": 1
-      },
-      {
-        "kind": "props",
-        "id": "ball",
         "uses": 1
       }
     ]
@@ -88,32 +40,30 @@
   "sets": [
     {
       "id": "school_hallway",
-      "resolution": "placeholder",
-      "key": "school_hallway@0.0.0",
+      "resolution": "available",
+      "key": "school_hallway@1.0.0",
       "origin": [
         0,
         0,
         0
       ],
-      "marks": 2,
+      "marks": 7,
       "doors": [
         "hall_door"
       ],
       "dressing": [],
-      "notes": [
-        "placeholder set: 2 marks and 1 doors allocated from the beats (planned (S2))"
-      ]
+      "notes": []
     },
     {
       "id": "classroom",
       "resolution": "available",
-      "key": "classroom@1.1.0",
+      "key": "classroom@1.2.0",
       "origin": [
         40,
         0,
         0
       ],
-      "marks": 27,
+      "marks": 29,
       "doors": [
         "classroom_door"
       ],
@@ -124,87 +74,82 @@
     },
     {
       "id": "playground",
-      "resolution": "placeholder",
-      "key": "playground@0.0.0",
+      "resolution": "available",
+      "key": "playground@1.0.0",
       "origin": [
         80,
         0,
         0
       ],
-      "marks": 3,
+      "marks": 6,
       "doors": [],
       "dressing": [],
-      "notes": [
-        "placeholder set: 3 marks and 0 doors allocated from the beats (planned (S2))"
-      ]
+      "notes": []
     }
   ],
   "resolution": [
     {
       "kind": "sets",
       "id": "school_hallway",
-      "status": "planned",
-      "resolution": "placeholder",
-      "source": "grey placeholder room"
+      "status": "available",
+      "resolution": "available",
+      "source": "assets school_hallway@1.0.0"
     },
     {
       "kind": "sets",
       "id": "classroom",
       "status": "available",
       "resolution": "available",
-      "source": "assets classroom@1.1.0"
+      "source": "assets classroom@1.2.0"
     },
     {
       "kind": "sets",
       "id": "playground",
-      "status": "planned",
-      "resolution": "placeholder",
-      "source": "grey placeholder room"
+      "status": "available",
+      "resolution": "available",
+      "source": "assets playground@1.0.0"
     },
     {
       "kind": "characters",
       "id": "zapp",
       "status": "available",
       "resolution": "available",
-      "source": "assets zapp@1.0.0"
+      "source": "builder zapp@1.0.0"
     },
     {
       "kind": "characters",
       "id": "kira",
       "status": "available",
       "resolution": "available",
-      "source": "assets kira@1.1.0"
+      "source": "builder kira@1.2.0"
     },
     {
       "kind": "props",
       "id": "backpack",
-      "status": "planned",
-      "resolution": "placeholder",
-      "source": "grey placeholder block",
-      "note": "planned (S4)"
+      "status": "available",
+      "resolution": "available",
+      "source": "builder backpack@1.0.0"
     },
     {
       "kind": "props",
       "id": "door",
-      "status": "planned",
-      "resolution": "placeholder",
-      "source": "grey placeholder block",
-      "note": "planned (S4)"
+      "status": "available",
+      "resolution": "available",
+      "source": "builder door@1.1.0"
     },
     {
       "kind": "props",
       "id": "suspicious_button",
       "status": "available",
       "resolution": "available",
-      "source": "assets suspicious_button@1.0.0"
+      "source": "builder suspicious_button@1.1.0"
     },
     {
       "kind": "props",
       "id": "ball",
-      "status": "planned",
-      "resolution": "placeholder",
-      "source": "grey placeholder block",
-      "note": "planned (S4)"
+      "status": "available",
+      "resolution": "available",
+      "source": "builder ball@1.0.0"
     },
     {
       "kind": "music",
@@ -230,7 +175,7 @@
     {
       "kind": "cameraRecipes",
       "id": "establishing_wide",
-      "status": "planned",
+      "status": "available",
       "resolution": "available",
       "source": "packages/vignette camera recipe (S6)"
     },
@@ -240,13 +185,6 @@
       "status": "planned",
       "resolution": "audio_only",
       "source": "planned (S7); not drawn"
-    },
-    {
-      "kind": "cameraRecipes",
-      "id": "medium_single",
-      "status": "planned",
-      "resolution": "available",
-      "source": "packages/vignette camera recipe (S6)"
     },
     {
       "kind": "vfx",
@@ -275,67 +213,60 @@
       "status": "available",
       "resolution": "audio_only",
       "source": "assets/audio/sfx_tada@1.0.0.json"
-    },
-    {
-      "kind": "cameraRecipes",
-      "id": "two_shot",
-      "status": "available",
-      "resolution": "available",
-      "source": "packages/vignette camera recipe (S6)"
     }
   ],
   "sources": {
     "set:school_hallway": {
       "kind": "set",
-      "source": "placeholder",
-      "key": "school_hallway@0.0.0"
+      "source": "builder",
+      "key": "school_hallway@1.0.0"
     },
     "set:classroom": {
       "kind": "set",
-      "source": "manifest",
-      "key": "classroom@1.1.0"
+      "source": "builder",
+      "key": "classroom@1.2.0"
     },
     "set:playground": {
       "kind": "set",
-      "source": "placeholder",
-      "key": "playground@0.0.0"
+      "source": "builder",
+      "key": "playground@1.0.0"
     },
     "character:zapp": {
       "kind": "character",
-      "source": "manifest",
+      "source": "builder",
       "key": "zapp@1.0.0"
     },
     "character:kira": {
       "kind": "character",
-      "source": "manifest",
-      "key": "kira@1.1.0"
+      "source": "builder",
+      "key": "kira@1.2.0"
     },
     "prop:backpack": {
       "kind": "prop",
-      "source": "placeholder",
-      "key": "backpack@0.0.0"
+      "source": "builder",
+      "key": "backpack@1.0.0"
     },
     "prop:door": {
       "kind": "prop",
-      "source": "placeholder",
-      "key": "door@0.0.0"
+      "source": "builder",
+      "key": "door@1.1.0"
     },
     "prop:suspicious_button": {
       "kind": "prop",
-      "source": "manifest",
-      "key": "suspicious_button@1.0.0"
+      "source": "builder",
+      "key": "suspicious_button@1.1.0"
     },
     "prop:ball": {
       "kind": "prop",
-      "source": "placeholder",
-      "key": "ball@0.0.0"
+      "source": "builder",
+      "key": "ball@1.0.0"
     }
   },
   "staging": {
     "contracts": {
       "version": "1.0.0",
       "used": {
-        "look_at": 6,
+        "look_at": 7,
         "remain_still": 2,
         "move_to": 2,
         "confident_pose": 1,
@@ -347,25 +278,6 @@
     "issues": [
       {
         "severity": "info",
-        "code": "SET_PLACEHOLDER",
-        "beat": null,
-        "message": "school_hallway: placeholder set: 2 marks and 1 doors allocated from the beats (planned (S2))"
-      },
-      {
-        "severity": "info",
-        "code": "SET_PLACEHOLDER",
-        "beat": null,
-        "message": "playground: placeholder set: 3 marks and 0 doors allocated from the beats (planned (S2))"
-      },
-      {
-        "severity": "info",
-        "code": "PROP_STATE_PLACEHOLDER",
-        "beat": "p01",
-        "message": "backpack (placeholder block) state \"closed\" is shown on its label only",
-        "entity": "backpack"
-      },
-      {
-        "severity": "info",
         "code": "EXPRESSION_FALLBACK",
         "beat": "p02",
         "message": "zapp: zapp has no \"happy\" face; nearest drawable \"curious\"",
@@ -373,38 +285,10 @@
       },
       {
         "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p02",
-        "message": "kira: planned action (S5); played as look_at/curious_lean",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "PROP_STATE_PLACEHOLDER",
-        "beat": "p02",
-        "message": "backpack (placeholder block) state \"closed\" is shown on its label only",
-        "entity": "backpack"
-      },
-      {
-        "severity": "info",
         "code": "EXPRESSION_FALLBACK",
         "beat": "p04",
         "message": "zapp: zapp has no \"happy\" face; nearest drawable \"curious\"",
         "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p04",
-        "message": "kira: planned action (S5); played as look_at/point",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "PROP_STATE_PLACEHOLDER",
-        "beat": "p04",
-        "message": "ball (placeholder block) state \"idle\" is shown on its label only",
-        "entity": "ball"
       },
       {
         "severity": "info",
@@ -424,16 +308,16 @@
             "id": "zapp",
             "placement": "hall_center",
             "action": "walk",
-            "played": "idle",
+            "played": "walk",
             "contract": "move_to",
             "face": "determined",
             "from": [
-              -0.8,
+              0,
               0,
               0
             ],
             "to": [
-              -0.8,
+              0,
               0,
               0
             ],
@@ -450,14 +334,14 @@
             "contract": "remain_still",
             "face": "smug",
             "from": [
-              0.8,
+              -3.25,
               0,
-              0
+              1.2
             ],
             "to": [
-              0.8,
+              -3.25,
               0,
-              0
+              1.2
             ],
             "move": null,
             "enterAt": null,
@@ -487,52 +371,48 @@
             "id": "zapp",
             "placement": "exit:hall_door",
             "action": "run",
-            "played": "idle",
+            "played": "run",
             "contract": "move_to",
             "face": "happy->curious",
             "from": [
-              -0.8,
+              0,
               0,
               0
             ],
             "to": [
-              -4.55,
+              -4.5,
               0,
-              -1.4
+              0
             ],
             "move": [
-              4.078,
+              4.355,
               7
             ],
             "enterAt": null,
             "exitAt": 7,
-            "labels": [
-              "FACE happy"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "lockers",
             "action": "shrug",
-            "played": "curious_lean",
+            "played": "shrug",
             "contract": "look_at",
             "face": "skeptical",
             "from": [
-              0.8,
+              -3.25,
               0,
-              0
+              1.2
             ],
             "to": [
-              0.8,
+              -3.25,
               0,
-              0
+              1.2
             ],
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION shrug"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -557,7 +437,7 @@
             "id": "zapp",
             "placement": "enter:classroom_door",
             "action": "walk",
-            "played": "idle",
+            "played": "walk",
             "contract": "move_to",
             "face": "curious",
             "from": [
@@ -637,45 +517,41 @@
             "contract": "jump",
             "face": "happy->curious",
             "from": [
-              79.2,
+              78.4,
               0,
-              0
+              1.8
             ],
             "to": [
-              79.2,
+              78.4,
               0,
-              0
+              1.8
             ],
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE happy"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "swings",
             "action": "wave",
-            "played": "point",
+            "played": "wave",
             "contract": "look_at",
             "face": "laughing",
             "from": [
-              80.8,
+              82.5,
               0,
-              0
+              -0.55
             ],
             "to": [
-              80.8,
+              82.5,
               0,
-              0
+              -0.55
             ],
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION wave"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -684,9 +560,9 @@
             "placement": "sandpit",
             "state": "idle",
             "pos": [
-              80,
+              83,
               0,
-              0.6
+              3.55
             ]
           }
         ]
@@ -695,17 +571,7 @@
   },
   "cameras": {
     "recipes": {
-      "planned": [
-        "hook_closeup",
-        "establishing_wide",
-        "medium_single",
-        "low_angle_hero",
-        "pov",
-        "insert_prop",
-        "top_down",
-        "whip_pan",
-        "slow_push_in"
-      ],
+      "planned": [],
       "implemented": [
         "hook_closeup",
         "establishing_wide",
@@ -737,6 +603,110 @@
         "motion": "static",
         "framingFrom": 0,
         "source": "recipe",
+        "candidateId": "establishing_wide:y-15_s1_h16_f56",
+        "variant": {
+          "id": "y-15_s1_h16_f56",
+          "yaw": -15,
+          "size": 1,
+          "height": 16,
+          "fov": 56
+        },
+        "keys": [
+          {
+            "lt": 0,
+            "pose": {
+              "pos": [
+                -4,
+                3.95,
+                7.6
+              ],
+              "target": [
+                -1.6500467649230848,
+                1.131829949757084,
+                0.6728590333238245
+              ],
+              "fovDeg": 56
+            }
+          }
+        ],
+        "samples": [
+          {
+            "t": 0.05,
+            "accepted": true,
+            "score": 0.925406,
+            "reasons": [],
+            "screenDirection": "established:right"
+          },
+          {
+            "t": 0.5,
+            "accepted": true,
+            "score": 0.928801,
+            "reasons": [],
+            "screenDirection": "established:right"
+          },
+          {
+            "t": 1.5,
+            "accepted": true,
+            "score": 0.92943,
+            "reasons": [],
+            "screenDirection": "established:right"
+          },
+          {
+            "t": 2,
+            "accepted": true,
+            "score": 0.929488,
+            "reasons": [],
+            "screenDirection": "established:right"
+          },
+          {
+            "t": 3.95,
+            "accepted": true,
+            "score": 0.928998,
+            "reasons": [],
+            "screenDirection": "established:right"
+          }
+        ],
+        "accepted": true,
+        "minScore": 0.9254,
+        "coverageAtSelection": 1,
+        "evaluated": {
+          "candidates": 20,
+          "accepted": 7,
+          "fallbacks": 0
+        },
+        "rejectionSummary": {
+          "HEAD_CROPPED": 81
+        },
+        "subjects": {
+          "active": "zapp",
+          "required": [
+            "zapp"
+          ],
+          "optional": [
+            "kira"
+          ],
+          "heroProps": []
+        },
+        "diagnostics": {
+          "headHeightPct": {
+            "zapp": 9.8
+          },
+          "faceVisibility": {
+            "kira": 0,
+            "zapp": 1
+          },
+          "selfOccludedFeatures": [],
+          "cameraSide": "right"
+        }
+      },
+      {
+        "beat": "p02",
+        "recipeId": "establishing_wide",
+        "recipeKnown": true,
+        "intent": "wide",
+        "motion": "static",
+        "framingFrom": 0,
+        "source": "recipe",
         "candidateId": "establishing_wide:y30_s1_h16_f56",
         "variant": {
           "id": "y30_s1_h16_f56",
@@ -750,14 +720,14 @@
             "lt": 0,
             "pose": {
               "pos": [
-                2.278683069400757,
-                2.4423720379641702,
-                3.9095505359337035
+                4,
+                3.95,
+                7.6
               ],
               "target": [
-                -0.0065186344366521265,
-                1.131829949757084,
-                -0.04853492065565662
+                -2.2558717941053326,
+                1.1426265789475292,
+                0.645811474263668
               ],
               "fovDeg": 56
             }
@@ -765,50 +735,48 @@
         ],
         "samples": [
           {
-            "t": 0.05,
+            "t": 4.05,
             "accepted": true,
-            "score": 0.955703,
+            "score": 0.64238,
             "reasons": [],
-            "screenDirection": "established:left"
+            "screenDirection": "consistent:right"
           },
           {
-            "t": 0.5,
+            "t": 5,
             "accepted": true,
-            "score": 0.952771,
+            "score": 0.636271,
             "reasons": [],
-            "screenDirection": "established:left"
+            "screenDirection": "consistent:right"
           },
           {
-            "t": 1.5,
+            "t": 6,
             "accepted": true,
-            "score": 0.951521,
+            "score": 0.621145,
             "reasons": [],
-            "screenDirection": "established:left"
+            "screenDirection": "consistent:right"
           },
           {
-            "t": 2,
+            "t": 7,
             "accepted": true,
-            "score": 0.951376,
+            "score": 0.586424,
             "reasons": [],
-            "screenDirection": "established:left"
-          },
-          {
-            "t": 3.95,
-            "accepted": true,
-            "score": 0.952408,
-            "reasons": [],
-            "screenDirection": "established:left"
+            "screenDirection": "neutral"
           }
         ],
         "accepted": true,
-        "minScore": 0.9514,
+        "minScore": 0.5864,
         "coverageAtSelection": 1,
         "evaluated": {
           "candidates": 20,
-          "accepted": 20,
+          "accepted": 2,
           "fallbacks": 0
         },
-        "rejectionSummary": {},
+        "rejectionSummary": {
+          "ACTIVE_SUBJECT_HIDDEN": 8,
+          "HEAD_CROPPED": 32,
+          "SCREEN_DIRECTION_REVERSED": 12,
+          "WIDE_SUBJECT_TOO_SMALL": 4
+        },
         "subjects": {
           "active": "zapp",
           "required": [
@@ -821,135 +789,14 @@
         },
         "diagnostics": {
           "headHeightPct": {
-            "zapp": 17.8
+            "zapp": 7.6
           },
           "faceVisibility": {
-            "kira": 0,
-            "zapp": 1
+            "kira": 0.8,
+            "zapp": 0
           },
           "selfOccludedFeatures": [],
-          "cameraSide": "left"
-        }
-      },
-      {
-        "beat": "p02",
-        "recipeId": "medium_single",
-        "recipeKnown": true,
-        "intent": "medium",
-        "motion": "static",
-        "framingFrom": 0,
-        "source": "blocked_best_effort",
-        "candidateId": "medium_single:y50_s0.22_h-0.08_f38",
-        "variant": {
-          "id": "y50_s0.22_h-0.08_f38",
-          "yaw": 50,
-          "size": 0.22,
-          "height": -0.08,
-          "fov": 38
-        },
-        "keys": [
-          {
-            "lt": 0,
-            "pose": {
-              "pos": [
-                -3.8271242200770645,
-                1.473750161284023,
-                2.892062110100831
-              ],
-              "target": [
-                0.42980098724365234,
-                1.3253461837768554,
-                0.031314119696617126
-              ],
-              "fovDeg": 38
-            }
-          }
-        ],
-        "samples": [
-          {
-            "t": 4.05,
-            "accepted": false,
-            "score": 0.969966,
-            "reasons": [
-              "HEAD_CROPPED:zapp"
-            ],
-            "screenDirection": "consistent:left"
-          },
-          {
-            "t": 5,
-            "accepted": false,
-            "score": 0.918926,
-            "reasons": [
-              "PROP_COVERS_FACE:kira:backpack",
-              "HEAD_CROPPED:zapp"
-            ],
-            "screenDirection": "consistent:left"
-          },
-          {
-            "t": 6,
-            "accepted": false,
-            "score": 0.920588,
-            "reasons": [
-              "PROP_COVERS_FACE:kira:backpack"
-            ],
-            "screenDirection": "consistent:left"
-          },
-          {
-            "t": 7,
-            "accepted": false,
-            "score": 0.920559,
-            "reasons": [
-              "PROP_COVERS_FACE:kira:backpack"
-            ],
-            "screenDirection": "consistent:left"
-          },
-          {
-            "t": 7.95,
-            "accepted": false,
-            "score": 0.922194,
-            "reasons": [
-              "PROP_COVERS_FACE:kira:backpack"
-            ],
-            "screenDirection": "no_axis"
-          }
-        ],
-        "accepted": false,
-        "minScore": 0.9189,
-        "coverageAtSelection": 1,
-        "evaluated": {
-          "candidates": 84,
-          "accepted": 0,
-          "fallbacks": 3
-        },
-        "rejectionSummary": {
-          "FACE_VISIBILITY_LOW": 71,
-          "HEAD_CROPPED": 135,
-          "SCREEN_DIRECTION_REVERSED": 164,
-          "PROP_COVERS_FACE": 336,
-          "CAMERA_PATH_COLLISION": 9,
-          "LENS_COLLISION": 9,
-          "LENS_TOO_CLOSE_TO_HEAD": 4,
-          "SHOT_TOO_TIGHT_FOR_INTENT": 8
-        },
-        "subjects": {
-          "active": "kira",
-          "required": [
-            "kira"
-          ],
-          "optional": [
-            "zapp"
-          ],
-          "heroProps": []
-        },
-        "diagnostics": {
-          "headHeightPct": {
-            "kira": 22
-          },
-          "faceVisibility": {
-            "kira": 0.8
-          },
-          "selfOccludedFeatures": [],
-          "cameraSide": "none"
+          "cameraSide": "neutral"
         }
       },
       {
@@ -973,14 +820,14 @@
             "lt": 0,
             "pose": {
               "pos": [
-                41.84658950805664,
-                2.4412360123612675,
-                10.278394676424472
+                41.86500077491626,
+                2.8493079698926556,
+                10.329020506550417
               ],
               "target": [
-                41.84658950805664,
-                1.1140839049592612,
-                -2.34861415958777
+                41.86500077491626,
+                1.4957286489382384,
+                -2.5494264707090326
               ],
               "fovDeg": 44
             }
@@ -990,42 +837,43 @@
           {
             "t": 8.6,
             "accepted": true,
-            "score": 0.935976,
+            "score": 0.936072,
             "reasons": [],
             "screenDirection": "established:right"
           },
           {
             "t": 10,
             "accepted": true,
-            "score": 0.942859,
+            "score": 0.94299,
             "reasons": [],
             "screenDirection": "established:right"
           },
           {
             "t": 10.5,
             "accepted": true,
-            "score": 0.942011,
+            "score": 0.942149,
             "reasons": [],
             "screenDirection": "established:right"
           },
           {
             "t": 11.95,
             "accepted": true,
-            "score": 0.941995,
+            "score": 0.942132,
             "reasons": [],
             "screenDirection": "established:right"
           }
         ],
         "accepted": true,
-        "minScore": 0.936,
+        "minScore": 0.9361,
         "coverageAtSelection": 1,
         "evaluated": {
           "candidates": 20,
-          "accepted": 18,
+          "accepted": 12,
           "fallbacks": 0
         },
         "rejectionSummary": {
-          "ACTIVE_SUBJECT_HIDDEN": 2
+          "ACTIVE_SUBJECT_HIDDEN": 3,
+          "PROP_COVERS_FACE": 8
         },
         "subjects": {
           "active": "zapp",
@@ -1051,36 +899,35 @@
       },
       {
         "beat": "p04",
-        "recipeId": "two_shot",
+        "recipeId": "wide_environment",
         "recipeKnown": true,
-        "intent": "medium",
+        "intent": "wide",
         "motion": "static",
         "framingFrom": 0,
         "source": "recipe",
-        "candidateId": "two_shot:aud_y-40_s1_h0.3_f34",
+        "candidateId": "wide_environment:y-30_s1_h6_f52",
         "variant": {
-          "id": "aud_y-40_s1_h0.3_f34",
-          "yaw": -40,
+          "id": "y-30_s1_h6_f52",
+          "yaw": -30,
           "size": 1,
-          "height": 0.3,
-          "fov": 34,
-          "side": 1
+          "height": 6,
+          "fov": 52
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                75.7,
-                2.158906533050537,
-                5.7922756972950245
+                72.6,
+                3.570659899894631,
+                7.4
               ],
               "target": [
-                79.91278076171875,
-                1.5237004280090332,
-                0.13600703235715628
+                80.43510587337427,
+                1.3723196682240812,
+                1.2651552604883922
               ],
-              "fovDeg": 34
+              "fovDeg": 52
             }
           }
         ],
@@ -1088,72 +935,72 @@
           {
             "t": 12.05,
             "accepted": true,
-            "score": 0.99013,
+            "score": 0.837509,
             "reasons": [],
-            "screenDirection": "established:left"
-          },
-          {
-            "t": 12.5,
-            "accepted": true,
-            "score": 0.990115,
-            "reasons": [],
-            "screenDirection": "established:left"
+            "screenDirection": "neutral"
           },
           {
             "t": 12.8,
             "accepted": true,
-            "score": 0.99035,
+            "score": 0.90931,
             "reasons": [],
-            "screenDirection": "established:left"
+            "screenDirection": "neutral"
+          },
+          {
+            "t": 13.0126,
+            "accepted": true,
+            "score": 0.908447,
+            "reasons": [],
+            "screenDirection": "neutral"
           },
           {
             "t": 14,
             "accepted": true,
-            "score": 0.991102,
+            "score": 0.898481,
             "reasons": [],
-            "screenDirection": "established:left"
+            "screenDirection": "neutral"
           },
           {
             "t": 15.95,
             "accepted": true,
-            "score": 0.990914,
+            "score": 0.897176,
             "reasons": [],
-            "screenDirection": "established:left"
+            "screenDirection": "neutral"
           }
         ],
         "accepted": true,
-        "minScore": 0.9901,
-        "coverageAtSelection": 1,
+        "minScore": 0.8375,
+        "coverageAtSelection": 0.6667,
         "evaluated": {
-          "candidates": 56,
+          "candidates": 20,
           "accepted": 12,
           "fallbacks": 0
         },
         "rejectionSummary": {
-          "SUBJECT_TOO_SMALL_FOR_INTENT": 74,
-          "HEAD_CROPPED": 54,
-          "FACE_VISIBILITY_LOW": 6
+          "ACTIVE_SUBJECT_HIDDEN": 6,
+          "HEAD_CROPPED": 60,
+          "WIDE_SUBJECT_TOO_SMALL": 4
         },
         "subjects": {
           "active": "zapp",
           "required": [
-            "zapp",
+            "zapp"
+          ],
+          "optional": [
             "kira"
           ],
-          "optional": [],
           "heroProps": []
         },
         "diagnostics": {
           "headHeightPct": {
-            "kira": 16.1,
-            "zapp": 21.6
+            "zapp": 11.2
           },
           "faceVisibility": {
             "kira": 1,
             "zapp": 1
           },
           "selfOccludedFeatures": [],
-          "cameraSide": "left"
+          "cameraSide": "neutral"
         }
       }
     ]
@@ -1161,47 +1008,41 @@
   "coverage": {
     "threshold": 0.9,
     "step": 0.3333,
-    "visual": 20,
-    "covered": 16,
-    "pct": 0.8,
-    "blocking": true,
-    "audioOnly": 3,
+    "visual": 15,
+    "covered": 15,
+    "pct": 1,
+    "blocking": false,
+    "audioOnly": 8,
     "beats": [
       {
         "beat": "p01",
         "recipeId": "establishing_wide",
-        "visual": 4,
-        "covered": 4,
+        "visual": 3,
+        "covered": 3,
         "pct": 1,
         "missing": []
       },
       {
         "beat": "p02",
-        "recipeId": "medium_single",
-        "visual": 5,
-        "covered": 2,
-        "pct": 0.4,
-        "missing": [
-          "zapp (run)",
-          "door_open hall_door@5",
-          "exit zapp hall_door@7"
-        ]
+        "recipeId": "establishing_wide",
+        "visual": 3,
+        "covered": 3,
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p03",
         "recipeId": "wide_environment",
-        "visual": 7,
+        "visual": 6,
         "covered": 6,
-        "pct": 0.8571,
-        "missing": [
-          "door (closed)"
-        ]
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p04",
-        "recipeId": "two_shot",
-        "visual": 4,
-        "covered": 4,
+        "recipeId": "wide_environment",
+        "visual": 3,
+        "covered": 3,
         "pct": 1,
         "missing": []
       }
@@ -1244,10 +1085,11 @@
           "backpack"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
-        "seen": 11,
-        "covered": true
+        "seen": 12,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p01",
@@ -1287,8 +1129,8 @@
         "space": "world",
         "counted": true,
         "samples": 9,
-        "seen": 3,
-        "covered": false
+        "seen": 8,
+        "covered": true
       },
       {
         "beat": "p02",
@@ -1299,10 +1141,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
         "seen": 12,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p02",
@@ -1313,10 +1156,11 @@
           "backpack"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
         "seen": 12,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p02",
@@ -1329,8 +1173,8 @@
         "space": "world",
         "counted": true,
         "samples": 3,
-        "seen": 0,
-        "covered": false
+        "seen": 3,
+        "covered": true
       },
       {
         "beat": "p02",
@@ -1343,8 +1187,8 @@
         "space": "world",
         "counted": true,
         "samples": 3,
-        "seen": 0,
-        "covered": false
+        "seen": 1,
+        "covered": true
       },
       {
         "beat": "p02",
@@ -1382,10 +1226,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
         "seen": 12,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p03",
@@ -1398,8 +1243,8 @@
         "space": "world",
         "counted": true,
         "samples": 12,
-        "seen": 4,
-        "covered": false
+        "seen": 12,
+        "covered": true
       },
       {
         "beat": "p03",
@@ -1494,10 +1339,11 @@
           "ball"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
-        "seen": 12,
-        "covered": true
+        "seen": 0,
+        "covered": false,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p04",
@@ -1543,8 +1389,8 @@
     },
     "p04": {
       "file": "stills/p04.png",
-      "t": 12.8
+      "t": 13.013
     }
   },
-  "timingSec": 9.468
+  "timingSec": 11.078
 }

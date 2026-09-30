@@ -5,19 +5,16 @@
   "beats": 14,
   "duration": 69.08,
   "summary": {
-    "blocking": true,
-    "reasons": [
-      "camera safety blocked 5 beat(s): p02, p03, p04, p10, p11",
-      "script coverage 74.7% < 90%"
-    ],
-    "coveragePct": 0.7471,
+    "blocking": false,
+    "reasons": [],
+    "coveragePct": 0.9818,
     "coverageThreshold": 0.9,
-    "camerasAccepted": 8,
-    "camerasFallback": 1,
-    "camerasBlocked": 5,
+    "camerasAccepted": 14,
+    "camerasFallback": 0,
+    "camerasBlocked": 0,
     "stagingErrors": 0,
-    "stagingWarnings": 3,
-    "placeholders": 33
+    "stagingWarnings": 0,
+    "placeholders": 4
   },
   "validation": {
     "ok": true,
@@ -39,21 +36,6 @@
         "uses": 1
       },
       {
-        "kind": "characters",
-        "id": "teacher",
-        "uses": 5
-      },
-      {
-        "kind": "actions",
-        "id": "sit",
-        "uses": 10
-      },
-      {
-        "kind": "props",
-        "id": "door",
-        "uses": 14
-      },
-      {
         "kind": "sfx",
         "id": "footsteps",
         "uses": 3
@@ -61,21 +43,6 @@
       {
         "kind": "sfx",
         "id": "door_open",
-        "uses": 2
-      },
-      {
-        "kind": "cameraRecipes",
-        "id": "establishing_wide",
-        "uses": 1
-      },
-      {
-        "kind": "actions",
-        "id": "look_around",
-        "uses": 1
-      },
-      {
-        "kind": "expressions",
-        "id": "evil_grin",
         "uses": 2
       },
       {
@@ -89,43 +56,8 @@
         "uses": 2
       },
       {
-        "kind": "cameraRecipes",
-        "id": "slow_push_in",
-        "uses": 1
-      },
-      {
-        "kind": "actions",
-        "id": "celebrate",
-        "uses": 2
-      },
-      {
-        "kind": "expressions",
-        "id": "big_grin",
-        "uses": 1
-      },
-      {
         "kind": "sfx",
         "id": "whoosh",
-        "uses": 1
-      },
-      {
-        "kind": "cameraRecipes",
-        "id": "low_angle_hero",
-        "uses": 1
-      },
-      {
-        "kind": "actions",
-        "id": "dance",
-        "uses": 1
-      },
-      {
-        "kind": "expressions",
-        "id": "suspicious",
-        "uses": 1
-      },
-      {
-        "kind": "cameraRecipes",
-        "id": "insert_prop",
         "uses": 1
       },
       {
@@ -134,48 +66,8 @@
         "uses": 1
       },
       {
-        "kind": "expressions",
-        "id": "laugh",
-        "uses": 1
-      },
-      {
-        "kind": "textStyles",
-        "id": "ui_popup",
-        "uses": 1
-      },
-      {
-        "kind": "cameraRecipes",
-        "id": "medium_single",
-        "uses": 1
-      },
-      {
-        "kind": "expressions",
-        "id": "shocked",
-        "uses": 3
-      },
-      {
-        "kind": "expressions",
-        "id": "scared",
-        "uses": 3
-      },
-      {
-        "kind": "actions",
-        "id": "stand_up",
-        "uses": 1
-      },
-      {
         "kind": "vfx",
         "id": "emote_sweat",
-        "uses": 1
-      },
-      {
-        "kind": "actions",
-        "id": "flattened",
-        "uses": 3
-      },
-      {
-        "kind": "cameraRecipes",
-        "id": "top_down",
         "uses": 1
       },
       {
@@ -189,13 +81,13 @@
     {
       "id": "classroom",
       "resolution": "available",
-      "key": "classroom@1.1.0",
+      "key": "classroom@1.2.0",
       "origin": [
         0,
         0,
         0
       ],
-      "marks": 27,
+      "marks": 29,
       "doors": [
         "classroom_door"
       ],
@@ -211,51 +103,49 @@
       "id": "classroom",
       "status": "available",
       "resolution": "available",
-      "source": "assets classroom@1.1.0"
+      "source": "assets classroom@1.2.0"
     },
     {
       "kind": "characters",
       "id": "teacher",
-      "status": "planned",
-      "resolution": "placeholder",
-      "source": "grey placeholder block",
-      "note": "planned (S3)"
+      "status": "available",
+      "resolution": "available",
+      "source": "builder teacher@1.0.0"
     },
     {
       "kind": "characters",
       "id": "zapp",
       "status": "available",
       "resolution": "available",
-      "source": "assets zapp@1.0.0"
+      "source": "builder zapp@1.0.0"
     },
     {
       "kind": "characters",
       "id": "kira",
       "status": "available",
       "resolution": "available",
-      "source": "assets kira@1.1.0"
+      "source": "builder kira@1.2.0"
     },
     {
       "kind": "props",
       "id": "door",
-      "status": "planned",
-      "resolution": "placeholder",
-      "source": "grey placeholder block",
-      "note": "planned (S4)"
+      "status": "available",
+      "resolution": "available",
+      "source": "builder door@1.1.0"
     },
     {
       "kind": "props",
       "id": "suspicious_button",
       "status": "available",
       "resolution": "available",
-      "source": "assets suspicious_button@1.0.0"
+      "source": "builder suspicious_button@1.1.0"
     },
     {
       "kind": "props",
       "id": "spark_coin",
       "status": "available",
       "resolution": "available",
-      "source": "assets spark_coin@1.0.0"
+      "source": "builder spark_coin@1.1.0"
     },
     {
       "kind": "music",
@@ -302,7 +192,7 @@
     {
       "kind": "cameraRecipes",
       "id": "establishing_wide",
-      "status": "planned",
+      "status": "available",
       "resolution": "available",
       "source": "packages/vignette camera recipe (S6)"
     },
@@ -319,13 +209,6 @@
       "status": "planned",
       "resolution": "placeholder",
       "source": "planned (S7); labelled placeholder"
-    },
-    {
-      "kind": "cameraRecipes",
-      "id": "slow_push_in",
-      "status": "planned",
-      "resolution": "available",
-      "source": "packages/vignette camera recipe (S6)"
     },
     {
       "kind": "sfx",
@@ -351,7 +234,7 @@
     {
       "kind": "cameraRecipes",
       "id": "low_angle_hero",
-      "status": "planned",
+      "status": "available",
       "resolution": "available",
       "source": "packages/vignette camera recipe (S6)"
     },
@@ -379,7 +262,7 @@
     {
       "kind": "cameraRecipes",
       "id": "insert_prop",
-      "status": "planned",
+      "status": "available",
       "resolution": "available",
       "source": "packages/vignette camera recipe (S6)"
     },
@@ -420,7 +303,7 @@
     },
     {
       "kind": "cameraRecipes",
-      "id": "over_shoulder",
+      "id": "wide_environment",
       "status": "available",
       "resolution": "available",
       "source": "packages/vignette camera recipe (S6)"
@@ -428,14 +311,14 @@
     {
       "kind": "textStyles",
       "id": "ui_popup",
-      "status": "planned",
-      "resolution": "placeholder",
-      "source": "planned (S7); labelled placeholder"
+      "status": "available",
+      "resolution": "available",
+      "source": "packages/vignette/src/captions.ts"
     },
     {
       "kind": "cameraRecipes",
       "id": "medium_single",
-      "status": "planned",
+      "status": "available",
       "resolution": "available",
       "source": "packages/vignette camera recipe (S6)"
     },
@@ -454,13 +337,6 @@
       "source": "assets/audio/sfx_boing@1.0.0.json"
     },
     {
-      "kind": "cameraRecipes",
-      "id": "reaction_punch_in",
-      "status": "available",
-      "resolution": "available",
-      "source": "packages/vignette camera recipe (S6)"
-    },
-    {
       "kind": "sfx",
       "id": "sfx_rumble",
       "status": "available",
@@ -473,13 +349,6 @@
       "status": "available",
       "resolution": "available",
       "source": "engine VFX (vfx.ts)"
-    },
-    {
-      "kind": "cameraRecipes",
-      "id": "low_angle_reveal",
-      "status": "available",
-      "resolution": "available",
-      "source": "packages/vignette camera recipe (S6)"
     },
     {
       "kind": "vfx",
@@ -510,13 +379,6 @@
       "source": "engine VFX (vfx.ts)"
     },
     {
-      "kind": "cameraRecipes",
-      "id": "top_down",
-      "status": "planned",
-      "resolution": "available",
-      "source": "packages/vignette camera recipe (S6)"
-    },
-    {
       "kind": "vfx",
       "id": "emote_question",
       "status": "planned",
@@ -541,47 +403,47 @@
   "sources": {
     "set:classroom": {
       "kind": "set",
-      "source": "manifest",
-      "key": "classroom@1.1.0"
+      "source": "builder",
+      "key": "classroom@1.2.0"
     },
     "character:teacher": {
       "kind": "character",
-      "source": "placeholder",
-      "key": "teacher@0.0.0"
+      "source": "builder",
+      "key": "teacher@1.0.0"
     },
     "character:zapp": {
       "kind": "character",
-      "source": "manifest",
+      "source": "builder",
       "key": "zapp@1.0.0"
     },
     "character:kira": {
       "kind": "character",
-      "source": "manifest",
-      "key": "kira@1.1.0"
+      "source": "builder",
+      "key": "kira@1.2.0"
     },
     "prop:door": {
       "kind": "prop",
-      "source": "placeholder",
-      "key": "door@0.0.0"
+      "source": "builder",
+      "key": "door@1.1.0"
     },
     "prop:suspicious_button": {
       "kind": "prop",
-      "source": "manifest",
-      "key": "suspicious_button@1.0.0"
+      "source": "builder",
+      "key": "suspicious_button@1.1.0"
     },
     "prop:spark_coin": {
       "kind": "prop",
-      "source": "manifest",
-      "key": "spark_coin@1.0.0"
+      "source": "builder",
+      "key": "spark_coin@1.1.0"
     }
   },
   "staging": {
     "contracts": {
       "version": "1.0.0",
       "used": {
-        "move_to": 9,
+        "move_to": 8,
         "remain_still": 16,
-        "look_at": 13,
+        "look_at": 12,
         "celebrate": 3,
         "warning": 1,
         "press_button": 1,
@@ -636,19 +498,19 @@
         "id": "b03",
         "contract": "move_to",
         "actor": "zapp",
-        "reason": "arms_crossed happens at coin_front: zapp walks there first",
+        "reason": "arms_crossed happens at zapp_impact: zapp walks there first",
         "forContract": "c033",
         "t0": 49.91,
-        "t1": 52.199,
+        "t1": 53.4037,
         "from": [
           0.25,
           0,
           -0.52
         ],
         "to": [
-          -1.5,
+          -2.1,
           0,
-          -0.3
+          1.2
         ]
       },
       {
@@ -669,28 +531,9 @@
           0,
           -0.35
         ]
-      },
-      {
-        "id": "b05",
-        "contract": "move_to",
-        "actor": "teacher",
-        "reason": "look_at happens at center_stage: teacher walks there first",
-        "forContract": "c047",
-        "t0": 65.35,
-        "t1": 70.3822,
-        "from": [
-          2.5,
-          0,
-          -3
-        ],
-        "to": [
-          0,
-          0,
-          0.5
-        ]
       }
     ],
-    "worldEvents": 22,
+    "worldEvents": 21,
     "issues": [
       {
         "severity": "info",
@@ -702,44 +545,9 @@
       },
       {
         "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p01",
-        "message": "zapp: planned action (S5); played as remain_still/idle",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p01",
-        "message": "kira: planned action (S5); played as remain_still/idle",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
         "code": "EXPRESSION_FALLBACK",
         "beat": "p01",
         "message": "kira: kira has no \"calm\" face; nearest drawable \"smug\"",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p02",
-        "message": "zapp: planned action (S5); played as look_at/look_at",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p02",
-        "message": "zapp: zapp has no \"evil_grin\" face; nearest drawable \"determined\"",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p02",
-        "message": "kira: planned action (S5); played as remain_still/idle",
         "entity": "kira"
       },
       {
@@ -748,20 +556,6 @@
         "beat": "p02",
         "message": "kira: kira has no \"calm\" face; nearest drawable \"smug\"",
         "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p03",
-        "message": "zapp: planned action (S5); played as celebrate/victory_pose",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p03",
-        "message": "zapp: zapp has no \"big_grin\" face; nearest drawable \"curious\"",
-        "entity": "zapp"
       },
       {
         "severity": "info",
@@ -773,30 +567,9 @@
       },
       {
         "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p03",
-        "message": "kira: planned action (S5); played as remain_still/idle",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
         "code": "LOOK_AT_CAMERA",
         "beat": "p03",
         "message": "zapp looks at the camera: body turned to the audience side (the engine has no camera look target)",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p04",
-        "message": "kira: planned action (S5); played as remain_still/idle",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p04",
-        "message": "zapp: planned action (S5); played as celebrate/victory_pose",
         "entity": "zapp"
       },
       {
@@ -809,30 +582,9 @@
       {
         "severity": "info",
         "code": "EXPRESSION_FALLBACK",
-        "beat": "p05",
-        "message": "zapp: zapp has no \"suspicious\" face; nearest drawable \"curious\"",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p05",
-        "message": "kira: planned action (S5); played as remain_still/idle",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
         "beat": "p06",
         "message": "kira: kira has no \"strict\" face; nearest drawable \"skeptical\"",
         "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p06",
-        "message": "zapp: zapp has no \"evil_grin\" face; nearest drawable \"determined\"",
-        "entity": "zapp"
       },
       {
         "severity": "info",
@@ -844,79 +596,9 @@
       },
       {
         "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p07",
-        "message": "kira: planned action (S5); played as remain_still/idle",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
         "code": "EXPRESSION_FALLBACK",
         "beat": "p07",
         "message": "kira: kira has no \"shock\" face; nearest drawable \"surprised\"",
-        "entity": "kira"
-      },
-      {
-        "severity": "warning",
-        "code": "CONTACT_OFF_CUE",
-        "beat": "p07",
-        "message": "zapp's press contact lands at 32.248 s, cue sfx_click at 32.2",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p08",
-        "message": "zapp: planned action (S5); played as celebrate/victory_pose",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p08",
-        "message": "zapp: zapp has no \"laugh\" face; nearest drawable \"neutral\"",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p09",
-        "message": "zapp: zapp has no \"shocked\" face; nearest drawable \"shock\"",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p09",
-        "message": "kira: planned action (S5); played as remain_still/idle",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p09",
-        "message": "kira: kira has no \"scared\" face; nearest drawable \"surprised\"",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p10",
-        "message": "zapp: zapp has no \"shocked\" face; nearest drawable \"shock\"",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p10",
-        "message": "kira: planned action (S5); played as remain_still/idle",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p10",
-        "message": "kira: kira has no \"scared\" face; nearest drawable \"surprised\"",
         "entity": "kira"
       },
       {
@@ -930,16 +612,9 @@
         "severity": "info",
         "code": "PATH_ROUTED",
         "beat": "p11",
-        "message": "zapp is routed around obstacles (1 waypoint(s), 1.78 m)",
+        "message": "zapp is routed around obstacles (1 waypoint(s), 3.18 m)",
         "entity": "zapp",
         "t": 49.91
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p11",
-        "message": "kira: kira has no \"scared\" face; nearest drawable \"surprised\"",
-        "entity": "kira"
       },
       {
         "severity": "info",
@@ -950,37 +625,9 @@
       },
       {
         "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p12",
-        "message": "zapp: planned action (S5); played as fall_prone/fall",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "EXPRESSION_FALLBACK",
-        "beat": "p12",
-        "message": "zapp: zapp has no \"shocked\" face; nearest drawable \"shock\"",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
         "code": "EXPRESSION_FALLBACK",
         "beat": "p12",
         "message": "kira: kira has no \"shock\" face; nearest drawable \"surprised\"",
-        "entity": "kira"
-      },
-      {
-        "severity": "warning",
-        "code": "CONTACT_OFF_CUE",
-        "beat": "p12",
-        "message": "coin/zapp contact at 56.3791 s, impact cue at 57",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p13",
-        "message": "kira: planned action (S5); played as remain_still/idle",
         "entity": "kira"
       },
       {
@@ -989,43 +636,6 @@
         "beat": "p13",
         "message": "kira: kira has no \"calm\" face; nearest drawable \"smug\"",
         "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p13",
-        "message": "zapp: planned action (S5); played as fall_prone/fall",
-        "entity": "zapp"
-      },
-      {
-        "severity": "info",
-        "code": "PATH_ROUTED",
-        "beat": "p14",
-        "message": "teacher is routed around obstacles (3 waypoint(s), 4.70 m)",
-        "entity": "teacher",
-        "t": 65.35
-      },
-      {
-        "severity": "warning",
-        "code": "MOVE_OVERRUNS_BEAT",
-        "beat": "p14",
-        "message": "teacher reaches center_stage at 70.3822 s, 1.3022 s after the beat ends (69.08)",
-        "entity": "teacher",
-        "t": 70.3822
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p14",
-        "message": "kira: planned action (S5); played as remain_still/idle",
-        "entity": "kira"
-      },
-      {
-        "severity": "info",
-        "code": "ACTION_PLACEHOLDER",
-        "beat": "p14",
-        "message": "zapp: planned action (S5); played as fall_prone/fall",
-        "entity": "zapp"
       },
       {
         "severity": "info",
@@ -1045,7 +655,7 @@
             "id": "teacher",
             "placement": "exit:classroom_door",
             "action": "walk",
-            "played": "idle",
+            "played": "walk",
             "contract": "move_to",
             "face": "strict",
             "from": [
@@ -1070,7 +680,7 @@
             "id": "zapp",
             "placement": "zapp_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "neutral",
             "from": [
@@ -1086,15 +696,13 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "calm->smug",
             "from": [
@@ -1110,10 +718,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit",
-              "FACE calm"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1148,9 +753,9 @@
             "id": "zapp",
             "placement": "zapp_desk",
             "action": "look_around",
-            "played": "look_at",
+            "played": "look_around",
             "contract": "look_at",
-            "face": "evil_grin->determined",
+            "face": "evil_grin",
             "from": [
               0.25,
               0,
@@ -1164,16 +769,13 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION look_around",
-              "FACE evil_grin"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "calm->smug",
             "from": [
@@ -1189,10 +791,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit",
-              "FACE calm"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1227,9 +826,9 @@
             "id": "zapp",
             "placement": "center_stage",
             "action": "celebrate",
-            "played": "victory_pose",
+            "played": "celebrate",
             "contract": "celebrate",
-            "face": "big_grin->curious",
+            "face": "big_grin",
             "from": [
               0.25,
               0,
@@ -1246,16 +845,13 @@
             ],
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION celebrate",
-              "FACE big_grin"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "skeptical",
             "from": [
@@ -1271,9 +867,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1308,7 +902,7 @@
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "smug",
             "from": [
@@ -1324,15 +918,13 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit"
-            ]
+            "labels": []
           },
           {
             "id": "zapp",
             "placement": "center_stage",
             "action": "dance",
-            "played": "victory_pose",
+            "played": "dance",
             "contract": "celebrate",
             "face": "happy->curious",
             "from": [
@@ -1348,10 +940,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION dance",
-              "FACE happy"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1388,7 +977,7 @@
             "action": "look_at",
             "played": "look_at",
             "contract": "look_at",
-            "face": "suspicious->curious",
+            "face": "suspicious",
             "from": [
               0,
               0,
@@ -1402,15 +991,13 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE suspicious"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "skeptical",
             "from": [
@@ -1426,9 +1013,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1479,17 +1064,15 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE strict"
-            ]
+            "labels": []
           },
           {
             "id": "zapp",
             "placement": "press_spot",
             "action": "walk",
-            "played": "idle",
+            "played": "walk",
             "contract": "move_to",
-            "face": "evil_grin->determined",
+            "face": "evil_grin",
             "from": [
               0,
               0,
@@ -1506,9 +1089,7 @@
             ],
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE evil_grin"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1565,7 +1146,7 @@
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "shock->surprised",
             "from": [
@@ -1581,10 +1162,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit",
-              "FACE shock"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1613,9 +1191,9 @@
             "placement": "coin_spawn",
             "state": "spawned",
             "pos": [
-              -1.7,
+              -2.1,
               0,
-              -1.2
+              -1.4
             ]
           }
         ]
@@ -1629,9 +1207,9 @@
             "id": "zapp",
             "placement": "press_spot",
             "action": "celebrate",
-            "played": "victory_pose",
+            "played": "celebrate",
             "contract": "celebrate",
-            "face": "laugh->neutral",
+            "face": "laugh",
             "from": [
               0.25,
               0,
@@ -1645,10 +1223,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION celebrate",
-              "FACE laugh"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
@@ -1699,9 +1274,9 @@
             "placement": "coin_spawn",
             "state": "spawned",
             "pos": [
-              -1.7,
+              -2.1,
               0,
-              -1.2
+              -1.4
             ]
           }
         ]
@@ -1717,7 +1292,7 @@
             "action": "shock_recoil",
             "played": "shock_recoil",
             "contract": "look_at",
-            "face": "shocked->shock",
+            "face": "shocked",
             "from": [
               0.25,
               0,
@@ -1731,17 +1306,15 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE shocked"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
-            "face": "scared->surprised",
+            "face": "scared",
             "from": [
               1.3,
               0,
@@ -1755,10 +1328,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit",
-              "FACE scared"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1787,9 +1357,9 @@
             "placement": "coin_spawn",
             "state": "growing",
             "pos": [
-              -1.7,
+              -2.1,
               0,
-              -1.2
+              -1.4
             ]
           }
         ]
@@ -1805,7 +1375,7 @@
             "action": "shock_recoil",
             "played": "shock_recoil",
             "contract": "look_at",
-            "face": "shocked->shock",
+            "face": "shocked",
             "from": [
               0.25,
               0,
@@ -1819,17 +1389,15 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE shocked"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "kira_desk",
             "action": "stand_up",
-            "played": "idle",
+            "played": "stand_up",
             "contract": "remain_still",
-            "face": "scared->surprised",
+            "face": "scared",
             "from": [
               1.3,
               0,
@@ -1843,10 +1411,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION stand_up",
-              "FACE scared"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1875,9 +1440,9 @@
             "placement": "coin_spawn",
             "state": "giant",
             "pos": [
-              -1.7,
+              -2.1,
               0,
-              -1.2
+              -1.4
             ]
           }
         ]
@@ -1889,7 +1454,7 @@
         "cast": [
           {
             "id": "zapp",
-            "placement": "coin_front",
+            "placement": "zapp_impact",
             "action": "arms_crossed",
             "played": "arms_crossed",
             "contract": "confident_pose",
@@ -1900,27 +1465,25 @@
               -0.52
             ],
             "to": [
-              -1.5,
+              -2.1,
               0,
-              -0.3
+              1.2
             ],
             "move": [
               49.91,
-              52.199
+              53.404
             ],
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE smug"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
             "placement": "kira_safe",
             "action": "walk",
-            "played": "idle",
+            "played": "walk",
             "contract": "move_to",
-            "face": "scared->surprised",
+            "face": "scared",
             "from": [
               1.3,
               0,
@@ -1933,13 +1496,11 @@
             ],
             "move": [
               49.91,
-              52.389
+              52.395
             ],
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE scared"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -1968,9 +1529,9 @@
             "placement": "coin_spawn",
             "state": "giant",
             "pos": [
-              -1.7,
+              -2.1,
               0,
-              -1.2
+              -1.4
             ]
           }
         ]
@@ -1984,26 +1545,23 @@
             "id": "zapp",
             "placement": "zapp_impact",
             "action": "flattened",
-            "played": "fall",
+            "played": "flattened",
             "contract": "fall_prone",
-            "face": "shocked->shock",
+            "face": "shocked",
             "from": [
-              -1.5,
+              -2.1,
               0,
-              -0.3
+              1.2
             ],
             "to": [
-              -1.5,
+              -2.1,
               0,
-              -0.3
+              1.2
             ],
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION flattened",
-              "FACE shocked"
-            ]
+            "labels": []
           },
           {
             "id": "kira",
@@ -2025,9 +1583,7 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "FACE shock"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -2072,7 +1628,7 @@
             "id": "teacher",
             "placement": "enter:classroom_door",
             "action": "walk",
-            "played": "idle",
+            "played": "walk",
             "contract": "move_to",
             "face": "strict",
             "from": [
@@ -2097,7 +1653,7 @@
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "calm->smug",
             "from": [
@@ -2116,34 +1672,29 @@
             ],
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit",
-              "FACE calm"
-            ]
+            "labels": []
           },
           {
             "id": "zapp",
             "placement": "zapp_impact",
             "action": "flattened",
-            "played": "fall",
+            "played": "flattened",
             "contract": "fall_prone",
             "face": "regret",
             "from": [
-              -1.5,
+              -2.1,
               0,
-              -0.3
+              1.2
             ],
             "to": [
-              -1.5,
+              -2.1,
               0,
-              -0.3
+              1.2
             ],
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION flattened"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -2186,7 +1737,7 @@
         "cast": [
           {
             "id": "teacher",
-            "placement": "center_stage",
+            "placement": "classroom_door_inside",
             "action": "look_at",
             "played": "look_at",
             "contract": "look_at",
@@ -2197,14 +1748,11 @@
               -3
             ],
             "to": [
+              2.5,
               0,
-              0,
-              0.5
+              -3
             ],
-            "move": [
-              65.35,
-              70.382
-            ],
+            "move": null,
             "enterAt": null,
             "exitAt": null,
             "labels": []
@@ -2213,7 +1761,7 @@
             "id": "kira",
             "placement": "kira_desk",
             "action": "sit",
-            "played": "idle",
+            "played": "sit",
             "contract": "remain_still",
             "face": "smug",
             "from": [
@@ -2229,33 +1777,29 @@
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION sit"
-            ]
+            "labels": []
           },
           {
             "id": "zapp",
             "placement": "zapp_impact",
             "action": "flattened",
-            "played": "fall",
+            "played": "flattened",
             "contract": "fall_prone",
             "face": "regret",
             "from": [
-              -1.5,
+              -2.1,
               0,
-              -0.3
+              1.2
             ],
             "to": [
-              -1.5,
+              -2.1,
               0,
-              -0.3
+              1.2
             ],
             "move": null,
             "enterAt": null,
             "exitAt": null,
-            "labels": [
-              "ACTION flattened"
-            ]
+            "labels": []
           }
         ],
         "props": [
@@ -2295,17 +1839,7 @@
   },
   "cameras": {
     "recipes": {
-      "planned": [
-        "hook_closeup",
-        "establishing_wide",
-        "medium_single",
-        "low_angle_hero",
-        "pov",
-        "insert_prop",
-        "top_down",
-        "whip_pan",
-        "slow_push_in"
-      ],
+      "planned": [],
       "implemented": [
         "hook_closeup",
         "establishing_wide",
@@ -2337,29 +1871,29 @@
         "motion": "static",
         "framingFrom": 0,
         "source": "recipe",
-        "candidateId": "establishing_wide:y-15_s1_h24_f46",
+        "candidateId": "establishing_wide:y-15_s1_h16_f56",
         "variant": {
-          "id": "y-15_s1_h24_f46",
+          "id": "y-15_s1_h16_f56",
           "yaw": -15,
           "size": 1,
-          "height": 24,
-          "fov": 46
+          "height": 16,
+          "fov": 56
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                -0.5436879076677914,
-                3.2148265218279435,
-                6.504744014309906
+                -0.17812322852795748,
+                3.2086940823701515,
+                5.080841237416994
               ],
               "target": [
-                1.8465879099071025,
-                1.1317190326657145,
-                -2.415886780982837
+                1.8644458987377581,
+                1.4978155416157095,
+                -2.542130523510277
               ],
-              "fovDeg": 46
+              "fovDeg": 56
             }
           }
         ],
@@ -2367,41 +1901,41 @@
           {
             "t": 0.11,
             "accepted": true,
-            "score": 0.69211,
+            "score": 0.667834,
             "reasons": [],
             "screenDirection": "established:right"
           },
           {
             "t": 0.4,
             "accepted": true,
-            "score": 0.69462,
+            "score": 0.666265,
             "reasons": [],
             "screenDirection": "established:right"
           },
           {
             "t": 2.18,
             "accepted": true,
-            "score": 0.667922,
+            "score": 0.69345,
             "reasons": [],
             "screenDirection": "established:right"
           },
           {
             "t": 2.4,
             "accepted": true,
-            "score": 0.666503,
+            "score": 0.691723,
             "reasons": [],
             "screenDirection": "established:right"
           },
           {
             "t": 3.9,
             "accepted": true,
-            "score": 0.64883,
+            "score": 0.668253,
             "reasons": [],
             "screenDirection": "established:right"
           }
         ],
         "accepted": true,
-        "minScore": 0.6488,
+        "minScore": 0.6663,
         "coverageAtSelection": 1,
         "evaluated": {
           "candidates": 20,
@@ -2422,12 +1956,12 @@
         },
         "diagnostics": {
           "headHeightPct": {
-            "teacher": 6.2
+            "teacher": 8.1
           },
           "faceVisibility": {
-            "kira": 0,
+            "kira": 0.8,
             "teacher": 0,
-            "zapp": 0.8
+            "zapp": 1
           },
           "selfOccludedFeatures": [],
           "cameraSide": "right"
@@ -2435,130 +1969,33 @@
       },
       {
         "beat": "p02",
-        "recipeId": "slow_push_in",
+        "recipeId": "establishing_wide",
         "recipeKnown": true,
-        "intent": "medium",
-        "motion": "dolly",
+        "intent": "wide",
+        "motion": "static",
         "framingFrom": 0,
-        "source": "blocked_best_effort",
-        "candidateId": "slow_push_in:y50_s0.2_h0.2_f38_w",
+        "source": "recipe",
+        "candidateId": "establishing_wide:y-15_s1_h16_f46",
         "variant": {
-          "id": "y50_s0.2_h0.2_f38_w",
-          "yaw": 50,
-          "size": 0.2,
-          "height": 0.2,
-          "fov": 46,
-          "size1": 0.29
+          "id": "y-15_s1_h16_f46",
+          "yaw": -15,
+          "size": 1,
+          "height": 16,
+          "fov": 46
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                4.3,
-                1.8657016109092013,
-                -3.475963902919246
+                -0.5516512800470017,
+                3.196399013137297,
+                6.477379698603094
               ],
               "target": [
-                0.4914758801460266,
-                1.398652286529541,
-                -0.4707067906856537
-              ],
-              "fovDeg": 46
-            }
-          },
-          {
-            "lt": 0.05,
-            "pose": {
-              "pos": [
-                4.3,
-                1.8657016109092013,
-                -3.4755091277441834
-              ],
-              "target": [
-                0.4914758801460266,
-                1.398652286529541,
-                -0.4707067906856537
-              ],
-              "fovDeg": 46
-            }
-          },
-          {
-            "lt": 0.3,
-            "pose": {
-              "pos": [
-                4.3,
-                1.8656989503393242,
-                -3.467355145412382
-              ],
-              "target": [
-                0.4914758801460266,
-                1.398652286529541,
-                -0.4707067906856537
-              ],
-              "fovDeg": 46
-            }
-          },
-          {
-            "lt": 1.6,
-            "pose": {
-              "pos": [
-                4.3,
-                1.8658904584764162,
-                -3.141668417924038
-              ],
-              "target": [
-                0.4914758801460266,
-                1.398652286529541,
-                -0.4707067906856537
-              ],
-              "fovDeg": 46
-            }
-          },
-          {
-            "lt": 2.36,
-            "pose": {
-              "pos": [
-                4.095852100335834,
-                1.8657766199378731,
-                -2.91508722895527
-              ],
-              "target": [
-                0.4914758801460266,
-                1.398652286529541,
-                -0.4707067906856537
-              ],
-              "fovDeg": 46
-            }
-          },
-          {
-            "lt": 4.67,
-            "pose": {
-              "pos": [
-                3.5469448941371433,
-                1.8659017143267098,
-                -2.5275866603270973
-              ],
-              "target": [
-                0.4914758801460266,
-                1.398652286529541,
-                -0.4707067906856537
-              ],
-              "fovDeg": 46
-            }
-          },
-          {
-            "lt": 4.72,
-            "pose": {
-              "pos": [
-                3.546635904194565,
-                1.8659017143267098,
-                -2.527370303241038
-              ],
-              "target": [
-                0.4914758801460266,
-                1.398652286529541,
-                -0.4707067906856537
+                1.86500001123175,
+                1.4978519510757178,
+                -2.5416857046261425
               ],
               "fovDeg": 46
             }
@@ -2568,61 +2005,48 @@
           {
             "t": 4.65,
             "accepted": true,
-            "score": 0.91297,
+            "score": 0.979987,
             "reasons": [],
-            "screenDirection": "consistent:right"
+            "screenDirection": "established:left"
           },
           {
             "t": 4.9,
-            "accepted": false,
-            "score": 0.912324,
-            "reasons": [
-              "HEAD_CROPPED:kira"
-            ],
-            "screenDirection": "consistent:right"
+            "accepted": true,
+            "score": 0.912637,
+            "reasons": [],
+            "screenDirection": "established:left"
           },
           {
             "t": 6.2,
-            "accepted": false,
-            "score": 0.914917,
-            "reasons": [
-              "HEAD_CROPPED:kira"
-            ],
-            "screenDirection": "consistent:right"
+            "accepted": true,
+            "score": 0.914689,
+            "reasons": [],
+            "screenDirection": "established:left"
           },
           {
             "t": 6.96,
-            "accepted": false,
-            "score": 0.926134,
-            "reasons": [
-              "HEAD_CROPPED:kira"
-            ],
-            "screenDirection": "consistent:right"
+            "accepted": true,
+            "score": 0.98031,
+            "reasons": [],
+            "screenDirection": "established:left"
           },
           {
             "t": 9.27,
-            "accepted": false,
-            "score": 0.956332,
-            "reasons": [
-              "HEAD_CROPPED:kira"
-            ],
-            "screenDirection": "consistent:right"
+            "accepted": true,
+            "score": 0.979599,
+            "reasons": [],
+            "screenDirection": "established:left"
           }
         ],
-        "accepted": false,
-        "minScore": 0.9123,
-        "coverageAtSelection": 0.5,
+        "accepted": true,
+        "minScore": 0.9126,
+        "coverageAtSelection": 1,
         "evaluated": {
-          "candidates": 42,
-          "accepted": 0,
-          "fallbacks": 3
+          "candidates": 20,
+          "accepted": 20,
+          "fallbacks": 0
         },
-        "rejectionSummary": {
-          "FACE_VISIBILITY_LOW": 114,
-          "SCREEN_DIRECTION_REVERSED": 106,
-          "HEAD_CROPPED": 165,
-          "SHOT_TOO_TIGHT_FOR_INTENT": 47
-        },
+        "rejectionSummary": {},
         "subjects": {
           "active": "zapp",
           "required": [
@@ -2635,14 +2059,14 @@
         },
         "diagnostics": {
           "headHeightPct": {
-            "zapp": 28.4
+            "zapp": 14.8
           },
           "faceVisibility": {
-            "kira": 0,
+            "kira": 0.8,
             "zapp": 1
           },
           "selfOccludedFeatures": [],
-          "cameraSide": "right"
+          "cameraSide": "left"
         }
       },
       {
@@ -2652,13 +2076,13 @@
         "intent": "medium",
         "motion": "static",
         "framingFrom": 0,
-        "source": "blocked_best_effort",
-        "candidateId": "low_angle_hero:y-50_s0.27_h-0.95_f40_n",
+        "source": "recipe",
+        "candidateId": "low_angle_hero:y-50_s0.23_h-0.75_f40_n",
         "variant": {
-          "id": "y-50_s0.27_h-0.95_f40_n",
+          "id": "y-50_s0.23_h-0.75_f40_n",
           "yaw": -50,
-          "size": 0.27,
-          "height": -0.95,
+          "size": 0.23,
+          "height": -0.75,
           "fov": 32
         },
         "keys": [
@@ -2667,13 +2091,13 @@
             "pose": {
               "pos": [
                 -4.3,
-                0.15,
-                4.5212445890714985
+                0.4742828543688433,
+                5.22875881430876
               ],
               "target": [
-                0.25116472576558596,
-                1.568322941462199,
-                0.002410251332970792
+                0.23307288384111596,
+                1.6330426780382794,
+                0.04242803869324274
               ],
               "fovDeg": 32
             }
@@ -2682,68 +2106,58 @@
         "samples": [
           {
             "t": 9.63,
-            "accepted": false,
-            "score": 0.142869,
-            "reasons": [
-              "FACE_VISIBILITY_LOW:zapp:0<0.8",
-              "SCREEN_DIRECTION_REVERSED:reversed_unmotivated:right->left"
-            ],
-            "screenDirection": "reversed_unmotivated:right->left"
+            "accepted": true,
+            "score": 0.976385,
+            "reasons": [],
+            "screenDirection": "consistent:left"
           },
           {
             "t": 9.8,
-            "accepted": false,
-            "score": 0.141791,
-            "reasons": [
-              "FACE_VISIBILITY_LOW:zapp:0<0.8",
-              "SCREEN_DIRECTION_REVERSED:reversed_unmotivated:right->left"
-            ],
-            "screenDirection": "reversed_unmotivated:right->left"
+            "accepted": true,
+            "score": 0.974897,
+            "reasons": [],
+            "screenDirection": "consistent:left"
           },
           {
             "t": 11,
-            "accepted": false,
-            "score": 0.600107,
-            "reasons": [
-              "FACE_VISIBILITY_LOW:zapp:0<0.8"
-            ],
-            "screenDirection": "neutral"
+            "accepted": true,
+            "score": 0.981889,
+            "reasons": [],
+            "screenDirection": "consistent:left"
           },
           {
             "t": 12.51,
             "accepted": true,
-            "score": 0.889084,
+            "score": 0.968689,
             "reasons": [],
             "screenDirection": "neutral"
           },
           {
             "t": 13.2281,
             "accepted": true,
-            "score": 0.883524,
+            "score": 0.98738,
             "reasons": [],
-            "screenDirection": "neutral"
+            "screenDirection": "consistent:left"
           },
           {
             "t": 15.39,
             "accepted": true,
-            "score": 0.888529,
+            "score": 0.968572,
             "reasons": [],
             "screenDirection": "neutral"
           }
         ],
-        "accepted": false,
-        "minScore": 0.1418,
+        "accepted": true,
+        "minScore": 0.9686,
         "coverageAtSelection": 1,
         "evaluated": {
           "candidates": 84,
-          "accepted": 0,
-          "fallbacks": 3
+          "accepted": 14,
+          "fallbacks": 0
         },
         "rejectionSummary": {
-          "SUBJECT_TOO_SMALL_FOR_INTENT": 87,
-          "SCREEN_DIRECTION_REVERSED": 460,
-          "FACE_VISIBILITY_LOW": 115,
-          "HEAD_CROPPED": 313
+          "HEAD_CROPPED": 322,
+          "SUBJECT_TOO_SMALL_FOR_INTENT": 53
         },
         "subjects": {
           "active": "zapp",
@@ -2757,10 +2171,10 @@
         },
         "diagnostics": {
           "headHeightPct": {
-            "zapp": 28.7
+            "zapp": 26.1
           },
           "faceVisibility": {
-            "kira": 0,
+            "kira": 0.4,
             "zapp": 1
           },
           "selfOccludedFeatures": [],
@@ -2774,78 +2188,77 @@
         "intent": "medium",
         "motion": "static",
         "framingFrom": 0,
-        "source": "blocked_best_effort",
-        "candidateId": "two_shot:y-15_s1_h0.3_f40",
+        "source": "recipe",
+        "candidateId": "two_shot:y-60_s1_h-0.12_f34",
         "variant": {
-          "id": "y-15_s1_h0.3_f40",
-          "yaw": -15,
+          "id": "y-60_s1_h-0.12_f34",
+          "yaw": -60,
           "size": 1,
-          "height": 0.3,
-          "fov": 40
+          "height": -0.12,
+          "fov": 34
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                -4.214995504103664,
-                2.1316193188667296,
-                -3.6
+                -1.2515927604300603,
+                1.294773539123535,
+                5.483326237755137
               ],
               "target": [
-                0.5495656793937087,
-                1.3586483120918273,
-                0.1294785588979721
+                0.5263857152312994,
+                1.1577629566192627,
+                0.3139847442507744
               ],
-              "fovDeg": 40
+              "fovDeg": 34
             }
           }
         ],
         "samples": [
           {
             "t": 15.73,
-            "accepted": false,
-            "score": 0.910536,
-            "reasons": [
-              "HEAD_CROPPED:kira"
-            ],
-            "screenDirection": "consistent:right"
+            "accepted": true,
+            "score": 0.977149,
+            "reasons": [],
+            "screenDirection": "consistent:left"
           },
           {
             "t": 16.53,
             "accepted": true,
-            "score": 0.909277,
+            "score": 0.918583,
             "reasons": [],
-            "screenDirection": "consistent:right"
+            "screenDirection": "consistent:left"
           },
           {
             "t": 17.97,
             "accepted": true,
-            "score": 0.909278,
+            "score": 0.97689,
             "reasons": [],
-            "screenDirection": "consistent:right"
+            "screenDirection": "consistent:left"
           },
           {
             "t": 20.21,
             "accepted": true,
-            "score": 0.909173,
+            "score": 0.976753,
             "reasons": [],
-            "screenDirection": "consistent:right"
+            "screenDirection": "consistent:left"
           }
         ],
-        "accepted": false,
-        "minScore": 0.9092,
-        "coverageAtSelection": 0.75,
+        "accepted": true,
+        "minScore": 0.9186,
+        "coverageAtSelection": 1,
         "evaluated": {
           "candidates": 56,
-          "accepted": 0,
-          "fallbacks": 3
+          "accepted": 22,
+          "fallbacks": 0
         },
         "rejectionSummary": {
-          "HEAD_CROPPED": 148,
-          "FACE_VISIBILITY_LOW": 132,
-          "SHOT_TOO_TIGHT_FOR_INTENT": 65,
-          "UPPER_BODY_NOT_READABLE": 16
+          "HEAD_CROPPED": 70,
+          "SUBJECT_TOO_SMALL_FOR_INTENT": 18,
+          "FACE_VISIBILITY_LOW": 56,
+          "SHOT_TOO_TIGHT_FOR_INTENT": 57,
+          "UPPER_BODY_NOT_READABLE": 7
         },
         "subjects": {
           "active": "kira",
@@ -2858,15 +2271,15 @@
         },
         "diagnostics": {
           "headHeightPct": {
-            "kira": 16.3,
-            "zapp": 20.9
+            "kira": 19.4,
+            "zapp": 28.3
           },
           "faceVisibility": {
             "kira": 1,
-            "zapp": 0
+            "zapp": 1
           },
           "selfOccludedFeatures": [],
-          "cameraSide": "right"
+          "cameraSide": "left"
         }
       },
       {
@@ -3058,7 +2471,7 @@
         ],
         "accepted": true,
         "minScore": 0.9082,
-        "coverageAtSelection": 0.75,
+        "coverageAtSelection": 1,
         "evaluated": {
           "candidates": 56,
           "accepted": 4,
@@ -3093,109 +2506,95 @@
       },
       {
         "beat": "p07",
-        "recipeId": "over_shoulder",
+        "recipeId": "wide_environment",
         "recipeKnown": true,
-        "intent": "medium",
+        "intent": "wide",
         "motion": "static",
         "framingFrom": 0,
-        "source": "fallback",
-        "candidateId": "fallback:two_character_medium",
-        "variant": null,
-        "fallback": "two_character_medium",
+        "source": "recipe",
+        "candidateId": "wide_environment:y-15_s1_h12_f44",
+        "variant": {
+          "id": "y-15_s1_h12_f44",
+          "yaw": -15,
+          "size": 1,
+          "height": 12,
+          "fov": 44
+        },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                0.8352222453501874,
-                1.602196622916081,
-                6.154505481443795
+                -3.4245963492524245,
+                3.5837808695182733,
+                11.248391971981384
               ],
               "target": [
-                0.6614264490596543,
-                1.3521966229160811,
-                -0.3316116440854967
+                0.9050000596605239,
+                1.4978241364844143,
+                -2.5417845777422188
               ],
-              "fovDeg": 38
+              "fovDeg": 44
             }
           }
         ],
         "samples": [
           {
-            "t": 31.57,
-            "accepted": true,
-            "score": 0.97138,
-            "reasons": [],
-            "screenDirection": "no_axis"
-          },
-          {
-            "t": 32.2,
-            "accepted": true,
-            "score": 0.973097,
-            "reasons": [],
-            "screenDirection": "no_axis"
-          },
-          {
             "t": 32.8,
             "accepted": true,
-            "score": 0.972407,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 33.21,
             "accepted": true,
-            "score": 0.971724,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 33.45,
             "accepted": true,
-            "score": 0.971636,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 34.85,
             "accepted": true,
-            "score": 0.971475,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           }
         ],
         "accepted": true,
-        "minScore": 0.9714,
-        "coverageAtSelection": 0.6,
+        "minScore": 0.85,
+        "coverageAtSelection": 1,
         "evaluated": {
-          "candidates": 32,
-          "accepted": 0,
-          "fallbacks": 3
+          "candidates": 20,
+          "accepted": 20,
+          "fallbacks": 0
         },
-        "rejectionSummary": {
-          "HEAD_CROPPED": 186,
-          "SHOT_TOO_TIGHT_FOR_INTENT": 192
-        },
+        "rejectionSummary": {},
         "subjects": {
-          "active": "zapp",
+          "active": "spark_coin",
           "required": [
-            "zapp",
-            "suspicious_button"
+            "spark_coin"
           ],
           "optional": [
+            "zapp",
             "kira"
           ],
-          "heroProps": [],
-          "foreground": "suspicious_button"
+          "heroProps": [
+            "spark_coin"
+          ]
         },
         "diagnostics": {
-          "headHeightPct": {
-            "kira": 16.5,
-            "zapp": 18.6
-          },
+          "headHeightPct": {},
           "faceVisibility": {
-            "kira": 0,
-            "zapp": 1
+            "kira": 1,
+            "zapp": 0.8
           },
           "selfOccludedFeatures": [],
           "cameraSide": "none"
@@ -3209,11 +2608,11 @@
         "motion": "static",
         "framingFrom": 0,
         "source": "recipe",
-        "candidateId": "medium_single:y20_s0.27_h-0.08_f38_w",
+        "candidateId": "medium_single:y50_s0.22_h-0.08_f38_w",
         "variant": {
-          "id": "y20_s0.27_h-0.08_f38_w",
-          "yaw": 20,
-          "size": 0.27,
+          "id": "y50_s0.22_h-0.08_f38_w",
+          "yaw": 50,
+          "size": 0.22,
           "height": -0.08,
           "fov": 46
         },
@@ -3222,14 +2621,14 @@
             "lt": 0,
             "pose": {
               "pos": [
-                -3.684708362098234,
-                1.3145697359701827,
-                -0.6934722732042573
+                -4.2522105120394,
+                2.1191228691110453,
+                1.9911339372789751
               ],
               "target": [
-                0.00016381140449084342,
-                1.2110349655151367,
-                -0.6101285815238953
+                0.2116980403661728,
+                1.824469518661499,
+                -0.5342304110527039
               ],
               "fovDeg": 46
             }
@@ -3239,58 +2638,58 @@
           {
             "t": 35.25,
             "accepted": true,
-            "score": 0.988905,
+            "score": 0.918367,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 35.6,
             "accepted": true,
-            "score": 0.990461,
+            "score": 0.921231,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 36,
             "accepted": true,
-            "score": 0.990093,
+            "score": 0.926578,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
-            "t": 36.2366,
+            "t": 36.2431,
             "accepted": true,
-            "score": 0.992293,
+            "score": 0.917039,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 37.53,
             "accepted": true,
-            "score": 0.991419,
+            "score": 0.921731,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 39.81,
             "accepted": true,
-            "score": 0.990464,
+            "score": 0.924597,
             "reasons": [],
             "screenDirection": "no_axis"
           }
         ],
         "accepted": true,
-        "minScore": 0.9889,
-        "coverageAtSelection": 0.6,
+        "minScore": 0.917,
+        "coverageAtSelection": 0.8,
         "evaluated": {
           "candidates": 84,
-          "accepted": 12,
+          "accepted": 20,
           "fallbacks": 0
         },
         "rejectionSummary": {
-          "FACE_VISIBILITY_LOW": 39,
-          "HEAD_CROPPED": 295,
-          "SHOT_TOO_TIGHT_FOR_INTENT": 109
+          "FACE_VISIBILITY_LOW": 38,
+          "SHOT_TOO_TIGHT_FOR_INTENT": 120,
+          "HEAD_CROPPED": 177
         },
         "subjects": {
           "active": "zapp",
@@ -3304,10 +2703,10 @@
         },
         "diagnostics": {
           "headHeightPct": {
-            "zapp": 26.6
+            "zapp": 20.6
           },
           "faceVisibility": {
-            "kira": 0.6,
+            "kira": 0.8,
             "zapp": 1
           },
           "selfOccludedFeatures": [],
@@ -3316,196 +2715,35 @@
       },
       {
         "beat": "p09",
-        "recipeId": "reaction_punch_in",
+        "recipeId": "wide_environment",
         "recipeKnown": true,
-        "intent": "reaction",
-        "motion": "punch",
+        "intent": "wide",
+        "motion": "static",
         "framingFrom": 0,
         "source": "recipe",
-        "candidateId": "reaction_punch_in:y0_s0.29_h0.15_f38",
+        "candidateId": "wide_environment:y-15_s1_h12_f44",
         "variant": {
-          "id": "y0_s0.29_h0.15_f38",
-          "yaw": 0,
-          "size": 0.29,
-          "height": 0.15,
-          "fov": 38,
-          "size1": 0.4
+          "id": "y-15_s1_h12_f44",
+          "yaw": -15,
+          "size": 1,
+          "height": 12,
+          "fov": 44
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                -3.7532438208481365,
-                1.6348742992028085,
-                -1.9219251243527053
+                -3.8401985420837303,
+                3.7685731551320316,
+                12.464262397031153
               ],
               "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
+                0.6800000596605238,
+                1.493470972292125,
+                -2.6332081439386816
               ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 0.05,
-            "pose": {
-              "pos": [
-                -3.650153465536015,
-                1.6348742992028085,
-                -1.88599178840862
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 0.1,
-            "pose": {
-              "pos": [
-                -3.415503034694762,
-                1.6348742992028085,
-                -1.804201666187053
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 0.2,
-            "pose": {
-              "pos": [
-                -2.925848646109777,
-                1.6348742992028085,
-                -1.6335269644824284
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 0.3,
-            "pose": {
-              "pos": [
-                -2.762279081210899,
-                1.617251914971981,
-                -1.573202775757533
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 0.36,
-            "pose": {
-              "pos": [
-                -2.762279081210899,
-                1.617251914971981,
-                -1.573202775757533
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 1.56,
-            "pose": {
-              "pos": [
-                -2.748252032410577,
-                1.6211217777749518,
-                -1.5675417946572945
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 1.86,
-            "pose": {
-              "pos": [
-                -2.748167213141883,
-                1.6211456591699305,
-                -1.567464030565779
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 2.74,
-            "pose": {
-              "pos": [
-                -2.7529881253230886,
-                1.6177945039578412,
-                -1.5690705774032145
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 3.67,
-            "pose": {
-              "pos": [
-                -2.754389066566396,
-                1.6169511310925948,
-                -1.569441817551025
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
-            }
-          },
-          {
-            "lt": 3.72,
-            "pose": {
-              "pos": [
-                -2.754389066566396,
-                1.6169511310925948,
-                -1.569441817551025
-              ],
-              "target": [
-                -0.003918925300240517,
-                1.4627694606781005,
-                -0.6071589589118958
-              ],
-              "fovDeg": 38
+              "fovDeg": 44
             }
           }
         ],
@@ -3513,74 +2751,73 @@
           {
             "t": 40.29,
             "accepted": true,
-            "score": 0.944423,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 40.6,
             "accepted": true,
-            "score": 0.974242,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 41.8,
             "accepted": true,
-            "score": 0.973629,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 42.1,
             "accepted": true,
-            "score": 0.973622,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 42.98,
             "accepted": true,
-            "score": 0.952653,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 43.91,
             "accepted": true,
-            "score": 0.952477,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           }
         ],
         "accepted": true,
-        "minScore": 0.9444,
-        "coverageAtSelection": 0.6,
+        "minScore": 0.85,
+        "coverageAtSelection": 1,
         "evaluated": {
-          "candidates": 42,
-          "accepted": 8,
+          "candidates": 20,
+          "accepted": 20,
           "fallbacks": 0
         },
-        "rejectionSummary": {
-          "HEAD_CROPPED": 191
-        },
+        "rejectionSummary": {},
         "subjects": {
-          "active": "zapp",
+          "active": "spark_coin",
           "required": [
-            "zapp"
+            "spark_coin"
           ],
           "optional": [
+            "zapp",
             "kira"
           ],
-          "heroProps": []
+          "heroProps": [
+            "spark_coin"
+          ]
         },
         "diagnostics": {
-          "headHeightPct": {
-            "zapp": 40.2
-          },
+          "headHeightPct": {},
           "faceVisibility": {
             "kira": 0,
-            "zapp": 1
+            "zapp": 0
           },
           "selfOccludedFeatures": [],
           "cameraSide": "none"
@@ -3588,125 +2825,98 @@
       },
       {
         "beat": "p10",
-        "recipeId": "low_angle_reveal",
+        "recipeId": "wide_environment",
         "recipeKnown": true,
-        "intent": "scale_reveal",
+        "intent": "wide",
         "motion": "static",
         "framingFrom": 0,
-        "source": "blocked_best_effort",
-        "candidateId": "low_angle_reveal:y50_s0.74_h0.6_f48",
+        "source": "recipe",
+        "candidateId": "wide_environment:y-15_s1_h12_f44",
         "variant": {
-          "id": "y50_s0.74_h0.6_f48",
-          "yaw": 50,
-          "size": 0.74,
-          "height": 0.6,
-          "fov": 48
+          "id": "y-15_s1_h12_f44",
+          "yaw": -15,
+          "size": 1,
+          "height": 12,
+          "fov": 44
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                3.6793614563778716,
-                0.5072842407393814,
-                3.313820206343621
+                -4.3,
+                4,
+                14
               ],
               "target": [
-                -1.7000000476837158,
-                1.2162732124328615,
-                -1.2000000476837158
+                0.1985000253282483,
+                1.4964709932729603,
+                -2.644024865329265
               ],
-              "fovDeg": 48
+              "fovDeg": 44
             }
           }
         ],
         "samples": [
           {
             "t": 44.27,
-            "accepted": false,
-            "score": 0.910037,
-            "reasons": [
-              "HEAD_CROPPED:kira",
-              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-            ],
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 44.5,
-            "accepted": false,
-            "score": 0.93074,
-            "reasons": [
-              "HEAD_CROPPED:kira",
-              "SCALE_REVEAL_EMBLEM_HIDDEN:spark_coin",
-              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-            ],
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 44.78,
-            "accepted": false,
-            "score": 0.96075,
-            "reasons": [
-              "HEAD_CROPPED:kira"
-            ],
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 46,
-            "accepted": false,
-            "score": 1,
-            "reasons": [
-              "HEAD_CROPPED:kira",
-              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.50<0.75"
-            ],
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 46.18,
-            "accepted": false,
-            "score": 1,
-            "reasons": [
-              "HEAD_CROPPED:kira",
-              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-            ],
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 46.86,
-            "accepted": false,
-            "score": 1,
-            "reasons": [
-              "HEAD_CROPPED:kira",
-              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-            ],
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 49.45,
-            "accepted": false,
-            "score": 1,
-            "reasons": [
-              "HEAD_CROPPED:kira",
-              "SCALE_REVEAL_SILHOUETTE_LOW:spark_coin:0.67<0.75"
-            ],
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
             "screenDirection": "no_axis"
           }
         ],
-        "accepted": false,
-        "minScore": 0.91,
-        "coverageAtSelection": 0.8,
+        "accepted": true,
+        "minScore": 0.85,
+        "coverageAtSelection": 1,
         "evaluated": {
-          "candidates": 24,
-          "accepted": 0,
-          "fallbacks": 1
+          "candidates": 20,
+          "accepted": 20,
+          "fallbacks": 0
         },
-        "rejectionSummary": {
-          "HEAD_CROPPED": 189,
-          "SCALE_REVEAL_NO_THICKNESS_EDGE": 7,
-          "SCALE_REVEAL_EMBLEM_HIDDEN": 4,
-          "SCALE_REVEAL_SILHOUETTE_LOW": 21,
-          "HERO_PROP_VISIBILITY_LOW": 2
-        },
+        "rejectionSummary": {},
         "subjects": {
           "active": "spark_coin",
           "required": [
@@ -3732,35 +2942,35 @@
       },
       {
         "beat": "p11",
-        "recipeId": "two_shot",
+        "recipeId": "wide_environment",
         "recipeKnown": true,
-        "intent": "medium",
+        "intent": "wide",
         "motion": "static",
         "framingFrom": 0,
-        "source": "blocked_best_effort",
-        "candidateId": "two_shot:y-60_s1_h0.3_f40",
+        "source": "recipe",
+        "candidateId": "wide_environment:y0_s1_h12_f44",
         "variant": {
-          "id": "y-60_s1_h0.3_f40",
-          "yaw": -60,
+          "id": "y0_s1_h12_f44",
+          "yaw": 0,
           "size": 1,
-          "height": 0.3,
-          "fov": 40
+          "height": 12,
+          "fov": 44
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                -4.3,
-                2.467182330131531,
-                3.8661722330366137
+                0.1985000253282483,
+                4,
+                14
               ],
               "target": [
-                0.6531446008323691,
-                1.3520386457443239,
-                -0.18019518442801197
+                0.1985000253282483,
+                1.4964709932729603,
+                -1.8500324803148394
               ],
-              "fovDeg": 40
+              "fovDeg": 44
             }
           }
         ],
@@ -3768,89 +2978,74 @@
           {
             "t": 49.91,
             "accepted": true,
-            "score": 0.913377,
+            "score": 0.638915,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 50.2,
             "accepted": true,
-            "score": 0.913938,
+            "score": 0.636051,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 52.28,
-            "accepted": false,
-            "score": 0.621062,
-            "reasons": [
-              "FACE_VISIBILITY_LOW:zapp:0<0.8",
-              "HEAD_CROPPED:zapp",
-              "HEAD_CROPPED:kira",
-              "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
-              "UPPER_BODY_NOT_READABLE:zapp"
-            ],
+            "accepted": true,
+            "score": 0.642031,
+            "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 52.5,
-            "accepted": false,
-            "score": 0.613763,
-            "reasons": [
-              "FACE_VISIBILITY_LOW:zapp:0<0.8",
-              "HEAD_CROPPED:zapp",
-              "HEAD_CROPPED:kira",
-              "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
-              "UPPER_BODY_NOT_READABLE:zapp"
-            ],
+            "accepted": true,
+            "score": 0.64411,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 53.4037,
+            "accepted": true,
+            "score": 0.646531,
+            "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 54.65,
-            "accepted": false,
-            "score": 0.614858,
-            "reasons": [
-              "FACE_VISIBILITY_LOW:zapp:0<0.8",
-              "HEAD_CROPPED:zapp",
-              "HEAD_CROPPED:kira",
-              "REQUIRED_SUBJECT_NOT_IN_FRAME:zapp",
-              "UPPER_BODY_NOT_READABLE:zapp"
-            ],
+            "accepted": true,
+            "score": 0.947549,
+            "reasons": [],
             "screenDirection": "no_axis"
           }
         ],
-        "accepted": false,
-        "minScore": 0.6138,
-        "coverageAtSelection": 0.6,
+        "accepted": true,
+        "minScore": 0.6361,
+        "coverageAtSelection": 1,
         "evaluated": {
-          "candidates": 56,
-          "accepted": 0,
-          "fallbacks": 3
+          "candidates": 20,
+          "accepted": 12,
+          "fallbacks": 0
         },
         "rejectionSummary": {
-          "FACE_VISIBILITY_LOW": 152,
-          "SUBJECT_TOO_SMALL_FOR_INTENT": 516,
-          "HEAD_CROPPED": 188,
-          "UPPER_BODY_NOT_READABLE": 24,
-          "REQUIRED_SUBJECT_NOT_IN_FRAME": 16
+          "HEAD_CROPPED": 16
         },
         "subjects": {
           "active": "zapp",
           "required": [
-            "zapp",
+            "zapp"
+          ],
+          "optional": [
             "kira"
           ],
-          "optional": [],
           "heroProps": []
         },
         "diagnostics": {
           "headHeightPct": {
-            "kira": 14.8,
-            "zapp": 0
+            "zapp": 8.5
           },
           "faceVisibility": {
-            "kira": 0.4,
-            "zapp": 0
+            "kira": 0,
+            "zapp": 1
           },
           "selfOccludedFeatures": [],
           "cameraSide": "none"
@@ -3858,35 +3053,35 @@
       },
       {
         "beat": "p12",
-        "recipeId": "top_down",
+        "recipeId": "wide_environment",
         "recipeKnown": true,
         "intent": "wide",
         "motion": "static",
         "framingFrom": 0,
         "source": "recipe",
-        "candidateId": "top_down:y20_s1_h52_f62",
+        "candidateId": "wide_environment:y-15_s1_h12_f52",
         "variant": {
-          "id": "y20_s1_h52_f62",
-          "yaw": 20,
+          "id": "y-15_s1_h12_f52",
+          "yaw": -15,
           "size": 1,
-          "height": 52,
-          "fov": 62
+          "height": 12,
+          "fov": 52
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                3.697897448800907,
-                4,
-                14
+                -4.130374876606835,
+                3.9055058249665358,
+                13.402560938851611
               ],
               "target": [
-                -1.7000000476837158,
-                1.5186655795574189,
-                -0.5238777175545694
+                0.18814243560656863,
+                1.4997611886635422,
+                -1.8077503461204465
               ],
-              "fovDeg": 62
+              "fovDeg": 52
             }
           }
         ],
@@ -3908,19 +3103,12 @@
           {
             "t": 55.7,
             "accepted": true,
-            "score": 0.81,
+            "score": 0.85,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
-            "t": 56.3791,
-            "accepted": true,
-            "score": 0.81,
-            "reasons": [],
-            "screenDirection": "no_axis"
-          },
-          {
-            "t": 56.9791,
+            "t": 56.936,
             "accepted": true,
             "score": 0.85,
             "reasons": [],
@@ -3928,6 +3116,13 @@
           },
           {
             "t": 57.27,
+            "accepted": true,
+            "score": 0.85,
+            "reasons": [],
+            "screenDirection": "no_axis"
+          },
+          {
+            "t": 57.536,
             "accepted": true,
             "score": 0.85,
             "reasons": [],
@@ -3945,13 +3140,12 @@
         "minScore": 0.81,
         "coverageAtSelection": 1,
         "evaluated": {
-          "candidates": 45,
-          "accepted": 15,
+          "candidates": 20,
+          "accepted": 12,
           "fallbacks": 0
         },
         "rejectionSummary": {
-          "HEAD_CROPPED": 164,
-          "HERO_PROP_VISIBILITY_LOW": 7
+          "HEAD_CROPPED": 32
         },
         "subjects": {
           "active": "spark_coin",
@@ -3969,8 +3163,8 @@
         "diagnostics": {
           "headHeightPct": {},
           "faceVisibility": {
-            "kira": 0,
-            "zapp": 0.6
+            "kira": 0.6,
+            "zapp": 0
           },
           "selfOccludedFeatures": [],
           "cameraSide": "none"
@@ -3978,36 +3172,35 @@
       },
       {
         "beat": "p13",
-        "recipeId": "over_shoulder",
+        "recipeId": "wide_environment",
         "recipeKnown": true,
-        "intent": "over_shoulder",
+        "intent": "wide",
         "motion": "static",
         "framingFrom": 0,
         "source": "recipe",
-        "candidateId": "over_shoulder:s1_l0.8_b1.3_h0.35_f28",
+        "candidateId": "wide_environment:y15_s1_h12_f44",
         "variant": {
-          "id": "s1_l0.8_b1.3_h0.35_f28",
-          "yaw": 0,
-          "side": 0.8,
-          "size": 1.3,
-          "height": 0.35,
-          "fov": 28
+          "id": "y15_s1_h12_f44",
+          "yaw": 15,
+          "size": 1,
+          "height": 12,
+          "fov": 44
         },
         "keys": [
           {
             "lt": 0,
             "pose": {
               "pos": [
-                2.614145333229879,
-                1.9190033038457233,
-                2.2304419715521138
+                4.3,
+                4,
+                14
               ],
               "target": [
-                2.499779875312224,
-                1.769383144378662,
-                -3.472020718283318
+                0.18814243560656863,
+                1.495486930222978,
+                -1.8077503461204465
               ],
-              "fovDeg": 28
+              "fovDeg": 44
             }
           }
         ],
@@ -4015,61 +3208,57 @@
           {
             "t": 60.6,
             "accepted": true,
-            "score": 0.84117,
+            "score": 0.932444,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 61.9932,
             "accepted": true,
-            "score": 0.965822,
+            "score": 0.938172,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 62.4,
             "accepted": true,
-            "score": 0.965304,
+            "score": 0.937342,
             "reasons": [],
             "screenDirection": "no_axis"
           },
           {
             "t": 64.89,
             "accepted": true,
-            "score": 0.965393,
+            "score": 0.937397,
             "reasons": [],
             "screenDirection": "no_axis"
           }
         ],
         "accepted": true,
-        "minScore": 0.8412,
-        "coverageAtSelection": 0.5,
+        "minScore": 0.9324,
+        "coverageAtSelection": 0.8333,
         "evaluated": {
-          "candidates": 32,
-          "accepted": 8,
+          "candidates": 20,
+          "accepted": 12,
           "fallbacks": 0
         },
         "rejectionSummary": {
-          "FOREGROUND_CLUTTER": 34,
-          "FACE_VISIBILITY_LOW": 56,
-          "OTS_FOREGROUND_OBSTRUCTION": 56
+          "PROP_COVERS_FACE": 8
         },
         "subjects": {
           "active": "teacher",
           "required": [
-            "teacher",
-            "kira"
+            "teacher"
           ],
           "optional": [
+            "kira",
             "zapp"
           ],
-          "heroProps": [],
-          "foreground": "kira"
+          "heroProps": []
         },
         "diagnostics": {
           "headHeightPct": {
-            "kira": 0,
-            "teacher": 20.4
+            "teacher": 6.1
           },
           "faceVisibility": {
             "kira": 0,
@@ -4088,10 +3277,10 @@
         "motion": "dolly",
         "framingFrom": 0,
         "source": "recipe",
-        "candidateId": "final_loop:ctx_y0_s1_h10_f46",
+        "candidateId": "final_loop:ctx_y-15_s1_h10_f46",
         "variant": {
-          "id": "ctx_y0_s1_h10_f46",
-          "yaw": 0,
+          "id": "ctx_y-15_s1_h10_f46",
+          "yaw": -15,
           "size": 1,
           "height": 10,
           "fov": 46,
@@ -4104,14 +3293,14 @@
             "lt": 0,
             "pose": {
               "pos": [
-                0.38008785247802734,
+                -4.3,
                 4,
                 14
               ],
               "target": [
-                0.38008785247802734,
-                1.0188359530828892,
-                -1.3190079280734062
+                0.18814243560656863,
+                1.4954713060799985,
+                -1.5083753699623044
               ],
               "fovDeg": 46
             }
@@ -4120,14 +3309,14 @@
             "lt": 0.05,
             "pose": {
               "pos": [
-                0.3799629642098319,
+                -4.3,
                 4,
                 14
               ],
               "target": [
-                0.3799629642098319,
-                1.0187869168313874,
-                -1.3186960226111308
+                0.18806747930499762,
+                1.4952982796810592,
+                -1.5080142031582255
               ],
               "fovDeg": 46
             }
@@ -4136,14 +3325,14 @@
             "lt": 0.7,
             "pose": {
               "pos": [
-                0.3584408489523083,
+                -4.3,
                 4,
                 14
               ],
               "target": [
-                0.3584408489523083,
-                1.0103364524934169,
-                -1.2649450546015977
+                0.17515018783319528,
+                1.4654804740987193,
+                -1.4457739807827075
               ],
               "fovDeg": 46
             }
@@ -4152,14 +3341,14 @@
             "lt": 0.9,
             "pose": {
               "pos": [
-                0.34574402316651726,
+                -4.3,
                 4,
                 14
               ],
               "target": [
-                0.34574402316651726,
-                1.0053511584261554,
-                -1.2332350359315647
+                0.16752971942294337,
+                1.4478896621239896,
+                -1.4090557841317257
               ],
               "fovDeg": 46
             }
@@ -4168,14 +3357,14 @@
             "lt": 1.89,
             "pose": {
               "pos": [
-                0.26006588898599153,
-                4,
+                -4.3,
+                3.8541438427415367,
                 14
               ],
               "target": [
-                0.26006588898599153,
-                0.9717104122089222,
-                -1.0192559453845025
+                0.11610682633239747,
+                1.3291869269567542,
+                -1.1612815268011762
               ],
               "fovDeg": 46
             }
@@ -4184,14 +3373,14 @@
             "lt": 3.73,
             "pose": {
               "pos": [
-                0.14016881376215104,
-                4,
-                14
+                -4.1141139786458565,
+                3.48351928048813,
+                13.553947748872181
               ],
               "target": [
-                0.14016881376215104,
-                0.9246339075864567,
-                -0.7198158681578738
+                0.04414617335979726,
+                1.163075574232449,
+                -0.8145488504441265
               ],
               "fovDeg": 46
             }
@@ -4200,14 +3389,14 @@
             "lt": 3.78,
             "pose": {
               "pos": [
-                0.1400439254939556,
-                4,
-                14
+                -4.1138071884700285,
+                3.4831332272033095,
+                13.55298982481571
               ],
               "target": [
-                0.1400439254939556,
-                0.924584871334955,
-                -0.7195039626955986
+                0.04407121705822625,
+                1.1629025478335095,
+                -0.8141876836400477
               ],
               "fovDeg": 46
             }
@@ -4252,18 +3441,14 @@
         ],
         "accepted": true,
         "minScore": 0.85,
-        "coverageAtSelection": 1,
+        "coverageAtSelection": 0.8333,
         "evaluated": {
           "candidates": 30,
-          "accepted": 25,
+          "accepted": 26,
           "fallbacks": 0
         },
         "rejectionSummary": {
-          "FOREGROUND_CLUTTER": 20,
-          "HERO_PROP_VISIBILITY_LOW": 22,
-          "INTERACTION_POINT_HIDDEN": 8,
-          "CAMERA_PATH_COLLISION": 1,
-          "LENS_COLLISION": 1
+          "HEAD_CROPPED": 4
         },
         "subjects": {
           "active": "suspicious_button",
@@ -4284,7 +3469,7 @@
           "faceVisibility": {
             "kira": 0,
             "teacher": 1,
-            "zapp": 0.6
+            "zapp": 0
           },
           "selfOccludedFeatures": [],
           "cameraSide": "none"
@@ -4295,153 +3480,123 @@
   "coverage": {
     "threshold": 0.9,
     "step": 0.3333,
-    "visual": 87,
-    "covered": 65,
-    "pct": 0.7471,
-    "blocking": true,
-    "audioOnly": 19,
+    "visual": 55,
+    "covered": 54,
+    "pct": 0.9818,
+    "blocking": false,
+    "audioOnly": 51,
     "beats": [
       {
         "beat": "p01",
         "recipeId": "establishing_wide",
-        "visual": 7,
-        "covered": 7,
+        "visual": 6,
+        "covered": 6,
         "pct": 1,
         "missing": []
       },
       {
         "beat": "p02",
-        "recipeId": "slow_push_in",
-        "visual": 6,
-        "covered": 3,
-        "pct": 0.5,
-        "missing": [
-          "door (closed)",
-          "suspicious_button (idle)",
-          "door_close classroom_door@4.9"
-        ]
+        "recipeId": "establishing_wide",
+        "visual": 4,
+        "covered": 4,
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p03",
         "recipeId": "low_angle_hero",
-        "visual": 5,
-        "covered": 5,
+        "visual": 2,
+        "covered": 2,
         "pct": 1,
         "missing": []
       },
       {
         "beat": "p04",
         "recipeId": "two_shot",
-        "visual": 4,
-        "covered": 3,
-        "pct": 0.75,
-        "missing": [
-          "door (closed)"
-        ]
+        "visual": 2,
+        "covered": 2,
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p05",
         "recipeId": "insert_prop",
-        "visual": 6,
+        "visual": 4,
         "covered": 4,
-        "pct": 0.6667,
-        "missing": [
-          "kira (sit)",
-          "door (closed)"
-        ]
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p06",
         "recipeId": "two_shot",
-        "visual": 4,
+        "visual": 3,
         "covered": 3,
-        "pct": 0.75,
-        "missing": [
-          "door (closed)"
-        ]
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p07",
-        "recipeId": "over_shoulder",
-        "visual": 7,
+        "recipeId": "wide_environment",
+        "visual": 5,
         "covered": 5,
-        "pct": 0.7143,
-        "missing": [
-          "door (closed)",
-          "spark_coin (spawned)"
-        ]
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p08",
         "recipeId": "medium_single",
-        "visual": 7,
+        "visual": 5,
         "covered": 4,
-        "pct": 0.5714,
+        "pct": 0.8,
         "missing": [
-          "door (closed)",
-          "spark_coin (spawned)",
-          "text ui_popup@36->spark_coin"
+          "spark_coin (spawned)"
         ]
       },
       {
         "beat": "p09",
-        "recipeId": "reaction_punch_in",
-        "visual": 6,
+        "recipeId": "wide_environment",
+        "visual": 4,
         "covered": 4,
-        "pct": 0.6667,
-        "missing": [
-          "door (closed)",
-          "spark_coin (growing)"
-        ]
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p10",
-        "recipeId": "low_angle_reveal",
-        "visual": 6,
-        "covered": 5,
-        "pct": 0.8333,
-        "missing": [
-          "door (closed)"
-        ]
+        "recipeId": "wide_environment",
+        "visual": 4,
+        "covered": 4,
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p11",
-        "recipeId": "two_shot",
-        "visual": 6,
-        "covered": 3,
-        "pct": 0.5,
-        "missing": [
-          "zapp (arms_crossed)",
-          "spark_coin (giant)",
-          "vfx emote_sweat@52.5->zapp"
-        ]
+        "recipeId": "wide_environment",
+        "visual": 4,
+        "covered": 4,
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p12",
-        "recipeId": "top_down",
-        "visual": 7,
-        "covered": 7,
+        "recipeId": "wide_environment",
+        "visual": 4,
+        "covered": 4,
         "pct": 1,
         "missing": []
       },
       {
         "beat": "p13",
-        "recipeId": "over_shoulder",
-        "visual": 9,
-        "covered": 5,
-        "pct": 0.5556,
-        "missing": [
-          "kira (sit)",
-          "zapp (flattened)",
-          "suspicious_button (idle)",
-          "spark_coin (tipped)"
-        ]
+        "recipeId": "wide_environment",
+        "visual": 6,
+        "covered": 6,
+        "pct": 1,
+        "missing": []
       },
       {
         "beat": "p14",
         "recipeId": "final_loop",
-        "visual": 7,
-        "covered": 7,
+        "visual": 2,
+        "covered": 2,
         "pct": 1,
         "missing": []
       }
@@ -4512,10 +3667,11 @@
           "suspicious_button"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 13,
         "seen": 13,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p01",
@@ -4541,7 +3697,7 @@
         "space": "world",
         "counted": true,
         "samples": 3,
-        "seen": 2,
+        "seen": 3,
         "covered": true
       },
       {
@@ -4594,10 +3750,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 14,
         "seen": 14,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p02",
@@ -4610,8 +3767,8 @@
         "space": "world",
         "counted": true,
         "samples": 14,
-        "seen": 0,
-        "covered": false
+        "seen": 14,
+        "covered": true
       },
       {
         "beat": "p02",
@@ -4622,10 +3779,11 @@
           "suspicious_button"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 14,
-        "seen": 0,
-        "covered": false
+        "seen": 14,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p02",
@@ -4638,8 +3796,8 @@
         "space": "world",
         "counted": true,
         "samples": 3,
-        "seen": 0,
-        "covered": false
+        "seen": 3,
+        "covered": true
       },
       {
         "beat": "p02",
@@ -4691,10 +3849,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 18,
         "seen": 17,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p03",
@@ -4705,10 +3864,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 18,
         "seen": 18,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p03",
@@ -4719,10 +3879,11 @@
           "suspicious_button"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 18,
         "seen": 18,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p03",
@@ -4801,10 +3962,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 14,
-        "seen": 0,
-        "covered": false
+        "seen": 6,
+        "covered": false,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p04",
@@ -4815,10 +3977,11 @@
           "suspicious_button"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 14,
-        "seen": 14,
-        "covered": true
+        "seen": 8,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p05",
@@ -4843,10 +4006,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 14,
         "seen": 0,
-        "covered": false
+        "covered": false,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p05",
@@ -4857,10 +4021,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 14,
         "seen": 0,
-        "covered": false
+        "covered": false,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p05",
@@ -4954,10 +4119,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 16,
-        "seen": 0,
-        "covered": false
+        "seen": 16,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p06",
@@ -5009,10 +4175,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 10,
         "seen": 10,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p07",
@@ -5023,10 +4190,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 10,
-        "seen": 0,
-        "covered": false
+        "seen": 10,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p07",
@@ -5053,14 +4221,14 @@
         "space": "world",
         "counted": true,
         "samples": 6,
-        "seen": 1,
-        "covered": false
+        "seen": 6,
+        "covered": true
       },
       {
         "beat": "p07",
         "kind": "event",
         "id": "p07#0",
-        "label": "sfx sfx_click@32.2",
+        "label": "sfx sfx_click@32.248",
         "witness": [],
         "space": "audio",
         "counted": false,
@@ -5106,7 +4274,7 @@
         "space": "world",
         "counted": true,
         "samples": 3,
-        "seen": 1,
+        "seen": 3,
         "covered": true
       },
       {
@@ -5132,10 +4300,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 14,
-        "seen": 11,
-        "covered": true
+        "seen": 14,
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p08",
@@ -5146,10 +4315,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 14,
-        "seen": 0,
-        "covered": false
+        "seen": 14,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p08",
@@ -5211,14 +4381,13 @@
         "kind": "event",
         "id": "p08#2",
         "label": "text ui_popup@36->spark_coin",
-        "witness": [
-          "spark_coin"
-        ],
-        "space": "world",
+        "witness": [],
+        "space": "screen",
         "counted": true,
-        "samples": 3,
-        "seen": 0,
-        "covered": false
+        "samples": 1,
+        "seen": 1,
+        "covered": true,
+        "reason": "screen-space"
       },
       {
         "beat": "p09",
@@ -5243,10 +4412,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 11,
         "seen": 11,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p09",
@@ -5257,10 +4427,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 11,
-        "seen": 0,
-        "covered": false
+        "seen": 11,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p09",
@@ -5287,8 +4458,8 @@
         "space": "world",
         "counted": true,
         "samples": 11,
-        "seen": 0,
-        "covered": false
+        "seen": 11,
+        "covered": true
       },
       {
         "beat": "p09",
@@ -5352,10 +4523,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 16,
         "seen": 16,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p10",
@@ -5366,10 +4538,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 16,
-        "seen": 0,
-        "covered": false
+        "seen": 16,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p10",
@@ -5436,8 +4609,8 @@
         "space": "world",
         "counted": true,
         "samples": 15,
-        "seen": 5,
-        "covered": false
+        "seen": 15,
+        "covered": true
       },
       {
         "beat": "p11",
@@ -5450,7 +4623,7 @@
         "space": "world",
         "counted": true,
         "samples": 15,
-        "seen": 13,
+        "seen": 15,
         "covered": true
       },
       {
@@ -5462,10 +4635,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 15,
-        "seen": 10,
-        "covered": true
+        "seen": 15,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p11",
@@ -5476,10 +4650,11 @@
           "suspicious_button"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 15,
         "seen": 15,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p11",
@@ -5492,8 +4667,8 @@
         "space": "world",
         "counted": true,
         "samples": 15,
-        "seen": 0,
-        "covered": false
+        "seen": 15,
+        "covered": true
       },
       {
         "beat": "p11",
@@ -5519,8 +4694,8 @@
         "space": "world",
         "counted": true,
         "samples": 3,
-        "seen": 0,
-        "covered": false
+        "seen": 3,
+        "covered": true
       },
       {
         "beat": "p12",
@@ -5533,7 +4708,7 @@
         "space": "world",
         "counted": true,
         "samples": 13,
-        "seen": 13,
+        "seen": 7,
         "covered": true
       },
       {
@@ -5545,10 +4720,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 13,
         "seen": 13,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p12",
@@ -5559,10 +4735,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 13,
         "seen": 13,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p12",
@@ -5573,10 +4750,11 @@
           "suspicious_button"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 13,
         "seen": 13,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p12",
@@ -5609,7 +4787,7 @@
         "beat": "p12",
         "kind": "event",
         "id": "p12#1",
-        "label": "sfx sfx_thud_big@57",
+        "label": "sfx sfx_thud_big@56.936",
         "witness": [],
         "space": "audio",
         "counted": false,
@@ -5622,21 +4800,21 @@
         "beat": "p12",
         "kind": "event",
         "id": "p12#2",
-        "label": "vfx dust_puff@57->zapp",
+        "label": "vfx dust_puff@56.936->zapp",
         "witness": [
           "zapp"
         ],
         "space": "world",
         "counted": true,
         "samples": 3,
-        "seen": 3,
+        "seen": 2,
         "covered": true
       },
       {
         "beat": "p12",
         "kind": "event",
         "id": "p12#3",
-        "label": "vfx screen_shake@57",
+        "label": "vfx screen_shake@56.936",
         "witness": [],
         "space": "screen",
         "counted": true,
@@ -5670,8 +4848,8 @@
         "space": "world",
         "counted": true,
         "samples": 15,
-        "seen": 3,
-        "covered": false
+        "seen": 15,
+        "covered": true
       },
       {
         "beat": "p13",
@@ -5682,10 +4860,11 @@
           "zapp"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 15,
-        "seen": 0,
-        "covered": false
+        "seen": 1,
+        "covered": false,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p13",
@@ -5698,7 +4877,7 @@
         "space": "world",
         "counted": true,
         "samples": 15,
-        "seen": 13,
+        "seen": 15,
         "covered": true
       },
       {
@@ -5710,10 +4889,11 @@
           "suspicious_button"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 15,
-        "seen": 0,
-        "covered": false
+        "seen": 15,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p13",
@@ -5724,10 +4904,11 @@
           "spark_coin"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 15,
-        "seen": 0,
-        "covered": false
+        "seen": 15,
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p13",
@@ -5753,7 +4934,7 @@
         "space": "world",
         "counted": true,
         "samples": 3,
-        "seen": 2,
+        "seen": 3,
         "covered": true
       },
       {
@@ -5806,10 +4987,11 @@
           "teacher"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
         "seen": 12,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p14",
@@ -5820,10 +5002,11 @@
           "kira"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
         "seen": 12,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p14",
@@ -5834,10 +5017,11 @@
           "zapp"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
-        "seen": 12,
-        "covered": true
+        "seen": 1,
+        "covered": false,
+        "reason": "continuity/context cast (diagnostic)"
       },
       {
         "beat": "p14",
@@ -5848,10 +5032,11 @@
           "door"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
         "seen": 12,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p14",
@@ -5876,10 +5061,11 @@
           "spark_coin"
         ],
         "space": "world",
-        "counted": true,
+        "counted": false,
         "samples": 12,
         "seen": 12,
-        "covered": true
+        "covered": true,
+        "reason": "continuity/context prop (diagnostic)"
       },
       {
         "beat": "p14",
@@ -5953,11 +5139,11 @@
     },
     "p11": {
       "file": "stills/p11.png",
-      "t": 52.28
+      "t": 52.395
     },
     "p12": {
       "file": "stills/p12.png",
-      "t": 56.979
+      "t": 56.936
     },
     "p13": {
       "file": "stills/p13.png",
@@ -5968,5 +5154,5 @@
       "t": 66.2
     }
   },
-  "timingSec": 20.727
+  "timingSec": 24.305
 }

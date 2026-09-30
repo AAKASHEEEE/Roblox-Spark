@@ -9,6 +9,7 @@ import { stageBeatSheet, beatAt, type StagePlan } from './stage.ts';
 import { VignetteScene } from './scene.ts';
 import { poseAt, type ShotChoice } from './camera.ts';
 import { drawVignetteOverlay } from './captions.ts';
+import { registerRuntimeLibrary } from './runtime-library.ts';
 
 let warm = false;
 let canvas: HTMLCanvasElement | null = null, composite: HTMLCanvasElement | null = null, renderer: Renderer | null = null, scene: VignetteScene | null = null, plan: StagePlan | null = null, shots: Record<string, ShotChoice> = {};
@@ -18,6 +19,9 @@ const api = {
   load(sheet: unknown, lib: ManifestLibrary, s: Record<string, ShotChoice>, w: number, h: number) {
     const v = validateBeatSheet(sheet);
     if (!v.value) throw new Error('beat sheet invalid');
+    // Browser and Node analysis run in separate JavaScript realms; register the same exact S2-S4 builders before
+    // rebuilding the plan so rendered pixels use the geometry/states the camera solver evaluated.
+    registerRuntimeLibrary(lib);
     plan = stageBeatSheet(v.value, lib);
     scene = new VignetteScene(plan, lib);
     shots = s; warm = false;
