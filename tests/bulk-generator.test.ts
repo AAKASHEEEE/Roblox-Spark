@@ -60,7 +60,7 @@ const okRender = (dir: string, target = 'draft'): RenderResult => ({ ok: true, r
 function request(n = 3, extra: Record<string, unknown> = {}, eps?: unknown[]): any {
   return {
     schemaVersion: '1.0', batchId: 'batch-a', title: 'Batch title', mode: 'narrated_story', concurrency: 1,
-    defaults: { storyPattern: 'comparison', captionPreset: 'shorts-default', draftQuality: '540x960', finalQuality: '1080x1920' },
+    defaults: { storyPattern: 'comparison', captionPreset: 'shorts_default', draftQuality: '540x960', finalQuality: '1080x1920' },
     episodes: eps ?? Array.from({ length: n }, (_, i) => episode(`ep-${String(i + 1).padStart(2, '0')}`)),
     ...extra,
   };
@@ -124,7 +124,7 @@ const states = (q: JobQueue) => Object.fromEntries(q.list('batch-a').map((j) => 
 test('schema: valid batch resolves with defaults; unknown keys and unknown modes are rejected', () => {
   const b = parse(request(2, {}, [episode('a'), episode('b', { storyPattern: 'hypothetical', output: 'both', tags: ['kids'], metadata: { series: 's1' } })]));
   assert.equal(b.episodes[0].storyPattern, 'comparison');
-  assert.equal(b.episodes[0].captionPreset, 'shorts-default');
+  assert.equal(b.episodes[0].captionPreset, 'shorts_default');
   assert.equal(b.episodes[0].output, 'draft');
   assert.equal(b.episodes[1].output, 'both');
   assert.equal(b.episodes[0].outputDir, 'batch-a/a');
@@ -476,6 +476,18 @@ test('pins: missing or ranged versions, malformed hashes and unhashed voice-over
   assert.match(issuesOf(request(0, {}, [episode('a', { characterRefs: [kira(), kira()] })])), /duplicate character "kira"/);
   assert.match(issuesOf(request(0, {}, [episode('a', { voiceOver: { ref: 'vo/a.wav' } })])), /voiceOver\.contentHash required/);
   assert.match(issuesOf(request(0, {}, [{ ...episode('a'), characterIds: ['kira'] }])), /characterIds unknown key/);
+});
+
+test('pins: pin IDs use the shared v.id() pattern; batch and episode IDs keep the bulk pattern', () => {
+  for (const bad of ['1abc', 'abc-']) {
+    assert.match(issuesOf(request(0, {}, [episode('a', { characterRefs: [{ ...kira(), characterId: bad }] })])), /characterRefs\[0\]\.characterId does not match/, bad);
+    assert.match(issuesOf(request(0, {}, [episode('a', { environmentRef: { ...classroom(), environmentId: bad } })])), /environmentRef\.environmentId does not match/, bad);
+  }
+  const b = parse(request(0, {}, [episode('a', { characterRefs: [kira(), zapp()], environmentRef: classroom() })]));
+  assert.deepEqual(b.episodes[0].characterRefs.map((c) => c.characterId), ['kira', 'zapp']);
+  assert.equal(b.episodes[0].environmentRef.environmentId, 'classroom');
+  // unchanged: episode IDs may still start with a digit or end with a hyphen
+  assert.deepEqual(parse(request(0, {}, [episode('1abc'), episode('abc-')])).episodes.map((e) => e.episodeId), ['1abc', 'abc-']);
 });
 
 test('pins: exact refs and voice-over hash are frozen in the job input and appear in the manifest', async () => {

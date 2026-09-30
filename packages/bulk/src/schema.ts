@@ -39,8 +39,10 @@ const exactVersion = () => v.string({ pattern: /^(0|[1-9]\d{0,5})\.(0|[1-9]\d{0,
 export interface CharacterRef { characterId: string; version: string; contentHash: string }
 export interface EnvironmentRef { environmentId: string; version: string; contentHash: string }
 export interface VoiceOverRef { ref: string; format: string | null; contentHash: string }
-const CharacterRefSchema = v.object({ characterId: id(), version: exactVersion(), contentHash: hex64() });
-const EnvironmentRefSchema = v.object({ environmentId: id(), version: exactVersion(), contentHash: hex64() });
+// Pin IDs use the shared v.id() pattern (the one the character and environment catalogs use), so bulk never accepts a
+// pin that no catalog could resolve. Batch and episode IDs keep bulk's own `id()` pattern.
+const CharacterRefSchema = v.object({ characterId: v.id(), version: exactVersion(), contentHash: hex64() });
+const EnvironmentRefSchema = v.object({ environmentId: v.id(), version: exactVersion(), contentHash: hex64() });
 
 const EpisodeRequestSchema = v.object({
   episodeId: id(),

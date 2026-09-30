@@ -5,7 +5,7 @@ This package takes a batch of 1–20 episode requests and runs them through vali
 | File | Purpose |
 | --- | --- |
 | `src/schema.ts` | Strict request schema `1.0`. Rejects unknown keys, `__proto__`/`constructor`/`prototype` keys, duplicate IDs or seeds, unsafe or outside-root paths, too many episodes and invalid concurrency. Resolves defaults and seeds. |
-| Exact pins | `characterRefs[]` `{characterId, version, contentHash}` and `environmentRef` `{environmentId, version, contentHash}`. The version must be exact semver (no `latest`, `^`, `~`, `1.x`) and the hash lowercase SHA-256. Character refs are a set, sorted by `characterId`. A local `voiceOver` must carry a `contentHash`. The pins are frozen in `job.input` and listed in the manifest (`jobs[].input`, `resources`). |
+| Exact pins | `characterRefs[]` `{characterId, version, contentHash}` and `environmentRef` `{environmentId, version, contentHash}`. Pin IDs use the shared `v.id()` pattern from `packages/schema/src/v.ts`, the same one the catalogs use. The version must be exact semver (no `latest`, `^`, `~`, `1.x`) and the hash lowercase SHA-256. Character refs are a set, sorted by `characterId`. A local `voiceOver` must carry a `contentHash`. The pins are frozen in `job.input` and listed in the manifest (`jobs[].input`, `resources`). |
 | `src/seeds.ts` | `deriveSeed(batchId, episodeId, batchSeed, variant)` via SHA-256. The seed doesn't depend on episode order or batch size. |
 | `src/states.ts` | Explicit transition table for the 13 job states. |
 | `src/store.ts` | Content-hashed JSON envelopes, atomic writes, per-batch lock file, corruption detection and temp-file recovery. The file system is injected through `BulkFs`. |
