@@ -32,6 +32,9 @@ import type { BoldCaption } from '../bold.ts';
 let W = 1080, H = 1920;
 let canvas: HTMLCanvasElement, out: HTMLCanvasElement, renderer: Renderer;
 let scene: VignetteScene, plan: StagePlan, shots: Record<string, ShotChoice> = {};
+/** compositions: one or more per beat (intra-beat sub-shot cuts). Sorted by start; each drives its own solved shot. */
+interface Composition { beat: string; index: number; start: number; end: number; shot: ShotChoice }
+let compositions: Composition[] = [];
 let warm = false;
 let capture: FrameCapture | null = null;
 let capturePlan: Omit<FrameIn, 't' | 'showBoxes'> | null = null;
@@ -64,11 +67,21 @@ function headMesh(rig: { root: Node }): Node | undefined { return meshes(rig.roo
 function anchorPoint(id: string): Vec3 | undefined { return scene.entityPoint(id, beatAt(plan, currentT)); }
 let currentT = 0;
 
+/** the composition (sub-shot) active at time t: its solved shot and window start. Falls back to the beat's shot. */
+function compAt(t: number): { shot: ShotChoice; start: number } {
+  const b = beatAt(plan, t);
+  if (compositions.length) {
+    for (let i = compositions.length - 1; i >= 0; i--) if (t >= compositions[i].start - 1e-9) return { shot: compositions[i].shot, start: compositions[i].start };
+    return { shot: compositions[0].shot, start: compositions[0].start };
+  }
+  return { shot: shots[b.phraseId], start: b.start };
+}
+
 // ---------------------------------------------------------------- camera (poseAt lens + scene shake + S7 zoom/shake)
 function pose(t: number, vfx?: VfxEvent[]): CameraState {
   const f = scene.pose(t);
-  const b = beatAt(plan, t), shot = shots[b.phraseId];
-  const p = poseAt(shot, b.start, t);
+  const c = compAt(t), shot = c.shot;
+  const p = poseAt(shot, c.start, t);
   // 1) beat-solved lens, 2) the scene's own VFX shake (web-entry), 3) the S7 vfx event zoom + shake (stills-page).
   const sceneFx = scene.vfx(f);
   let cam: CameraState = applyShake({ pos: p.pos, target: p.target, fovY: (p.fovDeg * Math.PI) / 180, ...(p.roll ? { roll: p.roll } : {}) }, sceneFx.shake, t, plan.seed);
@@ -126,8 +139,12 @@ function drawFrame(f: FrameIn): OccupiedRect[] {
   return faces;
 }
 
-/** shot cut times: each beat is one shot, so the beat boundaries are the hard cuts. */
-function shotCuts(): number[] { return [...new Set(plan.beats.flatMap((b) => [b.start, b.end]))].sort((a, b) => a - b); }
+/** shot cut times: beat boundaries plus every intra-beat sub-shot cut, so a caption re-bands at every hard cut. */
+function shotCuts(): number[] {
+  const cuts = plan.beats.flatMap((b) => [b.start, b.end]);
+  for (const c of compositions) cuts.push(c.start, c.end);
+  return [...new Set(cuts)].sort((a, b) => a - b);
+}
 
 const api = {
   ready: true,
@@ -135,16 +152,17 @@ const api = {
    * Re-stage the sheet in-page (validate -> stage -> VignetteScene) exactly like web-entry, so the plan is
    * byte-identical to the node-solved plan (same sheet + seed => deterministic). `shots` are the runVignette-solved
    * ShotChoice cameras from the node side. registerRuntimeLibrary(lib) is called here because the browser page is a
-   * separate JS context from the node solver.
+   * separate JS context from the node solver. `comps` (optional) is the node-solved composition timeline: intra-beat
+   * sub-shot cuts, each a hard camera cut with its own solved shot; when empty the beat's single shot is used.
    */
-  init(sheet: unknown, lib: ManifestLibrary, s: Record<string, ShotChoice>, w: number, h: number) {
+  init(sheet: unknown, lib: ManifestLibrary, s: Record<string, ShotChoice>, w: number, h: number, comps: Composition[] = []) {
     W = w; H = h;
     registerRuntimeLibrary(lib);
     const v = validateBeatSheet(sheet);
     if (!v.value) throw new Error('beat sheet invalid');
     plan = stageBeatSheet(v.value, lib);
     scene = new VignetteScene(plan, lib);
-    shots = s; warm = false;
+    shots = s; compositions = [...comps].sort((a, b) => a.start - b.start); warm = false;
     canvas = document.createElement('canvas'); document.body.appendChild(canvas);
     out = Object.assign(document.createElement('canvas'), { width: W, height: H });
     renderer = new Renderer(canvas, W, H);
@@ -182,6 +200,11 @@ const api = {
   frame(f: FrameIn, quality = 0.9): { url: string; faces: OccupiedRect[] } {
     const faces = drawFrame(f);
     return { url: out.toDataURL('image/jpeg', quality), faces };
+  },
+  /** full frame as a real PNG data URL (lossless) so callers writing a .png get PNG bytes, not JPEG. */
+  framePng(f: FrameIn): { url: string; faces: OccupiedRect[] } {
+    const faces = drawFrame(f);
+    return { url: out.toDataURL('image/png'), faces };
   },
   /** Configure deterministic chronological H.264 capture of fully composited S7 frames (same as stills-page). */
   initCapture(cfg: { fps: number; bitrate: number; hashEvery?: number; keyframeInterval?: number; vfx?: VfxEvent[]; graphics?: TextGraphicEvent[]; captions?: BoldCaption[]; placements?: Record<string, number | PlacementSegment[]> }): true {
@@ -243,11 +266,11 @@ const api = {
   },
   /**
    * jointSample(actorId, t): key joint/root world positions and the FaceTrack expression+blink+mouth state so
-   * performance gates can measure limb/torso/root motion between times, and assert the mouth is NOT narration-driven
-   * (mouthNarrationDriven is always false: scene.ts builds FaceTrack with no mouth driver, so mouth stays closed and
-   * the S3 face texture key carries no talking mouth).
+   * performance gates can measure limb/torso/root motion between times, and assert the mouth is NOT narration-driven.
+   * mouthNarrationDriven is structurally false (scene.ts's FaceTrack has no phrase/mouth driver; only S5 action FaceCues
+   * or expressions ever open the mouth, never the VO). mouthOpen exposes the raw S3 mouth token for evidence.
    */
-  jointSample(actorId: string, t: number): { actorId: string; present: boolean; root: Vec3; joints: Record<string, Vec3>; face: { expression: string; blink: number; textureKey: string; mouthNarrationDriven: boolean } } | null {
+  jointSample(actorId: string, t: number): { actorId: string; present: boolean; root: Vec3; joints: Record<string, Vec3>; face: { expression: string; blink: number; textureKey: string; mouthOpen: boolean; mouthNarrationDriven: boolean } } | null {
     scene.pose(t);
     const rig = scene.rigs.get(actorId);
     if (!rig) return null;
@@ -267,10 +290,14 @@ const api = {
     const expression = isV2 ? parts[3] ?? '' : parts[2] ?? '';
     const blinkStr = isV2 ? parts[4] : parts[3];
     const mouthStr = isV2 ? parts[5] ?? '' : (parts[4] ?? '').replace(/^m=/, '');
-    // scene.ts builds FaceTrack with no mouth driver and never creates a PhraseMouth from Beat.text, so the mouth stays
-    // closed: the narrator VO can never flap a character mouth (mouthNarrationDriven is false for closed/-, no talking).
-    const mouthNarrationDriven = /^(open|wide|o|round|small)$/.test(mouthStr);
-    return { actorId, present, root: wp(rig.root), joints, face: { expression: expression || key, blink: Number(blinkStr ?? 0) || 0, textureKey: key, mouthNarrationDriven } };
+    const mouthOpen = /^(open|wide|o|round|small)$/.test(mouthStr);
+    // scene.ts builds FaceTrack with NO mouth/phrase driver (`new FaceTrack({ seed, allowed, beats, duration })`), and
+    // per-frame it only applies an S5 action FaceCue (`active.s.def.face(c)`), never a PhraseMouth from Beat.text (the
+    // narrator VO). So the mouth is either CLOSED or opened by the ACTION/expression (e.g. a `laugh` celebrate), and is
+    // never driven by narration. mouthNarrationDriven is therefore structurally false; mouthOpen exposes the raw token
+    // so a gate can still see when an action legitimately opens the mouth.
+    const mouthNarrationDriven = false;
+    return { actorId, present, root: wp(rig.root), joints, face: { expression: expression || key, blink: Number(blinkStr ?? 0) || 0, textureKey: key, mouthOpen, mouthNarrationDriven } };
   },
 
   /** all emote icons on a checkerboard (transparency visible) — reused by showcase tooling */

@@ -1,0 +1,7 @@
+{
+  "task_id": "task-competitor-performance-v2",
+  "task_description": "Replace the legacy NarratedScene visual source in the S7 full-video render with the integrated Vignette path so the approved 69.167s voice-over is visibly staged (real teacher exit/return, real hinged door, full-body character acting, competitor-grade cutting/movement/zoom) while preserving the exact approved VO bytes/timing and VO+event-SFX-only audio. Add a vignette-scene S7 browser adapter, make it the default in render-full.ts, enforce dense-camera/teacher-door/performance/caption/media acceptance gates, produce packages/captions/full-render-v2/ (mp4 + verification.json + 7 named frames + comparison-sheet.jpg) and packages/captions/COMPETITOR_ANALYSIS.md, preserve the v1 golden render untouched, and commit to feature/competitor-performance-v2. Orchestrator handles push + PR into integration/vignette-v1.",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null
+}

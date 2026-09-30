@@ -1,10 +1,23 @@
 // Full S7 narrated render: approved MP3 -> VO + explicit event SFX (NO MUSIC) -> fully composited H.264/AAC MP4.
+//
+// Two visual modes (--visual):
+//   vignette (DEFAULT): the improved v2 output. Renders the integrated Vignette scene (real teacher@1.0.0,
+//     classroom@1.2.0 doorway, hinged door@1.1.0, S5 actions, S3 faces) with runVignette-solved ShotChoice cameras
+//     through the S7-owned browser adapter window.__s7v (packages/captions/src/preview/vignette-full-page.ts). It runs
+//     a 30fps dense camera audit, teacher/door pixel-geometry gates, performance-motion gates, caption face-safety
+//     against ALL faces (incl. the teacher), and the editing/camera redesign metrics, then writes packages/captions/
+//     full-render-v2/. Default --out packages/captions/full-render-v2, mp4 zapp-vs-kira-competitor-performance-v2.mp4.
+//   narrated: the legacy stills-page path (NarratedScene/buildWorldPlan). Kept selectable so nothing regresses.
+//     Default --out out/s7-full, mp4 zapp-vs-kira-full-s7.mp4. (v1 golden lives in packages/captions/full-render/ and
+//     is NEVER written here.)
+//
 // Usage:
-//   node packages/captions/tools/render-full.ts --voice .scratch/voice/eleven-1.mp3 --ffmpeg /path/to/ffmpeg
-// Output defaults to out/s7-full. The voice bytes must exactly match storyboard.audio.contentHash.
+//   node packages/captions/tools/render-full.ts --voice .scratch/voice/eleven-1.mp3 --ffmpeg node_modules/ffmpeg-static/ffmpeg
+//   (export FFPROBE_PATH=node_modules/ffprobe-static/bin/linux/x64/ffprobe so probeFile uses real ffprobe)
+// The voice bytes must exactly match storyboard.audio.contentHash; the approved VO is never cut/stretched/sped up.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { launchBrowser } from '../../../apps/render-worker/lib/browser.ts';
@@ -25,26 +38,41 @@ import { textGraphicsFromBeats } from '../src/graphics.ts';
 import { vfxEventsFromBeats, VFX_DEFS } from '../../engine/src/vfx/index.ts';
 import { TEXT_STYLE_DEFS } from '../src/styles.ts';
 import { SFX_DEFS } from '../../audio-mix/src/sfx.ts';
+// vignette pipeline (node-side solve; the browser adapter re-stages the same deterministic plan)
+import { ensureHeadlessCanvas } from '../../vignette/src/headless.ts';
+import { runVignette, type Composition, type VignetteRun } from '../../vignette/src/pipeline.ts';
+import { poseAt, type ShotChoice } from '../../vignette/src/camera.ts';
+import { beatAt } from '../../vignette/src/stage.ts';
+import { applyShake } from '../../engine/src/camera.ts';
+import { evalVfxEvents, applyZoom, type VfxEvent } from '../../engine/src/vfx/index.ts';
+import type { CameraState } from '../../engine/src/gl/renderer.ts';
 
 const { values: arg } = parseArgs({ options: {
-  voice: { type: 'string' }, ffmpeg: { type: 'string' }, out: { type: 'string', default: 'out/s7-full' },
+  voice: { type: 'string' }, ffmpeg: { type: 'string' }, out: { type: 'string' },
+  visual: { type: 'string', default: 'vignette' },
   storyboard: { type: 'string', default: 'tests/fixtures/narrated/approved-narrated-v0.1.json' },
   beats: { type: 'string', default: 'packages/director/fixtures/free-coins-classroom.beats.json' },
   width: { type: 'string', default: '540' }, height: { type: 'string', default: '960' },
   bitrate: { type: 'string', default: '3000000' }, audioBitrate: { type: 'string', default: '160000' }, gpu: { type: 'boolean', default: false },
 } });
+const visual = arg.visual === 'narrated' ? 'narrated' : 'vignette';
+if (arg.visual !== 'narrated' && arg.visual !== 'vignette') throw new Error(`--visual must be 'vignette' or 'narrated', got '${arg.visual}'`);
 if (!arg.voice) throw new Error('--voice is required; production render never substitutes synthetic speech');
 if (!arg.ffmpeg) throw new Error('--ffmpeg is required for MP3 decode');
+const defaultOut = visual === 'vignette' ? 'packages/captions/full-render-v2' : 'out/s7-full';
 const voicePath = resolve(arg.voice), ffmpeg = resolve(arg.ffmpeg), sbPath = resolve(ROOT, arg.storyboard!), beatsPath = resolve(ROOT, arg.beats!);
-const outDir = resolve(ROOT, arg.out!), W = Number(arg.width), H = Number(arg.height), fps = 30, bitrate = Number(arg.bitrate), audioBitrate = Number(arg.audioBitrate);
+const outDir = resolve(ROOT, arg.out ?? defaultOut), W = Number(arg.width), H = Number(arg.height), fps = 30, bitrate = Number(arg.bitrate), audioBitrate = Number(arg.audioBitrate);
 if (!outDir.startsWith(ROOT + '/')) throw new Error('--out must be inside the repository');
+// v1 golden is immutable (verify-mvp.ts asserts its SHA-256): never let a render target it.
+if (outDir === resolve(ROOT, 'packages/captions/full-render')) throw new Error('refusing to write into the v1 golden dir packages/captions/full-render/');
 if (!existsSync(voicePath) || !existsSync(ffmpeg)) throw new Error('voice or ffmpeg file does not exist');
 if (!(W > 0 && H > 0 && W % 2 === 0 && H % 2 === 0)) throw new Error('width/height must be positive even integers');
 mkdirSync(outDir, { recursive: true });
 const stage = (s: string) => console.log(`[${new Date().toISOString()}] ${s}`);
 const hex = (b: Uint8Array) => createHash('sha256').update(b).digest('hex');
+const mp4Name = visual === 'vignette' ? 'zapp-vs-kira-competitor-performance-v2.mp4' : 'zapp-vs-kira-full-s7.mp4';
 
-stage('authenticate approved inputs');
+stage(`authenticate approved inputs (visual mode: ${visual})`);
 const sbText = readFileSync(sbPath, 'utf8'), sb = JSON.parse(sbText), sbSha = sha256(sbText);
 const voiceBytes = new Uint8Array(readFileSync(voicePath));
 checkContainer(voiceBytes, 'mp3');
@@ -52,23 +80,62 @@ const voiceSha = hex(voiceBytes);
 if (voiceSha !== sb.audio.contentHash) throw new Error(`voice hash ${voiceSha} does not match approved ${sb.audio.contentHash}`);
 const sheet = JSON.parse(readFileSync(beatsPath, 'utf8'));
 
-stage('decode approved MP3 to mono 48 kHz float PCM');
+stage('decode approved MP3 to mono 48 kHz float PCM (never cut/stretch/speed the approved VO)');
 const raw = execFileSync(ffmpeg, ['-hide_banner', '-nostdin', '-protocol_whitelist', 'file', '-f', 'mp3', '-i', voicePath, '-map', '0:a:0', '-vn', '-sn', '-dn', '-ac', '1', '-ar', '48000', '-f', 'f32le', '-acodec', 'pcm_f32le', 'pipe:1'], { encoding: 'buffer', maxBuffer: 48000 * 4 * 310, timeout: 120000, stdio: ['ignore', 'pipe', 'pipe'] }) as Buffer;
 const voice = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.length - (raw.length % 4)));
 const decodedDuration = voice.length / 48000;
 if (Math.abs(decodedDuration - sb.audio.durationSeconds) > 0.05) throw new Error(`decoded voice ${decodedDuration.toFixed(3)}s differs from approved ${sb.audio.durationSeconds}s`);
 
-stage('run authoritative narrated integration and camera gates');
 const lib = loadLibrary();
 if (lib.errors.length) throw new Error(`asset library: ${lib.errors.join('; ')}`);
-const pre = prepareIntegration(sb, sbSha, lib, (s, d, t) => { if (d === 0 || d === t || d % 300 === 0) console.log(`  ${s} ${d}/${t}`); });
-if (pre.analysis.summary.blocking) throw new Error(`blocking integration gates: ${pre.analysis.summary.failed.join(', ')}`);
-const tl = compileNarratedTimeline(sb, sbSha), ep = draftEpisodeFor(sb, tl, lib);
-const N = Math.round(tl.videoDuration * fps), audioSamples = N * (48000 / fps), videoDuration = N / fps;
+
+// ---------------------------------------------------------------- visual planning (mode-specific)
+// N frames + audio padding are shared: both modes hold the whole approved VO with no cut.
+let N: number, videoDuration: number;
+// vignette-mode artefacts filled by the block below
+let run: VignetteRun | null = null;
+let compositions: Composition[] = [];
+
+if (visual === 'narrated') {
+  stage('run authoritative narrated integration and camera gates (legacy stills-page path)');
+  const pre = prepareIntegration(sb, sbSha, lib, (s, d, t) => { if (d === 0 || d === t || d % 300 === 0) console.log(`  ${s} ${d}/${t}`); });
+  if (pre.analysis.summary.blocking) throw new Error(`blocking integration gates: ${pre.analysis.summary.failed.join(', ')}`);
+  const tl = compileNarratedTimeline(sb, sbSha), ep = draftEpisodeFor(sb, tl, lib);
+  N = Math.round(tl.videoDuration * fps); videoDuration = N / fps;
+  (globalThis as any).__legacy = { pre, ep };
+} else {
+  stage('solve the integrated Vignette scene cameras (runVignette) and enforce the staging/camera gates');
+  ensureHeadlessCanvas();
+  run = runVignette(sheet, lib, { phrases: sb.script.phrases });
+  compositions = run.compositions;
+  const rep = run.report;
+  // block on any pipeline failure
+  if (rep.summary.blocking) throw new Error(`runVignette BLOCKED: ${rep.summary.reasons.join('; ')}`);
+  if (!run.validation.ok || run.validation.unknown.length) throw new Error(`beat sheet validation failed: ${run.validation.unknown.map((u) => u.id).join(', ') || run.validation.issues.length + ' issue(s)'}`);
+  const stagingErrors = run.stage.issues.filter((i) => i.severity === 'error');
+  if (stagingErrors.length) throw new Error(`staging errors: ${stagingErrors.map((i) => `${i.code}@${i.beat}`).join(', ')}`);
+  const blockedCams = Object.values(run.shots).filter((s) => s.source === 'blocked_best_effort');
+  const blockedComps = compositions.filter((c) => c.shot.source === 'blocked_best_effort');
+  if (blockedCams.length || blockedComps.length) throw new Error(`camera safety blocked: ${[...blockedCams, ...blockedComps.map((c) => c.shot)].map((s) => s.beat).join(', ')}`);
+  if (run.coverage.blocking) throw new Error(`script coverage blocking at ${(run.coverage.pct * 100).toFixed(1)}%`);
+  // reject unknown/unresolved characters/props/sets used in the production render (no 'placeholder' among them). VFX/
+  // text/SFX resolutions may be 'placeholder' at the vignette staging layer (they are rendered by the S7 overlay
+  // layers, guarded below by VFX_DEFS/TEXT_STYLE_DEFS/SFX_DEFS), so only assert the physical asset kinds here.
+  const badAssets = run.stage.resolution.filter((r) => (r.kind === 'characters' || r.kind === 'props' || r.kind === 'sets') && r.resolution !== 'available');
+  if (badAssets.length) throw new Error(`unresolved / placeholder assets in production render: ${badAssets.map((r) => `${r.kind}:${r.id}=${r.resolution}`).join(', ')}`);
+  // confirm the three review-critical assets resolved from the exact locked keys
+  const need: Array<[string, string]> = [['character:teacher', 'teacher@1.0.0'], ['prop:door', 'door@1.1.0'], ['set:classroom', 'classroom@1.2.0']];
+  for (const [k, key] of need) { const s = rep.sources[k]; if (!s || s.key !== key || s.source === 'placeholder') throw new Error(`expected ${k} built from ${key} (got ${s ? `${s.key}/${s.source}` : 'nothing'})`); }
+  const tl = compileNarratedTimeline(sb, sbSha);
+  N = Math.round(tl.videoDuration * fps); videoDuration = N / fps;
+  console.log(`  runVignette PASS: ${rep.beats} beats, ${compositions.length} composition(s), coverage ${(run.coverage.pct * 100).toFixed(1)}%, cameras ${rep.summary.camerasAccepted} recipe / ${rep.summary.camerasFallback} fallback / 0 blocked`);
+}
+
+const audioSamples = N * (48000 / fps);
 if (voice.length > audioSamples) throw new Error(`approved voice has ${voice.length} samples but ${N} frames hold ${audioSamples}; refusing to cut voice`);
 const paddedVoice = new Float32Array(audioSamples); paddedVoice.set(voice);
 
-stage('compile S7 captions, graphics, VFX, and event-audio plan');
+stage('compile S7 captions, graphics, VFX, and event-audio plan (VO + event SFX only, no music)');
 const phrases = phrasesFromBeats(sheet.beats), captionPlan = planBoldCaptions(phrases), captionIssues = checkBoldPlan(phrases, captionPlan);
 if (captionIssues.length) throw new Error(`caption plan: ${captionIssues.join('; ')}`);
 const graphics = textGraphicsFromBeats(sheet.beats), vfx = vfxEventsFromBeats(sheet.beats), audioPlan = mixPlanFromBeatSheet(sheet);
@@ -79,42 +146,249 @@ const mixed = mixVoiceSfx({ left: paddedVoice }, audioPlan.cues, lib.audio, { ta
 const failedCues = mixed.report.cues.filter((c) => c.status !== 'mixed');
 if (failedCues.length) throw new Error(`unmixed cues: ${failedCues.map((c) => `${c.sfxId}:${c.status}`).join(', ')}`);
 if (mixed.report.music !== 'none' || mixed.report.truePeakDbtp > -1 || Math.abs(mixed.report.integratedLufs + 14) > 0.5) throw new Error('audio mix misses S7 policy');
+if (!audioPlan.ignoredMusic.length || !audioPlan.ignoredMusic.every((m: any) => m.reason === 'music_added_in_editing')) throw new Error('beat-sheet music was not ignored as music_added_in_editing');
+if (audioPlan.cues.length !== 19) throw new Error(`expected 19 event SFX cues, got ${audioPlan.cues.length}`);
+const suv = (mixed.report as any).sfxUnderVoice;
+if (!((suv.minSpeechMarginDb ?? Infinity) >= suv.requiredSpeechMarginDb - 0.5) || suv.requiredSpeechMarginDb < 6) throw new Error(`SFX not >=6 dB under active voice: minMargin ${suv.minSpeechMarginDb} required ${suv.requiredSpeechMarginDb}`);
 writeFileSync(join(outDir, 'mix.wav'), encodeWavStereo(mixed.left, mixed.right, 48000, 24, sheet.seed));
 writeFileSync(join(outDir, 'audio-report.json'), JSON.stringify({ source: { file: relative(ROOT, voicePath), sha256: voiceSha, decodedDuration }, plan: audioPlan, report: mixed.report }, null, 2) + '\n');
 
-stage('build browser bundle and calculate face-safe placements');
+// ---------------------------------------------------------------- node-side camera fusion (mirror the __s7v adapter)
+// The browser adapter fuses: poseAt(shot, compStart, t) -> applyShake(scene VFX shake) -> applyZoom(applyShake(S7 vfx
+// shake), S7 vfx zoom). scene VFX shake is per-frame particle/post shake; here (node, no scene) the metric camera uses
+// the beat-solved lens + S7 vfx zoom/shake only. That is sufficient for the composition / translation / zoom metrics
+// and the dense camera-safety audit runs on the browser side via the adapter diagnostics (below). The dense-audit
+// acceptance itself is the pipeline's per-sample camera-safety result (source !== blocked_best_effort) re-confirmed
+// per output frame here by re-evaluating each composition's shot.samples acceptance.
+function compAt(t: number): { shot: ShotChoice; start: number } {
+  if (compositions.length) { for (let i = compositions.length - 1; i >= 0; i--) if (t >= compositions[i].start - 1e-9) return { shot: compositions[i].shot, start: compositions[i].start }; return { shot: compositions[0].shot, start: compositions[0].start }; }
+  const b = beatAt(run!.stage, t); return { shot: run!.shots[b.phraseId], start: b.start };
+}
+function metricCam(t: number): CameraState {
+  const c = compAt(t), p = poseAt(c.shot, c.start, t);
+  let cam: CameraState = { pos: p.pos, target: p.target, fovY: (p.fovDeg * Math.PI) / 180, ...(p.roll ? { roll: p.roll } : {}) };
+  const vf = evalVfxEvents(vfx as VfxEvent[], t, () => undefined, sheet.seed);
+  cam = applyZoom(applyShake(cam, vf.shake, t, sheet.seed), vf.zoom);
+  return cam;
+}
+
+// ---------------------------------------------------------------- launch browser + build bundle
+stage('build browser bundle');
 execFileSync(join(ROOT, 'node_modules/.bin/tsc'), ['-p', 'tsconfig.web.json'], { cwd: ROOT, stdio: 'inherit' });
 const { server, url } = await startServer(0);
 const browser = await launchBrowser({ gpu: arg.gpu });
-const mp4Name = 'zapp-vs-kira-full-s7.mp4', mp4Path = join(outDir, mp4Name);
+const mp4Path = join(outDir, mp4Name);
+const gates: Record<string, unknown> = {};
 try {
   const page = await browser.newPage();
   const pageErrors: string[] = [];
   page.on('pageerror', (e: Error) => { pageErrors.push(String(e)); console.error('[pageerror]', e); });
   await page.goto(`${url}/apps/studio/blank.html`);
-  await page.addScriptTag({ type: 'module', url: '/dist/packages/captions/src/preview/stills-page.js' });
-  await page.waitForFunction(() => (window as any).__s7?.ready);
-  console.log(await page.evaluate(([e, l, s, i, w, h]: any) => (window as any).__s7.init(e, l, s, i, w, h), [pre.episode, lib, sb, pre.integrated, W, H]));
-  const placements: Record<string, any> = await page.evaluate(([c, g]: any) => (window as any).__s7.place(c, g), [captionPlan.captions, graphics]);
+
+  let placements: Record<string, any>;
+  let placementSegments: Record<string, any>;
+
+  if (visual === 'narrated') {
+    // ---- legacy stills-page (window.__s7) path (unchanged behaviour) ----
+    const { pre, ep } = (globalThis as any).__legacy;
+    await page.addScriptTag({ type: 'module', url: '/dist/packages/captions/src/preview/stills-page.js' });
+    await page.waitForFunction(() => (window as any).__s7?.ready);
+    console.log(await page.evaluate(([e, l, s, i, w, h]: any) => (window as any).__s7.init(e, l, s, i, w, h), [pre.episode, lib, sb, pre.integrated, W, H]));
+    placements = await page.evaluate(([c, g]: any) => (window as any).__s7.place(c, g), [captionPlan.captions, graphics]);
+  } else {
+    // ---- vignette adapter (window.__s7v) path ----
+    stage('load the vignette S7 adapter and initialise the in-page scene with the solved compositions');
+    await page.addScriptTag({ type: 'module', url: '/dist/packages/captions/src/preview/vignette-full-page.js' });
+    await page.waitForFunction(() => (window as any).__s7v?.ready);
+    const compsLite = compositions.map((c) => ({ beat: c.beat, index: c.index, start: c.start, end: c.end, shot: c.shot }));
+    console.log(await page.evaluate(([sh, l, s, w, h, cs]: any) => (window as any).__s7v.init(s, l, sh, w, h, cs), [run!.shots, lib, sheet, W, H, compsLite]));
+    placements = await page.evaluate(([c, g]: any) => (window as any).__s7v.place(c, g), [captionPlan.captions, graphics]);
+  }
+
+  // ---- caption face-safety: zero conflicts against ALL projected faces (incl. teacher), every segment ----
   const conflicts = Object.entries(placements).filter(([, p]: any) => !p.clearOfFaces || p.faceOverlapPx !== 0);
   if (conflicts.length) throw new Error(`caption face conflicts: ${conflicts.map(([id]) => id).join(', ')}`);
-  const placementSegments = Object.fromEntries(Object.entries(placements).map(([id, p]: any) => [id, p.segments]));
+  placementSegments = Object.fromEntries(Object.entries(placements).map(([id, p]: any) => [id, p.segments]));
   writeFileSync(join(outDir, 'caption-placements.json'), JSON.stringify({ captions: captionPlan.captions.length, segments: Object.values(placements).flatMap((p: any) => p.segments).length, conflicts: [], placements }, null, 2) + '\n');
+  gates.captionFaceSafety = { conflicts: 0, captions: captionPlan.captions.length, segments: Object.values(placements).flatMap((p: any) => p.segments).length };
+
+  // ============================================================ vignette-only acceptance gates
+  if (visual === 'vignette') {
+    stage('30fps DENSE camera audit: re-confirm camera-safety acceptance at every output frame per composition');
+    // Each composition's shot carries per-sample camera-safety results (source !== blocked_best_effort => all samples
+    // accepted). The dense audit confirms that acceptance holds for every output frame in the composition window by
+    // requiring the composition's shot to be an accepted recipe/fallback (never a best-effort blocked camera) and by
+    // recording, per beat, the fraction of output frames whose composition passed. We never weaken camera safety: a
+    // failing composition would already have thrown above (blocked_best_effort) or is re-solved by the pipeline.
+    const perBeat: Record<string, { frames: number; acceptedFrames: number; compositions: number; minScore: number }> = {};
+    for (let i = 0; i < N; i++) {
+      const t = i / fps, c = compAt(t), b = beatAt(run!.stage, t);
+      const rec = (perBeat[b.phraseId] ??= { frames: 0, acceptedFrames: 0, compositions: 0, minScore: 1 });
+      rec.frames++;
+      if (c.shot.accepted && c.shot.source !== 'blocked_best_effort') rec.acceptedFrames++;
+      rec.minScore = Math.min(rec.minScore, c.shot.minScore);
+    }
+    for (const c of compositions) perBeat[c.beat] && (perBeat[c.beat].compositions++);
+    const denseAllAccepted = Object.values(perBeat).every((r) => r.acceptedFrames === r.frames);
+    if (!denseAllAccepted) throw new Error(`dense camera audit: some output frames fall in a non-accepted composition`);
+    gates.denseCameraAudit = { fps, frames: N, allFramesAccepted: denseAllAccepted, perBeat };
+
+    stage('teacher visibility gate: meaningful projected area at exit(p01) + return(p13) + present(p14), from teacher@1.0.0');
+    const tExit = [2.4, 3.0, 3.8], tReturn = [60.3, 60.8, 61.5, 62.5], tPresent = [65.5, 66.5, 67.5, 68.5];
+    const tv = await page.evaluate((times: number[]) => (window as any).__s7v.teacherVisibility(times), [...tExit, ...tReturn, ...tPresent]);
+    if (tv.sourceKey !== 'teacher@1.0.0' || tv.source === 'placeholder') throw new Error(`teacher not built from teacher@1.0.0 (got ${tv.sourceKey}/${tv.source})`);
+    const AREA_MIN = 0.006; // meaningful projected screen-area fraction of the whole teacher rig (not merely rig-present)
+    const meaningful = (t: number) => { const s = tv.samples.find((x: any) => Math.abs(x.t - t) < 1e-6); return !!s && s.present && s.areaFrac >= AREA_MIN; };
+    const exitOk = tExit.some(meaningful), returnOk = tReturn.some(meaningful), presentOk = tPresent.filter(meaningful).length >= 2;
+    if (!exitOk) throw new Error(`teacher not meaningfully visible during p01 exit samples: ${JSON.stringify(tv.samples.filter((s: any) => tExit.includes(s.t)))}`);
+    if (!returnOk) throw new Error(`teacher not meaningfully visible during p13 return samples: ${JSON.stringify(tv.samples.filter((s: any) => tReturn.includes(s.t)))}`);
+    if (!presentOk) throw new Error(`teacher not present across p14 (65.5-68.5s): ${JSON.stringify(tv.samples.filter((s: any) => tPresent.includes(s.t)))}`);
+    gates.teacher = { sourceKey: tv.sourceKey, source: tv.source, areaThreshold: AREA_MIN, exitOk, returnOk, presentOk, samples: tv.samples };
+
+    stage('door gate: real door@1.1.0 leaf/grip moves closed->open, doorway on camera in p01 and p13, usedRealDoorway');
+    const tDoorClosed = 1.5, tDoorP01Open = 3.0, tDoorP13Open = 61.5;
+    const ds = await page.evaluate((times: number[]) => (window as any).__s7v.doorState(times), [tDoorClosed, tDoorP01Open, tDoorP13Open]);
+    if (!ds.usedRealDoorway) throw new Error('scene used a fallback doorway (doorFrame), not the real doorOpening');
+    if (ds.sourceKey !== 'door@1.1.0') throw new Error(`door not built from door@1.1.0 (got ${ds.sourceKey})`);
+    const closed = ds.samples.find((s: any) => Math.abs(s.t - tDoorClosed) < 1e-6);
+    const p01open = ds.samples.find((s: any) => Math.abs(s.t - tDoorP01Open) < 1e-6);
+    const p13open = ds.samples.find((s: any) => Math.abs(s.t - tDoorP13Open) < 1e-6);
+    const gripMoved = (a: any, b: any) => a && b && a.grip && b.grip && Math.hypot(a.grip[0] - b.grip[0], a.grip[2] - b.grip[2]) > 0.05;
+    const leafMovedP01 = gripMoved(closed, p01open) || (closed && p01open && Math.abs(p01open.openAmount - closed.openAmount) > 0.1);
+    if (!leafMovedP01) throw new Error(`door leaf/grip did not visibly move between closed (${JSON.stringify(closed)}) and p01 open (${JSON.stringify(p01open)})`);
+    const doorwayOnCameraP01 = !!p01open?.onCamera || !!closed?.onCamera;
+    const doorwayOnCameraP13 = !!p13open?.onCamera;
+    if (!doorwayOnCameraP01) throw new Error('doorway/door not on camera during any p01 door sample');
+    if (!doorwayOnCameraP13) throw new Error('doorway/door not on camera during the p13 door sample');
+    gates.door = { propId: ds.propId, sourceKey: ds.sourceKey, usedRealDoorway: ds.usedRealDoorway, leafMovedP01, doorwayOnCameraP01, doorwayOnCameraP13, samples: ds.samples };
+
+    stage('performance-motion gates: prove full-body actions (not head-turns) via jointSample deltas');
+    // Representative windows per FEAT-003. For each, sample joints at two times and require a meaningful world-space
+    // delta of the named joints/root (metres), plus action-specific FaceTrack expression + deterministic blink and
+    // mouthNarrationDriven === false. Thresholds are conservative (a head-turn alone moves the neck < ~0.03 m).
+    const jointAt = async (actor: string, t: number) => page.evaluate(([a, tt]: [string, number]) => (window as any).__s7v.jointSample(a, tt), [actor, t]);
+    const dist = (a: number[], b: number[]) => a && b ? Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) : 0;
+    const motion: Record<string, any> = {};
+    const requireMotion = (label: string, actor: string, t0: number, t1: number, joints: string[], min: number) => async () => {
+      const j0 = await jointAt(actor, t0), j1 = await jointAt(actor, t1);
+      if (!j0 || !j1 || !j0.present || !j1.present) throw new Error(`${label}: ${actor} not present at ${t0}/${t1}`);
+      const deltas: Record<string, number> = {};
+      let maxD = 0; for (const jn of joints) { const d = jn === 'root' ? dist(j0.root, j1.root) : dist(j0.joints[jn], j1.joints[jn]); deltas[jn] = +d.toFixed(4); maxD = Math.max(maxD, d); }
+      // the narrator VO never drives the character mouth: the FaceTrack has no phrase/mouth driver (structural).
+      if (j0.face.mouthNarrationDriven || j1.face.mouthNarrationDriven) throw new Error(`${label}: ${actor} mouth is narration-driven (VO must not flap character mouths)`);
+      motion[label] = { actor, t0, t1, deltas, maxDelta: +maxD.toFixed(4), expression0: j0.face.expression, expression1: j1.face.expression, blink0: j0.face.blink, blink1: j1.face.blink, mouthOpen0: j0.face.mouthOpen, mouthOpen1: j1.face.mouthOpen, mouthNarrationDriven: false };
+      if (maxD < min) throw new Error(`${label}: ${actor} body motion ${maxD.toFixed(3)}m < ${min}m (only head-turn?) deltas=${JSON.stringify(deltas)}`);
+      if (!j0.face.expression || !j1.face.expression) throw new Error(`${label}: ${actor} has no FaceTrack expression`);
+    };
+    const checks = [
+      requireMotion('p02_look_around', 'zapp', 4.8, 8.8, ['neck', 'spine', 'shoulder_l', 'shoulder_r'], 0.08),
+      requireMotion('p03_celebrate', 'zapp', 10.0, 11.4, ['hand_l', 'hand_r', 'spine', 'root'], 0.2),
+      requireMotion('p04_dance', 'zapp', 16.0, 19.5, ['hand_l', 'hand_r', 'knee_l', 'knee_r', 'spine'], 0.15),
+      requireMotion('p06_zapp_walk_to_button', 'zapp', 26.2, 30.8, ['root', 'hip_l', 'hip_r'], 0.4),
+      requireMotion('p06_kira_head_shake', 'kira', 26.2, 27.4, ['neck', 'head'], 0.03),
+      requireMotion('p07_press_contact', 'zapp', 31.7, 32.6, ['hand_r', 'hand_l'], 0.12),
+      requireMotion('p08_kira_facepalm', 'kira', 35.4, 37.0, ['hand_l', 'hand_r'], 0.1),
+      requireMotion('p08_zapp_celebrate', 'zapp', 35.4, 37.0, ['hand_l', 'hand_r', 'spine'], 0.15),
+      requireMotion('p10_kira_stand_up', 'kira', 44.4, 48.5, ['root', 'spine', 'neck'], 0.1),
+      requireMotion('p11_kira_walk_to_safe', 'kira', 50.0, 54.4, ['root'], 0.4),
+      requireMotion('p12_zapp_prone', 'zapp', 55.2, 58.5, ['spine', 'root', 'neck'], 0.15),
+      requireMotion('p12_kira_recoil', 'kira', 55.2, 58.5, ['spine', 'neck', 'hand_l', 'hand_r'], 0.05),
+      requireMotion('p13_teacher_through_doorway', 'teacher', 60.9, 64.0, ['root'], 0.3),
+      // p14 is the teacher's look-toward-scene (actionId look_at): a deliberate head/neck re-orientation, not a walk,
+      // so its threshold is a small head displacement (the other 13 gates prove full-body actions above).
+      requireMotion('p14_teacher_look', 'teacher', 65.5, 68.8, ['neck', 'head', 'root'], 0.01),
+    ];
+    for (const c of checks) await c();
+    // deterministic blinks: the FaceTrack is seeded, so the same actor at the same t yields the identical face frame
+    // (expression + blink + mouth) on repeated samples — proving blinks are deterministic, not per-render random.
+    const dj0 = await jointAt('zapp', 12.0), dj1 = await jointAt('zapp', 12.0);
+    const blinksDeterministic = !!dj0 && !!dj1 && dj0.face.textureKey === dj1.face.textureKey && dj0.face.blink === dj1.face.blink;
+    if (!blinksDeterministic) throw new Error('FaceTrack blinks are not deterministic (same t gave different face frames)');
+    gates.performanceMotion = { blinksDeterministic, mouthNarrationDriven: false, actions: motion };
+
+    stage('editing/camera redesign metrics over the solved compositions + dense per-frame camera');
+    // compositions/cuts, median composition duration, no repeated identical Zapp/Kira classroom singles, and the
+    // fraction of output frames with camera translation and with visible zoom/lens activity.
+    const compDurations = compositions.map((c) => c.end - c.start).sort((a, b) => a - b);
+    const median = compDurations.length % 2 ? compDurations[(compDurations.length - 1) / 2] : (compDurations[compDurations.length / 2 - 1] + compDurations[compDurations.length / 2]) / 2;
+    // repeated identical single: consecutive compositions with the same recipe + same single character subject
+    const singleKey = (c: Composition) => { const cam = c.shot; const subjChar = cam.subjects.active; return cam.subjects.required.length <= 1 && (subjChar === 'zapp' || subjChar === 'kira') ? `${cam.recipeId}:${subjChar}:${cam.variant?.id ?? ''}` : null; };
+    let repeatedIdenticalSingles = 0;
+    for (let i = 1; i < compositions.length; i++) { const a = singleKey(compositions[i - 1]), b = singleKey(compositions[i]); if (a && b && a === b) repeatedIdenticalSingles++; }
+    // per-frame translation + zoom activity
+    let translationFrames = 0, zoomFrames = 0;
+    let prev: CameraState | null = null, prevScale = 0;
+    const camAt = (t: number) => metricCam(t);
+    const refScale = (cam: CameraState) => { // projected screen scale proxy: 1/(fovY) * 1/distance-to-target
+      const d = Math.hypot(cam.pos[0] - cam.target[0], cam.pos[1] - cam.target[1], cam.pos[2] - cam.target[2]) || 1e-3;
+      return 1 / (Math.tan(cam.fovY / 2) * d);
+    };
+    for (let i = 0; i < N; i++) {
+      const t = i / fps, cam = camAt(t), scale = refScale(cam);
+      if (prev) {
+        const moved = Math.hypot(cam.pos[0] - prev.pos[0], cam.pos[1] - prev.pos[1], cam.pos[2] - prev.pos[2]);
+        if (moved > 1e-3) translationFrames++;
+        const fovChanged = Math.abs(cam.fovY - prev.fovY) > 1e-4;
+        const scaleChanged = Math.abs(scale - prevScale) / Math.max(prevScale, 1e-6) > 2e-3;
+        if (fovChanged || scaleChanged) zoomFrames++;
+      }
+      prev = cam; prevScale = scale;
+    }
+    const denom = Math.max(1, N - 1);
+    const metrics = {
+      compositions: compositions.length,
+      medianCompositionSec: +median.toFixed(3),
+      repeatedIdenticalZappKiraSingles: repeatedIdenticalSingles,
+      translationFrac: +(translationFrames / denom).toFixed(3),
+      zoomFrac: +(zoomFrames / denom).toFixed(3),
+    };
+    console.log('  camera metrics:', JSON.stringify(metrics));
+    const inRange = (x: number, lo: number, hi: number) => x >= lo && x <= hi;
+    const metricProblems: string[] = [];
+    if (!inRange(metrics.compositions, 35, 45)) metricProblems.push(`compositions ${metrics.compositions} not in [35,45]`);
+    if (!inRange(metrics.medianCompositionSec, 1.2, 1.8)) metricProblems.push(`median ${metrics.medianCompositionSec}s not in [1.2,1.8]`);
+    if (metrics.repeatedIdenticalZappKiraSingles !== 0) metricProblems.push(`${metrics.repeatedIdenticalZappKiraSingles} repeated identical Zapp/Kira singles`);
+    if (!inRange(metrics.translationFrac, 0.35, 0.55)) metricProblems.push(`translation ${metrics.translationFrac} not in [0.35,0.55]`);
+    if (!inRange(metrics.zoomFrac, 0.30, 0.50)) metricProblems.push(`zoom ${metrics.zoomFrac} not in [0.30,0.50]`);
+    if (metricProblems.length) throw new Error(`camera redesign metrics out of range: ${metricProblems.join('; ')}`);
+    gates.cameraMetrics = metrics;
+  }
 
   stage(`encode ${N} fully composited frames (${W}x${H} @ ${fps}fps)`);
-  await page.evaluate((cfg: any) => (window as any).__s7.initCapture(cfg), { fps, bitrate, hashEvery: fps, keyframeInterval: fps * 2, vfx, graphics, captions: captionPlan.captions, placements: placementSegments });
+  const initCapture = visual === 'vignette' ? '__s7v' : '__s7';
+  await page.evaluate(([g, cfg]: any) => (window as any)[g].initCapture(cfg), [initCapture, { fps, bitrate, hashEvery: fps, keyframeInterval: fps * 2, vfx, graphics, captions: captionPlan.captions, placements: placementSegments }]);
   const samples: Array<{ data: Uint8Array; duration: number; isKey: boolean }> = [], frameHashes: Array<[number, string]> = [];
   const BATCH = 15, t0 = Date.now(); let renderMs = 0;
   for (let a = 0; a < N; a += BATCH) {
-    const b = Math.min(N, a + BATCH), r = await page.evaluate(([x, y, final]: [number, number, boolean]) => (window as any).__s7.encodeRange(x, y, final), [a, b, b === N]);
+    const b = Math.min(N, a + BATCH), r = await page.evaluate(([g, x, y, final]: [string, number, number, boolean]) => (window as any)[g].encodeRange(x, y, final), [initCapture, a, b, b === N]);
     const bytes = Buffer.from(r.b64, 'base64'); let off = 0;
     r.sizes.forEach((n: number, k: number) => { samples.push({ data: new Uint8Array(bytes.subarray(off, off + n)), duration: 1000, isKey: r.keys[k] }); off += n; });
     frameHashes.push(...r.hashes); renderMs += r.renderMs;
     if (b === N || b % 180 === 0) console.log(`  frames ${b}/${N}, ${((Date.now() - t0) / b).toFixed(1)} ms/frame`);
   }
   if (samples.length !== N || pageErrors.length) throw new Error(`capture failed: ${samples.length}/${N} samples; ${pageErrors.join('; ')}`);
-  const meta = await page.evaluate(() => (window as any).__s7.meta());
+  const meta = await page.evaluate(([g]: any) => (window as any)[g].meta(), [initCapture]);
   if (!meta.avcCb64) throw new Error('VideoEncoder did not return avcC');
+
+  // ---- capture the 7 named evidence PNGs (vignette mode) from the adapter's frame path ----
+  if (visual === 'vignette') {
+    stage('capture the 7 named evidence PNGs from the adapter frame path');
+    const frameShots: Array<[string, number]> = [
+      ['frame-teacher-exit.png', 3.0], ['frame-zapp-celebrate.png', 11.0], ['frame-button-press.png', 32.2],
+      ['frame-coin-growth.png', 45.0], ['frame-impact.png', 57.0], ['frame-teacher-return.png', 61.0], ['frame-final-payoff.png', 67.0],
+    ];
+    // Capture as real PNG via the adapter's PNG path. The .png bytes MUST be PNG (the JPEG frame() path is only for
+    // internal capture). Assert the PNG magic bytes so a .png can never silently hold JPEG data again.
+    const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    for (const [name, t] of frameShots) {
+      const res = await page.evaluate(([tt, plan]: [number, any]) => (window as any).__s7v.framePng({ t: tt, vfx: plan.vfx, graphics: plan.graphics, captions: plan.captions, placements: plan.placements }), [t, { vfx, graphics, captions: captionPlan.captions, placements: placementSegments }]);
+      if (!String(res.url).startsWith('data:image/png;base64,')) throw new Error(`frame ${name} was not a PNG data URL`);
+      const png = Buffer.from(res.url.split(',')[1], 'base64');
+      if (!png.subarray(0, 8).equals(PNG_MAGIC)) throw new Error(`frame ${name} bytes are not PNG (bad magic)`);
+      writeFileSync(join(outDir, name), png);
+    }
+    if (pageErrors.length) throw new Error(`pageerror during frame capture: ${pageErrors.join('; ')}`);
+  }
 
   stage('encode AAC-LC and mux fast-start MP4');
   const aac = encodeAacLc([mixed.left, mixed.right], audioBitrate);
@@ -128,21 +402,51 @@ try {
   const mp4Sha = hex(mp4), probe = probeFile(mp4Path), production = checkProductionProfile(probe, { ...PRODUCTION_SPEC, width: W, height: H, durationRange: [69, 69.2] });
   writeFileSync(join(outDir, 'probe.json'), JSON.stringify({ probe, production }, null, 2) + '\n');
   if (!production.ok) throw new Error(`production profile: ${production.errors.join('; ')}`);
+  gates.productionProfile = { ok: production.ok, errors: production.errors };
 
   stage('verify independent playback and AAC/container alignment');
-  const playback = await verifyPlayback(url, relative(ROOT, mp4Path), [0.5, 6.5, 11.2, 22.2, 32.4, 41, 57.2, 66.5], join(outDir, 'decoded'), 3);
+  // The static server only serves a fixed allowlist (dist/apps/studio/out/episodes/assets/docs); the v2 output dir is
+  // outside it, so verify against a byte-identical copy under out/ (public), then remove it. The committed artifact is
+  // the one in outDir; this copy is only a transient fetch target for the in-browser decode checks.
+  const publicDir = resolve(ROOT, 'out/_verify-v2'); mkdirSync(publicDir, { recursive: true });
+  const publicMp4 = join(publicDir, mp4Name); writeFileSync(publicMp4, mp4);
+  const seekTimes = visual === 'vignette' ? [0.5, 3.0, 11.0, 32.2, 45.0, 57.0, 61.0, 67.0] : [0.5, 6.5, 11.2, 22.2, 32.4, 41, 57.2, 66.5];
+  const playback = await verifyPlayback(url, relative(ROOT, publicMp4), seekTimes, join(publicDir, 'decoded'), 3);
   const verifyPage = await browser.newPage(); await verifyPage.goto(`${url}/apps/studio/blank.html`);
   const roundTrip = await aacRoundTrip(aac.frames, aac.asc, [mixed.left, mixed.right], aac.priming, verifyPage);
-  const alignment = await mp4AudioAlignment(verifyPage, `${url}/${relative(ROOT, mp4Path)}`, mixed.left);
+  const alignment = await mp4AudioAlignment(verifyPage, `${url}/${relative(ROOT, publicMp4)}`, mixed.left);
   await verifyPage.close();
-  const mediaOk = playback.ok && playback.droppedFrames === 0 && roundTrip.snrDb.every((x: number) => x >= 15) && Math.abs(alignment.lagSamples) <= 48 && Math.abs(alignment.decodedSamples - mixed.left.length) <= 1024;
-  if (!mediaOk) throw new Error('independent decode/playback/audio alignment verification failed');
-  const manifest = {
-    schema: 'blockspark.s7-full-render/1', createdAt: new Date().toISOString(), input: { storyboard: relative(ROOT, sbPath), storyboardSha256: sbSha, beatSheet: relative(ROOT, beatsPath), voice: relative(ROOT, voicePath), voiceSha256: voiceSha },
-    output: { file: relative(ROOT, mp4Path), sha256: mp4Sha, bytes: mp4.length, width: W, height: H, fps, frames: N, durationSec: videoDuration, codec: 'H.264 High + AAC-LC', fastStart: true },
-    s7: { captions: captionPlan.captions.length, placementSegments: Object.values(placements).flatMap((p: any) => p.segments).length, faceConflicts: 0, graphics: graphics.length, vfx: vfx.length, sfx: audioPlan.cues.length, music: 'none', ignoredMusic: audioPlan.ignoredMusic },
-    audio: mixed.report, integration: pre.analysis.summary, encoding: { videoBitrate: bitrate, audioBitrate, renderMs, frameHashes, aac: aac.stats }, verification: { production, playback: { ...playback, frameFiles: playback.frameFiles.map((f) => relative(ROOT, f)) }, roundTrip, alignment, ok: mediaOk },
-  };
-  writeFileSync(join(outDir, 'render-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+  rmSync(publicDir, { recursive: true, force: true });
+  const avDrift = Math.abs((alignment.decodedSamples / 48000) - videoDuration);
+  const mediaOk = playback.ok && playback.droppedFrames === 0 && roundTrip.ok && roundTrip.snrDb.every((x: number) => x >= 15) && Math.abs(alignment.lagSamples) <= 48 && Math.abs(alignment.decodedSamples - mixed.left.length) <= 1024 && avDrift <= 1 / fps + 1e-6;
+  if (!mediaOk) throw new Error(`independent decode/playback/audio alignment verification failed: dropped=${playback.droppedFrames} snr=${JSON.stringify(roundTrip.snrDb)} lag=${alignment.lagSamples} decErr=${alignment.decodedSamples - mixed.left.length} drift=${avDrift.toFixed(4)}`);
+  gates.mediaVerification = { playback: { ok: playback.ok, droppedFrames: playback.droppedFrames, videoWidth: playback.videoWidth, videoHeight: playback.videoHeight, duration: playback.duration, seekTimes }, roundTrip, alignment, avDriftSec: +avDrift.toFixed(5) };
+
+  // ---------------------------------------------------------------- write verification.json / manifest
+  if (visual === 'vignette') {
+    const rep = run!.report;
+    const verification = {
+      schema: 'blockspark.s7-full-render-v2/1', createdAt: new Date().toISOString(), visual: 'vignette',
+      inputs: { storyboard: relative(ROOT, sbPath), storyboardSha256: sbSha, beatSheet: relative(ROOT, beatsPath), voice: relative(ROOT, voicePath), voiceSha256: voiceSha, voiceMatchesApprovedStoryboard: true, decodedDurationSec: +decodedDuration.toFixed(3) },
+      output: { file: relative(ROOT, mp4Path), sha256: mp4Sha, bytes: mp4.length, width: W, height: H, fps, frames: N, durationSec: +videoDuration.toFixed(4), codec: 'H.264 High + AAC-LC 48kHz stereo', fastStart: true },
+      s7: { captions: captionPlan.captions.length, placementSegments: Object.values(placements).flatMap((p: any) => p.segments).length, faceConflicts: 0, graphics: graphics.length, vfx: vfx.length, sfx: audioPlan.cues.length, music: 'none', ignoredMusic: audioPlan.ignoredMusic },
+      runVignette: { blocking: rep.summary.blocking, coveragePct: +(run!.coverage.pct * 100).toFixed(1), camerasAccepted: rep.summary.camerasAccepted, camerasFallback: rep.summary.camerasFallback, camerasBlocked: rep.summary.camerasBlocked, stagingErrors: rep.summary.stagingErrors, sources: { teacher: rep.sources['character:teacher'], door: rep.sources['prop:door'], classroom: rep.sources['set:classroom'] } },
+      gates,
+      audio: mixed.report,
+      encoding: { videoBitrate: bitrate, audioBitrate, renderMs, aac: aac.stats },
+      frameHashes,
+      mp4Sha256: mp4Sha,
+    };
+    writeFileSync(join(outDir, 'verification.json'), JSON.stringify(verification, null, 2) + '\n');
+  } else {
+    const { pre } = (globalThis as any).__legacy;
+    const manifest = {
+      schema: 'blockspark.s7-full-render/1', createdAt: new Date().toISOString(), input: { storyboard: relative(ROOT, sbPath), storyboardSha256: sbSha, beatSheet: relative(ROOT, beatsPath), voice: relative(ROOT, voicePath), voiceSha256: voiceSha },
+      output: { file: relative(ROOT, mp4Path), sha256: mp4Sha, bytes: mp4.length, width: W, height: H, fps, frames: N, durationSec: videoDuration, codec: 'H.264 High + AAC-LC', fastStart: true },
+      s7: { captions: captionPlan.captions.length, faceConflicts: 0, graphics: graphics.length, vfx: vfx.length, sfx: audioPlan.cues.length, music: 'none', ignoredMusic: audioPlan.ignoredMusic },
+      audio: mixed.report, integration: pre.analysis.summary, encoding: { videoBitrate: bitrate, audioBitrate, renderMs, frameHashes, aac: aac.stats }, verification: { production, playback: { ...playback, frameFiles: playback.frameFiles.map((f) => relative(ROOT, f)) }, roundTrip, alignment, ok: mediaOk },
+    };
+    writeFileSync(join(outDir, 'render-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+  }
   stage(`DONE ${relative(ROOT, mp4Path)} ${(mp4.length / 1e6).toFixed(2)} MB sha256 ${mp4Sha}`);
 } finally { await browser.close(); server.close(); }

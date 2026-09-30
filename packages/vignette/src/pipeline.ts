@@ -9,7 +9,7 @@ import { beatSamples, sampleBeat, solveBeatCamera, type ShotChoice } from './cam
 import { coverageCheck, type CoverageReport } from './coverage.ts';
 import { VignetteScene } from './scene.ts';
 import { registerRuntimeLibrary } from './runtime-library.ts';
-import { stageBeatSheet, type StagePlan } from './stage.ts';
+import { stageBeatSheet, type StagePlan, type StagedBeat } from './stage.ts';
 
 export const REPORT_SCHEMA = 'blockspark.vignette-analysis/1';
 
@@ -21,7 +21,14 @@ export interface VignetteOptions {
   waistUp?: boolean;
   onProgress?: (stage: string, done: number, total: number) => void;
 }
-export interface VignetteRun { validation: BeatSheetResult; stage: StagePlan; scene: VignetteScene; shots: Record<string, ShotChoice>; coverage: CoverageReport; report: VignetteReport }
+/** one composition of a beat: a time window and its solved shot. A beat with no sub-shots has exactly one. */
+export interface Composition { beat: string; index: number; start: number; end: number; shot: ShotChoice }
+export interface VignetteRun {
+  validation: BeatSheetResult; stage: StagePlan; scene: VignetteScene; shots: Record<string, ShotChoice>;
+  /** every composition of every beat in play order (beat.camera first, then camera.subShots). One caption band per entry. */
+  compositions: Composition[];
+  coverage: CoverageReport; report: VignetteReport;
+}
 
 export interface VignetteReport {
   schema: typeof REPORT_SCHEMA; sheetId: string; title: string; beats: number; duration: number;
@@ -53,6 +60,7 @@ export function runVignette(input: unknown, lib: ManifestLibrary, opts: Vignette
   const stage = stageBeatSheet(sheet, lib);
   const scene = new VignetteScene(stage, lib);
   const shots: Record<string, ShotChoice> = {};
+  const compositions: Composition[] = [];
   let sd: ScreenDirectionState | undefined, prevSet: string | null = null, prevPrimary: string | null = null;
   stage.beats.forEach((b, i) => {
     opts.onProgress?.('cameras', i, stage.beats.length);
@@ -61,15 +69,38 @@ export function runVignette(input: unknown, lib: ManifestLibrary, opts: Vignette
       // The previous primary has left the scene, so this beat establishes a new action axis. Carrying the old side
       // across unrelated actor pairs produces a false 180-degree reversal (teacher exit -> Zapp/Kira scene).
       sd = { previousWasNeutral: true };
+    } else if (prevPrimary && prevPrimary !== b.camera.subject && prevPrimary !== b.camera.secondary && b.cast.some((c) => c.id === b.camera.subject && c.placementKind === 'enter')) {
+      // This beat's hero enters the scene (a new action axis): the carried side belongs to the previous hero, so
+      // resetting avoids a false 180-degree reversal when the entering hero appears on the opposite side.
+      sd = { previousWasNeutral: true };
     }
-    const samples = sampleBeat(scene, b, beatSamples(b));
-    const r = solveBeatCamera({ scene, beat: b, samples, screenDirection: sd, waistUp: opts.waistUp ?? false });
-    shots[b.phraseId] = r.shot; sd = r.next; prevSet = b.setId; prevPrimary = b.camera.subject;
+    // Compositions of the beat: the beat's own camera, then each camera.subShots entry, split at the sub-shot cut
+    // times. Each composition is solved as its own shot on camera safety over just its window (a hard cut between
+    // them); screen direction still carries continuously so no cut breaks the 180-degree line.
+    const cuts = [b.start, ...(b.camera.subShots?.map((s) => s.from) ?? []), b.end];
+    const cams = [b.camera, ...(b.camera.subShots ?? [])];
+    // screen direction threads sub-shot -> sub-shot inside the beat, but the axis carried to the NEXT beat is the one
+    // established by the beat's main composition (ci=0), not a transient sub-shot subject.
+    let intraSd = sd, carrySd = sd, prevCompSubject: string | null = prevPrimary;
+    cams.forEach((cam, ci) => {
+      const cStart = cuts[ci], cEnd = cuts[ci + 1];
+      // A sub-shot cut that changes the action axis (the previous composition's subject is neither this composition's
+      // subject nor secondary) resets screen direction, exactly as a beat cut does: carrying the old side across an
+      // unrelated pair produces a false 180-degree reversal (e.g. the teacher-exit wide -> a Zapp/Kira two-shot).
+      if (ci > 0 && prevCompSubject && prevCompSubject !== cam.subject && prevCompSubject !== cam.secondary) intraSd = { previousWasNeutral: true };
+      const wb: StagedBeat = { ...b, start: cStart, end: cEnd, camera: { recipeId: cam.recipeId, subject: cam.subject, ...(cam.secondary !== undefined ? { secondary: cam.secondary } : {}) }, keyTimes: b.keyTimes.filter((t) => t > cStart + 1e-6 && t < cEnd - 1e-6) };
+      const samples = sampleBeat(scene, wb, beatSamples(wb));
+      const r = solveBeatCamera({ scene, beat: wb, samples, screenDirection: intraSd, waistUp: opts.waistUp ?? false });
+      intraSd = r.next; prevCompSubject = cam.subject;
+      if (ci === 0) { shots[b.phraseId] = r.shot; carrySd = r.next; }
+      compositions.push({ beat: b.phraseId, index: ci, start: cStart, end: cEnd, shot: r.shot });
+    });
+    sd = carrySd; prevSet = b.setId; prevPrimary = b.camera.subject;
   });
   opts.onProgress?.('coverage', 0, 1);
   const coverage = coverageCheck(scene, stage, shots);
   const report = buildReport(sheet, validation, stage, scene, shots, coverage);
-  return { validation, stage, scene, shots, coverage, report };
+  return { validation, stage, scene, shots, compositions, coverage, report };
 }
 
 function buildReport(sheet: BeatSheet, validation: BeatSheetResult, stage: StagePlan, scene: VignetteScene, shots: Record<string, ShotChoice>, coverage: CoverageReport): VignetteReport {

@@ -105,7 +105,11 @@
       ],
       "camera": {
         "recipeId": "establishing_wide",
-        "subject": "teacher"
+        "subject": "teacher",
+        "subShots": [
+          { "from": 1.6, "recipeId": "wide_environment", "subject": "teacher", "secondary": "kira" },
+          { "from": 3.0, "recipeId": "wide_environment", "subject": "zapp", "secondary": "kira" }
+        ]
       },
       "captions": [
         {
@@ -195,8 +199,13 @@
         }
       ],
       "camera": {
-        "recipeId": "establishing_wide",
-        "subject": "zapp"
+        "recipeId": "final_loop",
+        "subject": "zapp",
+        "secondary": "kira",
+        "subShots": [
+          { "from": 6.4, "recipeId": "slow_push_in", "subject": "zapp" },
+          { "from": 8.0, "recipeId": "medium_single", "subject": "kira" }
+        ]
       },
       "captions": [
         {
@@ -290,8 +299,12 @@
         }
       ],
       "camera": {
-        "recipeId": "low_angle_hero",
-        "subject": "zapp"
+        "recipeId": "establishing_wide",
+        "subject": "zapp",
+        "subShots": [
+          { "from": 11.4, "recipeId": "reaction_punch_in", "subject": "zapp" },
+          { "from": 13.5, "recipeId": "final_loop", "subject": "kira", "secondary": "zapp" }
+        ]
       },
       "captions": [
         {
@@ -373,9 +386,13 @@
       ],
       "events": [],
       "camera": {
-        "recipeId": "two_shot",
+        "recipeId": "final_loop",
         "subject": "kira",
-        "secondary": "zapp"
+        "secondary": "zapp",
+        "subShots": [
+          { "from": 17.4, "recipeId": "slow_push_in", "subject": "zapp" },
+          { "from": 19.0, "recipeId": "medium_single", "subject": "kira" }
+        ]
       },
       "captions": [
         {
@@ -475,8 +492,13 @@
         }
       ],
       "camera": {
-        "recipeId": "insert_prop",
-        "subject": "suspicious_button"
+        "recipeId": "final_loop",
+        "subject": "zapp",
+        "secondary": "kira",
+        "subShots": [
+          { "from": 22.4, "recipeId": "insert_prop", "subject": "suspicious_button" },
+          { "from": 24.0, "recipeId": "reaction_punch_in", "subject": "zapp" }
+        ]
       },
       "captions": [
         {
@@ -559,9 +581,13 @@
         }
       ],
       "camera": {
-        "recipeId": "two_shot",
+        "recipeId": "final_loop",
         "subject": "kira",
-        "secondary": "zapp"
+        "secondary": "zapp",
+        "subShots": [
+          { "from": 27.6, "recipeId": "wide_environment", "subject": "zapp", "secondary": "suspicious_button" },
+          { "from": 29.6, "recipeId": "insert_prop", "subject": "suspicious_button" }
+        ]
       },
       "captions": [
         {
@@ -670,9 +696,13 @@
         }
       ],
       "camera": {
-        "recipeId": "wide_environment",
-        "subject": "spark_coin",
-        "secondary": "zapp"
+        "recipeId": "final_loop",
+        "subject": "zapp",
+        "secondary": "spark_coin",
+        "subShots": [
+          { "from": 32.3, "recipeId": "reaction_punch_in", "subject": "zapp" },
+          { "from": 33.6, "recipeId": "insert_prop", "subject": "spark_coin" }
+        ]
       },
       "captions": [
         {
@@ -769,8 +799,12 @@
         }
       ],
       "camera": {
-        "recipeId": "medium_single",
-        "subject": "zapp"
+        "recipeId": "slow_push_in",
+        "subject": "zapp",
+        "subShots": [
+          { "from": 37.0, "recipeId": "reaction_punch_in", "subject": "kira" },
+          { "from": 38.4, "recipeId": "slow_push_in", "subject": "zapp" }
+        ]
       },
       "captions": [
         {
@@ -875,8 +909,11 @@
       ],
       "camera": {
         "recipeId": "wide_environment",
-        "subject": "spark_coin",
-        "secondary": "zapp"
+        "subject": "zapp",
+        "secondary": "spark_coin",
+        "subShots": [
+          { "from": 42.077, "recipeId": "final_loop", "subject": "spark_coin", "secondary": "zapp" }
+        ]
       },
       "captions": [
         {
@@ -965,8 +1002,12 @@
         }
       ],
       "camera": {
-        "recipeId": "wide_environment",
-        "subject": "spark_coin"
+        "recipeId": "final_loop",
+        "subject": "spark_coin",
+        "subShots": [
+          { "from": 46.0, "recipeId": "reaction_punch_in", "subject": "zapp" },
+          { "from": 48.0, "recipeId": "final_loop", "subject": "kira", "secondary": "spark_coin" }
+        ]
       },
       "captions": [
         {
@@ -1062,9 +1103,13 @@
         }
       ],
       "camera": {
-        "recipeId": "wide_environment",
+        "recipeId": "final_loop",
         "subject": "zapp",
-        "secondary": "kira"
+        "secondary": "kira",
+        "subShots": [
+          { "from": 51.5, "recipeId": "chase_cam", "subject": "kira" },
+          { "from": 53.2, "recipeId": "reaction_punch_in", "subject": "zapp" }
+        ]
       },
       "captions": [
         {
@@ -1169,9 +1214,13 @@
         }
       ],
       "camera": {
-        "recipeId": "wide_environment",
+        "recipeId": "final_loop",
         "subject": "spark_coin",
-        "secondary": "zapp"
+        "secondary": "zapp",
+        "subShots": [
+          { "from": 57.0, "recipeId": "reaction_punch_in", "subject": "kira" },
+          { "from": 58.3, "recipeId": "final_loop", "subject": "spark_coin", "secondary": "kira" }
+        ]
       },
       "captions": [
         {
@@ -1292,7 +1341,11 @@
       "camera": {
         "recipeId": "wide_environment",
         "subject": "teacher",
-        "secondary": "kira"
+        "secondary": "kira",
+        "subShots": [
+          { "from": 61.6, "recipeId": "chase_cam", "subject": "teacher" },
+          { "from": 63.2, "recipeId": "final_loop", "subject": "teacher", "secondary": "kira" }
+        ]
       },
       "captions": [
         {
@@ -1395,8 +1448,13 @@
         }
       ],
       "camera": {
-        "recipeId": "final_loop",
-        "subject": "suspicious_button"
+        "recipeId": "wide_environment",
+        "subject": "teacher",
+        "secondary": "kira",
+        "subShots": [
+          { "from": 66.8, "recipeId": "reaction_punch_in", "subject": "kira" },
+          { "from": 68.0, "recipeId": "final_loop", "subject": "suspicious_button" }
+        ]
       },
       "captions": [
         {
