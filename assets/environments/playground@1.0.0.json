@@ -1,0 +1,1020 @@
+{
+  "kind": "environment",
+  "id": "playground",
+  "version": "1.0.0",
+  "displayName": "Spark School Playground",
+  "units": "meters",
+  "axes": {
+    "up": "+y",
+    "stageRight": "+x",
+    "towardAudience": "+z"
+  },
+  "bounds": {
+    "min": [
+      -8,
+      0,
+      -7
+    ],
+    "max": [
+      8,
+      5,
+      8
+    ]
+  },
+  "pieces": [
+    {
+      "id": "ground",
+      "size": [
+        16,
+        0.1,
+        15
+      ],
+      "pos": [
+        0,
+        -0.05,
+        0.5
+      ],
+      "color": "#72a85e",
+      "collide": true
+    },
+    {
+      "id": "rubber_play_surface",
+      "size": [
+        9.2,
+        0.035,
+        7.4
+      ],
+      "pos": [
+        0,
+        0.01,
+        -0.7
+      ],
+      "color": "#5d85a8",
+      "collide": false,
+      "bevel": 0.02
+    },
+    {
+      "id": "path",
+      "size": [
+        2.2,
+        0.025,
+        5
+      ],
+      "pos": [
+        0,
+        0.018,
+        5.5
+      ],
+      "color": "#d6c8a7",
+      "collide": false
+    },
+    {
+      "id": "slide_platform",
+      "size": [
+        1.4,
+        0.18,
+        1.4
+      ],
+      "pos": [
+        -3,
+        1.8,
+        -0.8
+      ],
+      "color": "#f6c445",
+      "collide": true,
+      "bevel": 0.04
+    },
+    {
+      "id": "slide_post_1",
+      "size": [
+        0.18,
+        1.8,
+        0.18
+      ],
+      "pos": [
+        -3.55,
+        0.9,
+        -1.35
+      ],
+      "color": "#e0524d",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "slide_post_2",
+      "size": [
+        0.18,
+        1.8,
+        0.18
+      ],
+      "pos": [
+        -2.45,
+        0.9,
+        -1.35
+      ],
+      "color": "#e0524d",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "slide_post_3",
+      "size": [
+        0.18,
+        1.8,
+        0.18
+      ],
+      "pos": [
+        -3.55,
+        0.9,
+        -0.25
+      ],
+      "color": "#e0524d",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "slide_post_4",
+      "size": [
+        0.18,
+        1.8,
+        0.18
+      ],
+      "pos": [
+        -2.45,
+        0.9,
+        -0.25
+      ],
+      "color": "#e0524d",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "slide_chute",
+      "size": [
+        1.05,
+        0.22,
+        3.2
+      ],
+      "pos": [
+        -3,
+        1.05,
+        1.45
+      ],
+      "color": "#f28c35",
+      "collide": false,
+      "rotDeg": [
+        -24,
+        0,
+        0
+      ],
+      "bevel": 0.025
+    },
+    {
+      "id": "slide_rail_left",
+      "size": [
+        0.09,
+        0.22,
+        3.25
+      ],
+      "pos": [
+        -3.57,
+        1.23,
+        1.4
+      ],
+      "color": "#ffd760",
+      "collide": false,
+      "rotDeg": [
+        -24,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "slide_rail_right",
+      "size": [
+        0.09,
+        0.22,
+        3.25
+      ],
+      "pos": [
+        -2.43,
+        1.23,
+        1.4
+      ],
+      "color": "#ffd760",
+      "collide": false,
+      "rotDeg": [
+        -24,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "slide_ladder_left",
+      "size": [
+        0.12,
+        1.9,
+        0.12
+      ],
+      "pos": [
+        -3.45,
+        0.95,
+        -1.85
+      ],
+      "color": "#365d86",
+      "collide": true,
+      "rotDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "slide_ladder_right",
+      "size": [
+        0.12,
+        1.9,
+        0.12
+      ],
+      "pos": [
+        -2.55,
+        0.95,
+        -1.85
+      ],
+      "color": "#365d86",
+      "collide": true,
+      "rotDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "swing_top_bar",
+      "size": [
+        3.6,
+        0.18,
+        0.18
+      ],
+      "pos": [
+        2.5,
+        2.9,
+        -1.8
+      ],
+      "color": "#315c7d",
+      "collide": true,
+      "bevel": 0.03
+    },
+    {
+      "id": "swing_post_left",
+      "size": [
+        0.2,
+        2.9,
+        0.2
+      ],
+      "pos": [
+        0.75,
+        1.45,
+        -1.8
+      ],
+      "color": "#315c7d",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "swing_post_right",
+      "size": [
+        0.2,
+        2.9,
+        0.2
+      ],
+      "pos": [
+        4.25,
+        1.45,
+        -1.8
+      ],
+      "color": "#315c7d",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "swing_rope_1a",
+      "size": [
+        0.035,
+        1.45,
+        0.035
+      ],
+      "pos": [
+        1.75,
+        2.12,
+        -1.8
+      ],
+      "color": "#e9e0c8",
+      "collide": false
+    },
+    {
+      "id": "swing_rope_1b",
+      "size": [
+        0.035,
+        1.45,
+        0.035
+      ],
+      "pos": [
+        2.1,
+        2.12,
+        -1.8
+      ],
+      "color": "#e9e0c8",
+      "collide": false
+    },
+    {
+      "id": "swing_seat_1",
+      "size": [
+        0.65,
+        0.09,
+        0.34
+      ],
+      "pos": [
+        1.925,
+        1.38,
+        -1.8
+      ],
+      "color": "#e0524d",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "swing_rope_2a",
+      "size": [
+        0.035,
+        1.45,
+        0.035
+      ],
+      "pos": [
+        2.9,
+        2.12,
+        -1.8
+      ],
+      "color": "#e9e0c8",
+      "collide": false
+    },
+    {
+      "id": "swing_rope_2b",
+      "size": [
+        0.035,
+        1.45,
+        0.035
+      ],
+      "pos": [
+        3.25,
+        2.12,
+        -1.8
+      ],
+      "color": "#e9e0c8",
+      "collide": false
+    },
+    {
+      "id": "swing_seat_2",
+      "size": [
+        0.65,
+        0.09,
+        0.34
+      ],
+      "pos": [
+        3.075,
+        1.38,
+        -1.8
+      ],
+      "color": "#f6c445",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "sandpit_sand",
+      "size": [
+        3.5,
+        0.08,
+        2.7
+      ],
+      "pos": [
+        3,
+        0.02,
+        3.55
+      ],
+      "color": "#edcf87",
+      "collide": false,
+      "bevel": 0.08
+    },
+    {
+      "id": "sandpit_edge_left",
+      "size": [
+        0.18,
+        0.28,
+        2.9
+      ],
+      "pos": [
+        1.15,
+        0.14,
+        3.55
+      ],
+      "color": "#a86f3f",
+      "collide": true,
+      "bevel": 0.04
+    },
+    {
+      "id": "sandpit_edge_right",
+      "size": [
+        0.18,
+        0.28,
+        2.9
+      ],
+      "pos": [
+        4.85,
+        0.14,
+        3.55
+      ],
+      "color": "#a86f3f",
+      "collide": true,
+      "bevel": 0.04
+    },
+    {
+      "id": "sandpit_edge_back",
+      "size": [
+        3.9,
+        0.28,
+        0.18
+      ],
+      "pos": [
+        3,
+        0.14,
+        4.95
+      ],
+      "color": "#a86f3f",
+      "collide": true,
+      "bevel": 0.04
+    },
+    {
+      "id": "sandpit_edge_front",
+      "size": [
+        3.9,
+        0.28,
+        0.18
+      ],
+      "pos": [
+        3,
+        0.14,
+        2.15
+      ],
+      "color": "#a86f3f",
+      "collide": true,
+      "bevel": 0.04
+    },
+    {
+      "id": "bench_seat",
+      "size": [
+        2.1,
+        0.16,
+        0.55
+      ],
+      "pos": [
+        -4.9,
+        0.62,
+        4.3
+      ],
+      "color": "#9a6338",
+      "collide": true,
+      "bevel": 0.04
+    },
+    {
+      "id": "bench_back",
+      "size": [
+        2.1,
+        0.85,
+        0.14
+      ],
+      "pos": [
+        -4.9,
+        1.05,
+        4.55
+      ],
+      "color": "#9a6338",
+      "collide": true,
+      "bevel": 0.03
+    },
+    {
+      "id": "bench_legs",
+      "size": [
+        1.7,
+        0.62,
+        0.35
+      ],
+      "pos": [
+        -4.9,
+        0.31,
+        4.3
+      ],
+      "color": "#3b5363",
+      "collide": true
+    },
+    {
+      "id": "hopscotch_1",
+      "size": [
+        0.7,
+        0.018,
+        0.7
+      ],
+      "pos": [
+        -0.35,
+        0.02,
+        3.15
+      ],
+      "color": "#ef6f61",
+      "collide": false
+    },
+    {
+      "id": "hopscotch_2",
+      "size": [
+        0.7,
+        0.018,
+        0.7
+      ],
+      "pos": [
+        0.35,
+        0.02,
+        3.85
+      ],
+      "color": "#f5ca55",
+      "collide": false
+    },
+    {
+      "id": "hopscotch_3",
+      "size": [
+        0.7,
+        0.018,
+        0.7
+      ],
+      "pos": [
+        -0.35,
+        0.02,
+        4.55
+      ],
+      "color": "#65b6a5",
+      "collide": false
+    },
+    {
+      "id": "fence_back_left",
+      "size": [
+        6.8,
+        1.4,
+        0.12
+      ],
+      "pos": [
+        -4.6,
+        0.7,
+        -6.94
+      ],
+      "color": "#f2ead7",
+      "collide": true
+    },
+    {
+      "id": "fence_back_right",
+      "size": [
+        6.8,
+        1.4,
+        0.12
+      ],
+      "pos": [
+        4.6,
+        0.7,
+        -6.94
+      ],
+      "color": "#f2ead7",
+      "collide": true
+    },
+    {
+      "id": "fence_left",
+      "size": [
+        0.12,
+        1.4,
+        15
+      ],
+      "pos": [
+        -7.94,
+        0.7,
+        0.5
+      ],
+      "color": "#f2ead7",
+      "collide": true
+    },
+    {
+      "id": "fence_right",
+      "size": [
+        0.12,
+        1.4,
+        15
+      ],
+      "pos": [
+        7.94,
+        0.7,
+        0.5
+      ],
+      "color": "#f2ead7",
+      "collide": true
+    },
+    {
+      "id": "slide_ladder_step_1",
+      "size": [
+        0.88,
+        0.08,
+        0.16
+      ],
+      "pos": [
+        -3,
+        0.35,
+        -1.92
+      ],
+      "color": "#6ea6c7",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "slide_ladder_step_2",
+      "size": [
+        0.88,
+        0.08,
+        0.16
+      ],
+      "pos": [
+        -3,
+        0.62,
+        -1.92
+      ],
+      "color": "#6ea6c7",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "slide_ladder_step_3",
+      "size": [
+        0.88,
+        0.08,
+        0.16
+      ],
+      "pos": [
+        -3,
+        0.89,
+        -1.92
+      ],
+      "color": "#6ea6c7",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "slide_ladder_step_4",
+      "size": [
+        0.88,
+        0.08,
+        0.16
+      ],
+      "pos": [
+        -3,
+        1.1600000000000001,
+        -1.92
+      ],
+      "color": "#6ea6c7",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "slide_ladder_step_5",
+      "size": [
+        0.88,
+        0.08,
+        0.16
+      ],
+      "pos": [
+        -3,
+        1.4300000000000002,
+        -1.92
+      ],
+      "color": "#6ea6c7",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "slide_ladder_step_6",
+      "size": [
+        0.88,
+        0.08,
+        0.16
+      ],
+      "pos": [
+        -3,
+        1.7000000000000002,
+        -1.92
+      ],
+      "color": "#6ea6c7",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "tree_trunk_1",
+      "shape": "cylinder",
+      "size": [
+        0.22,
+        2.4,
+        0
+      ],
+      "pos": [
+        -6.4,
+        1.2,
+        -4.7
+      ],
+      "color": "#7a5132",
+      "collide": true,
+      "decor": true
+    },
+    {
+      "id": "tree_crown_1",
+      "shape": "sphere",
+      "size": [
+        1.15,
+        0,
+        0
+      ],
+      "pos": [
+        -6.4,
+        2.9,
+        -4.7
+      ],
+      "color": "#55a969",
+      "collide": false,
+      "decor": true
+    },
+    {
+      "id": "tree_crown_1_small",
+      "shape": "sphere",
+      "size": [
+        0.75,
+        0,
+        0
+      ],
+      "pos": [
+        -5.800000000000001,
+        2.65,
+        -4.55
+      ],
+      "color": "#63b674",
+      "collide": false,
+      "decor": true
+    },
+    {
+      "id": "tree_trunk_2",
+      "shape": "cylinder",
+      "size": [
+        0.22,
+        2.4,
+        0
+      ],
+      "pos": [
+        6.1,
+        1.2,
+        -4.9
+      ],
+      "color": "#7a5132",
+      "collide": true,
+      "decor": true
+    },
+    {
+      "id": "tree_crown_2",
+      "shape": "sphere",
+      "size": [
+        1.15,
+        0,
+        0
+      ],
+      "pos": [
+        6.1,
+        2.9,
+        -4.9
+      ],
+      "color": "#4b985c",
+      "collide": false,
+      "decor": true
+    },
+    {
+      "id": "tree_crown_2_small",
+      "shape": "sphere",
+      "size": [
+        0.75,
+        0,
+        0
+      ],
+      "pos": [
+        6.699999999999999,
+        2.65,
+        -4.75
+      ],
+      "color": "#63b674",
+      "collide": false,
+      "decor": true
+    },
+    {
+      "id": "tree_trunk_3",
+      "shape": "cylinder",
+      "size": [
+        0.22,
+        2.4,
+        0
+      ],
+      "pos": [
+        -6.2,
+        1.2,
+        6.1
+      ],
+      "color": "#7a5132",
+      "collide": true,
+      "decor": true
+    },
+    {
+      "id": "tree_crown_3",
+      "shape": "sphere",
+      "size": [
+        1.15,
+        0,
+        0
+      ],
+      "pos": [
+        -6.2,
+        2.9,
+        6.1
+      ],
+      "color": "#55a969",
+      "collide": false,
+      "decor": true
+    },
+    {
+      "id": "tree_crown_3_small",
+      "shape": "sphere",
+      "size": [
+        0.75,
+        0,
+        0
+      ],
+      "pos": [
+        -5.6000000000000005,
+        2.65,
+        6.25
+      ],
+      "color": "#63b674",
+      "collide": false,
+      "decor": true
+    }
+  ],
+  "marks": {
+    "play_center": {
+      "pos": [
+        0,
+        0,
+        0.9
+      ],
+      "facingDeg": 0
+    },
+    "slide": {
+      "pos": [
+        -1.6,
+        0,
+        1.8
+      ],
+      "facingDeg": -90
+    },
+    "swings": {
+      "pos": [
+        2.5,
+        0,
+        -0.55
+      ],
+      "facingDeg": 180
+    },
+    "sandpit": {
+      "pos": [
+        3,
+        0,
+        3.55
+      ],
+      "facingDeg": 180
+    },
+    "bench": {
+      "pos": [
+        -3.5,
+        0,
+        4.3
+      ],
+      "facingDeg": -90
+    },
+    "playground_path": {
+      "pos": [
+        0,
+        0,
+        5.5
+      ],
+      "facingDeg": 180
+    }
+  },
+  "anchors": {
+    "slide_focus": [
+      -3,
+      1.1,
+      0.5
+    ],
+    "swing_focus": [
+      2.5,
+      1.7,
+      -1.8
+    ],
+    "sandpit_center": [
+      3,
+      0.08,
+      3.55
+    ]
+  },
+  "cameraSafe": {
+    "min": [
+      -7.4,
+      0.2,
+      -6.4
+    ],
+    "max": [
+      7.4,
+      4.5,
+      7.4
+    ],
+    "audienceSideOnly": false
+  },
+  "composition": {
+    "actionSafe": {
+      "left": 0.06,
+      "right": 0.86,
+      "top": 0.1,
+      "bottom": 0.8
+    },
+    "stageLine": {
+      "a": [
+        -5.5,
+        0,
+        0.8
+      ],
+      "b": [
+        5.5,
+        0,
+        0.8
+      ]
+    }
+  },
+  "lighting": {
+    "day": {
+      "sunDir": [
+        -0.58,
+        0.8,
+        0.25
+      ],
+      "sunColor": "#fff1cf",
+      "sunIntensity": 2.2,
+      "sky": "#8ecaf0",
+      "ground": "#77a765",
+      "ambientIntensity": 0.7,
+      "fog": "#d9eef7",
+      "fogNear": 28,
+      "fogFar": 70,
+      "exposure": 1
+    },
+    "sunset": {
+      "sunDir": [
+        0.75,
+        0.5,
+        0.3
+      ],
+      "sunColor": "#ffb36b",
+      "sunIntensity": 2,
+      "sky": "#8faed1",
+      "ground": "#9a694c",
+      "ambientIntensity": 0.55,
+      "fog": "#e9c5b0",
+      "fogNear": 24,
+      "fogFar": 62,
+      "exposure": 1.08
+    }
+  },
+  "extras": {
+    "decorDensity": 1,
+    "backgroundCharacters": 0
+  },
+  "notes": "Original procedural playground with a climbable slide silhouette, two swings, bordered sandpit, bench, hopscotch, trees, fence and unobstructed authored staging marks.",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Original primitive geometry and procedural dressing authored in-house; no Roblox or copied map assets."
+  }
+}
