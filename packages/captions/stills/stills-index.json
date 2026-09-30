@@ -1,0 +1,1624 @@
+{
+  "summary": {
+    "captions": 61,
+    "placementSegments": 90,
+    "placed": 61,
+    "clearOfFaces": 61,
+    "faceConflicts": [],
+    "centredSegments": 1
+  },
+  "placements": {
+    "p01-b01": {
+      "segments": [
+        {
+          "start": 0.06,
+          "end": 1.206,
+          "centerY": 0.21,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.21,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p01-b02": {
+      "segments": [
+        {
+          "start": 1.206,
+          "end": 1.696,
+          "centerY": 0.22,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 1.696,
+          "end": 2.336,
+          "centerY": 0.21,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.22,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p01-b03": {
+      "segments": [
+        {
+          "start": 2.336,
+          "end": 3.191,
+          "centerY": 0.21,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.21,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p01-b04": {
+      "segments": [
+        {
+          "start": 3.191,
+          "end": 3.391,
+          "centerY": 0.22,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 3.391,
+          "end": 4.3,
+          "centerY": 0.21,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.22,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p02-b01": {
+      "segments": [
+        {
+          "start": 4.6,
+          "end": 5.261,
+          "centerY": 0.21,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.21,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p02-b02": {
+      "segments": [
+        {
+          "start": 5.261,
+          "end": 6.378,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p02-b03": {
+      "segments": [
+        {
+          "start": 6.378,
+          "end": 6.415,
+          "centerY": 0.71,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 6.415,
+          "end": 7.058,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.71,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p02-b04": {
+      "segments": [
+        {
+          "start": 7.058,
+          "end": 7.998,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 7.998,
+          "end": 8.138,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p02-b05": {
+      "segments": [
+        {
+          "start": 8.138,
+          "end": 9.32,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p03-b01": {
+      "segments": [
+        {
+          "start": 9.58,
+          "end": 10.824,
+          "centerY": 0.58,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.58,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p03-b02": {
+      "segments": [
+        {
+          "start": 10.824,
+          "end": 11.508,
+          "centerY": 0.24,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.24,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p03-b03": {
+      "segments": [
+        {
+          "start": 11.508,
+          "end": 11.609,
+          "centerY": 0.26,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 11.609,
+          "end": 12.731,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.26,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p03-b04": {
+      "segments": [
+        {
+          "start": 12.731,
+          "end": 13.637,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 13.637,
+          "end": 14.292,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p03-b05": {
+      "segments": [
+        {
+          "start": 14.292,
+          "end": 15.44,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p04-b01": {
+      "segments": [
+        {
+          "start": 15.68,
+          "end": 16.27,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p04-b02": {
+      "segments": [
+        {
+          "start": 16.27,
+          "end": 17.078,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p04-b03": {
+      "segments": [
+        {
+          "start": 17.078,
+          "end": 17.207,
+          "centerY": 0.63,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 17.207,
+          "end": 17.99,
+          "centerY": 0.63,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.63,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p04-b04": {
+      "segments": [
+        {
+          "start": 17.99,
+          "end": 19.084,
+          "centerY": 0.62,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 19.084,
+          "end": 19.222,
+          "centerY": 0.62,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.62,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p04-b05": {
+      "segments": [
+        {
+          "start": 19.222,
+          "end": 20.26,
+          "centerY": 0.63,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.63,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p05-b01": {
+      "segments": [
+        {
+          "start": 20.96,
+          "end": 22.051,
+          "centerY": 0.73,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.73,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p05-b02": {
+      "segments": [
+        {
+          "start": 22.051,
+          "end": 22.514,
+          "centerY": 0.73,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 22.514,
+          "end": 23.267,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.73,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p05-b03": {
+      "segments": [
+        {
+          "start": 23.267,
+          "end": 24.056,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p05-b04": {
+      "segments": [
+        {
+          "start": 24.056,
+          "end": 24.067,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 24.067,
+          "end": 25.62,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p06-b01": {
+      "segments": [
+        {
+          "start": 25.94,
+          "end": 26.886,
+          "centerY": 0.21,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 26.886,
+          "end": 27.111,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.21,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p06-b02": {
+      "segments": [
+        {
+          "start": 27.111,
+          "end": 27.832,
+          "centerY": 0.71,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 27.832,
+          "end": 28.072,
+          "centerY": 0.28,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.71,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p06-b03": {
+      "segments": [
+        {
+          "start": 28.072,
+          "end": 28.774,
+          "centerY": 0.25,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.25,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p06-b04": {
+      "segments": [
+        {
+          "start": 28.774,
+          "end": 29.666,
+          "centerY": 0.25,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.25,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p06-b05": {
+      "segments": [
+        {
+          "start": 29.666,
+          "end": 29.724,
+          "centerY": 0.29,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 29.724,
+          "end": 30.242,
+          "centerY": 0.29,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.29,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p06-b06": {
+      "segments": [
+        {
+          "start": 30.242,
+          "end": 31.3,
+          "centerY": 0.28,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.28,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p07-b01": {
+      "segments": [
+        {
+          "start": 31.52,
+          "end": 32.981,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p07-b02": {
+      "segments": [
+        {
+          "start": 32.981,
+          "end": 33.36,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 33.36,
+          "end": 33.953,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p07-b03": {
+      "segments": [
+        {
+          "start": 33.953,
+          "end": 34.9,
+          "centerY": 0.71,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.71,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p08-b01": {
+      "segments": [
+        {
+          "start": 35.2,
+          "end": 36.594,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p08-b02": {
+      "segments": [
+        {
+          "start": 36.594,
+          "end": 36.634,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 36.634,
+          "end": 37.629,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p08-b03": {
+      "segments": [
+        {
+          "start": 37.629,
+          "end": 38.068,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 38.068,
+          "end": 39.023,
+          "centerY": 0.75,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p08-b04": {
+      "segments": [
+        {
+          "start": 39.023,
+          "end": 39.86,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p09-b01": {
+      "segments": [
+        {
+          "start": 40.24,
+          "end": 40.9333,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 40.9333,
+          "end": 41.223,
+          "centerY": 0.41,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p09-b02": {
+      "segments": [
+        {
+          "start": 41.223,
+          "end": 42.077,
+          "centerY": 0.25,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.25,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p09-b03": {
+      "segments": [
+        {
+          "start": 42.077,
+          "end": 42.23,
+          "centerY": 0.28,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 42.23,
+          "end": 43.001,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.28,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p09-b04": {
+      "segments": [
+        {
+          "start": 43.001,
+          "end": 43.2333,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 43.2333,
+          "end": 43.96,
+          "centerY": 0.25,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p10-b01": {
+      "segments": [
+        {
+          "start": 44.22,
+          "end": 45.169,
+          "centerY": 0.26,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.26,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p10-b02": {
+      "segments": [
+        {
+          "start": 45.169,
+          "end": 45.804,
+          "centerY": 0.21,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 45.804,
+          "end": 46.23,
+          "centerY": 0.68,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.21,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p10-b03": {
+      "segments": [
+        {
+          "start": 46.23,
+          "end": 47.33,
+          "centerY": 0.69,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.69,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p10-b04": {
+      "segments": [
+        {
+          "start": 47.33,
+          "end": 47.388,
+          "centerY": 0.69,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 47.388,
+          "end": 48.317,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.69,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p10-b05": {
+      "segments": [
+        {
+          "start": 48.317,
+          "end": 49.5,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p11-b01": {
+      "segments": [
+        {
+          "start": 49.86,
+          "end": 50.473,
+          "centerY": 0.3,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.3,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p11-b02": {
+      "segments": [
+        {
+          "start": 50.473,
+          "end": 51.473,
+          "centerY": 0.27,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 51.473,
+          "end": 51.542,
+          "centerY": 0.62,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.27,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p11-b03": {
+      "segments": [
+        {
+          "start": 51.542,
+          "end": 52.119,
+          "centerY": 0.23,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.23,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p11-b04": {
+      "segments": [
+        {
+          "start": 52.119,
+          "end": 53.267,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 53.267,
+          "end": 53.398,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p11-b05": {
+      "segments": [
+        {
+          "start": 53.398,
+          "end": 54.7,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p12-b01": {
+      "segments": [
+        {
+          "start": 55.06,
+          "end": 56.367,
+          "centerY": 0.22,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.22,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p12-b02": {
+      "segments": [
+        {
+          "start": 56.367,
+          "end": 56.718,
+          "centerY": 0.45,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 56.718,
+          "end": 57.466,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.45,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p12-b03": {
+      "segments": [
+        {
+          "start": 57.466,
+          "end": 58.178,
+          "centerY": 0.74,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.74,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p12-b04": {
+      "segments": [
+        {
+          "start": 58.178,
+          "end": 58.375,
+          "centerY": 0.21,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 58.375,
+          "end": 59.48,
+          "centerY": 0.55,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.21,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p13-b01": {
+      "segments": [
+        {
+          "start": 59.86,
+          "end": 61.382,
+          "centerY": 0.47,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.47,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p13-b02": {
+      "segments": [
+        {
+          "start": 61.382,
+          "end": 61.423,
+          "centerY": 0.5,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 61.423,
+          "end": 62.504,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.5,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p13-b03": {
+      "segments": [
+        {
+          "start": 62.504,
+          "end": 63.362,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 63.362,
+          "end": 63.905,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p13-b04": {
+      "segments": [
+        {
+          "start": 63.905,
+          "end": 64.94,
+          "centerY": 0.2,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.2,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p14-b01": {
+      "segments": [
+        {
+          "start": 65.3,
+          "end": 66.38,
+          "centerY": 0.24,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.24,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p14-b02": {
+      "segments": [
+        {
+          "start": 66.38,
+          "end": 67.521,
+          "centerY": 0.24,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.24,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    },
+    "p14-b03": {
+      "segments": [
+        {
+          "start": 67.521,
+          "end": 67.568,
+          "centerY": 0.24,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 67.568,
+          "end": 68.3666,
+          "centerY": 0.62,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        },
+        {
+          "start": 68.3666,
+          "end": 69.08,
+          "centerY": 0.26,
+          "clearOfFaces": true,
+          "faceOverlapPx": 0,
+          "warnings": []
+        }
+      ],
+      "centerY": 0.24,
+      "clearOfFaces": true,
+      "faceOverlapPx": 0,
+      "warnings": []
+    }
+  },
+  "stills": [
+    {
+      "file": "caption_bold-p01-b02.jpg",
+      "group": "caption_bold",
+      "label": "p01-b02: \"between Zapp and Kira\" highlight=Zapp (yellow)",
+      "t": 1.706,
+      "notes": {
+        "segments": [
+          {
+            "start": 1.206,
+            "end": 1.696,
+            "centerY": 0.22,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          },
+          {
+            "start": 1.696,
+            "end": 2.336,
+            "centerY": 0.21,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.22,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p02-b02.jpg",
+      "group": "caption_bold",
+      "label": "p02-b02: \"the door closes,\" highlight=closes (yellow)",
+      "t": 5.761,
+      "notes": {
+        "segments": [
+          {
+            "start": 5.261,
+            "end": 6.378,
+            "centerY": 0.2,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.2,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p03-b02.jpg",
+      "group": "caption_bold",
+      "label": "p03-b02: \"celebrates,\" highlight=celebrates (yellow)",
+      "t": 11.234,
+      "notes": {
+        "segments": [
+          {
+            "start": 10.824,
+            "end": 11.508,
+            "centerY": 0.24,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.24,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p05-b02.jpg",
+      "group": "caption_bold",
+      "label": "p05-b02: \"a suspicious free-coins\" highlight=suspicious (red)",
+      "t": 22.551,
+      "notes": {
+        "segments": [
+          {
+            "start": 22.051,
+            "end": 22.514,
+            "centerY": 0.73,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          },
+          {
+            "start": 22.514,
+            "end": 23.267,
+            "centerY": 0.74,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.73,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p06-b01.jpg",
+      "group": "caption_bold",
+      "label": "p06-b01: \"Kira tells him not\" highlight=not (red)",
+      "t": 26.44,
+      "notes": {
+        "segments": [
+          {
+            "start": 25.94,
+            "end": 26.886,
+            "centerY": 0.21,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          },
+          {
+            "start": 26.886,
+            "end": 27.111,
+            "centerY": 0.74,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.21,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p07-b01.jpg",
+      "group": "caption_bold",
+      "label": "p07-b01: \"He slams the button,\" highlight=slams (yellow)",
+      "t": 32.02,
+      "notes": {
+        "segments": [
+          {
+            "start": 31.52,
+            "end": 32.981,
+            "centerY": 0.74,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.74,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p10-b01.jpg",
+      "group": "caption_bold",
+      "label": "p10-b01: \"It gets taller\" highlight=taller (yellow)",
+      "t": 44.72,
+      "notes": {
+        "segments": [
+          {
+            "start": 44.22,
+            "end": 45.169,
+            "centerY": 0.26,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.26,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p12-b02.jpg",
+      "group": "caption_bold",
+      "label": "p12-b02: \"forward and flattens\" highlight=flattens (red)",
+      "t": 56.867,
+      "notes": {
+        "segments": [
+          {
+            "start": 56.367,
+            "end": 56.718,
+            "centerY": 0.45,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          },
+          {
+            "start": 56.718,
+            "end": 57.466,
+            "centerY": 0.2,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.45,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p13-b02.jpg",
+      "group": "caption_bold",
+      "label": "p13-b02: \"the teacher returns\" highlight=returns (yellow)",
+      "t": 61.882,
+      "notes": {
+        "segments": [
+          {
+            "start": 61.382,
+            "end": 61.423,
+            "centerY": 0.5,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          },
+          {
+            "start": 61.423,
+            "end": 62.504,
+            "centerY": 0.2,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.5,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-p14-b03.jpg",
+      "group": "caption_bold",
+      "label": "p14-b03: \"for its next victim.\" highlight=next (yellow)",
+      "t": 68.021,
+      "notes": {
+        "segments": [
+          {
+            "start": 67.521,
+            "end": 67.568,
+            "centerY": 0.24,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          },
+          {
+            "start": 67.568,
+            "end": 68.3666,
+            "centerY": 0.62,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          },
+          {
+            "start": 68.3666,
+            "end": 69.08,
+            "centerY": 0.26,
+            "clearOfFaces": true,
+            "faceOverlapPx": 0,
+            "warnings": []
+          }
+        ],
+        "centerY": 0.24,
+        "clearOfFaces": true,
+        "faceOverlapPx": 0,
+        "warnings": []
+      }
+    },
+    {
+      "file": "caption_bold-pop-in.jpg",
+      "group": "caption_bold",
+      "label": "pop-in: +0 / 20 / 40 / 60 / 90 / 130 / 300 ms",
+      "t": 25.94
+    },
+    {
+      "file": "ui_popup-plus1coin-in.jpg",
+      "group": "graphics",
+      "label": "ui_popup +1 COIN (pop-in, 0.1 s)",
+      "t": 36.1
+    },
+    {
+      "file": "ui_popup-plus1coin.jpg",
+      "group": "graphics",
+      "label": "ui_popup +1 COIN (held)",
+      "t": 36.8
+    },
+    {
+      "file": "title_card-in.jpg",
+      "group": "graphics",
+      "label": "title_card (slide-in, 0.14 s)",
+      "t": 60
+    },
+    {
+      "file": "title_card.jpg",
+      "group": "graphics",
+      "label": "title_card (held)",
+      "t": 60.7
+    },
+    {
+      "file": "world_text_3d-in.jpg",
+      "group": "graphics",
+      "label": "world_text_3d FREE COINS! (pop-in)",
+      "t": 21.32
+    },
+    {
+      "file": "world_text_3d.jpg",
+      "group": "graphics",
+      "label": "world_text_3d FREE COINS!",
+      "t": 22.4
+    },
+    {
+      "file": "vfx-sparkle.jpg",
+      "group": "vfx",
+      "label": "sparkle (event at 33, target spark_coin)",
+      "t": 33.45
+    },
+    {
+      "file": "vfx-smoke_puff.jpg",
+      "group": "vfx",
+      "label": "smoke_puff (event at 33, target spark_coin)",
+      "t": 33.25
+    },
+    {
+      "file": "vfx-fire.jpg",
+      "group": "vfx",
+      "label": "fire (event at 22, target suspicious_button)",
+      "t": 23.2
+    },
+    {
+      "file": "vfx-explosion.jpg",
+      "group": "vfx",
+      "label": "explosion (event at 22, target suspicious_button)",
+      "t": 22.18
+    },
+    {
+      "file": "vfx-explosion-late.jpg",
+      "group": "vfx",
+      "label": "explosion (event at 22, target suspicious_button)",
+      "t": 22.6
+    },
+    {
+      "file": "vfx-zoom_punch-off.jpg",
+      "group": "vfx",
+      "label": "zoom_punch (event at 99, target screen)",
+      "t": 32.27
+    },
+    {
+      "file": "vfx-zoom_punch-on.jpg",
+      "group": "vfx",
+      "label": "zoom_punch (event at 32.2, target screen)",
+      "t": 32.27
+    },
+    {
+      "file": "vfx-emote_exclaim.jpg",
+      "group": "vfx",
+      "label": "emote_exclaim (event at 6.2, target zapp)",
+      "t": 6.45
+    },
+    {
+      "file": "vfx-emote_question.jpg",
+      "group": "vfx",
+      "label": "emote_question (event at 26.2, target kira)",
+      "t": 26.6
+    },
+    {
+      "file": "vfx-emote_sweat.jpg",
+      "group": "vfx",
+      "label": "emote_sweat (event at 29.2, target zapp)",
+      "t": 29.6
+    },
+    {
+      "file": "vfx-emote_anger.jpg",
+      "group": "vfx",
+      "label": "emote_anger (event at 29.2, target kira)",
+      "t": 29.6
+    },
+    {
+      "file": "vfx-emote_hearts.jpg",
+      "group": "vfx",
+      "label": "emote_hearts (event at 33.9, target zapp)",
+      "t": 34.6
+    },
+    {
+      "file": "vfx-emote_tears.jpg",
+      "group": "vfx",
+      "label": "emote_tears (event at 29.1, target zapp)",
+      "t": 29.6
+    },
+    {
+      "file": "emote-icons.png",
+      "group": "vfx",
+      "label": "emote icon set",
+      "t": 0
+    }
+  ]
+}
