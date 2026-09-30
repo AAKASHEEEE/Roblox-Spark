@@ -25,6 +25,11 @@ export interface ActionPose {
   lookAt?: Vec3 | null;
   /** 0..1 how strongly the look-at overrides the pose's neck */
   lookWeight?: number;
+  /**
+   * cartoon squash & stretch: root-local scale (x = width, y = body up axis, z = depth), applied about the feet before
+   * grounding. Absent = [1, 1, 1] (every pre-library action leaves it absent, so their renders are unchanged).
+   */
+  scale?: Vec3;
 }
 
 /** keyframe interpolation on normalized time u with smoothstep easing between keys */
@@ -60,7 +65,11 @@ export function blendAction(a: ActionPose, b: ActionPose, w: number): ActionPose
     ...(b.ik ?? []).map((r) => ({ ...r, weight: r.weight * w })),
   ].filter((r) => r.weight > 0.001);
   const groundAll = (a.ground === 'all' ? 1 - w : 0) + (b.ground === 'all' ? w : 0);
+  // scale only appears when one side has it, so blends of pre-library actions produce identical objects
+  const sa = a.scale ?? [1, 1, 1], sb = b.scale ?? [1, 1, 1];
+  const scaleF = a.scale || b.scale ? { scale: [lerp(sa[0], sb[0]), lerp(sa[1], sb[1]), lerp(sa[2], sb[2])] as Vec3 } : {};
   return {
+    ...scaleF,
     joints: blendPose(a.joints, b.joints, w),
     ik,
     lift: lerp(a.lift, b.lift),

@@ -258,6 +258,7 @@ export function applyMotionFrame(rig: Rig, f: MotionFrame): MotionResult {
   const pose = f.pose, x = f.root[0], z = f.root[2];
   rig.root.pos = [x, 0, z];
   rig.root.rot = qMul(qEuler(f.pitchDeg * DEG, 0, 0), qEuler(0, f.yawDeg * DEG, 0));
+  rig.root.scl = [1, 1, 1];
   const il = f.idle ? idleLayer(f.t, f.seed % 1000, f.idle) : {};
   const layer: JointPose = {};
   for (const l of f.layers ?? []) for (const [j, e] of Object.entries(l)) { const c = layer[j as Joint] ?? [0, 0, 0]; layer[j as Joint] = [c[0] + e![0], c[1] + e![1], c[2] + e![2]]; }
@@ -294,6 +295,8 @@ export function applyMotionFrame(rig: Rig, f: MotionFrame): MotionResult {
     const err = solveArmIk(rig, ik.arm, tgt, ik.weight, ik.pole ?? [0, -0.5, -1], f.yawDeg);
     if (ik.weight > 0.95) handError = err;
   }
+  // squash & stretch (library action poses only; absent for every engine pose)
+  if (pose.scale) { rig.root.scl = [pose.scale[0], pose.scale[1], pose.scale[2]]; rig.root.updateWorld(); }
   let minY = Infinity;
   for (const p of rig.probes) {
     if (f.ground !== 'all' && !(p.name.includes('toe') || p.name.includes('heel'))) continue;
