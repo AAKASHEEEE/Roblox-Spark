@@ -57,6 +57,7 @@ const classroom = {
   displayName: 'Classroom 1A - Doorway',
   pieces: classroomPieces,
   marks: { ...classroom110.marks, classroom_door_inside: { pos: [2.5, 0, -3.0], facingDeg: 0 } },
+  anchors: { ...classroom110.anchors, coin_floor: [-2.1, 0, -1.4] },
   lighting: {
     ...classroom110.lighting,
     afternoon: {
@@ -65,7 +66,7 @@ const classroom = {
       fog: '#e8e2d7', fogNear: 18, fogFar: 46, exposure: 1.02,
     },
   },
-  notes: '1.2.0: preserves 1.1.0 staging and classroom layout while splitting the 4.2m back wall into a collision-clear 1.40m x 3.05m doorway at the S6 threshold. Adds an interior entry mark and afternoon lighting.',
+  notes: '1.2.0: preserves 1.1.0 geometry while adding a collision-clear 1.40m x 3.05m doorway and the approved narrated coin/impact staging coordinates.',
 };
 
 const hallwayPieces: Piece[] = [

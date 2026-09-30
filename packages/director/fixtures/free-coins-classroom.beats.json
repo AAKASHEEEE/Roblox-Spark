@@ -195,7 +195,7 @@
         }
       ],
       "camera": {
-        "recipeId": "slow_push_in",
+        "recipeId": "establishing_wide",
         "subject": "zapp"
       },
       "captions": [
@@ -649,7 +649,7 @@
       "events": [
         {
           "type": "sfx",
-          "at": 32.2,
+          "at": 32.248,
           "sfxId": "sfx_click"
         },
         {
@@ -670,9 +670,9 @@
         }
       ],
       "camera": {
-        "recipeId": "over_shoulder",
-        "subject": "zapp",
-        "secondary": "suspicious_button"
+        "recipeId": "wide_environment",
+        "subject": "spark_coin",
+        "secondary": "zapp"
       },
       "captions": [
         {
@@ -874,8 +874,9 @@
         }
       ],
       "camera": {
-        "recipeId": "reaction_punch_in",
-        "subject": "zapp"
+        "recipeId": "wide_environment",
+        "subject": "spark_coin",
+        "secondary": "zapp"
       },
       "captions": [
         {
@@ -964,7 +965,7 @@
         }
       ],
       "camera": {
-        "recipeId": "low_angle_reveal",
+        "recipeId": "wide_environment",
         "subject": "spark_coin"
       },
       "captions": [
@@ -1016,7 +1017,7 @@
         {
           "characterId": "zapp",
           "role": "lead",
-          "placement": "coin_front",
+          "placement": "zapp_impact",
           "actionId": "arms_crossed",
           "expressionId": "smug",
           "lookAt": "camera"
@@ -1061,7 +1062,7 @@
         }
       ],
       "camera": {
-        "recipeId": "two_shot",
+        "recipeId": "wide_environment",
         "subject": "zapp",
         "secondary": "kira"
       },
@@ -1152,24 +1153,25 @@
         },
         {
           "type": "sfx",
-          "at": 57,
+          "at": 56.936,
           "sfxId": "sfx_thud_big"
         },
         {
           "type": "vfx",
-          "at": 57,
+          "at": 56.936,
           "vfxId": "dust_puff",
           "target": "zapp"
         },
         {
           "type": "vfx",
-          "at": 57,
+          "at": 56.936,
           "vfxId": "screen_shake"
         }
       ],
       "camera": {
-        "recipeId": "top_down",
-        "subject": "spark_coin"
+        "recipeId": "wide_environment",
+        "subject": "spark_coin",
+        "secondary": "zapp"
       },
       "captions": [
         {
@@ -1288,7 +1290,7 @@
         }
       ],
       "camera": {
-        "recipeId": "over_shoulder",
+        "recipeId": "wide_environment",
         "subject": "teacher",
         "secondary": "kira"
       },
@@ -1341,7 +1343,7 @@
         {
           "characterId": "teacher",
           "role": "authority",
-          "placement": "center_stage",
+          "placement": "classroom_door_inside",
           "actionId": "look_at",
           "expressionId": "strict",
           "lookAt": "zapp"

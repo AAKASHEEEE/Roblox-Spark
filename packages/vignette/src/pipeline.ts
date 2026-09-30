@@ -53,13 +53,18 @@ export function runVignette(input: unknown, lib: ManifestLibrary, opts: Vignette
   const stage = stageBeatSheet(sheet, lib);
   const scene = new VignetteScene(stage, lib);
   const shots: Record<string, ShotChoice> = {};
-  let sd: ScreenDirectionState | undefined, prevSet: string | null = null;
+  let sd: ScreenDirectionState | undefined, prevSet: string | null = null, prevPrimary: string | null = null;
   stage.beats.forEach((b, i) => {
     opts.onProgress?.('cameras', i, stage.beats.length);
     if (b.setId !== prevSet) sd = prevSet === null ? {} : { previousWasNeutral: true };
+    else if (prevPrimary && !b.cast.some((c) => c.id === prevPrimary) && !b.props.includes(prevPrimary)) {
+      // The previous primary has left the scene, so this beat establishes a new action axis. Carrying the old side
+      // across unrelated actor pairs produces a false 180-degree reversal (teacher exit -> Zapp/Kira scene).
+      sd = { previousWasNeutral: true };
+    }
     const samples = sampleBeat(scene, b, beatSamples(b));
     const r = solveBeatCamera({ scene, beat: b, samples, screenDirection: sd, waistUp: opts.waistUp ?? false });
-    shots[b.phraseId] = r.shot; sd = r.next; prevSet = b.setId;
+    shots[b.phraseId] = r.shot; sd = r.next; prevSet = b.setId; prevPrimary = b.camera.subject;
   });
   opts.onProgress?.('coverage', 0, 1);
   const coverage = coverageCheck(scene, stage, shots);

@@ -78,7 +78,18 @@ function classroomMarks110(): Mark[] {
 }
 
 function classroomMarks120(): Mark[] {
-  const marks = classroomMarks110().filter((m) => m.id !== 'classroom_door');
+  const marks = classroomMarks110().filter((m) => !['classroom_door', 'zapp_impact', 'button_desk', 'coin_spawn'].includes(m.id));
+  const impact = actor('zapp_impact', [-2.1, 0, 1.2], 0, ['wp_front_left'], {
+    pathId: 'lane_zapp', postures: ['stand', 'crouch', 'prone'],
+    hazard: { kind: 'impact_zone', radius: 0.6, note: 'narrated giant coin tips onto this spot' },
+    sourceRef: 'packages/narrated/src/world.ts MARK_LAYOUT.extra.zapp_impact',
+  });
+  const waypointLeft = marks.find((m) => m.id === 'wp_front_left')!;
+  waypointLeft.reachable = [...waypointLeft.reachable, 'zapp_impact'];
+  const button = propMark('button_desk', [-0.1, 0.76, -0.12], 'packages/narrated/src/world.ts desk + suspicious_button button_spot');
+  const coin = propMark('coin_spawn', [-2.1, 0, -1.4], 'packages/narrated/src/world.ts MARK_LAYOUT.extra.coin_spawn', {
+    hazard: { kind: 'falling_object', radius: 1.6, note: 'coin grows up to ~16.7x here' },
+  });
   const entry = actor('classroom_door_inside', [2.5, 0, -3.0], 0, ['wp_desk_back_right'], {
     pathId: 'lane_classroom_door', sourceRef: 'manifest.marks.classroom_door_inside',
   });
@@ -86,10 +97,10 @@ function classroomMarks120(): Mark[] {
   threshold.sourceRef = 'producer door threshold: classroom_door';
   const waypointRight = marks.find((m) => m.id === 'wp_desk_back_right')!;
   waypointRight.reachable = [...waypointRight.reachable, 'classroom_door_inside'];
-  return [...marks, entry, threshold];
+  return [...marks, impact, button, coin, entry, threshold];
 }
 
-function classroomAnchors(v110: boolean): PropAnchor[] {
+function classroomAnchors(v110: boolean, v120 = false): PropAnchor[] {
   const a: PropAnchor[] = [
     { id: 'hero_desk_spot', role: 'prop', categories: ['furniture'], position: [0, 0, 0], rotationDeg: [0, 0, 0], maxSize: [1.1, 0.9, 0.7],
       parentSurface: { kind: 'floor', ref: null, propAnchor: null }, reachZones: [{ markId: 'zapp_desk', radius: 1.0 }, { markId: 'kira_desk', radius: 1.5 }],
@@ -97,9 +108,9 @@ function classroomAnchors(v110: boolean): PropAnchor[] {
     { id: 'button_spot', role: 'prop', categories: ['device'], position: [-0.1, 0.76, -0.12], rotationDeg: [0, 0, 0], maxSize: [0.4, 0.2, 0.3],
       parentSurface: { kind: 'prop_anchor', ref: 'hero_desk_spot', propAnchor: 'button_spot' }, reachZones: [{ markId: 'zapp_desk', radius: 0.8 }],
       clearance: { radius: 0.2, height: 0.3 }, scaling: { allowed: false, maxScale: 1 }, hazard: { ...NO_HAZARD }, sourceRef: 'props/student_desk@1.0.0 anchors.button_spot' },
-    { id: 'coin_floor', role: 'prop', categories: ['collectible'], position: [-1.7, 0, -1.2], rotationDeg: [0, 0, 0], maxSize: [0.2, 0.05, 0.2],
-      parentSurface: { kind: 'floor', ref: null, propAnchor: null }, reachZones: [{ markId: 'coin_front', radius: 1.0 }],
-      clearance: { radius: 1.6, height: 3.2 }, scaling: { allowed: true, maxScale: 30 }, hazard: { kind: 'falling_object', radius: 1.6, note: 'grown coin tips toward coin_front' }, sourceRef: 'manifest.anchors.coin_floor' },
+    { id: 'coin_floor', role: 'prop', categories: ['collectible'], position: v120 ? [-2.1, 0, -1.4] : [-1.7, 0, -1.2], rotationDeg: [0, 0, 0], maxSize: [0.2, 0.05, 0.2],
+      parentSurface: { kind: 'floor', ref: null, propAnchor: null }, reachZones: [{ markId: v120 ? 'zapp_impact' : 'coin_front', radius: 1.0 }],
+      clearance: { radius: 1.6, height: 3.2 }, scaling: { allowed: true, maxScale: 30 }, hazard: { kind: 'falling_object', radius: 1.6, note: v120 ? 'grown coin tips toward narrated zapp_impact' : 'grown coin tips toward coin_front' }, sourceRef: v120 ? 'packages/narrated/src/world.ts MARK_LAYOUT.extra.coin_spawn' : 'manifest.anchors.coin_floor' },
     { id: 'board_center', role: 'look_target', categories: [], position: [0, 2.0, -3.92], rotationDeg: [0, 0, 0], maxSize: [3.3, 1.35, 0],
       parentSurface: { kind: 'wall', ref: null, propAnchor: null }, reachZones: [], clearance: { radius: 0, height: 0 }, scaling: { allowed: false, maxScale: 1 }, hazard: { ...NO_HAZARD }, sourceRef: 'manifest.anchors.board_center' },
     { id: 'zapp_look_up', role: 'look_target', categories: [], position: [-1.6, 3.0, -0.8], rotationDeg: [0, 0, 0], maxSize: [0, 0, 0],
@@ -151,12 +162,14 @@ function classroom(version: '1.0.0' | '1.1.0' | '1.2.0', sha: string, colliders:
     bounds: { min: [-4.6, 0, -4.1], max: [4.6, 4.2, 4.0] },
     lighting: { presetId: 'morning', params: { ...MORNING, sunDir: [...MORNING.sunDir] } },
     marks: version === '1.0.0' ? classroomMarks100() : version === '1.1.0' ? classroomMarks110() : classroomMarks120(),
-    anchors: classroomAnchors(version !== '1.0.0'),
+    anchors: classroomAnchors(version !== '1.0.0', version === '1.2.0'),
     cameraZones: cameraZones(),
     collision: { source: 'environment_manifest_pieces', assetKey: key, assetSha256: sha, filter: 'collide=true', colliderIds: colliders },
     captionSafe: { actionSafe: { left: 0.06, right: 0.86, top: 0.1, bottom: 0.8 }, captionBand: { top: 0.8, bottom: 0.94 }, avoidBusyBackgroundBehindCaptions: true },
     cast: { min: 1, max: 3 },
-    storyPatterns: version === '1.0.0' ? ['escalation_backfire'] : ['escalation_backfire', 'ordinary_object_extreme', 'visible_secret_chase', 'apparent_win_instant_loss', 'noob_vs_smart'],
+    storyPatterns: version === '1.0.0' ? ['escalation_backfire'] : version === '1.1.0'
+      ? ['escalation_backfire', 'ordinary_object_extreme', 'visible_secret_chase', 'apparent_win_instant_loss', 'noob_vs_smart']
+      : ['escalation_backfire', 'ordinary_object_extreme', 'visible_secret_chase', 'apparent_win_instant_loss', 'noob_vs_smart', 'comparison', 'hypothetical', 'escalating_consequence', 'narrated_comedy'],
     supportedActions: [...ACTIONS],
     license: { source: 'original-procedural', author: 'RBLX SPARK (in-house)', license: 'Proprietary - owned', attributionRequired: false, notes: 'All posters, chalk doodles and textures are procedurally drawn in-house.' },
     provenance: { origin: 'in_house_procedural', derivedFrom: [key], author: 'RBLX SPARK (in-house)', notes: version === '1.0.0' ? 'Pinned by the Visual Comedy PoC (free-coins-loop-001); values copied unchanged.' : version === '1.1.0' ? 'Staging overlay: 1.0.0 marks plus role-neutral marks/waypoints and giant_spot.' : 'New immutable version preserving 1.1.0 marks and room semantics while adding the S6 traversable doorway.' },
@@ -270,7 +283,7 @@ export const CLASSROOM_1_0_0 = classroom('1.0.0', '867964e30cc6b1d8ba3efd58e0486
   [...COLLIDERS_COMMON, 'bg_chair_1_seat', 'bg_chair_1_back', 'bg_chair_2_seat', 'bg_chair_2_back', 'bg_chair_legs_1', 'bg_chair_legs_2', 'shelf', 'plant_pot']);
 export const CLASSROOM_1_1_0 = classroom('1.1.0', 'cd1e3b6fd24acacd2ec0f417b6b13dd8cce7b0640418d61568737af3b06f2a90',
   [...COLLIDERS_COMMON, 'bg_chair_2_seat', 'bg_chair_2_back', 'bg_chair_legs_2', 'shelf', 'plant_pot']);
-export const CLASSROOM_1_2_0 = classroom('1.2.0', 'c3ba63a7848306d635bfea9e15ef2001a7549db05cd36029db9eb387e51f71b6', [
+export const CLASSROOM_1_2_0 = classroom('1.2.0', 'e4b9374065d67e88d16241b37cf86700d4e436780eb8ebdd4526a4d76ba1ef39', [
   'floor', 'wall_back_left', 'wall_back_right', 'wall_back_lintel', 'wall_left', 'wall_right',
   'teacher_desk_top', 'teacher_desk_body', 'bg_desk_1_top', 'bg_desk_1_apron', 'bg_desk_2_top', 'bg_desk_2_apron',
   'bg_desk_3_top', 'bg_desk_3_apron', 'bg_desk_4_top', 'bg_desk_4_apron', 'bg_desk_legs_1', 'bg_desk_legs_2',

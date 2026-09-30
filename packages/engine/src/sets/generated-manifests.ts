@@ -1107,9 +1107,9 @@ export const CLASSROOM_MANIFEST = {
       0
     ],
     "coin_floor": [
-      -1.7,
+      -2.1,
       0,
-      -1.2
+      -1.4
     ],
     "board_center": [
       0,
@@ -1210,7 +1210,7 @@ export const CLASSROOM_MANIFEST = {
     "attributionRequired": false,
     "notes": "All posters, chalk doodles and textures are procedurally drawn in-house."
   },
-  "notes": "1.2.0: preserves 1.1.0 staging and classroom layout while splitting the 4.2m back wall into a collision-clear 1.40m x 3.05m doorway at the S6 threshold. Adds an interior entry mark and afternoon lighting."
+  "notes": "1.2.0: preserves 1.1.0 geometry while adding a collision-clear 1.40m x 3.05m doorway and the approved narrated coin/impact staging coordinates."
 } as unknown as EnvironmentManifest;
 export const SCHOOL_HALLWAY_MANIFEST = {
   "kind": "environment",

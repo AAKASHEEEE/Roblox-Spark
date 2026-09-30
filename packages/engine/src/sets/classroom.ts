@@ -9,9 +9,9 @@ const POSTURES: Record<string, readonly SetPosture[]> = {
 };
 const baseMarks = authoredMarks(CLASSROOM_MANIFEST, POSTURES);
 const semanticMarks: SetMark[] = [
-  { id: 'zapp_impact', position: [-1.5, 0, -0.3], facingDeg: 0, postures: ['stand', 'crouch', 'prone'] },
-  { id: 'button_desk', position: [0, 0, 0], facingDeg: 0, postures: [] },
-  { id: 'coin_spawn', position: [-1.7, 0, -1.2], facingDeg: 0, postures: [] },
+  { id: 'zapp_impact', position: [-2.1, 0, 1.2], facingDeg: 0, postures: ['stand', 'crouch', 'prone'] },
+  { id: 'button_desk', position: [-0.1, 0.76, -0.12], facingDeg: 0, postures: [] },
+  { id: 'coin_spawn', position: [-2.1, 0, -1.4], facingDeg: 0, postures: [] },
 ];
 const marks = [...baseMarks, ...semanticMarks];
 

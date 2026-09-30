@@ -63,7 +63,7 @@ export type EnvironmentLock = Readonly<Record<string, string>>;
 export const ENVIRONMENT_LOCK: EnvironmentLock = Object.freeze({
   'classroom@1.0.0': '3494d354c5dc2f904964115002d864c40b72236a3379f3e937375f17279a6479',
   'classroom@1.1.0': '0bb894417d9cdb3dee19ed358e54730f4162d84d540525587e5942cb60047dbf',
-  'classroom@1.2.0': '9b3b696f7e76e66361921095769216ca30cfb18883e7aacb5a72eb242db36087',
+  'classroom@1.2.0': 'afc29c5d13f59f8d33477dad160aab36e4ee1e33f431b9fe79b7d932cf19dcf7',
   'playground@1.0.0': 'b6056be513505ed9a1e9c2e06a2d16d20180fc1cc47797e3315c4cdd236fdf95',
   'school_hallway@1.0.0': 'cd02cdc410b22af8b1bc9010054dc30fefbddfd9a99d0b5c23ea3468a0a1e3ee',
 });

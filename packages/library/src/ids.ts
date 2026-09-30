@@ -61,16 +61,18 @@ const CLASSROOM_MARKS = [
 const SETS: SetEntry[] = [
   ...setRows('available', [
     ['classroom', 'Classroom 1A: desks, front desk, board; door is an off-screen cue until a door prop is built', ['classroom', 'class', 'school', 'lesson', 'desk'],
-      { versions: ['1.0.0', '1.1.0'], source: 'assets/environments/classroom@1.1.0.json + packages/environments catalog', marks: CLASSROOM_MARKS, doors: ['classroom_door'], lighting: ['morning'] }],
+      { versions: ['1.0.0', '1.1.0', '1.2.0'], source: 'assets/environments/classroom@1.2.0.json + packages/engine/src/sets/classroom.ts', marks: [...CLASSROOM_MARKS, 'classroom_door_inside'], doors: ['classroom_door'], lighting: ['morning', 'afternoon'] }],
+    ['school_hallway', 'Original school corridor with lockers and classroom doors', ['hallway', 'corridor', 'lockers', 'hall'],
+      { versions: ['1.0.0'], source: 'assets/environments/school_hallway@1.0.0.json + packages/engine/src/sets/school-hallway.ts', marks: ['hall_center', 'lockers', 'hall_door_inside', 'notice_board', 'water_fountain', 'hall_end'], doors: ['hall_door'], lighting: ['day', 'after_school'] }],
+    ['playground', 'Original outdoor playground with slide, swings and sandpit', ['playground', 'park', 'recess', 'swing', 'slide'],
+      { versions: ['1.0.0'], source: 'assets/environments/playground@1.0.0.json + packages/engine/src/sets/playground.ts', marks: ['play_center', 'slide', 'swings', 'sandpit', 'bench', 'playground_path'], doors: [], lighting: ['day', 'sunset'] }],
   ]),
   ...setRows('planned', [
-    ['school_hallway', 'School corridor with lockers and classroom doors', ['hallway', 'corridor', 'lockers', 'hall']],
     ['school_exterior', 'Front of the school building and entrance steps', ['school', 'outside', 'entrance', 'gate']],
     ['home_living_room', 'Living room with couch and TV', ['living room', 'lounge', 'couch', 'home', 'house']],
     ['home_bedroom', 'Kid bedroom with bed and desk', ['bedroom', 'room', 'bed', 'sleep']],
     ['home_kitchen', 'Kitchen with fridge, stove and table', ['kitchen', 'fridge', 'cook', 'dinner', 'breakfast']],
     ['city_street', 'Street with sidewalk, road and shop fronts', ['street', 'road', 'city', 'town', 'sidewalk']],
-    ['playground', 'Outdoor playground with slide and swings', ['playground', 'park', 'recess', 'swing', 'slide']],
     ['shop_interior', 'Shop interior with counter and shelves', ['shop', 'store', 'mall', 'counter', 'buy']],
     ['void_backdrop', 'Neutral seamless backdrop for inserts and title beats', ['void', 'blank', 'backdrop', 'nowhere']],
   ]),
@@ -268,10 +270,14 @@ const VFX: LibraryEntry[] = [
 
 // ---------------------------------------------------------------- text styles (S7)
 const TEXT_STYLES: LibraryEntry[] = [
-  ...rows('S7', 'available', [['shorts_default', 'Current narrated caption preset (2 lines, lower middle)', ['caption'], { source: 'packages/narrated CAPTION_STYLE' }]]),
+  ...rows('S7', 'available', [
+    ['shorts_default', 'Current narrated caption preset (2 lines, lower middle)', ['caption'], { source: 'packages/narrated CAPTION_STYLE' }],
+    ['caption_bold', 'Bold 1-4 word caption with highlighted keyword', ['caption'], { source: 'packages/vignette/src/captions.ts' }],
+    ['ui_popup', 'Game-UI style screen popup', ['notification', 'popup', 'level up'], { source: 'packages/vignette/src/captions.ts' }],
+  ]),
   ...rows('S7', 'planned', [
-    ['caption_bold', 'Bold 1-4 word caption with highlight word', ['caption']], ['world_text_3d', '3D text placed in the set', ['sign', 'label']],
-    ['ui_popup', 'Game-UI style popup', ['notification', 'popup', 'level up']], ['title_card', 'Full-screen title card', ['title', 'later', 'meanwhile']],
+    ['world_text_3d', '3D text placed in the set', ['sign', 'label']],
+    ['title_card', 'Full-screen title card', ['title', 'later', 'meanwhile']],
   ]),
 ];
 

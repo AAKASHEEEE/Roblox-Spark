@@ -12,7 +12,10 @@ export type ShotIntent = (typeof SHOT_INTENTS)[number];
 export const POSTURES = ['stand', 'sit', 'crouch', 'prone', 'hover'] as const;
 export const MARK_KINDS = ['actor', 'waypoint', 'prop', 'offscreen_cue'] as const;
 export const HAZARD_KINDS = ['none', 'impact_zone', 'falling_object', 'trip', 'pinch'] as const;
-export const STORY_PATTERNS = ['escalation_backfire', 'ordinary_object_extreme', 'visible_secret_chase', 'apparent_win_instant_loss', 'noob_vs_smart'] as const;
+export const STORY_PATTERNS = [
+  'escalation_backfire', 'ordinary_object_extreme', 'visible_secret_chase', 'apparent_win_instant_loss', 'noob_vs_smart',
+  'comparison', 'hypothetical', 'escalating_consequence', 'narrated_comedy',
+] as const;
 export type StoryPattern = (typeof STORY_PATTERNS)[number];
 
 const Vec3 = v.vec3();

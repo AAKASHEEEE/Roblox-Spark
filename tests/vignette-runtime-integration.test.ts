@@ -47,9 +47,16 @@ test('S3-S6 registry entries are truthful only with real implementations and exa
   assert.deepEqual(checkLibrary(), []);
   unregisterBuilders();
   const count = registerRuntimeLibrary(lib);
+  assert.equal(count.sets, 3);
   assert.equal(count.characters, Object.keys(lib.characters).length);
   assert.equal(count.props, Object.keys(lib.props).length);
 
+  for (const e of LIBRARY.sets.filter((x) => x.status === 'available')) {
+    const latest = e.versions?.[e.versions.length - 1];
+    assert.ok(latest, e.id);
+    assert.equal(registeredBuilder('set', `${e.id}@${latest}`)?.version, latest, `${e.id}@${latest}`);
+    assert.match(e.source ?? '', /assets\/environments\/.*packages\/engine\/src\/sets\//);
+  }
   for (const e of LIBRARY.characters) {
     assert.equal(e.status, 'available', e.id);
     assert.ok(e.versions?.every((v) => !!lib.characters[`${e.id}@${v}`]), e.id);
@@ -131,6 +138,10 @@ test('merged S3-S6 fixture resolves builders and real actions/faces without plac
   assert.ok(validation.ok);
   assert.ok(validation.planned.every((x) => lookup(x.kind, x.id)?.owner === 'S7'), JSON.stringify(validation.planned));
   const plan = stageBeatSheet(sheet, lib);
+  assert.equal(plan.sets[0]?.key, 'classroom@1.2.0');
+  assert.deepEqual(plan.sets[0]?.doors.classroom_door?.threshold, [2.5, 0, -3.95]);
+  assert.deepEqual(plan.sets[0]?.marks.zapp_impact?.pos, [-2.1, 0, 1.2]);
+  assert.deepEqual(plan.sets[0]?.marks.coin_spawn?.pos, [-2.1, 0, -1.4]);
   for (const c of Object.values(plan.characters)) assert.equal(c.resolution.resolution, 'available', c.id);
   for (const p of Object.values(plan.props)) assert.equal(p.resolution.resolution, 'available', p.instance);
   assert.deepEqual(plan.beats.flatMap((b) => b.cast.flatMap((c) => c.labels.filter((x) => /^(ACTION|FACE) /.test(x)))), []);

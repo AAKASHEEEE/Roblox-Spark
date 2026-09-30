@@ -8,9 +8,10 @@ import { validateBeatSheet } from '../../director/src/beat-sheet.ts';
 import { stageBeatSheet, beatAt, type StagePlan } from './stage.ts';
 import { VignetteScene } from './scene.ts';
 import { poseAt, type ShotChoice } from './camera.ts';
+import { drawVignetteOverlay } from './captions.ts';
 
 let warm = false;
-let canvas: HTMLCanvasElement | null = null, renderer: Renderer | null = null, scene: VignetteScene | null = null, plan: StagePlan | null = null, shots: Record<string, ShotChoice> = {};
+let canvas: HTMLCanvasElement | null = null, composite: HTMLCanvasElement | null = null, renderer: Renderer | null = null, scene: VignetteScene | null = null, plan: StagePlan | null = null, shots: Record<string, ShotChoice> = {};
 
 const api = {
   ready: true,
@@ -21,6 +22,8 @@ const api = {
     scene = new VignetteScene(plan, lib);
     shots = s; warm = false;
     if (!canvas) { canvas = document.createElement('canvas'); document.body.appendChild(canvas); }
+    if (!composite) composite = document.createElement('canvas');
+    composite.width = w; composite.height = h;
     if (!renderer || renderer.width !== w || renderer.height !== h) renderer = new Renderer(canvas, w, h);
     return { beats: plan.beats.length, sets: plan.sets.map((x) => x.id) };
   },
@@ -33,7 +36,11 @@ const api = {
     const n = warm ? 1 : 2;
     for (let i = 0; i < n; i++) renderer.render(scene.root, cam, scene.lighting(f), fx.post, fx.particles);
     warm = true;
-    return canvas!.toDataURL('image/png');
+    const g = composite!.getContext('2d')!;
+    g.clearRect(0, 0, composite!.width, composite!.height);
+    g.drawImage(canvas!, 0, 0);
+    drawVignetteOverlay(g, b, t, composite!.width, composite!.height);
+    return composite!.toDataURL('image/png');
   },
   describe(t: number) { const b = plan ? beatAt(plan, t) : null; return b ? { beat: b.phraseId, set: b.setId } : null; },
 };

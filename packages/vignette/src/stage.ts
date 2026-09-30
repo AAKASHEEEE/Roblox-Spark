@@ -420,7 +420,7 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
           const e3 = end(id);
           if (d2(e3.pos, target) > reach + 1e-6 || Math.abs(angDiff(e3.yaw, yawTo(e3.pos, target))) > tol + 1e-6) { err('PRESS_PRECONDITION_FAILED', 'press_button', B, s0, `${id} cannot reach or face the button`); break; }
           // contact (u = 0.42 of 0.9 s) on the beat's click cue when it is reachable in time
-          const cue = sfxLike(b, /click|zoom_punch/);
+          const cue = sfxLike(b, /click/);
           const want = cue ? cue.at - 0.9 * 0.42 : s0;
           const start = Math.max(s0, want);
           if (cue && Math.abs(start + 0.378 - cue.at) > 1 / FPS) issue('warning', 'CONTACT_OFF_CUE', B, `${id}'s press contact lands at ${r4(start + 0.378)} s, cue ${cue.type === 'sfx' ? cue.sfxId : ''} at ${cue.at}`, { entity: id });
@@ -571,7 +571,11 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
           return { beat: B, index, event: e, space: 'world', witness: doorProp ? [doorProp.instanceId ?? bare(doorProp.propId)] : [`door:${e.doorId}`], resolution: null };
         }
         case 'vfx': { const r = resolveCue('vfx', e.vfxId, library); note(r); return { beat: B, index, event: e, space: e.target ? 'world' : 'screen', witness: e.target ? [e.target] : [], resolution: r }; }
-        case 'text_graphic': { const r = resolveCue('textStyles', e.textStyleId, library); note(r); return { beat: B, index, event: e, space: e.target ? 'world' : 'screen', witness: e.target ? [e.target] : [], resolution: r }; }
+        case 'text_graphic': {
+          const r = resolveCue('textStyles', e.textStyleId, library); note(r);
+          const screenStyle = e.textStyleId === 'ui_popup' || e.textStyleId === 'title_card';
+          return { beat: B, index, event: e, space: screenStyle ? 'screen' : e.target ? 'world' : 'screen', witness: screenStyle || !e.target ? [] : [e.target], resolution: r };
+        }
         case 'sfx': { const r = resolveCue('sfx', e.sfxId, library); note(r); return { beat: B, index, event: e, space: 'audio', witness: [], resolution: r }; }
       }
       return { beat: B, index, event: e, space: 'screen', witness: [], resolution: null };

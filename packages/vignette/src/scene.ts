@@ -173,6 +173,8 @@ export class VignetteScene {
         this.vfxEvents.push({ v: { type: ev.vfxId as EpisodeVfx['type'], at: ev.at, duration: ev.duration ?? defaultVfxDuration(ev.vfxId), ...(ev.target ? { target: ev.target } : {}) } as EpisodeVfx, setId: b.setId });
         continue;
       }
+      // ui_popup is rendered as a real screen-space card by the vignette overlay, not as a grey 3D placeholder.
+      if (ev.type === 'text_graphic' && ev.textStyleId === 'ui_popup') continue;
       const text = ev.type === 'vfx' ? [`vfx ${ev.vfxId.replace(/_/g, ' ')}`] : [`${ev.textStyleId.replace(/_/g, ' ')}`, ev.text];
       const n = labelNode(`event:${b.phraseId}:${e.index}`, text, 0.07 * text.length, { billboard: true, style: { fg: '#101010', bg: '#d0d0d0', border: '#303030' } });
       n.visible = false;

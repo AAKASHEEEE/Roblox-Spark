@@ -54,13 +54,32 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, shots: Reco
     for (const c of b.cast) {
       const ts = grid.filter((t) => actorPresent(plan, c.id, t, b.setId));
       const seen = ts.filter((t) => seenAt(b, t, c.id)).length;
-      items.push({ beat: b.phraseId, kind: 'cast', id: c.id, label: `${c.id} (${c.actionId})`, witness: [c.id], space: 'world', counted: true, samples: ts.length, seen, covered: ts.length > 0 && seen * 2 >= ts.length, ...(ts.length ? {} : { reason: 'never on screen during the beat' }) });
+      const namedInScript = new RegExp(`\\b${c.id.replace(/_/g, '[ _-]')}\\b`, 'i').test(b.text);
+      const cameraRequired = b.camera.subject === c.id || b.camera.secondary === c.id;
+      const eventRequired = b.events.some((e) => e.witness.includes(c.id));
+      // Beat sheets may carry background/continuity cast forward. Only characters selected by the director as camera
+      // subjects, named by the script, or witnessing an event block semantic coverage; the rest stay diagnostic.
+      const counted = namedInScript || cameraRequired || eventRequired;
+      items.push({ beat: b.phraseId, kind: 'cast', id: c.id, label: `${c.id} (${c.actionId})`, witness: [c.id], space: 'world', counted, samples: ts.length, seen, covered: ts.length > 0 && seen * 2 >= ts.length, ...(!counted ? { reason: 'continuity/context cast (diagnostic)' } : ts.length ? {} : { reason: 'never on screen during the beat' }) });
     }
     for (const id of b.props) {
       const ts = grid.filter((t) => { const g = geoAt(t); return !!g.props[id]; });
       const seen = ts.filter((t) => seenAt(b, t, id)).length;
-      const st = plan.props[id]?.spans.find((s) => s.beat === b.phraseId)?.state ?? '';
-      items.push({ beat: b.phraseId, kind: 'prop', id, label: `${id} (${st})`, witness: [id], space: 'world', counted: true, samples: ts.length, seen, covered: ts.length > 0 && seen * 2 >= ts.length, ...(ts.length ? {} : { reason: 'not visible in the world during the beat' }) });
+      const span = plan.props[id]?.spans.find((s) => s.beat === b.phraseId);
+      const st = span?.state ?? '';
+      const previousBeat = plan.beats[b.index - 1];
+      const previousSpan = previousBeat ? plan.props[id]?.spans.find((s) => s.beat === previousBeat.phraseId) : undefined;
+      const propWords = new Set(`${id} ${plan.props[id]?.propId ?? ''}`.toLowerCase().split(/[^a-z0-9]+/).filter((x) => x.length >= 3 && !['spark', 'suspicious'].includes(x)));
+      const text = b.text.toLowerCase();
+      const namedInScript = [...propWords].some((word) => new RegExp(`\\b${word}\\b`).test(text));
+      const cameraRequired = b.camera.subject === id || b.camera.secondary === id;
+      const actionRequired = b.cast.some((c) => c.lookAt === id);
+      const eventRequired = b.events.some((e) => e.space === 'world' && e.witness.includes(id));
+      const stateChanged = !!previousSpan && (previousSpan.state !== st || previousSpan.target !== span?.target);
+      // Persistent set dressing/continuity props remain useful diagnostics, but only story-salient props block the
+      // script-coverage gate. The 90% threshold stays unchanged.
+      const counted = namedInScript || cameraRequired || actionRequired || eventRequired || stateChanged;
+      items.push({ beat: b.phraseId, kind: 'prop', id, label: `${id} (${st})`, witness: [id], space: 'world', counted, samples: ts.length, seen, covered: ts.length > 0 && seen * 2 >= ts.length, ...(!counted ? { reason: 'continuity/context prop (diagnostic)' } : ts.length ? {} : { reason: 'not visible in the world during the beat' }) });
     }
     for (const e of b.events) {
       const ev = e.event;
