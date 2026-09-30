@@ -56,12 +56,15 @@ export type EnvironmentLock = Readonly<Record<string, string>>;
 
 /**
  * Append-only lock: `id@version` -> content hash. Never edit an existing entry; publish a new version instead.
- * Regenerate new entries with profileContentHash(profile) and append them.
+ * Verify with `npm run environments:lock:check`; append new locked versions with `npm run environments:lock:update`.
+ * The marked block below is machine-maintained and must stay in its exact generated form (the tool refuses otherwise).
  */
+// BEGIN GENERATED ENVIRONMENT_LOCK (append-only; maintained by scripts/environment-lock.ts)
 export const ENVIRONMENT_LOCK: EnvironmentLock = Object.freeze({
   'classroom@1.0.0': '3494d354c5dc2f904964115002d864c40b72236a3379f3e937375f17279a6479',
   'classroom@1.1.0': '0bb894417d9cdb3dee19ed358e54730f4162d84d540525587e5942cb60047dbf',
 });
+// END GENERATED ENVIRONMENT_LOCK
 
 export interface Catalog { profiles: readonly EnvironmentProfile[]; lock: EnvironmentLock }
 
