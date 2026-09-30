@@ -1,6 +1,8 @@
 # Future prompt — integrate S7 into the vignette renderer
 
-Copy the prompt below into a new Kiro session after the S2–S7 pull requests have merged into `develop/vignette` (or into the integration branch that contains them).
+Copy the prompt below into a new Kiro session after the S2–S7 pull requests have merged into `integration/vignette-v1` (or its successor).
+
+S7 now includes `packages/captions/tools/render-full.ts` and a verified complete real-voice render. The future task is to reuse that proven capture/audio path in the general Vignette worker and Studio rather than rebuilding it.
 
 ---
 
@@ -29,7 +31,7 @@ Goals:
    - never add planned music IDs
    - write/report about −14 LUFS integrated and <= −1 dBTP
 6. Keep the existing Visual Comedy and narrated render modes backward compatible unless their output explicitly selects the new S7 pipeline.
-7. Generate a complete 1080x1920 narrated vignette preview with the approved beat sheet and a supplied real voice-over. If no VO file is supplied, stop and request it; do not use the synthetic stand-in for the production preview.
+7. Re-run `packages/captions/tools/render-full.ts` with the supplied approved voice-over, then port its proven exact-frame WebCodecs/AAC/mux/probe/playback flow into the supported general Vignette worker. Do not use the synthetic stand-in for production output.
 8. Validate:
    - `npm run typecheck`
    - `npm test`

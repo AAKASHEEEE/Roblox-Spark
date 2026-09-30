@@ -7,6 +7,7 @@ import { Renderer, type CameraState } from '../../../engine/src/gl/renderer.ts';
 import { Production, type Library } from '../../../engine/src/production.ts';
 import type { Node } from '../../../engine/src/gl/scene.ts';
 import { applyShake } from '../../../engine/src/camera.ts';
+import { FrameCapture, type EncodedBatch, type EncoderMeta } from '../../../engine/src/capture.ts';
 import { m4TransformPoint, type Vec3 } from '../../../engine/src/math.ts';
 import { buildWorldPlan, worldAssets, type WorldState } from '../../../narrated/src/world.ts';
 import type { NarratedStoryboard } from '../../../narrated/src/schema.ts';
@@ -22,6 +23,9 @@ import type { BoldCaption } from '../bold.ts';
 const INSTANCE: Record<string, string> = { suspicious_button: 'button', spark_coin: 'coin', student_desk: 'desk' };
 let W = 1080, H = 1920;
 let canvas: HTMLCanvasElement, out: HTMLCanvasElement, renderer: Renderer, prod: Production, scene: NarratedScene, tl: IntegratedTimeline;
+let capture: FrameCapture | null = null;
+let capturePlan: Omit<FrameIn, 't' | 'showBoxes'> | null = null;
+let captureFps = 30;
 const emotes = new EmoteLayer(), worldText = new WorldTextLayer();
 let prev: WorldState | null = null;
 
@@ -71,6 +75,25 @@ function occupied(cam: CameraState): OccupiedRect[] {
   return o;
 }
 
+/** Draw one complete S7 frame into `out`; shared by stills and chronological WebCodecs capture. */
+function drawFrame(f: FrameIn): OccupiedRect[] {
+  let cam = pose(f.t);
+  const vf = evalVfxEvents(f.vfx ?? [], f.t, (id) => worldPoint(id), prod.ep.episode.seed);
+  cam = applyZoom(applyShake(cam, vf.shake, f.t, prod.ep.episode.seed), vf.zoom);
+  emotes.update(vf.emotes, (id) => prod.rigs.get(id)?.headTop.worldPos(), cam);
+  worldText.update(f.graphics ?? [], f.t, (id) => { const p = worldPoint(id); return p ? [p[0], p[1] + 0.08, p[2]] : undefined; });
+  const light = scene.lighting(prev!);
+  for (const l of vf.lights) { const p = worldPoint(l.target); if (p) light.points.push({ pos: p, color: l.color, intensity: l.intensity, range: 0.9 }); }
+  renderer.render(prod.root, cam, light, vf.post, vf.particles);
+  const g = out.getContext('2d', { willReadFrequently: true })!;
+  g.drawImage(canvas, 0, 0);
+  const faces = occupied(cam).filter((o) => o.kind === 'face');
+  const placements = new Map(Object.entries(f.placements ?? {}));
+  drawOverlay(g, W, H, f.t, { captions: f.captions ?? [], placements, graphics: f.graphics ?? [], anchor: (id) => { const p = worldPoint(id); const r = p ? project(cam, [p]) : null; return r ? { x: r.x, y: r.y } : undefined; } });
+  if (f.showBoxes) { g.lineWidth = 3; g.setLineDash([12, 8]); g.strokeStyle = '#00e5ff'; for (const o of faces) g.strokeRect(o.rect.x, o.rect.y, o.rect.w, o.rect.h); g.setLineDash([]); }
+  return faces;
+}
+
 const api = {
   ready: true,
   init(ep: Episode, lib: Library, sb: NarratedStoryboard, itl: IntegratedTimeline, w: number, h: number) {
@@ -112,21 +135,24 @@ const api = {
   },
   /** full frame: scene + S7 layers + overlay; returns a JPEG data URL and the projected face rectangles */
   frame(f: FrameIn, quality = 0.9): { url: string; faces: OccupiedRect[] } {
-    let cam = pose(f.t);
-    const vf = evalVfxEvents(f.vfx ?? [], f.t, (id) => worldPoint(id), prod.ep.episode.seed);
-    cam = applyZoom(applyShake(cam, vf.shake, f.t, prod.ep.episode.seed), vf.zoom);
-    emotes.update(vf.emotes, (id) => prod.rigs.get(id)?.headTop.worldPos(), cam);
-    worldText.update(f.graphics ?? [], f.t, (id) => { const p = worldPoint(id); return p ? [p[0], p[1] + 0.08, p[2]] : undefined; });
-    const light = scene.lighting(prev!);
-    for (const l of vf.lights) { const p = worldPoint(l.target); if (p) light.points.push({ pos: p, color: l.color, intensity: l.intensity, range: 0.9 }); }
-    renderer.render(prod.root, cam, light, vf.post, vf.particles);
-    const g = out.getContext('2d')!;
-    g.drawImage(canvas, 0, 0);
-    const faces = occupied(cam).filter((o) => o.kind === 'face');
-    const placements = new Map(Object.entries(f.placements ?? {}));
-    drawOverlay(g, W, H, f.t, { captions: f.captions ?? [], placements, graphics: f.graphics ?? [], anchor: (id) => { const p = worldPoint(id); const r = p ? project(cam, [p]) : null; return r ? { x: r.x, y: r.y } : undefined; } });
-    if (f.showBoxes) { g.lineWidth = 3; g.setLineDash([12, 8]); g.strokeStyle = '#00e5ff'; for (const o of faces) g.strokeRect(o.rect.x, o.rect.y, o.rect.w, o.rect.h); g.setLineDash([]); }
+    const faces = drawFrame(f);
     return { url: out.toDataURL('image/jpeg', quality), faces };
+  },
+  /** Configure deterministic chronological H.264 capture of fully composited S7 frames. */
+  initCapture(cfg: { fps: number; bitrate: number; hashEvery?: number; keyframeInterval?: number; vfx?: VfxEvent[]; graphics?: TextGraphicEvent[]; captions?: BoldCaption[]; placements?: Record<string, number | PlacementSegment[]> }): true {
+    captureFps = cfg.fps;
+    capturePlan = { vfx: cfg.vfx ?? [], graphics: cfg.graphics ?? [], captions: cfg.captions ?? [], placements: cfg.placements ?? {} };
+    const g = out.getContext('2d', { willReadFrequently: true })!;
+    capture = new FrameCapture({ width: W, height: H, fps: cfg.fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? cfg.fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery ?? cfg.fps }, out, () => new Uint8Array(g.getImageData(0, 0, W, H).data.buffer));
+    return true;
+  },
+  encodeRange(from: number, to: number, final: boolean): Promise<EncodedBatch> {
+    if (!capture || !capturePlan) throw new Error('S7 capture is not initialized');
+    return capture.encodeRange(from, to, (i) => drawFrame({ ...capturePlan!, t: i / captureFps }), final);
+  },
+  meta(): EncoderMeta {
+    if (!capture) throw new Error('S7 capture is not initialized');
+    return capture.meta;
   },
   /** pop-in strip: the same caption at several local times, cropped around the caption band */
   popStrip(c: BoldCaption, centerY: number, times: number[], t: number): string {
