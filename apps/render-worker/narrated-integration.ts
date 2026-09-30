@@ -295,8 +295,10 @@ export interface ShotSpec {
   excluded?: string[];
   /** a non-subject head partially attached to the frame edge rejects the camera (instead of ranking it last) */
   strictHeadEdge?: boolean;
-  /** the beat's approved camera preset is a two-shot: every required face must read */
+  /** the beat's approved camera preset is a two-shot: two-shot candidates are generated even with an optional partner */
   twoShotPreset?: boolean;
+  /** set on the last-resort fallback spec: the shot is reported in IntegratedTimeline.knownIssues when it is used */
+  knownIssue?: string;
   /** used (instead of sequential coverage) when no camera satisfies this spec */
   singleFallback?: ShotSpec;
 }
@@ -361,13 +363,19 @@ export function shotSpec(p: NarratedPhrase, f: WindowFacts, geoMid: FrameGeo, ph
   if (warning) return { intent: 'medium', active: actor, subjects: both, optional: [], heroProps: [], reason: `${actor} warns ${other}: speaker + listener required`, requiresHeroProp: false };
   if (p.actorRole === 'reactor' && p.propEvents.some((e) => e.prop === 'spark_coin') && coinReady) return { intent: 'scale_reveal', active: actor, subjects: both, optional: [other], heroProps: ['coin'], scaleRefs: [actor], pattern: 'reaction_then_insert', reason: 'reaction to the coin: actor reaction first, then a giant-coin scale insert (same narration interval)', requiresHeroProp: true };
   const intent: CameraIntent = phraseShotIndex % 2 === 1 ? 'reaction' : 'medium';
-  // the beat's approved camera preset is a two-shot: its medium shots require BOTH characters (two-shot candidates, both
-  // heads fully inside the safe margin); its reactions stay a single on the active actor with the other fully out of
-  // frame. Fallback when no two-shot is valid: a tighter single on the active actor, the other fully out of frame.
-  if (p.cameraPreset === 'two_shot') return intent === 'medium'
-    ? { intent, active: actor, subjects: both, optional: [], heroProps: [], strictHeadEdge: true, twoShotPreset: true, reason: `${actor} ${p.semanticAction}: beat preset two_shot -> two-character medium (both required)`, requiresHeroProp: false,
-        singleFallback: { intent: 'reaction', active: actor, subjects: both, optional: [other], heroProps: [], excluded: [other], strictHeadEdge: true, reason: `${actor} ${p.semanticAction}: two_shot preset fallback -> tighter ${actor} single (${other} fully out of frame)`, requiresHeroProp: false } }
-    : { intent, active: actor, subjects: both, optional: [other], heroProps: [], excluded: [other], strictHeadEdge: true, reason: `${actor} ${p.semanticAction}: two_shot beat reaction -> ${actor} single (${other} fully out of frame)`, requiresHeroProp: false };
+  const baseline: ShotSpec = { intent, active: actor, subjects: both, optional: [other], heroProps: [], reason: `${actor} ${p.semanticAction}: active-character ${intent} (supporting actor optional)`, requiresHeroProp: false };
+  // beat preset two_shot (supporting actor optional): the supporting actor's head must be fully inside the safe margin
+  // or fully out of frame (then at most EXCLUDED_ACTOR_MAX_BODY_COVERAGE of the frame shows the body), and a partial
+  // head at the frame edge is blocking. The two-shot candidates stay in the pool for its medium shots. A medium with no
+  // valid camera tries a tighter single; a shot with still no valid camera falls back to the baseline framing (partial
+  // heads ranked last, not blocking) and is reported as a known issue.
+  if (p.cameraPreset === 'two_shot') {
+    const known: ShotSpec = { ...baseline, knownIssue: `${other} head-edge rule unmet: baseline framing (partial heads ranked last, not blocking)` };
+    const strict: ShotSpec = { ...baseline, excluded: [other], strictHeadEdge: true, reason: `${actor} ${p.semanticAction}: two_shot beat ${intent} (${other} optional; head fully inside the safe margin or fully out of frame)` };
+    return intent === 'medium'
+      ? { ...strict, twoShotPreset: true, singleFallback: { ...strict, intent: 'reaction', reason: `${actor} ${p.semanticAction}: two_shot beat fallback -> tighter ${actor} single (${other} head fully inside the safe margin or fully out of frame)`, singleFallback: known } }
+      : { ...strict, singleFallback: known };
+  }
   return { intent, active: actor, subjects: both, optional: [other], heroProps: [], reason: `${actor} ${p.semanticAction}: active-character ${intent} (supporting actor optional)`, requiresHeroProp: false };
 }
 
@@ -415,7 +423,7 @@ export function candidatesFor(scene: CameraSafetyScene, spec: ShotSpec, shotId: 
       out.push({ ...c, id: `${shotId}:${fallback}:y${yaw}:d${k}`, transform: { position: [c.target[0] + rv[0], c.target[1] + rv[1], c.target[2] + rv[2]] }, requiresHeroProp: spec.requiresHeroProp && scene.heroPropIds.length > 0 });
     }
   }
-  if (spec.excluded?.length || spec.strictHeadEdge || spec.twoShotPreset) for (const c of out) { if (spec.excluded?.length) c.excludedSubjectIds = [...spec.excluded]; if (spec.strictHeadEdge) c.partialHeadsBlocking = true; if (spec.twoShotPreset) c.readableFaceIds = spec.subjects.filter((x) => !spec.optional.includes(x)); }
+  if (spec.excluded?.length || spec.strictHeadEdge) for (const c of out) { if (spec.excluded?.length) c.excludedSubjectIds = [...spec.excluded]; if (spec.strictHeadEdge) c.partialHeadsBlocking = true; }
   return out;
 }
 
@@ -448,18 +456,20 @@ function generatedCandidates(scene: CameraSafetyScene, spec: ShotSpec, shotId: s
   const required = spec.subjects.filter((s) => !spec.optional.includes(s) && heads.has(s));
   if (spec.intent === 'medium' || spec.intent === 'reaction' || spec.intent === 'close' || spec.intent === 'over_shoulder') {
     const seated = ent.get(active)?.waistUpRequired === true || env?.actors[active]?.seated === true;
-    const two = spec.intent !== 'reaction' && spec.intent !== 'close' && required.length >= 2;
+    const partner = spec.twoShotPreset ? spec.subjects.find((s) => s !== active && heads.has(s)) : undefined;
+    const pair = required.length >= 2 ? required.slice(0, 2) : partner ? [active, partner] : [];
+    const two = spec.intent !== 'reaction' && spec.intent !== 'close' && pair.length >= 2;
     if (two) {
-      const bh = heads.get(required.find((s) => s !== active)!)!, m: Vec3 = [(hc[0] + c(bh)[0]) / 2, (hc[1] + c(bh)[1]) / 2 - 0.3, (hc[2] + c(bh)[2]) / 2];
+      const bh = heads.get(pair.find((s) => s !== active)!)!, m: Vec3 = [(hc[0] + c(bh)[0]) / 2, (hc[1] + c(bh)[1]) / 2 - 0.3, (hc[2] + c(bh)[2]) / 2];
       const sep = Math.hypot(hc[0] - c(bh)[0], hc[2] - c(bh)[2]), axisYaw = Math.atan2(c(bh)[0] - hc[0], c(bh)[2] - hc[2]) / DEG;
       for (const frac of [0.15, 0.17, 0.2]) for (const off of [90, -90, 70, -70, 110, -110]) {
         const d = Math.max(headH / (frac * 2 * tanV(38)), (sep / 2 + 0.45) / (tanV(38) * (9 / 16) * 0.9));
-        push('two_shot', 'medium', m, axisYaw + off, d, 0.15, 38, { framedSubjectIds: required.slice(0, 2) });
+        push('two_shot', 'medium', m, axisYaw + off, d, 0.15, 38, { framedSubjectIds: pair });
       }
-      // beat preset two_shot: a wider orbit / height family, and BOTH faces must read (not only the active one)
+      // beat preset two_shot: a wider orbit / height family
       if (spec.twoShotPreset) for (const frac of [0.15, 0.17, 0.2]) for (const off of [50, -50, 130, -130, 30, -30, 150, -150]) for (const lift of [0.15, 0.5, 0.9]) {
         const d = Math.max(headH / (frac * 2 * tanV(38)), (sep / 2 + 0.45) / (tanV(38) * (9 / 16) * 0.9));
-        push('two_shot', 'medium', m, axisYaw + off, d, lift, 38, { framedSubjectIds: required.slice(0, 2) });
+        push('two_shot', 'medium', m, axisYaw + off, d, lift, 38, { framedSubjectIds: pair });
       }
     }
     // a single that must keep another actor fully out of frame may also go tighter (still inside the intent's band)
@@ -606,7 +616,7 @@ export interface ShotCamera {
   track?: number[][];
   trackSubject?: string;
   /** candidate fields the evaluator needs to reproduce the planning decision exactly at every frame */
-  eval: { activeSubjectId: string; requiresHeroProp: boolean; framedSubjectIds?: string[]; profileScale?: 'medium' | 'close'; eyelineTargetId?: string; scaleReferenceIds?: string[]; foregroundSubjectId?: string; propEdgeIds?: string[]; propFullFrameIds?: string[]; excludedSubjectIds?: string[]; partialHeadsBlocking?: boolean; readableFaceIds?: string[] };
+  eval: { activeSubjectId: string; requiresHeroProp: boolean; framedSubjectIds?: string[]; profileScale?: 'medium' | 'close'; eyelineTargetId?: string; scaleReferenceIds?: string[]; foregroundSubjectId?: string; propEdgeIds?: string[]; propFullFrameIds?: string[]; excludedSubjectIds?: string[]; partialHeadsBlocking?: boolean };
 }
 /** a camera choice for one planned shot: static candidate, or a tracking trajectory over the shot's frames */
 interface Ranked { cand: CameraCandidate; minScore: number; results: CameraSafetyResult[]; track: TrackFrame[] | null; trackSubject?: string }
@@ -880,6 +890,8 @@ export interface IntegratedTimeline {
   sequentialCoverage: Array<{ sourceShot: string; phraseId: string; reason: string; split: [string, string] | null; outcome: string }>;
   /** reusable coverage patterns (prop_growth_sequence / reaction_then_insert / consequence_sequence) */
   coveragePatterns: Array<{ sourceShot: string; phraseId: string; pattern: string; segments: string[]; boundaries: number[]; outcome: string }>;
+  /** shots that fell back to a documented weaker framing rule (reported, never silently passed) */
+  knownIssues: Array<{ shot: string; phraseId: string; issue: string }>;
 }
 
 export interface IntegrationInput { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldPlan; prod: Production; width: number; height: number; onProgress?: (stage: string, done: number, total: number) => void; trace?: ShotTrace[] }
@@ -915,6 +927,7 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
   const phrase = new Map(sb.script.phrases.map((p) => [p.id, p]));
   const shots: IntegratedShot[] = [], placements: IntegratedTimeline['captionPlacements'] = [], seq: IntegratedTimeline['sequentialCoverage'] = [], pats: IntegratedTimeline['coveragePatterns'] = [];
   const captions: IntegratedCaption[] = [];
+  const knownIssues: IntegratedTimeline['knownIssues'] = [];
   let sd: ScreenDirectionState | undefined;
   const lastSrc = tl.shots[tl.shots.length - 1];
   const framesOf = (s0: number, e0: number, last = false) => shotFrames(s0, e0, fps, N, last);
@@ -928,7 +941,7 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
     return {
       id: c.id, intent: c.intent, kind: c.id.split(':')[1], position: (r.track ? r.track[0].position : c.transform.position).map(r4) as Vec3, target: (r.track ? r.track[0].target : c.target).map(r4) as Vec3, fovDeg: c.fov,
       motion: r.track ? 'tracking' : 'static', ...(r.track ? { track: r.track.map((f) => [...f.position, ...f.target].map(r4)), trackSubject: r.trackSubject } : {}),
-      eval: { activeSubjectId: c.activeSubjectId ?? spec.active, requiresHeroProp: !!c.requiresHeroProp, ...(c.framedSubjectIds ? { framedSubjectIds: [...c.framedSubjectIds] } : {}), ...(c.profileScale ? { profileScale: c.profileScale } : {}), ...(c.eyelineTargetId ? { eyelineTargetId: c.eyelineTargetId } : {}), ...(c.scaleReferenceIds ? { scaleReferenceIds: [...c.scaleReferenceIds] } : {}), ...(c.foregroundSubjectId ? { foregroundSubjectId: c.foregroundSubjectId } : {}), ...(c.propEdgeIds ? { propEdgeIds: [...c.propEdgeIds] } : {}), ...(c.propFullFrameIds ? { propFullFrameIds: [...c.propFullFrameIds] } : {}), ...(c.excludedSubjectIds ? { excludedSubjectIds: [...c.excludedSubjectIds] } : {}), ...(c.partialHeadsBlocking ? { partialHeadsBlocking: true } : {}), ...(c.readableFaceIds ? { readableFaceIds: [...c.readableFaceIds] } : {}) },
+      eval: { activeSubjectId: c.activeSubjectId ?? spec.active, requiresHeroProp: !!c.requiresHeroProp, ...(c.framedSubjectIds ? { framedSubjectIds: [...c.framedSubjectIds] } : {}), ...(c.profileScale ? { profileScale: c.profileScale } : {}), ...(c.eyelineTargetId ? { eyelineTargetId: c.eyelineTargetId } : {}), ...(c.scaleReferenceIds ? { scaleReferenceIds: [...c.scaleReferenceIds] } : {}), ...(c.foregroundSubjectId ? { foregroundSubjectId: c.foregroundSubjectId } : {}), ...(c.propEdgeIds ? { propEdgeIds: [...c.propEdgeIds] } : {}), ...(c.propFullFrameIds ? { propFullFrameIds: [...c.propFullFrameIds] } : {}), ...(c.excludedSubjectIds ? { excludedSubjectIds: [...c.excludedSubjectIds] } : {}), ...(c.partialHeadsBlocking ? { partialHeadsBlocking: true } : {}) },
     };
   };
   for (const chunkId of chunkIds) {
@@ -970,7 +983,8 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
         continue;
       }
       let rk = rankOverShot(prod, plan, geos, fr[0], fr[1], spec, W, H, sdLocal, s.id, inp.trace, avoidFor(spec));
-      if (!rk.ranked.length && spec.singleFallback) { spec = spec.singleFallback; rk = rankOverShot(prod, plan, geos, fr[0], fr[1], spec, W, H, sdLocal, s.id, inp.trace, avoidFor(spec)); }
+      while (!rk.ranked.length && spec.singleFallback) { spec = spec.singleFallback; rk = rankOverShot(prod, plan, geos, fr[0], fr[1], spec, W, H, sdLocal, s.id, inp.trace, avoidFor(spec)); }
+      if (spec.knownIssue) knownIssues.push({ shot: s.id, phraseId: p.id, issue: spec.knownIssue });
       const required = spec.subjects.filter((x) => !spec.optional.includes(x));
       if (rk.ranked.length || required.length < 2 || s.end - s.start < 2 * MIN_SHOT_SEC) {
         planned.push({ id: s.id, sourceShot: s.id, start: s.start, end: s.end, frames: fr, phraseId: s.phraseId, spec, coverage: 'single', ranked: rk.ranked, rej: rk.rejections, env: rk.envelope, tracking: rk.tracking });
@@ -1026,7 +1040,7 @@ export function integrateNarrated(inp: IntegrationInput): IntegrationResult {
       if (r) sd = nextScreenDirectionState(cameraScene(geos[q.frames[1] - 1], q.spec, W, H, sd), candAtFrame(r, q.frames[1] - 1, q.frames[0]));
     });
   }
-  const timeline: IntegratedTimeline = { schema: INTEGRATED_TIMELINE_SCHEMA, storyboardId: sb.id, storyboardSha256: tl.storyboardSha256, audioHash: tl.audioHash, seed: sb.seed, fps, frames: N, width: W, height: H, shots, captions, captionPlacements: placements, sequentialCoverage: seq, coveragePatterns: pats };
+  const timeline: IntegratedTimeline = { schema: INTEGRATED_TIMELINE_SCHEMA, storyboardId: sb.id, storyboardSha256: tl.storyboardSha256, audioHash: tl.audioHash, seed: sb.seed, fps, frames: N, width: W, height: H, shots, captions, captionPlacements: placements, sequentialCoverage: seq, coveragePatterns: pats, knownIssues };
   inp.onProgress?.('gates', 0, 1);
   const analysis = analyze({ sb, tl, plan, prod, W, H, geos, diags, worlds, timeline, hands, resetDev });
   return { timeline, analysis, geos };
@@ -1213,6 +1227,7 @@ function analyze(x: { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldP
     frameCoverage: fc,
     camera: { nonFaceIntentFaceVisibilityMin: cam.nonFaceMin === Infinity ? null : r3(cam.nonFaceMin), evaluatedFrames: cam.frames, collisions: cam.collisions, pathCollisions: cam.pathCollisions, occlusionFrames: cam.occlusion, faceVisibilityMin: r3(cam.faceMin), faceVisibilityMinAt: r3(cam.faceMinAt), heroPropVisibilityMin: cam.propMin === Infinity ? null : r3(cam.propMin), heroPropVisibilityMinAt: r3(cam.propMinAt), foregroundClutterMax: r3(cam.clutterMax), foregroundClutterAt: r3(cam.clutterAt), headCroppedFrames: cam.headCropped, subjectSizeFrames: cam.subjectSmall, screenDirectionViolations: cam.screenDir, requiredActorDropFrames: cam.requiredDropped, subjectHeadHeights: Object.fromEntries(Object.entries(cam.headHeights).map(([k, v]) => [k, { min: r4(v.min), max: r4(v.max) }])), rejectedFrames: cam.rejectedFrames.slice(0, 60), rejectedFrameCount: cam.rejectedFrames.length, blockedShots: blockedShots.map((s) => ({ id: s.id, spec: s.spec.reason, rejections: s.cameraRejections })) },
     captions: { chunks: pls.length, primaryFaceMax: r4(faceMax), heroPropMax: r4(propMax), interactionHits: inter, conflicts: conflicts.map((p) => p.chunkId), compositionBlocked: blocked.map((p) => p.chunkId), cameraRetries: pls.reduce((a, p) => a + p.cameraRetries, 0), bands: Object.fromEntries(['upper', 'middle', 'lower'].map((b) => [b, pls.filter((p) => p.band === b).length])) },
+    knownIssues: timeline.knownIssues,
     shotTable: timeline.shots.map((s) => ({ id: s.id, start: s.start, end: s.end, frames: s.frames, intent: s.spec.intent, camera: s.camera?.id ?? null, screenDirection: s.screenDirection, partialHeads: s.partialHeads, offSubjectCoverage: s.offSubjectCoverage, blocked: s.blocked })),
     shots: { count: timeline.shots.length, meanSec: r3(shotDur.reduce((a, b) => a + b, 0) / shotDur.length), minSec: r3(Math.min(...shotDur)), maxSec: r3(Math.max(...shotDur)), sequentialCoverage: timeline.sequentialCoverage, coveragePatterns: timeline.coveragePatterns, requiredActorDrops: timeline.shots.filter((s) => !s.camera).length },
     gates,
@@ -1224,7 +1239,7 @@ function analyze(x: { sb: NarratedStoryboard; tl: NarratedTimeline; plan: WorldP
 /** the camera candidate of an integrated shot at owned frame i (static transform, or that frame's tracking transform) */
 export function cameraForFrame(s: IntegratedShot, i: number): CameraCandidate {
   const c = s.camera!, e = c.eval;
-  const base: CameraCandidate = { id: c.id, intent: c.intent, transform: { position: c.position }, target: c.target, fov: c.fovDeg, activeSubjectId: e.activeSubjectId, requiresHeroProp: e.requiresHeroProp, ...(e.framedSubjectIds ? { framedSubjectIds: e.framedSubjectIds } : {}), ...(e.profileScale ? { profileScale: e.profileScale } : {}), ...(e.eyelineTargetId ? { eyelineTargetId: e.eyelineTargetId } : {}), ...(e.scaleReferenceIds ? { scaleReferenceIds: e.scaleReferenceIds } : {}), ...(e.foregroundSubjectId ? { foregroundSubjectId: e.foregroundSubjectId } : {}), ...(e.propEdgeIds ? { propEdgeIds: e.propEdgeIds } : {}), ...(e.propFullFrameIds ? { propFullFrameIds: e.propFullFrameIds } : {}), ...(e.excludedSubjectIds ? { excludedSubjectIds: e.excludedSubjectIds } : {}), ...(e.partialHeadsBlocking ? { partialHeadsBlocking: true } : {}), ...(e.readableFaceIds ? { readableFaceIds: e.readableFaceIds } : {}) };
+  const base: CameraCandidate = { id: c.id, intent: c.intent, transform: { position: c.position }, target: c.target, fov: c.fovDeg, activeSubjectId: e.activeSubjectId, requiresHeroProp: e.requiresHeroProp, ...(e.framedSubjectIds ? { framedSubjectIds: e.framedSubjectIds } : {}), ...(e.profileScale ? { profileScale: e.profileScale } : {}), ...(e.eyelineTargetId ? { eyelineTargetId: e.eyelineTargetId } : {}), ...(e.scaleReferenceIds ? { scaleReferenceIds: e.scaleReferenceIds } : {}), ...(e.foregroundSubjectId ? { foregroundSubjectId: e.foregroundSubjectId } : {}), ...(e.propEdgeIds ? { propEdgeIds: e.propEdgeIds } : {}), ...(e.propFullFrameIds ? { propFullFrameIds: e.propFullFrameIds } : {}), ...(e.excludedSubjectIds ? { excludedSubjectIds: e.excludedSubjectIds } : {}), ...(e.partialHeadsBlocking ? { partialHeadsBlocking: true } : {}) };
   if (c.motion !== 'tracking' || !c.track) return base;
   const k = Math.max(0, Math.min(c.track.length - 1, i - s.frames[0])), f = c.track[k], prev = k > 0 ? c.track[k - 1] : null;
   return { ...base, transform: { position: [f[0], f[1], f[2]] }, target: [f[3], f[4], f[5]], ...(prev ? { lensPath: [[prev[0], prev[1], prev[2]] as Vec3] } : {}) };

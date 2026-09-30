@@ -167,12 +167,11 @@ export interface CameraCandidate {
   propEdgeIds?: string[];
   /** props whose complete silhouette (identity rim, else AABB corners) must stay inside the frame */
   propFullFrameIds?: string[];
-  /** characters that must be fully out of frame (no screen coverage at all) */
+  /** characters kept out of the composition: head fully inside the safe margin or fully out of frame; with the head out,
+   *  at most EXCLUDED_ACTOR_MAX_BODY_COVERAGE of the frame may show the body */
   excludedSubjectIds?: string[];
   /** a non-subject head partially attached to the frame edge (diagnostics.partialHeads) rejects the camera */
   partialHeadsBlocking?: boolean;
-  /** characters whose face must read at the intent's face-visibility minimum (e.g. both actors of a preset two-shot) */
-  readableFaceIds?: string[];
 }
 
 export interface CameraSafetyDiagnostics {
@@ -272,6 +271,9 @@ export interface CameraSafetyConfig {
   /** elevated_consequence: minimum downward camera pitch */
   consequenceMinPitchDeg: number;
 }
+
+/** excluded actor with the head out of frame: max share of the frame its body may cover (V2 s011 peaked at 0.025) */
+export const EXCLUDED_ACTOR_MAX_BODY_COVERAGE = 0.03;
 
 export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
   lensRadius: 0.12,
@@ -804,8 +806,11 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     for (const id of [...ix.faces.keys()].sort()) if (!required.includes(id) && id !== fgActor && headInFrame[id] && headCropped[id]) partialHeads.push(id);
   }
   if (cand.partialHeadsBlocking) for (const id of partialHeads) reasons.push(`PARTIAL_HEAD_AT_FRAME_EDGE:${id}`);
-  for (const id of cand.readableFaceIds ?? []) if (id !== active && ix.faces.has(id) && !((face[id] ?? 0) >= cfg.minFaceVisibility)) reasons.push(`FACE_VISIBILITY_LOW:${id}:${face[id] ?? 0}<${cfg.minFaceVisibility}`);
-  for (const id of cand.excludedSubjectIds ?? []) if ((entityCoverage[id] ?? 0) > 0) reasons.push(`EXCLUDED_ACTOR_IN_FRAME:${id}:${entityCoverage[id].toFixed(3)}`);
+  for (const id of cand.excludedSubjectIds ?? []) {
+    if (!ix.faces.has(id)) continue;
+    if (headInFrame[id] && headCropped[id]) reasons.push(`EXCLUDED_ACTOR_IN_FRAME:${id}:head_partial`);
+    else if (!headInFrame[id] && (entityCoverage[id] ?? 0) > EXCLUDED_ACTOR_MAX_BODY_COVERAGE) reasons.push(`EXCLUDED_ACTOR_IN_FRAME:${id}:body_${entityCoverage[id].toFixed(3)}>${EXCLUDED_ACTOR_MAX_BODY_COVERAGE}`);
+  }
   for (const id of cand.propFullFrameIds ?? []) {
     const idn = ix.meta.get(id)?.identity, b = ix.bounds.get(id);
     const pts = idn ? idn.rim : b ? corners(b) : [];
