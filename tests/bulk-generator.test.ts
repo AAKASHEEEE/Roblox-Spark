@@ -8,18 +8,54 @@ import { join } from 'node:path';
 import {
   BulkRunner, BulkStore, JobQueue, JOB_STATES, TRANSITIONS, assertPortable, buildManifest, canTransition, deriveSeed,
   duplicateWithNewSeed, isBulkError, parseBatchRequest, serializeManifest, sha256Hex, writeManifest,
-  type EpisodePipeline, type RenderResult, type ResolvedBatch, type ApprovalResult,
+  type EpisodePipeline, type RenderResult, type ResolvedBatch, type ApprovalResult, type Timers,
 } from '../packages/bulk/src/index.ts';
 import { NodeBulkFs } from '../packages/bulk/node/node-fs.ts';
 
 const T0 = Date.parse('2026-01-01T00:00:00.000Z');
-const clock = () => { const c = { t: T0, now: () => c.t }; return c; };
+const clock = () => new FakeTime();
 const made: string[] = [];
 const tmp = () => { const d = mkdtempSync(join(tmpdir(), 'bulk-test-')); made.push(d); return d; };
 
+const H = (s: string) => sha256Hex(s);
+const kira = () => ({ characterId: 'kira', version: '1.1.0', contentHash: H('kira@1.1.0') });
+const zapp = () => ({ characterId: 'zapp', version: '1.0.0', contentHash: H('zapp@1.0.0') });
+const classroom = () => ({ environmentId: 'classroom', version: '1.1.0', contentHash: H('classroom@1.1.0') });
 function episode(id: string, extra: Record<string, unknown> = {}) {
-  return { episodeId: id, prompt: `What if ${id} happened?`, characterIds: ['kira', 'zapp'], environmentId: 'classroom', ...extra };
+  return { episodeId: id, prompt: `What if ${id} happened?`, characterRefs: [kira(), zapp()], environmentRef: classroom(), ...extra };
 }
+
+/** Deterministic fake time: one clock for the store and the runner's timers; no real sleeps anywhere. */
+class FakeTime implements Timers {
+  t = T0;
+  now = () => this.t;
+  private seq = 0;
+  private timers = new Map<number, { at: number; fn: () => void; every: number | null }>();
+  created = 0; cleared = 0;
+  get active() { return this.timers.size; }
+  setInterval(fn: () => void, ms: number) { this.created++; const id = ++this.seq; this.timers.set(id, { at: this.t + ms, fn, every: ms }); return id; }
+  setTimeout(fn: () => void, ms: number) { this.created++; const id = ++this.seq; this.timers.set(id, { at: this.t + ms, fn, every: null }); return id; }
+  clearInterval(h: unknown) { if (this.timers.delete(h as number)) this.cleared++; }
+  clearTimeout(h: unknown) { if (this.timers.delete(h as number)) this.cleared++; }
+  advance(ms: number) {
+    const end = this.t + ms;
+    for (;;) {
+      let next: [number, { at: number; fn: () => void; every: number | null }] | null = null;
+      for (const e of this.timers) if (e[1].at <= end && (!next || e[1].at < next[1].at)) next = e;
+      if (!next) break;
+      const [id, tm] = next;
+      this.t = tm.at;
+      if (tm.every === null) { this.timers.delete(id); this.cleared++; } else tm.at += tm.every;
+      tm.fn();
+    }
+    this.t = end;
+  }
+}
+/** yield to the event loop (setImmediate, not a timed sleep) so pending promise chains settle */
+const flush = async (n = 30) => { for (let i = 0; i < n; i++) await new Promise((r) => setImmediate(r)); };
+const until = async (cond: () => boolean, what: string) => { for (let i = 0; i < 200; i++) { if (cond()) return; await flush(1); } assert.fail(`timed out waiting for ${what}`); };
+function deferred<T>() { let resolve!: (v: T) => void; const promise = new Promise<T>((r) => { resolve = r; }); return { promise, resolve }; }
+const okRender = (dir: string, target = 'draft'): RenderResult => ({ ok: true, rendererVersion: 'mock-renderer@1', artifacts: { mp4: `${dir}/${target}.mp4` } });
 function request(n = 3, extra: Record<string, unknown> = {}, eps?: unknown[]): any {
   return {
     schemaVersion: '1.0', batchId: 'batch-a', title: 'Batch title', mode: 'narrated_story', concurrency: 1,
@@ -35,7 +71,7 @@ function parse(raw: unknown, limits = {}): ResolvedBatch {
 }
 const issuesOf = (raw: unknown, limits = {}) => { const r = parseBatchRequest(raw, limits); assert.ok(!r.ok, 'expected rejection'); return r.issues.map((i) => `${i.path} ${i.message}`).join('\n'); };
 
-function setup(raw: unknown = request(), dir = tmp(), c = clock(), leaseMs = 60_000) {
+function setup(raw: unknown = request(), dir = tmp(), c: FakeTime = clock(), leaseMs = 60_000) {
   const store = new BulkStore(new NodeBulkFs(dir), { clock: c });
   const batch = parse(raw);
   store.createBatch(batch);
@@ -43,7 +79,7 @@ function setup(raw: unknown = request(), dir = tmp(), c = clock(), leaseMs = 60_
 }
 
 interface MockOpts {
-  render?: (ep: string, attempt: number, target: string) => RenderResult | 'hang' | undefined;
+  render?: (ep: string, attempt: number, target: string, signal: AbortSignal) => RenderResult | 'hang' | Promise<RenderResult> | undefined;
   approve?: (ep: string) => ApprovalResult | undefined;
   delayMs?: number;
   onRender?: (ep: string) => void;
@@ -51,7 +87,7 @@ interface MockOpts {
 function mockPipeline(o: MockOpts = {}) {
   const calls: string[] = [];
   let active = 0, maxActive = 0;
-  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const wait = (n: number) => flush(n); // event-loop yields, not timed sleeps
   const p: EpisodePipeline = {
     async validate(ep) { calls.push(`validate:${ep.episodeId}`); return { ok: true }; },
     async generateStoryboard(ep) { calls.push(`storyboard:${ep.episodeId}`); return { ok: true, projectHash: sha256Hex(`${ep.inputHash}:project`), projectRef: { id: ep.episodeId } }; },
@@ -64,7 +100,8 @@ function mockPipeline(o: MockOpts = {}) {
     active++; maxActive = Math.max(maxActive, active);
     try {
       o.onRender?.(ep);
-      const forced = o.render?.(ep, attempt, target);
+      const forced = o.render?.(ep, attempt, target, signal);
+      if (forced instanceof Promise) return await forced;
       if (forced === 'hang') await new Promise((_, rej) => signal.addEventListener('abort', () => rej(new Error('aborted')), { once: true }));
       await wait(o.delayMs ?? 1);
       if (forced) return forced as RenderResult;
@@ -72,6 +109,13 @@ function mockPipeline(o: MockOpts = {}) {
     } finally { active--; }
   }
   return { p, calls, get maxActive() { return maxActive; } };
+}
+/** run a promise to completion while advancing fake time in fixed steps (deterministic; no timed sleeps) */
+async function drive<T>(p: Promise<T>, time: FakeTime, step = 50): Promise<T> {
+  let done = false;
+  p.then(() => { done = true; }, () => { done = true; });
+  while (!done) { await flush(5); if (!done) time.advance(step); }
+  return p;
 }
 const states = (q: JobQueue) => Object.fromEntries(q.list('batch-a').map((j) => [j.episodeId, j.state]));
 
@@ -120,7 +164,7 @@ test('schema: duplicate IDs, duplicate seeds, batch limit and invalid concurrenc
 test('schema: unsafe paths and output paths outside the configured root are rejected', () => {
   for (const bad of ['../escape', '/etc/passwd', 'C:\\x', 'a/../../b', 'a//b', './a', 'file:///x', 'a\u0000b', '~/x']) {
     assert.match(issuesOf(request(0, {}, [episode('a', { outputDir: bad })])), /outputDir unsafe path/, bad);
-    assert.match(issuesOf(request(0, {}, [episode('a', { voiceOver: { ref: bad } })])), /voiceOver\.ref unsafe path/, bad);
+    assert.match(issuesOf(request(0, {}, [episode('a', { voiceOver: { ref: bad, contentHash: H('vo') } })])), /voiceOver\.ref unsafe path/, bad);
   }
   assert.match(issuesOf(request(0, {}, [episode('a', { outputDir: 'elsewhere/a' })]), { outputRoot: 'bulk' }), /outside the configured root "bulk"/);
   assert.equal(parse(request(1), { outputRoot: 'bulk' }).episodes[0].outputDir, 'bulk/batch-a/ep-01');
@@ -272,7 +316,7 @@ test('leasing: a live cross-process store lock blocks, a stale one (crashed proc
 test('runner: injected mock pipeline completes multiple episodes under the concurrency limit', async () => {
   const eps = Array.from({ length: 6 }, (_, i) => episode(`ep-${i + 1}`, i === 0 ? { output: 'both' } : {}));
   const { queue } = setup(request(0, { concurrency: 2 }, eps));
-  const m = mockPipeline({ delayMs: 15 });
+  const m = mockPipeline({ delayMs: 10 });
   const events: string[] = [];
   const summary = await new BulkRunner(queue, m.p).run('batch-a', { onEvent: (e) => events.push(e.type) });
   assert.deepEqual({ completed: summary.completed, failed: summary.failed, open: summary.open }, { completed: 6, failed: 0, open: 0 });
@@ -283,7 +327,7 @@ test('runner: injected mock pipeline completes multiple episodes under the concu
   assert.deepEqual(j1.history.map((h) => h.state), ['pending', 'validating', 'storyboard', 'awaiting_approval', 'approved', 'queued', 'leased', 'rendering', 'validating_output', 'completed']);
   assert.ok(events.includes('done') && events.includes('state'));
   const wide = setup(request(0, { concurrency: 4 }, eps));
-  const m4 = mockPipeline({ delayMs: 15 });
+  const m4 = mockPipeline({ delayMs: 10 });
   await new BulkRunner(wide.queue, m4.p).run('batch-a', { concurrency: 3 });
   assert.equal(m4.maxActive, 3);
 });
@@ -310,14 +354,15 @@ test('runner: stopOnFirstError stops claiming new work and leaves untouched jobs
 });
 
 test('runner: retryable failures (incl. timeouts) retry with the same seed and stop at max attempts', async () => {
-  const { queue } = setup(request(3));
+  const { queue, c } = setup(request(3));
   const m = mockPipeline({
     render: (ep, attempt) => ep === 'ep-01' && attempt === 1 ? { ok: false, code: 'GPU_BUSY', message: 'transient', retryable: true }
       : ep === 'ep-02' && attempt === 1 ? 'hang'
       : ep === 'ep-03' ? { ok: false, code: 'FLAKY', message: 'always', retryable: true } : undefined,
   });
   const retries: string[] = [];
-  const s = await new BulkRunner(queue, m.p).run('batch-a', { defaultTimeoutMs: 100, onEvent: (e) => { if (e.type === 'retry') retries.push(`${e.jobId}:${e.code}`); } });
+  const s = await drive(new BulkRunner(queue, m.p).run('batch-a', { timers: c, defaultTimeoutMs: 100, onEvent: (e) => { if (e.type === 'retry') retries.push(`${e.jobId}:${e.code}`); } }), c);
+  assert.equal(c.active, 0, 'no timers left behind');
   assert.deepEqual([s.completed, s.failed], [2, 1]);
   const [j1, j2, j3] = queue.list('batch-a');
   assert.deepEqual([j1.state, j1.attempt, j1.errors[0].code], ['completed', 2, 'GPU_BUSY']);
@@ -333,7 +378,7 @@ test('runner: retryable failures (incl. timeouts) retry with the same seed and s
 test('runner: cancellation aborts in-flight work and cancels open jobs; a cancelled job cannot be resumed', async () => {
   const { queue } = setup(request(3, { concurrency: 2 }));
   const ac = new AbortController();
-  const m = mockPipeline({ render: () => 'hang', onRender: () => setTimeout(() => ac.abort(), 5) });
+  const m = mockPipeline({ render: () => 'hang', onRender: () => setImmediate(() => ac.abort()) });
   const s = await new BulkRunner(queue, m.p).run('batch-a', { signal: ac.signal });
   assert.equal(s.aborted, true);
   assert.equal(s.cancelled, 3);
@@ -401,3 +446,172 @@ test('manifest: deterministic, portable, with hashes, artifacts, failures and co
 });
 
 process.on('exit', () => { for (const d of made) rmSync(d, { recursive: true, force: true }); });
+
+// ── exact resource pins ─────────────────────────────────────────────────────────────────────────────────────────────
+test('pins: exact character/environment pins are accepted and set-like arrays are canonical', () => {
+  const b = parse(request(0, {}, [episode('a', { characterRefs: [zapp(), kira()], tags: ['z', 'a', 'z'] }), episode('b')]));
+  assert.deepEqual(b.episodes[0].characterRefs, [kira(), zapp()], 'sorted by characterId');
+  assert.deepEqual(b.episodes[0].environmentRef, classroom());
+  assert.deepEqual(b.episodes[0].tags, ['a', 'z']);
+  const other = parse(request(0, {}, [episode('b'), episode('a', { characterRefs: [kira(), zapp()], tags: ['a', 'z'] })]));
+  assert.equal(other.inputHash, b.inputHash, 'episode order and set order do not change the batch input hash');
+  assert.equal(other.episodes[1].inputHash, b.episodes[0].inputHash);
+  assert.notEqual(parse(request(0, {}, [episode('a', { characterRefs: [{ ...kira(), version: '1.0.0' }] }), episode('b')])).inputHash, b.inputHash);
+});
+
+test('pins: missing or ranged versions, malformed hashes and unhashed voice-over files are rejected', () => {
+  const noVersion = { characterId: 'kira', contentHash: H('k') };
+  const noHash = { characterId: 'kira', version: '1.0.0' };
+  assert.match(issuesOf(request(0, {}, [episode('a', { characterRefs: [noVersion] })])), /characterRefs\[0\]\.version required/);
+  assert.match(issuesOf(request(0, {}, [episode('a', { characterRefs: [noHash] })])), /characterRefs\[0\]\.contentHash required/);
+  assert.match(issuesOf(request(0, {}, [episode('a', { environmentRef: { environmentId: 'classroom', version: '1.1.0' } })])), /environmentRef\.contentHash required/);
+  for (const v of ['latest', '^1.0.0', '~1.0.0', '1.x', '1.0', '1', '>=1.0.0', '1.0.0-beta', '01.0.0', 'v1.0.0', '*']) {
+    assert.match(issuesOf(request(0, {}, [episode('a', { characterRefs: [{ ...kira(), version: v }] })])), /characterRefs\[0\]\.version does not match/, v);
+    assert.match(issuesOf(request(0, {}, [episode('a', { environmentRef: { ...classroom(), version: v } })])), /environmentRef\.version does not match/, v);
+  }
+  for (const h of [H('x').toUpperCase(), H('x').slice(1), `${H('x')}0`, 'g'.repeat(64), '']) {
+    assert.match(issuesOf(request(0, {}, [episode('a', { characterRefs: [{ ...kira(), contentHash: h }] })])), /contentHash does not match/, h);
+  }
+  assert.match(issuesOf(request(0, {}, [episode('a', { characterRefs: [kira(), kira()] })])), /duplicate character "kira"/);
+  assert.match(issuesOf(request(0, {}, [episode('a', { voiceOver: { ref: 'vo/a.wav' } })])), /voiceOver\.contentHash required/);
+  assert.match(issuesOf(request(0, {}, [{ ...episode('a'), characterIds: ['kira'] }])), /characterIds unknown key/);
+});
+
+test('pins: exact refs and voice-over hash are frozen in the job input and appear in the manifest', async () => {
+  const vo = { ref: 'vo/ep-01.wav', format: 'wav', contentHash: H('voice') };
+  const { store, queue, c } = setup(request(0, {}, [episode('ep-01', { voiceOver: vo, characterRefs: [zapp(), kira()] }), episode('ep-02')]));
+  const j = queue.get('batch-a', 'batch-a--ep-01');
+  assert.deepEqual(j.input, { characterRefs: [kira(), zapp()], environmentRef: classroom(), voiceOver: vo });
+  const frozen = JSON.stringify(j.input);
+  let first = true;
+  const m = mockPipeline({ render: (ep) => (ep === 'ep-01' && first ? ((first = false), { ok: false, message: 'transient', retryable: true }) : undefined) });
+  await drive(new BulkRunner(queue, m.p).run('batch-a', { timers: c }), c);
+  const after = queue.get('batch-a', 'batch-a--ep-01');
+  assert.equal(after.attempt, 2);
+  assert.equal(JSON.stringify(after.input), frozen, 'retry keeps the immutable input');
+  const man = writeManifest(store, 'batch-a');
+  assert.deepEqual(man.jobs[0].input, { characterRefs: [kira(), zapp()], environmentRef: classroom(), voiceOver: vo });
+  assert.deepEqual(man.resources, { characters: [kira(), zapp()], environments: [classroom()] });
+  assert.ok(serializeManifest(man).includes(H('voice')));
+});
+
+// ── leases, heartbeat, timeout ──────────────────────────────────────────────────────────────────────────────────────
+test('lease: a long-running healthy job keeps renewing and can never be double-claimed', async () => {
+  const { dir, queue, c } = setup(request(1), tmp(), clock(), 1_000);
+  const other = new JobQueue(new BulkStore(new NodeBulkFs(dir), { clock: c }), { leaseMs: 1_000 });
+  const d = deferred<RenderResult>();
+  let renders = 0;
+  const run = new BulkRunner(queue, mockPipeline({ render: () => { renders++; return d.promise; } }).p).run('batch-a', { timers: c, heartbeatMs: 250 });
+  await until(() => renders === 1, 'render start');
+  const leaseStart = queue.get('batch-a', 'batch-a--ep-01').lease!;
+  for (let i = 0; i < 50; i++) {
+    c.advance(100); // 5 s total = 5 lease lengths
+    assert.equal(other.leaseNext('batch-a', 'intruder'), null);
+    assert.equal(other.claimPrep('batch-a', 'intruder'), null);
+    assert.deepEqual(other.recoverExpiredLeases('batch-a'), []);
+  }
+  const lease = queue.get('batch-a', 'batch-a--ep-01').lease!;
+  assert.equal(lease.token, leaseStart.token, 'renewal keeps the token');
+  assert.ok(Date.parse(lease.expiresAt) > c.t, 'lease still live');
+  d.resolve(okRender('batch-a/ep-01'));
+  const s = await drive(run, c);
+  assert.equal(s.completed, 1);
+  assert.equal(renders, 1);
+  assert.equal(c.active, 0);
+  await assert.rejects(new BulkRunner(queue, mockPipeline().p).run('batch-a', { heartbeatMs: 1_000 }), /heartbeatMs 1000 must be > 0 and < leaseMs 1000/);
+});
+
+test('lease: wrong, expired or superseded tokens cannot renew (and never revive a lease)', () => {
+  const { queue, c } = setup(request(1), tmp(), clock(), 1_000);
+  queueAll(queue);
+  const a = queue.leaseNext('batch-a', 'w1')!;
+  assert.throws(() => queue.renewLease({ ...a.lease, token: 'w1:0:forged' }), (e) => isBulkError(e, 'LEASE_LOST'));
+  assert.throws(() => queue.renewLease({ ...a.lease, jobId: 'batch-a--nope' }), (e) => isBulkError(e, 'NOT_FOUND'));
+  c.t += 1_000; // exactly at expiry → expired
+  assert.throws(() => queue.renewLease(a.lease), (e) => isBulkError(e, 'LEASE_LOST'));
+  queue.recoverExpiredLeases('batch-a');
+  const b = queue.leaseNext('batch-a', 'w2')!;
+  const before = queue.get('batch-a', b.job.jobId).lease;
+  assert.throws(() => queue.renewLease(a.lease), (e) => isBulkError(e, 'LEASE_LOST'));
+  assert.deepEqual(queue.get('batch-a', b.job.jobId).lease, before, 'w2 lease untouched');
+  assert.equal(queue.renewLease(b.lease).workerId, 'w2');
+});
+
+test('lease: lease loss aborts the stage and its late result cannot complete the job', async () => {
+  const { dir, queue, c } = setup(request(1), tmp(), clock(), 1_000);
+  const other = new JobQueue(new BulkStore(new NodeBulkFs(dir), { clock: c }), { leaseMs: 1_000 });
+  const d = deferred<RenderResult>();
+  let signal: AbortSignal | null = null;
+  const events: string[] = [];
+  const run = new BulkRunner(queue, mockPipeline({ render: (_e, _a, _t, sig) => { signal = sig; return d.promise; } }).p)
+    .run('batch-a', { timers: c, heartbeatMs: 250, onEvent: (e) => events.push(e.type) });
+  await until(() => signal !== null, 'render start');
+  c.t += 1_500; // the worker stalls past expiry without beating (timers not fired)
+  other.recoverExpiredLeases('batch-a');
+  const stolen = other.leaseNext('batch-a', 'w-other')!;
+  c.advance(250); // next heartbeat → LEASE_LOST → abort
+  assert.equal(signal!.aborted, true);
+  d.resolve(okRender('batch-a/ep-01')); // late success
+  await drive(run, c);
+  const j = queue.get('batch-a', 'batch-a--ep-01');
+  assert.deepEqual([j.state, j.lease?.token, j.outputs], ['leased', stolen.lease.token, {}]);
+  assert.ok(events.includes('lease_lost'));
+  assert.equal(c.active, 0);
+});
+
+test('timeout: aborts the stage, commits TIMEOUT, and a late result cannot change the terminal state', async () => {
+  const { queue, c } = setup(request(1, { policy: { maxAttempts: 1 } }));
+  const d = deferred<RenderResult>();
+  let signal: AbortSignal | null = null;
+  const run = new BulkRunner(queue, mockPipeline({ render: (_e, _a, _t, sig) => { signal = sig; return d.promise; } }).p)
+    .run('batch-a', { timers: c, defaultTimeoutMs: 5_000, heartbeatMs: 1_000 });
+  await until(() => signal !== null, 'render start');
+  c.advance(4_999);
+  assert.equal(signal!.aborted, false);
+  c.advance(1);
+  const s = await drive(run, c);
+  assert.equal(signal!.aborted, true);
+  const failed = queue.get('batch-a', 'batch-a--ep-01');
+  assert.deepEqual([failed.state, failed.error?.code, failed.retryable, s.failed], ['failed', 'TIMEOUT', false, 1]);
+  d.resolve(okRender('batch-a/ep-01'));
+  await flush();
+  assert.deepEqual(queue.get('batch-a', 'batch-a--ep-01'), failed, 'late result changed nothing');
+  assert.equal(c.active, 0);
+});
+
+test('heartbeat: timers are released on success, failure, cancellation and lease-loss exits', async () => {
+  const scenarios: [string, MockOpts, (ac: AbortController) => void][] = [
+    ['success', {}, () => {}],
+    ['permanent failure', { render: () => ({ ok: false, message: 'x', retryable: false }) }, () => {}],
+    ['thrown error', { render: () => Promise.reject(new Error('boom')) }, () => {}],
+    ['cancellation', { render: () => 'hang' }, (ac) => ac.abort()],
+  ];
+  for (const [name, o, act] of scenarios) {
+    const { queue, c } = setup(request(2, { concurrency: 2 }));
+    const ac = new AbortController();
+    const m = mockPipeline({ ...o, onRender: () => setImmediate(() => act(ac)) });
+    await drive(new BulkRunner(queue, m.p).run('batch-a', { timers: c, signal: ac.signal, heartbeatMs: 1_000 }), c);
+    assert.equal(c.active, 0, `${name}: active timers`);
+    assert.equal(c.created, c.cleared, `${name}: every timer cleared`);
+    assert.ok(c.created >= 2, `${name}: heartbeats were started`);
+  }
+});
+
+test('stopOnFirstError: no new claims after the first failure; the in-flight claim finishes and commits', async () => {
+  const { queue, c } = setup(request(4, { concurrency: 2, policy: { stopOnFirstError: true } }));
+  const d1 = deferred<RenderResult>(), d2 = deferred<RenderResult>();
+  const started = new Set<string>();
+  const run = new BulkRunner(queue, mockPipeline({ render: (ep) => { started.add(ep); return ep === 'ep-01' ? d1.promise : d2.promise; } }).p)
+    .run('batch-a', { timers: c, heartbeatMs: 1_000 });
+  await until(() => started.size === 2, 'two renders in flight');
+  d1.resolve({ ok: false, code: 'GPU_BUSY', message: 'transient', retryable: true });
+  await flush();
+  assert.equal(queue.get('batch-a', 'batch-a--ep-02').state, 'rendering', 'in-flight job is not aborted');
+  d2.resolve(okRender('batch-a/ep-02'));
+  const s = await drive(run, c);
+  assert.deepEqual(states(queue), { 'ep-01': 'failed', 'ep-02': 'completed', 'ep-03': 'pending', 'ep-04': 'pending' });
+  const f = queue.get('batch-a', 'batch-a--ep-01');
+  assert.deepEqual([f.attempt, f.retryable, s.stoppedEarly], [1, true, true], 'no auto-retry; retryable flag kept for resume');
+  assert.deepEqual([...started].sort(), ['ep-01', 'ep-02']);
+  assert.equal(c.active, 0);
+});

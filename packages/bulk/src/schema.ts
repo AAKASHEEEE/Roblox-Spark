@@ -32,15 +32,26 @@ const ID = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const id = () => v.string({ pattern: ID, max: 64 });
 const relPath = () => v.string({ min: 1, max: 512 });
 const hex64 = () => v.string({ pattern: /^[0-9a-f]{64}$/ });
+/** exact semver only — no `latest`, `^1.0.0`, `~1.0.0`, `1.x`, `>=1`, pre-release/build tags */
+const exactVersion = () => v.string({ pattern: /^(0|[1-9]\d{0,5})\.(0|[1-9]\d{0,5})\.(0|[1-9]\d{0,5})$/, max: 20 });
+
+/** Local structural pin types. Deliberately NOT imported from the character/environment catalog branches. */
+export interface CharacterRef { characterId: string; version: string; contentHash: string }
+export interface EnvironmentRef { environmentId: string; version: string; contentHash: string }
+export interface VoiceOverRef { ref: string; format: string | null; contentHash: string }
+const CharacterRefSchema = v.object({ characterId: id(), version: exactVersion(), contentHash: hex64() });
+const EnvironmentRefSchema = v.object({ environmentId: id(), version: exactVersion(), contentHash: hex64() });
 
 const EpisodeRequestSchema = v.object({
   episodeId: id(),
   prompt: v.string({ min: 1, max: 2000 }),
   /** optional complete narration script; when present the pipeline must not rewrite it */
   script: v.string({ min: 1, max: 8000 }).optional(),
-  voiceOver: v.object({ ref: relPath(), format: v.enum(VOICE_FORMATS).optional(), sha256: hex64().optional() }).optional(),
-  characterIds: v.array(id(), { min: 1, max: 6 }),
-  environmentId: id(),
+  /** local voice-over file: its content hash is REQUIRED and becomes part of the immutable job input (never read here) */
+  voiceOver: v.object({ ref: relPath(), format: v.enum(VOICE_FORMATS).optional(), contentHash: hex64() }).optional(),
+  /** exact pins; a set (canonicalised by characterId), so input order never changes a hash */
+  characterRefs: v.array(CharacterRefSchema, { min: 1, max: 6 }),
+  environmentRef: EnvironmentRefSchema,
   storyPattern: v.enum(BULK_STORY_PATTERNS).optional(),
   seed: v.int({ min: 0, max: SEED_MAX }).optional(),
   /** "duplicate with new seed": copy of `variantOf` whose seed is derived from (variantOf, variant) */
@@ -85,9 +96,10 @@ export interface ResolvedEpisode {
   episodeId: string;
   prompt: string;
   script: string | null;
-  voiceOver: { ref: string; format: string | null; sha256: string | null } | null;
-  characterIds: string[];
-  environmentId: string;
+  voiceOver: VoiceOverRef | null;
+  /** sorted by characterId */
+  characterRefs: CharacterRef[];
+  environmentRef: EnvironmentRef;
   storyPattern: string;
   seed: number;
   seedDerived: boolean;
@@ -100,6 +112,7 @@ export interface ResolvedEpisode {
   finalQuality: string;
   outputDir: string;
   timeoutMs: number | null;
+  /** sorted, de-duplicated */
   tags: string[];
   metadata: Record<string, string>;
   /** sha256 of the canonical resolved episode (excluding this field) */
@@ -115,7 +128,7 @@ export interface ResolvedBatch {
   batchSeed: number;
   maxAttempts: number;
   stopOnFirstError: boolean;
-  /** sha256 of the canonical validated request */
+  /** sha256 of the canonical validated request: episodes sorted by ID, set-like arrays sorted (see canonicalRequest) */
   inputHash: string;
   request: BatchRequest;
   episodes: ResolvedEpisode[];
@@ -165,6 +178,11 @@ export function parseBatchRequest(raw: unknown, limits: BatchLimits = {}): Parse
     ids.set(e.episodeId, i);
     if ((e.variantOf === undefined) !== (e.variant === undefined)) issues.push({ path: `${p}.variant`, message: 'variantOf and variant must be given together' });
     if (e.variantOf !== undefined && e.variantOf === e.episodeId) issues.push({ path: `${p}.variantOf`, message: 'an episode cannot be a variant of itself' });
+    const seenChars = new Set<string>();
+    e.characterRefs.forEach((c, k) => {
+      if (seenChars.has(c.characterId)) issues.push({ path: `${p}.characterRefs[${k}].characterId`, message: `duplicate character "${c.characterId}"` });
+      seenChars.add(c.characterId);
+    });
     if (e.voiceOver) { const why = unsafePathReason(e.voiceOver.ref); if (why) issues.push({ path: `${p}.voiceOver.ref`, message: `unsafe path: ${why}` }); }
     const outputDir = e.outputDir ?? `${limits.outputRoot ? `${limits.outputRoot}/` : ''}${req.batchId}/${e.episodeId}`;
     const why = unsafePathReason(outputDir);
@@ -177,13 +195,13 @@ export function parseBatchRequest(raw: unknown, limits: BatchLimits = {}): Parse
     }
     const base: Omit<ResolvedEpisode, 'inputHash'> = {
       batchId: req.batchId, mode: req.mode, episodeId: e.episodeId, prompt: e.prompt, script: e.script ?? null,
-      voiceOver: e.voiceOver ? { ref: e.voiceOver.ref, format: e.voiceOver.format ?? null, sha256: e.voiceOver.sha256 ?? null } : null,
-      characterIds: [...e.characterIds], environmentId: e.environmentId, storyPattern: e.storyPattern ?? req.defaults.storyPattern,
+      voiceOver: e.voiceOver ? { ref: e.voiceOver.ref, format: e.voiceOver.format ?? null, contentHash: e.voiceOver.contentHash } : null,
+      characterRefs: sortCharacterRefs(e.characterRefs), environmentRef: { environmentId: e.environmentRef.environmentId, version: e.environmentRef.version, contentHash: e.environmentRef.contentHash }, storyPattern: e.storyPattern ?? req.defaults.storyPattern,
       seed, seedDerived: derived, variantOf: e.variantOf ?? null, variant: e.variant ?? 0,
       targetDurationSec: e.targetDurationSec ?? req.defaults.targetDurationSec ?? null,
       captionPreset: e.captionPreset ?? req.defaults.captionPreset, output: e.output ?? req.defaults.output ?? 'draft',
       draftQuality: req.defaults.draftQuality, finalQuality: req.defaults.finalQuality, outputDir,
-      timeoutMs: e.timeoutMs ?? req.defaults.timeoutMs ?? null, tags: [...(e.tags ?? [])], metadata: { ...(e.metadata ?? {}) },
+      timeoutMs: e.timeoutMs ?? req.defaults.timeoutMs ?? null, tags: [...new Set(e.tags ?? [])].sort(), metadata: { ...(e.metadata ?? {}) },
     };
     episodes.push({ ...base, inputHash: hashJson(base) });
   });
@@ -199,8 +217,25 @@ export function parseBatchRequest(raw: unknown, limits: BatchLimits = {}): Parse
     batch: {
       schemaVersion: BULK_SCHEMA_VERSION, batchId: req.batchId, title: req.title, mode: req.mode, concurrency: req.concurrency, batchSeed,
       maxAttempts: req.policy?.maxAttempts ?? DEFAULT_MAX_ATTEMPTS, stopOnFirstError: req.policy?.stopOnFirstError ?? false,
-      inputHash: hashJson(req), request: req, episodes,
+      inputHash: hashJson(canonicalRequest(req)), request: req, episodes,
     },
+  };
+}
+
+const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+export const sortCharacterRefs = (refs: readonly CharacterRef[]): CharacterRef[] =>
+  refs.map((c) => ({ characterId: c.characterId, version: c.version, contentHash: c.contentHash })).sort((a, b) => cmp(a.characterId, b.characterId));
+
+/**
+ * Canonical form used for the batch input hash. Set-like arrays (characterRefs, tags) are sorted and episodes are
+ * sorted by episodeId: request order only sets claim priority and cannot change any output, so it is not hashed.
+ */
+export function canonicalRequest(req: BatchRequest): BatchRequest {
+  return {
+    ...req,
+    episodes: [...req.episodes].sort((a, b) => cmp(a.episodeId, b.episodeId)).map((e) => ({
+      ...e, characterRefs: sortCharacterRefs(e.characterRefs), ...(e.tags ? { tags: [...new Set(e.tags)].sort() } : {}),
+    })),
   };
 }
 

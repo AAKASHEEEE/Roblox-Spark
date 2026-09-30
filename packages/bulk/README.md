@@ -5,11 +5,12 @@ This package takes a batch of 1–20 episode requests and runs them through vali
 | File | Purpose |
 | --- | --- |
 | `src/schema.ts` | Strict request schema `1.0`. Rejects unknown keys, `__proto__`/`constructor`/`prototype` keys, duplicate IDs or seeds, unsafe or outside-root paths, too many episodes and invalid concurrency. Resolves defaults and seeds. |
+| Exact pins | `characterRefs[]` `{characterId, version, contentHash}` and `environmentRef` `{environmentId, version, contentHash}`. The version must be exact semver (no `latest`, `^`, `~`, `1.x`) and the hash lowercase SHA-256. Character refs are a set, sorted by `characterId`. A local `voiceOver` must carry a `contentHash`. The pins are frozen in `job.input` and listed in the manifest (`jobs[].input`, `resources`). |
 | `src/seeds.ts` | `deriveSeed(batchId, episodeId, batchSeed, variant)` via SHA-256. The seed doesn't depend on episode order or batch size. |
 | `src/states.ts` | Explicit transition table for the 13 job states. |
 | `src/store.ts` | Content-hashed JSON envelopes, atomic writes, per-batch lock file, corruption detection and temp-file recovery. The file system is injected through `BulkFs`. |
 | `src/queue.ts` | Enqueue, claim/lease, renew, advance, complete, fail, cancel, retry, and recovery of expired leases. |
-| `src/runner.ts` | `BulkRunner`: concurrency limit, continue-on-error or `stopOnFirstError`, timeouts, retries (default max 2 attempts), cancellation and progress events. |
+| `src/runner.ts` | `BulkRunner`: a token-checked lease heartbeat (`heartbeatMs` < `leaseMs`; injectable `Timers`), concurrency limit, continue-on-error or `stopOnFirstError`, timeouts, retries (default max 2 attempts), cancellation and progress events. |
 | `src/manifest.ts` | Deterministic, portable batch manifest. |
 | `node/node-fs.ts` | Node `BulkFs` adapter: temp file → fsync → rename → dir fsync, plus `O_EXCL` lock files. |
 

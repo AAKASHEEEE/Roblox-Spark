@@ -2,7 +2,7 @@
 import type { JobState } from './states.ts';
 import { assertTransition } from './states.ts';
 import type { BulkErrorCode } from './errors.ts';
-import type { ResolvedEpisode } from './schema.ts';
+import type { CharacterRef, EnvironmentRef, ResolvedEpisode, VoiceOverRef } from './schema.ts';
 
 export type LeaseKind = 'prep' | 'render';
 export interface Lease { workerId: string; token: string; kind: LeaseKind; acquiredAt: string; expiresAt: string }
@@ -20,6 +20,9 @@ export type RenderTarget = 'draft' | 'final';
 export interface JobError { code: BulkErrorCode | string; message: string; retryable: boolean; attempt: number; at: string }
 export interface HistoryEntry { state: JobState; at: string; attempt: number; note?: string }
 
+/** Exact locked inputs, fixed at job creation and never mutated (retries and recovery keep them). */
+export interface JobInput { characterRefs: CharacterRef[]; environmentRef: EnvironmentRef; voiceOver: VoiceOverRef | null }
+
 export interface JobRecord {
   jobId: string;
   batchId: string;
@@ -31,6 +34,7 @@ export interface JobRecord {
   history: HistoryEntry[];
   lease: Lease | null;
   inputHash: string;
+  input: JobInput;
   projectHash: string | null;
   /** small opaque JSON reference returned by generateStoryboard() (e.g. a storyboard file id), kept for resume */
   projectRef: unknown;
@@ -55,7 +59,9 @@ export const jobIdFor = (batchId: string, episodeId: string): string => `${batch
 export function newJob(ep: ResolvedEpisode, maxAttempts: number, at: string): JobRecord {
   return {
     jobId: jobIdFor(ep.batchId, ep.episodeId), batchId: ep.batchId, episodeId: ep.episodeId, attempt: 1, maxAttempts, seed: ep.seed,
-    state: 'pending', history: [{ state: 'pending', at, attempt: 1 }], lease: null, inputHash: ep.inputHash, projectHash: null, projectRef: null,
+    state: 'pending', history: [{ state: 'pending', at, attempt: 1 }], lease: null, inputHash: ep.inputHash,
+    input: { characterRefs: ep.characterRefs.map((c) => ({ ...c })), environmentRef: { ...ep.environmentRef }, voiceOver: ep.voiceOver ? { ...ep.voiceOver } : null },
+    projectHash: null, projectRef: null,
     approvedHash: null, approval: null, outputDir: ep.outputDir, outputs: {}, rendererVersion: null, error: null, errors: [],
     retryable: null, timeoutMs: ep.timeoutMs, createdAt: at, updatedAt: at, startedAt: null, completedAt: null,
   };

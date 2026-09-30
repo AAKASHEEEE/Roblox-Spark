@@ -5,10 +5,17 @@
 // Semantics
 // - concurrency: at most N jobs in flight (N = min(option ?? batch.concurrency, jobs)); each worker holds one lease.
 // - continue-on-error (default): a failed job does not stop the others.
-// - stopOnFirstError: after the first job that ends failed without an automatic retry, no new job is claimed; in-flight
-//   jobs finish; untouched jobs stay pending/queued so a later run can resume them.
+// - stopOnFirstError: automatic retries are disabled and the FIRST failed attempt stops the run: no new claim is made by
+//   any worker. Claims already in flight are neither aborted nor cancelled — each runs its current claim to its normal
+//   end (phase boundary: queued/awaiting_approval after prep, completed/failed after render) and commits it. Untouched
+//   jobs stay pending/queued; the failed job stays `failed` (retryable flag recorded) so a later run / retry() resumes.
 // - retries: retryable failures (handler says so, thrown non-Bulk errors, timeouts) are retried while attempt < max,
 //   keeping the same seed. Render-phase retries reuse the approval; prep-phase retries redo validation/storyboard.
+// - leases: every claim holds a lease of `queue.leaseMs`; a heartbeat renews it every `heartbeatMs` (< leaseMs) with a
+//   token check under the batch lock. LEASE_LOST aborts the pipeline stage; its late result is never committed.
+// - timeout: the per-job deadline (episode timeoutMs ?? defaultTimeoutMs) covers the whole claim. On expiry the stage is
+//   aborted, the attempt is committed as failed/TIMEOUT (retryable) and any late result is dropped.
+// - the heartbeat interval and the timeout timer are cleared on every exit path (success, failure, timeout, abort, loss).
 // - cancellation: `signal` abort (or cancel()) stops claiming, aborts in-flight handlers and cancels open jobs.
 // - resume: every run first sweeps temp files, recovers expired leases and requeues retry_pending jobs.
 import { BulkError, isBulkError, type BulkErrorCode } from './errors.ts';
@@ -55,9 +62,25 @@ export interface RunOptions {
   /** fallback per-job timeout when the episode has none (ms) */
   defaultTimeoutMs?: number;
   workerPrefix?: string;
-  /** lease heartbeat period (ms, default leaseMs / 3) */
+  /** lease heartbeat period (ms). Must be > 0 and < the queue's leaseMs. Default: floor(leaseMs / 3). */
   heartbeatMs?: number;
+  /** injected timers (tests use a fake scheduler; default: global setInterval/setTimeout) */
+  timers?: Timers;
 }
+
+/** Timer port so heartbeats and timeouts are deterministic under test. Time itself comes from the store's Clock. */
+export interface Timers {
+  setInterval(fn: () => void, ms: number): unknown;
+  clearInterval(handle: unknown): void;
+  setTimeout(fn: () => void, ms: number): unknown;
+  clearTimeout(handle: unknown): void;
+}
+export const systemTimers: Timers = {
+  setInterval: (fn, ms) => setInterval(fn, ms),
+  clearInterval: (h) => clearInterval(h as ReturnType<typeof setInterval>),
+  setTimeout: (fn, ms) => setTimeout(fn, ms),
+  clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
+};
 
 export interface RunSummary {
   batchId: string; total: number; completed: number; failed: number; cancelled: number; awaitingApproval: number;
@@ -73,6 +96,12 @@ export class BulkRunner {
 
   async run(batchId: string, opts: RunOptions = {}): Promise<RunSummary> {
     const { batch } = this.queue.store.loadBatch(batchId);
+    const heartbeatMs = opts.heartbeatMs ?? Math.max(1, Math.floor(this.queue.leaseMs / 3));
+    if (!Number.isFinite(heartbeatMs) || heartbeatMs <= 0 || heartbeatMs >= this.queue.leaseMs) {
+      throw new BulkError('SCHEMA_INVALID', `heartbeatMs ${heartbeatMs} must be > 0 and < leaseMs ${this.queue.leaseMs}`);
+    }
+    // validated before any store mutation
+    const env: ProcessEnv = { timers: opts.timers ?? systemTimers, heartbeatMs, autoRetry: !(opts.stopOnFirstError ?? batch.stopOnFirstError), defaultTimeoutMs: opts.defaultTimeoutMs };
     this.queue.store.recover(batchId);
     this.queue.recoverExpiredLeases(batchId);
     this.queue.requeueRetries(batchId);
@@ -104,7 +133,7 @@ export class BulkRunner {
         if (!c) { if (busy === 0) break; await changed; continue; }
         busy++;
         try {
-          const outcome = await this.process(batch, c.job, c.lease, opts, emit, inflight, approvalChecked);
+          const outcome = await this.process(batch, c.job, c.lease, env, emit, inflight, approvalChecked);
           if (outcome === 'failed' && stopOnFirstError && !stopped) { stopped = true; emit({ type: 'stopped', reason: 'first_error' }); }
         } finally { busy--; notify(); }
       }
@@ -121,38 +150,44 @@ export class BulkRunner {
   }
 
   /** Runs one claimed job until it leaves this worker's hands. Returns how it ended for this worker. */
-  private async process(batch: ResolvedBatch, claimed: JobRecord, ref: LeaseRef, opts: RunOptions, emit: (e: ProgressEvent) => void,
+  private async process(batch: ResolvedBatch, claimed: JobRecord, ref: LeaseRef, env: ProcessEnv, emit: (e: ProgressEvent) => void,
     inflight: Set<AbortController>, approvalChecked: Set<string>): Promise<'ok' | 'failed' | 'retrying' | 'lost'> {
     const q = this.queue;
     const ep = batch.episodes.find((e) => e.episodeId === claimed.episodeId);
     if (!ep) throw new BulkError('NOT_FOUND', `episode ${claimed.episodeId} missing from batch ${batch.batchId}`);
     const controller = new AbortController();
     inflight.add(controller);
-    const timeoutMs = claimed.timeoutMs ?? opts.defaultTimeoutMs ?? null;
-    const ctx: PipelineContext = { batchId: batch.batchId, jobId: claimed.jobId, attempt: claimed.attempt, seed: claimed.seed, signal: controller.signal, deadline: timeoutMs === null ? null : Date.now() + timeoutMs };
-    const heartbeat = setInterval(() => {
-      try { q.renewLease(ref); } catch (e) { if (isBulkError(e, 'LEASE_LOST')) controller.abort(); }
-    }, opts.heartbeatMs ?? Math.max(10, Math.floor(q.leaseMs / 3)));
-    const call = <T>(p: () => Promise<T>) => withDeadline(p, ctx);
+    const clock = q.store.clock;
+    const timeoutMs = claimed.timeoutMs ?? env.defaultTimeoutMs ?? null;
+    const ctx: PipelineContext = { batchId: batch.batchId, jobId: claimed.jobId, attempt: claimed.attempt, seed: claimed.seed, signal: controller.signal, deadline: timeoutMs === null ? null : clock.now() + timeoutMs };
+    // heartbeat: token-checked renewal for the whole claim; LEASE_LOST aborts the pipeline. Transient errors (e.g. a busy
+    // store lock) are ignored — the next beat retries, and the lease stays valid until its expiry either way.
+    let lostLease = false;
+    let heartbeat: unknown = env.timers.setInterval(() => {
+      if (controller.signal.aborted) return;
+      try { q.renewLease(ref); } catch (e) { if (isBulkError(e, 'LEASE_LOST')) { lostLease = true; controller.abort(); } }
+    }, env.heartbeatMs);
+    const stopHeartbeat = () => { if (heartbeat !== null) { env.timers.clearInterval(heartbeat); heartbeat = null; } };
+    const call = <T>(p: () => Promise<T>) => withDeadline(p, ctx, env.timers, clock);
     let job = claimed;
     const step = (to: JobState, patch?: Parameters<JobQueue['advance']>[2]) => { job = q.advance(ref, to, patch); emit({ type: 'state', jobId: job.jobId, state: to, attempt: job.attempt }); };
     try {
       emit({ type: 'state', jobId: job.jobId, state: job.state, attempt: job.attempt });
       if (job.state === 'validating') {
         const v = await call(() => this.pipeline.validate(ep, ctx));
-        if (!v.ok) return this.failJob(ref, job, 'VALIDATION_FAILED', v, false, emit);
+        if (!v.ok) return this.failJob(ref, job, 'VALIDATION_FAILED', v, false, emit, env.autoRetry);
         step('storyboard');
         const sb = await call(() => this.pipeline.generateStoryboard(ep, ctx));
-        if (!sb.ok) return this.failJob(ref, job, 'STORYBOARD_FAILED', sb, true, emit);
-        if (!HEX64.test(sb.projectHash)) return this.failJob(ref, job, 'OUTPUT_INVALID', { ok: false, message: 'storyboard projectHash must be sha256 hex' }, false, emit);
+        if (!sb.ok) return this.failJob(ref, job, 'STORYBOARD_FAILED', sb, true, emit, env.autoRetry);
+        if (!HEX64.test(sb.projectHash)) return this.failJob(ref, job, 'OUTPUT_INVALID', { ok: false, message: 'storyboard projectHash must be sha256 hex' }, false, emit, env.autoRetry);
         step('awaiting_approval', { projectHash: sb.projectHash, projectRef: sb.projectRef ?? null });
       }
       if (job.state === 'awaiting_approval') {
         approvalChecked.add(job.jobId);
         const a = await call(() => this.pipeline.approve({ request: ep, projectHash: job.projectHash!, projectRef: job.projectRef }, ctx));
         if (a.status === 'pending') { q.release(ref); return 'ok'; }
-        if (a.status === 'rejected') return this.failJob(ref, job, 'APPROVAL_REJECTED', { ok: false, message: a.message }, false, emit);
-        if (!HEX64.test(a.approvedHash)) return this.failJob(ref, job, 'OUTPUT_INVALID', { ok: false, message: 'approvedHash must be sha256 hex' }, false, emit);
+        if (a.status === 'rejected') return this.failJob(ref, job, 'APPROVAL_REJECTED', { ok: false, message: a.message }, false, emit, env.autoRetry);
+        if (!HEX64.test(a.approvedHash)) return this.failJob(ref, job, 'OUTPUT_INVALID', { ok: false, message: 'approvedHash must be sha256 hex' }, false, emit, env.autoRetry);
         step('approved', { approvedHash: a.approvedHash, approval: a.approval ?? null });
         job = q.enqueue(batch.batchId, job.jobId);
         emit({ type: 'state', jobId: job.jobId, state: 'queued', attempt: job.attempt });
@@ -165,13 +200,13 @@ export class BulkRunner {
         for (const target of targets) {
           const approved: ApprovedProject = { request: ep, jobId: job.jobId, attempt: job.attempt, approvedHash: job.approvedHash!, approval: job.approval, outputDir: job.outputDir, target, quality: target === 'draft' ? ep.draftQuality : ep.finalQuality };
           const r = await call(() => (target === 'draft' ? this.pipeline.renderDraft(approved, ctx) : this.pipeline.renderFinal(approved, ctx)));
-          if (!r.ok) return this.failJob(ref, job, 'RENDER_FAILED', r, true, emit);
+          if (!r.ok) return this.failJob(ref, job, 'RENDER_FAILED', r, true, emit, env.autoRetry);
           results.push([target, r]);
         }
         step('validating_output');
         for (const [target, r] of results) {
           const problem = checkArtifacts(r.artifacts, job.outputDir);
-          if (problem) return this.failJob(ref, job, 'OUTPUT_INVALID', { ok: false, message: `${target}: ${problem}` }, false, emit);
+          if (problem) return this.failJob(ref, job, 'OUTPUT_INVALID', { ok: false, message: `${target}: ${problem}` }, false, emit, env.autoRetry);
           q.recordOutputs(ref, target, normalizeArtifacts(r.artifacts), r.rendererVersion);
         }
         job = q.complete(ref);
@@ -180,25 +215,26 @@ export class BulkRunner {
       }
       return 'ok';
     } catch (e) {
-      if (isBulkError(e, 'LEASE_LOST') || (controller.signal.aborted && !isBulkError(e, 'TIMEOUT'))) { emit({ type: 'lease_lost', jobId: job.jobId }); return 'lost'; }
+      stopHeartbeat();
+      if (lostLease || isBulkError(e, 'LEASE_LOST') || (controller.signal.aborted && !isBulkError(e, 'TIMEOUT'))) { emit({ type: 'lease_lost', jobId: job.jobId }); return 'lost'; }
       if (isBulkError(e, 'ILLEGAL_TRANSITION')) throw e; // programming error: surface it
       if (isBulkError(e, 'TIMEOUT')) controller.abort(); // tell the still-running handler to stop
       const code: string = isBulkError(e) ? e.code : 'HANDLER_ERROR';
       const retryable = isBulkError(e) ? e.retryable : true;
-      return this.failJob(ref, job, code, { ok: false, message: e instanceof Error ? e.message : String(e), retryable }, retryable, emit);
+      return this.failJob(ref, job, code, { ok: false, message: e instanceof Error ? e.message : String(e), retryable }, retryable, emit, env.autoRetry);
     } finally {
-      clearInterval(heartbeat);
+      stopHeartbeat();
       inflight.delete(controller);
     }
   }
 
-  private failJob(ref: LeaseRef, job: JobRecord, fallbackCode: BulkErrorCode | string, f: HandlerFailure, defaultRetryable: boolean, emit: (e: ProgressEvent) => void): 'failed' | 'retrying' | 'lost' {
+  private failJob(ref: LeaseRef, job: JobRecord, fallbackCode: BulkErrorCode | string, f: HandlerFailure, defaultRetryable: boolean, emit: (e: ProgressEvent) => void, autoRetry: boolean): 'failed' | 'retrying' | 'lost' {
     const code = f.code ?? fallbackCode;
     let failed: JobRecord;
     try { failed = this.queue.fail(ref, { code, message: f.message, retryable: f.retryable ?? defaultRetryable }); }
     catch (e) { if (isBulkError(e, 'LEASE_LOST')) { emit({ type: 'lease_lost', jobId: job.jobId }); return 'lost'; } throw e; }
     emit({ type: 'failed', jobId: failed.jobId, attempt: failed.attempt, code, retryable: failed.retryable === true });
-    if (failed.retryable) {
+    if (failed.retryable && autoRetry) {
       const r = this.queue.retry(failed.batchId, failed.jobId);
       this.queue.requeueRetries(failed.batchId);
       emit({ type: 'retry', jobId: r.jobId, attempt: r.attempt, code });
@@ -208,14 +244,26 @@ export class BulkRunner {
   }
 }
 
-async function withDeadline<T>(fn: () => Promise<T>, ctx: PipelineContext): Promise<T> {
+interface ProcessEnv { timers: Timers; heartbeatMs: number; autoRetry: boolean; defaultTimeoutMs?: number }
+
+/**
+ * Race a pipeline stage against the job deadline and the job's abort signal. Whatever the stage resolves to after the
+ * race is lost (late result) is dropped: the caller has already left that code path, so it can never be committed.
+ */
+async function withDeadline<T>(fn: () => Promise<T>, ctx: PipelineContext, timers: Timers, clock: { now(): number }): Promise<T> {
   if (ctx.signal.aborted) throw new BulkError('CANCELLED', 'job aborted');
-  if (ctx.deadline === null) return fn();
-  const remaining = ctx.deadline - Date.now();
-  if (remaining <= 0) throw new BulkError('TIMEOUT', 'job deadline exceeded', { retryable: true });
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new BulkError('TIMEOUT', `job exceeded its ${Math.round(remaining)} ms budget`, { retryable: true })), remaining); });
-  try { return await Promise.race([fn(), timeout]); } finally { clearTimeout(timer); }
+  let timer: unknown = null, onAbort: (() => void) | null = null;
+  const racers: Promise<T>[] = [fn(), new Promise<never>((_, reject) => { onAbort = () => reject(new BulkError('CANCELLED', 'job aborted')); ctx.signal.addEventListener('abort', onAbort, { once: true }); })];
+  if (ctx.deadline !== null) {
+    const remaining = ctx.deadline - clock.now();
+    if (remaining <= 0) racers.push(Promise.reject(new BulkError('TIMEOUT', 'job deadline exceeded', { retryable: true })));
+    else racers.push(new Promise<never>((_, reject) => { timer = timers.setTimeout(() => reject(new BulkError('TIMEOUT', `job exceeded its ${Math.round(remaining)} ms budget`, { retryable: true })), remaining); }));
+  }
+  racers[0].catch(() => { /* a late rejection after the race is decided is intentionally ignored */ });
+  try { return await Promise.race(racers); } finally {
+    if (timer !== null) timers.clearTimeout(timer);
+    if (onAbort) ctx.signal.removeEventListener('abort', onAbort);
+  }
 }
 
 function checkArtifacts(a: Partial<ArtifactSet>, outputDir: string): string | null {
