@@ -1,0 +1,192 @@
+{
+  "kind": "prop",
+  "id": "student_desk",
+  "version": "1.1.0",
+  "displayName": "Student Desk",
+  "category": "furniture",
+  "dimensions": [
+    1,
+    0.76,
+    0.62
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      1,
+      0.76,
+      0.62
+    ],
+    "offset": [
+      0,
+      0.38,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "top",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1,
+        0.05,
+        0.62
+      ],
+      "pos": [
+        0,
+        0.735,
+        0
+      ],
+      "color": "#d8ad72",
+      "bevel": 0.012
+    },
+    {
+      "id": "apron",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.94,
+        0.12,
+        0.56
+      ],
+      "pos": [
+        0,
+        0.65,
+        0
+      ],
+      "color": "#5d7fa3",
+      "bevel": 0.01
+    },
+    {
+      "id": "leg_fl",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.62,
+        0.05
+      ],
+      "pos": [
+        -0.44,
+        0.31,
+        0.25
+      ],
+      "color": "#4a5563"
+    },
+    {
+      "id": "leg_fr",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.62,
+        0.05
+      ],
+      "pos": [
+        0.44,
+        0.31,
+        0.25
+      ],
+      "color": "#4a5563"
+    },
+    {
+      "id": "leg_bl",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.62,
+        0.05
+      ],
+      "pos": [
+        -0.44,
+        0.31,
+        -0.25
+      ],
+      "color": "#4a5563"
+    },
+    {
+      "id": "leg_br",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.62,
+        0.05
+      ],
+      "pos": [
+        0.44,
+        0.31,
+        -0.25
+      ],
+      "color": "#4a5563"
+    }
+  ],
+  "grips": {
+    "edge_front": [
+      0,
+      0.74,
+      0.31
+    ],
+    "grip": [
+      0,
+      0.74,
+      0.31
+    ]
+  },
+  "anchors": {
+    "top_center": [
+      0,
+      0.76,
+      0
+    ],
+    "button_spot": [
+      -0.1,
+      0.76,
+      -0.12
+    ],
+    "coin_spot": [
+      0.3,
+      0.76,
+      0.12
+    ],
+    "surface": [
+      0,
+      0.76,
+      0
+    ],
+    "floor": [
+      0,
+      0,
+      0
+    ]
+  },
+  "effectAnchors": {
+    "dust": [
+      0,
+      0.02,
+      0
+    ]
+  },
+  "defaultMaterial": "wood",
+  "defaultColor": "#d8ad72",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "uniform_scale",
+    "non_uniform_scale",
+    "recolor",
+    "morph"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/student_desk.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

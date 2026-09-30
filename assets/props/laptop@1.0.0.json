@@ -1,0 +1,207 @@
+{
+  "kind": "prop",
+  "id": "laptop",
+  "version": "1.0.0",
+  "displayName": "Laptop",
+  "category": "device",
+  "dimensions": [
+    0.36,
+    0.262,
+    0.265
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.36,
+      0.262,
+      0.265
+    ],
+    "offset": [
+      0,
+      0.131,
+      -0.0075
+    ]
+  },
+  "parts": [
+    {
+      "id": "base",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.36,
+        0.022,
+        0.25
+      ],
+      "pos": [
+        0,
+        0.011,
+        0
+      ],
+      "color": "#9aa3ad",
+      "bevel": 0.006,
+      "sheen": 0.7
+    },
+    {
+      "id": "keyboard",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.3,
+        0.1
+      ],
+      "pos": [
+        0,
+        0.0225,
+        -0.03
+      ],
+      "color": "#2b2f36",
+      "rotDeg": [
+        -90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "trackpad",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.1,
+        0.06
+      ],
+      "pos": [
+        0,
+        0.0225,
+        0.075
+      ],
+      "color": "#7f8791",
+      "rotDeg": [
+        -90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "lid",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.36,
+        0.24,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.142,
+        -0.131
+      ],
+      "color": "#9aa3ad",
+      "bevel": 0.005,
+      "sheen": 0.7
+    },
+    {
+      "id": "screen",
+      "attach": "lid",
+      "shape": "plane",
+      "size": [
+        0.33,
+        0.2
+      ],
+      "pos": [
+        0,
+        0.146,
+        -0.1245
+      ],
+      "color": "#0d0f14",
+      "sheen": 1
+    },
+    {
+      "id": "logo",
+      "attach": "lid",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.04,
+        0.002
+      ],
+      "pos": [
+        0,
+        0.15,
+        -0.1375
+      ],
+      "color": "#dfe5ec"
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.011,
+      0.125
+    ],
+    "grip_lid": [
+      0,
+      0.262,
+      -0.131
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.022,
+      0.02
+    ],
+    "keys": [
+      0,
+      0.023,
+      -0.03
+    ],
+    "screen_center": [
+      0,
+      0.146,
+      -0.124
+    ],
+    "lid_axis": [
+      0,
+      0.022,
+      -0.125
+    ]
+  },
+  "effectAnchors": {
+    "glow": [
+      0,
+      0.15,
+      -0.08
+    ]
+  },
+  "defaultMaterial": "electronics",
+  "defaultColor": "#9aa3ad",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "open",
+    "glow"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/laptop.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Lid on pivot \"lid\" (anchors.lid_axis). Authored upright; states open (-12 deg) and closed (+90 deg)."
+  }
+}

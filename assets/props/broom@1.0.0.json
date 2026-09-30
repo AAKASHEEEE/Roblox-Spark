@@ -1,0 +1,168 @@
+{
+  "kind": "prop",
+  "id": "broom",
+  "version": "1.0.0",
+  "displayName": "Broom",
+  "category": "tool",
+  "dimensions": [
+    0.32,
+    1.42,
+    0.08
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.32,
+      1.42,
+      0.08
+    ],
+    "offset": [
+      0,
+      0.71,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "bristles",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.32,
+        0.18,
+        0.07
+      ],
+      "pos": [
+        0,
+        0.09,
+        0
+      ],
+      "color": "#e2b85a",
+      "bevel": 0.01
+    },
+    {
+      "id": "binding",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.3,
+        0.06,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.2,
+        0
+      ],
+      "color": "#c8312b",
+      "bevel": 0.01
+    },
+    {
+      "id": "neck",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.12,
+        0.06,
+        0.05
+      ],
+      "pos": [
+        0,
+        0.26,
+        0
+      ],
+      "color": "#c8312b",
+      "bevel": 0.01
+    },
+    {
+      "id": "stick",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.018,
+        1.1
+      ],
+      "pos": [
+        0,
+        0.84,
+        0
+      ],
+      "color": "#8a5a3c"
+    },
+    {
+      "id": "cap",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.022,
+        0.04
+      ],
+      "pos": [
+        0,
+        1.4,
+        0
+      ],
+      "color": "#c8312b",
+      "bevel": 0.006
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      1.1,
+      0
+    ],
+    "grip_low": [
+      0,
+      0.75,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      1.42,
+      0
+    ],
+    "sweep": [
+      0,
+      0.01,
+      0.05
+    ]
+  },
+  "effectAnchors": {
+    "dust": [
+      0,
+      0.03,
+      0.15
+    ]
+  },
+  "defaultMaterial": "wood",
+  "defaultColor": "#e2b85a",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/broom.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

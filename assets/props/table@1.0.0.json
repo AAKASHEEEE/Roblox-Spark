@@ -1,0 +1,196 @@
+{
+  "kind": "prop",
+  "id": "table",
+  "version": "1.0.0",
+  "displayName": "Table",
+  "category": "furniture",
+  "dimensions": [
+    1.4,
+    0.76,
+    0.85
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      1.4,
+      0.76,
+      0.85
+    ],
+    "offset": [
+      0,
+      0.38,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "top",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.4,
+        0.06,
+        0.85
+      ],
+      "pos": [
+        0,
+        0.73,
+        0
+      ],
+      "color": "#c98f55",
+      "bevel": 0.015
+    },
+    {
+      "id": "apron",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.3,
+        0.1,
+        0.75
+      ],
+      "pos": [
+        0,
+        0.65,
+        0
+      ],
+      "color": "#a8733f"
+    },
+    {
+      "id": "leg_0",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.09,
+        0.7,
+        0.09
+      ],
+      "pos": [
+        -0.62,
+        0.35,
+        0.34
+      ],
+      "color": "#a8733f",
+      "bevel": 0.01
+    },
+    {
+      "id": "leg_1",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.09,
+        0.7,
+        0.09
+      ],
+      "pos": [
+        0.62,
+        0.35,
+        0.34
+      ],
+      "color": "#a8733f",
+      "bevel": 0.01
+    },
+    {
+      "id": "leg_2",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.09,
+        0.7,
+        0.09
+      ],
+      "pos": [
+        -0.62,
+        0.35,
+        -0.34
+      ],
+      "color": "#a8733f",
+      "bevel": 0.01
+    },
+    {
+      "id": "leg_3",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.09,
+        0.7,
+        0.09
+      ],
+      "pos": [
+        0.62,
+        0.35,
+        -0.34
+      ],
+      "color": "#a8733f",
+      "bevel": 0.01
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.74,
+      0.425
+    ],
+    "grip_l": [
+      0.7,
+      0.74,
+      0
+    ],
+    "grip_r": [
+      -0.7,
+      0.74,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.76,
+      0
+    ],
+    "place_l": [
+      0.4,
+      0.76,
+      0.15
+    ],
+    "place_r": [
+      -0.4,
+      0.76,
+      0.15
+    ],
+    "seat_front": [
+      0,
+      0,
+      0.8
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "wood",
+  "defaultColor": "#c98f55",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/table.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

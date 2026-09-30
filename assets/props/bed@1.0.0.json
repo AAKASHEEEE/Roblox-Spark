@@ -1,0 +1,278 @@
+{
+  "kind": "prop",
+  "id": "bed",
+  "version": "1.0.0",
+  "displayName": "Bed",
+  "category": "furniture",
+  "dimensions": [
+    1.2,
+    1,
+    2.46
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      1.2,
+      1,
+      2.46
+    ],
+    "offset": [
+      0,
+      0.5,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "foot_0",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        -0.54,
+        0.05,
+        1.1
+      ],
+      "color": "#6b4a2e"
+    },
+    {
+      "id": "foot_1",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        0.54,
+        0.05,
+        1.1
+      ],
+      "color": "#6b4a2e"
+    },
+    {
+      "id": "foot_2",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        -0.54,
+        0.05,
+        -1.1
+      ],
+      "color": "#6b4a2e"
+    },
+    {
+      "id": "foot_3",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        0.54,
+        0.05,
+        -1.1
+      ],
+      "color": "#6b4a2e"
+    },
+    {
+      "id": "frame",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.2,
+        0.2,
+        2.3
+      ],
+      "pos": [
+        0,
+        0.2,
+        0
+      ],
+      "color": "#8a5a3c",
+      "bevel": 0.015
+    },
+    {
+      "id": "mattress",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.1,
+        0.2,
+        2.2
+      ],
+      "pos": [
+        0,
+        0.4,
+        0
+      ],
+      "color": "#f4f4f2",
+      "bevel": 0.05
+    },
+    {
+      "id": "blanket",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.12,
+        0.06,
+        1.45
+      ],
+      "pos": [
+        0,
+        0.5,
+        0.36
+      ],
+      "color": "#3f7fd9",
+      "bevel": 0.025
+    },
+    {
+      "id": "blanket_fold",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.13,
+        0.07,
+        0.14
+      ],
+      "pos": [
+        0,
+        0.52,
+        -0.32
+      ],
+      "color": "#6aa0ea",
+      "bevel": 0.025
+    },
+    {
+      "id": "pillow",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.7,
+        0.12,
+        0.35
+      ],
+      "pos": [
+        0,
+        0.56,
+        -0.85
+      ],
+      "color": "#ffffff",
+      "bevel": 0.05
+    },
+    {
+      "id": "headboard",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.2,
+        1,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.5,
+        -1.19
+      ],
+      "color": "#8a5a3c",
+      "bevel": 0.02
+    },
+    {
+      "id": "footboard",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        1.2,
+        0.6,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.3,
+        1.19
+      ],
+      "color": "#8a5a3c",
+      "bevel": 0.02
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.6,
+      1.23
+    ],
+    "grip_head": [
+      0,
+      1,
+      -1.19
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.53,
+      0.2
+    ],
+    "pillow": [
+      0,
+      0.62,
+      -0.85
+    ],
+    "lie_hips": [
+      0,
+      0.5,
+      -0.1
+    ],
+    "sit_edge": [
+      0.55,
+      0.5,
+      0.3
+    ],
+    "get_in": [
+      0.95,
+      0,
+      0.2
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "wood",
+  "defaultColor": "#8a5a3c",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/bed.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

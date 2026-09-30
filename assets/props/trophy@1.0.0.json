@@ -1,0 +1,342 @@
+{
+  "kind": "prop",
+  "id": "trophy",
+  "version": "1.0.0",
+  "displayName": "Trophy",
+  "category": "collectible",
+  "dimensions": [
+    0.29,
+    0.4,
+    0.2
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.29,
+      0.4,
+      0.2
+    ],
+    "offset": [
+      0,
+      0.2,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "base",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.07,
+        0.18
+      ],
+      "pos": [
+        0,
+        0.035,
+        0
+      ],
+      "color": "#3a2e25",
+      "bevel": 0.01
+    },
+    {
+      "id": "plaque",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.12,
+        0.035
+      ],
+      "pos": [
+        0,
+        0.035,
+        0.0905
+      ],
+      "color": "#ffd21a"
+    },
+    {
+      "id": "base_top",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.13,
+        0.05,
+        0.13
+      ],
+      "pos": [
+        0,
+        0.095,
+        0
+      ],
+      "color": "#3a2e25",
+      "bevel": 0.008
+    },
+    {
+      "id": "stem",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.025,
+        0.1
+      ],
+      "pos": [
+        0,
+        0.17,
+        0
+      ],
+      "color": "#ffc21a",
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "knot",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.045,
+        0.025
+      ],
+      "pos": [
+        0,
+        0.22,
+        0
+      ],
+      "color": "#ffc21a",
+      "bevel": 0.008,
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "cup",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.1,
+        0.16
+      ],
+      "pos": [
+        0,
+        0.31,
+        0
+      ],
+      "color": "#ffc21a",
+      "bevel": 0.02,
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "rim",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.108,
+        0.02
+      ],
+      "pos": [
+        0,
+        0.39,
+        0
+      ],
+      "color": "#ffc21a",
+      "bevel": 0.006,
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "handle_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.12,
+        0.03
+      ],
+      "pos": [
+        0.13,
+        0.32,
+        0
+      ],
+      "color": "#ffc21a",
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "handle_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.12,
+        0.03
+      ],
+      "pos": [
+        -0.13,
+        0.32,
+        0
+      ],
+      "color": "#ffc21a",
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "arm_lt",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.025,
+        0.03
+      ],
+      "pos": [
+        0.115,
+        0.37,
+        0
+      ],
+      "color": "#ffc21a",
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "arm_lb",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.025,
+        0.03
+      ],
+      "pos": [
+        0.115,
+        0.27,
+        0
+      ],
+      "color": "#ffc21a",
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "arm_rt",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.025,
+        0.03
+      ],
+      "pos": [
+        -0.115,
+        0.37,
+        0
+      ],
+      "color": "#ffc21a",
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "arm_rb",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.025,
+        0.03
+      ],
+      "pos": [
+        -0.115,
+        0.27,
+        0
+      ],
+      "color": "#ffc21a",
+      "emissive": "#3a2800",
+      "sheen": 1
+    },
+    {
+      "id": "emblem",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.05,
+        0.006
+      ],
+      "pos": [
+        0,
+        0.31,
+        0.1
+      ],
+      "color": "#fff1a8",
+      "rotDeg": [
+        0,
+        0,
+        45
+      ],
+      "sheen": 1
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.17,
+      0.025
+    ],
+    "grip_l": [
+      0.13,
+      0.32,
+      0
+    ],
+    "grip_r": [
+      -0.13,
+      0.32,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.4,
+      0
+    ],
+    "plaque": [
+      0,
+      0.035,
+      0.091
+    ]
+  },
+  "effectAnchors": {
+    "sparkle": [
+      0,
+      0.45,
+      0
+    ]
+  },
+  "defaultMaterial": "metal_gold",
+  "defaultColor": "#ffc21a",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "uniform_scale",
+    "glow"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change"
+  ],
+  "maxScale": 10,
+  "thumbnail": "assets/thumbnails/trophy.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

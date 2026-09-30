@@ -1,0 +1,157 @@
+{
+  "kind": "prop",
+  "id": "book",
+  "version": "1.0.0",
+  "displayName": "Book",
+  "category": "handheld",
+  "dimensions": [
+    0.2,
+    0.05,
+    0.27
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.2,
+      0.05,
+      0.27
+    ],
+    "offset": [
+      0,
+      0.025,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "cover_bottom",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.008,
+        0.27
+      ],
+      "pos": [
+        0,
+        0.004,
+        0
+      ],
+      "color": "#d63b3b",
+      "bevel": 0.002
+    },
+    {
+      "id": "pages",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.19,
+        0.034,
+        0.26
+      ],
+      "pos": [
+        0.004,
+        0.025,
+        0
+      ],
+      "color": "#f4efe2"
+    },
+    {
+      "id": "cover_top",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.008,
+        0.27
+      ],
+      "pos": [
+        0,
+        0.046,
+        0
+      ],
+      "color": "#d63b3b",
+      "bevel": 0.002
+    },
+    {
+      "id": "spine",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.014,
+        0.05,
+        0.27
+      ],
+      "pos": [
+        -0.093,
+        0.025,
+        0
+      ],
+      "color": "#b52f2f",
+      "bevel": 0.003
+    },
+    {
+      "id": "title",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.12,
+        0.05
+      ],
+      "pos": [
+        0.01,
+        0.0505,
+        -0.05
+      ],
+      "color": "#ffd21a",
+      "rotDeg": [
+        -90,
+        0,
+        0
+      ]
+    }
+  ],
+  "grips": {
+    "grip": [
+      -0.1,
+      0.025,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.05,
+      0
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "paper",
+  "defaultColor": "#d63b3b",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/book.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}
