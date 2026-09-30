@@ -1,0 +1,131 @@
+{
+  "file": "packages/audio-mix/samples/mix-test-10s.wav",
+  "window": {
+    "start": 4.5,
+    "end": 14.5
+  },
+  "voiceSource": "stand-in formant synthesiser (packages/audio-mix/tools/test-voice.ts) speaking the aligned phrases",
+  "beatSheet": "packages/director/fixtures/free-coins-classroom.beats.json",
+  "narrated": "tests/fixtures/narrated/approved-narrated-v0.1.json",
+  "phrases": [
+    {
+      "id": "p02",
+      "text": "The second the door closes, Zapp thinks the entire classroom belongs to him.",
+      "start": 0.09999999999999964,
+      "end": 4.82
+    },
+    {
+      "id": "p03",
+      "text": "He jumps up, celebrates, and starts acting like he just escaped school forever.",
+      "start": 5.08,
+      "end": 10.94
+    }
+  ],
+  "sfxEvents": [
+    {
+      "sfxId": "door_slam",
+      "at": 0.4
+    },
+    {
+      "sfxId": "whoosh",
+      "at": 5.3
+    },
+    {
+      "sfxId": "sfx_tada",
+      "at": 6.5
+    }
+  ],
+  "ignoredMusic": [
+    {
+      "musicId": "amb_classroom@1.0.0",
+      "start": 0,
+      "end": 69.146,
+      "reason": "music_added_in_editing"
+    },
+    {
+      "musicId": "bed_upbeat",
+      "start": 9.58,
+      "end": 20.26,
+      "reason": "music_added_in_editing"
+    },
+    {
+      "musicId": "bed_suspense",
+      "start": 20.96,
+      "end": 34.9,
+      "reason": "music_added_in_editing"
+    },
+    {
+      "musicId": "bed_silly",
+      "start": 55.06,
+      "end": 69.08,
+      "reason": "music_added_in_editing"
+    }
+  ],
+  "mix": {
+    "sampleRate": 48000,
+    "channels": 2,
+    "durationSec": 10,
+    "targetLufs": -14,
+    "integratedLufs": -14.01,
+    "truePeakTargetDbtp": -1,
+    "truePeakDbtp": -1.2,
+    "samplePeakDbfs": -1.2,
+    "gainAppliedDb": -0.04,
+    "limiterMaxReductionDb": 0.38,
+    "limiterCeilingDbtp": -1.2,
+    "voice": {
+      "integratedLufsIn": 15.84,
+      "gainDb": -29.84
+    },
+    "sfxUnderVoice": {
+      "speechWindows": 70,
+      "minSpeechMarginDb": 6.3,
+      "requiredSpeechMarginDb": 6,
+      "maxSfxMomentaryLufs": -25.04,
+      "guardTrimMaxDb": 3.59
+    },
+    "music": "none",
+    "cues": [
+      {
+        "sfxId": "door_slam",
+        "at": 0.4,
+        "source": "door_slam@1.0.0",
+        "pitch": 1,
+        "levelDb": -19,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "whoosh",
+        "at": 5.3,
+        "source": "sfx_whoosh@1.0.0",
+        "pitch": 1.0333,
+        "levelDb": -21,
+        "status": "mixed"
+      },
+      {
+        "sfxId": "sfx_tada",
+        "at": 6.5,
+        "source": "sfx_tada@1.0.0",
+        "pitch": 1,
+        "levelDb": -20,
+        "status": "mixed"
+      }
+    ]
+  },
+  "fileCheck": {
+    "sampleRate": 48000,
+    "bits": 24,
+    "durationSec": 10,
+    "integratedLufs": -14.01,
+    "truePeakDbtp": -1.2
+  },
+  "pass": {
+    "loudness": true,
+    "truePeak": true,
+    "duration": true,
+    "noMusic": true,
+    "allCuesMixed": true,
+    "sfxUnderVoice": true
+  },
+  "mixMs": 674
+}
