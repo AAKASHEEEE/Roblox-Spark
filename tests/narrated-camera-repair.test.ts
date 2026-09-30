@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import type { Vec3 } from '../packages/engine/src/math.ts';
-import { evaluateCameraCandidate, nextScreenDirectionState, type Bounds3, type CameraCandidate, type CameraObstacle, type CameraSafetyScene, type ProjectedEntity } from '../packages/engine/src/camera-safety.ts';
+import { evaluateCameraCandidate, nextScreenDirectionState, projectToScreen, CAMERA_SAFETY_DEFAULTS, EXCLUDED_ACTOR_MAX_BODY_COVERAGE, type Bounds3, type CameraCandidate, type CameraObstacle, type CameraSafetyScene, type ProjectedEntity } from '../packages/engine/src/camera-safety.ts';
 
 const { lib, ROOT } = await import('./helpers.ts');
 const I = await import('../apps/render-worker/narrated-integration.ts');
@@ -340,7 +340,9 @@ test('19. Kira warning: offset/elevated speaker OTS holds the actual head shake 
     assert.ok(r.foregroundCoverage <= 0.35 && r.lensClearance > 0);
     assert.ok(!r.screenDirectionResult.startsWith('reversed'));
   }
-  assert.ok(sp.screenDirection.startsWith('consistent'), `same side of the axis as the previous shot: ${sp.screenDirection}`);
+  // same side as the previous shot, or a side change that is motivated by the neutral top-down insert right before it
+  const prevShot = T.shots[T.shots.indexOf(sp) - 1];
+  assert.ok(sp.screenDirection.startsWith('consistent') || (sp.screenDirection.startsWith('reset_after_neutral') && prevShot.camera!.intent === 'neutral_top_down_prop_insert'), `screen direction: ${sp.screenDirection} after ${prevShot.id}`);
   // the listener coverage stays separate and follows in the same caption interval
   const li = T.shots.find((x) => x.phraseId === warn.id && x.coverage === 'sequential_listener')!;
   assert.equal(li.spec.active, 'zapp'); assert.equal(li.chunkId, sp.chunkId); assert.equal(li.frames[0], sp.frames[1]);
@@ -445,4 +447,125 @@ test('25. the repaired plan passes every gate with every frame covered', () => {
   assert.equal(T.shots.filter((x) => !x.camera).length, 0);
   assert.equal(A.world.coinZappClearance.minM >= 0.02, true);
   assert.equal(A.world.contact.count, 1);
+});
+
+// ───────── Draft V3 targeted fix (s015 insert -> s016a far-side speaker OTS; beat b04 head-edge rule) ─────────
+const V3 = (id: string) => T.shots.find((x) => x.id === id)!;
+const framesOf = (s: (typeof T.shots)[number]) => Array.from({ length: s.frames[1] - s.frames[0] }, (_, k) => s.frames[0] + k);
+const evalAt = (s: (typeof T.shots)[number], i: number) => evaluateCameraCandidate(I.cameraScene(RUN.geos[i], s.spec, W, H, undefined), I.cameraForFrame(s, i));
+const ownerAt = (i: number) => T.shots.find((x) => i >= x.frames[0] && i < x.frames[1])!;
+/** the chunk's caption keeps every printed hero-prop label (and the interaction point) clear, on every frame */
+function captionClearOfLabel(s: (typeof T.shots)[number], prop: string) {
+  for (const i of framesOf(s)) assert.ok(I.occupiedRegions(RUN.geos[i], s.spec, I.cameraForFrame(s, i), W, H).some((o) => o.entityId === `label:${prop}`), `${s.id} frame ${i}: ${prop} label projected as a hard caption exclusion`);
+  const pl = T.captionPlacements.find((q) => q.chunkId === s.chunkId)!;
+  assert.deepEqual(pl.violations, [], `${s.chunkId} caption violations`);
+  assert.equal(pl.overlap.interaction_clearance_hit, 0, `${s.chunkId}: caption touches the label / interaction clearance`);
+  assert.equal(pl.overlap.interaction_max, 0, `${s.chunkId}: caption overlaps the label`);
+}
+
+test('V3-1. regression: the exact V2 s016a camera fails FACE_SELF_OCCLUDED during the head shake', () => {
+  const s = V3('s016a');
+  const v2: CameraCandidate = { id: 'v2:s016a:speaker_ots:s-1:u0.35:o1.15:b0.15:close0.36', intent: 'offset_elevated_speaker_ots', transform: { position: [0.075, 2.0159, 0.8484] }, target: [1.2581, 1.676, -0.4061], fov: 61, activeSubjectId: 'kira', requiresHeroProp: false, profileScale: 'close', eyelineTargetId: 'eyeline:kira', foregroundSubjectId: 'zapp' };
+  assert.deepEqual(s.frames, [779, 807], 'V2 s016a frame range');
+  const hits = framesOf(s).filter((i) => evaluateCameraCandidate(I.cameraScene(RUN.geos[i], s.spec, W, H, undefined), v2).rejectionReasons.some((r) => r.startsWith('FACE_SELF_OCCLUDED:kira')));
+  assert.ok(hits.length > 0, 'the V2 camera must be rejected for Kira hiding her own face');
+});
+
+test('V3-2. s016a: Kira face readable on every frame of the head shake, never self-occluded (measured)', (t) => {
+  const s = V3('s016a');
+  assert.equal(s.camera!.intent, 'offset_elevated_speaker_ots');
+  const [a0, a1] = CAMERA_SAFETY_DEFAULTS.speakerOtsAngleDeg;
+  let full = 0, maxOff = 0, run = 0, longest = 0;
+  const self = new Set<string>();
+  for (const i of framesOf(s)) {
+    const r = evalAt(s, i), c = I.cameraForFrame(s, i), f = RUN.geos[i].actors.kira.face;
+    const n = Math.hypot(f.normal[0], f.normal[2]) || 1, tc = [c.transform.position[0] - f.center[0], c.transform.position[2] - f.center[2]], tl = Math.hypot(tc[0], tc[1]) || 1;
+    const off = (Math.acos(Math.max(-1, Math.min(1, (f.normal[0] / n) * (tc[0] / tl) + (f.normal[2] / n) * (tc[1] / tl)))) * 180) / Math.PI;
+    maxOff = Math.max(maxOff, off);
+    for (const x of r.diagnostics.selfOccludedFeatures) self.add(x);
+    const atStandard = r.accepted && r.faceVisibility.kira >= CAMERA_SAFETY_DEFAULTS.minFaceVisibility && r.diagnostics.eyesVisible.kira >= 2 && r.diagnostics.mouthVisible.kira && r.diagnostics.selfOccludedFeatures.length === 0 && off >= a0 && off <= a1;
+    if (atStandard) { full++; run = 0; } else { run++; longest = Math.max(longest, run); }
+  }
+  const n = s.frames[1] - s.frames[0];
+  t.diagnostic(`s016a ${s.camera!.id}: ${full}/${n} frames (${((100 * full) / n).toFixed(1)}%) at the full face standard; max off-face ${maxOff.toFixed(1)} deg; longest turned-away run ${longest} frames; self-occluded features: ${[...self].join(',') || 'none'}`);
+  assert.equal(full, n, 'every frame at the full face standard');
+  assert.equal(self.size, 0, 'no self-occluded facial feature');
+  assert.ok(maxOff <= a1, `max off-face ${maxOff.toFixed(1)} deg`);
+});
+
+test('V3-3. s015 is a neutral top-down button insert: no actor in frame, caption clear of the FREE COINS label', () => {
+  const s = V3('s015');
+  assert.equal(s.spec.intent, 'neutral_top_down_prop_insert');
+  assert.deepEqual(s.spec.heroProps, ['button']);
+  assert.equal(s.screenDirection, 'neutral_insert');
+  for (const i of framesOf(s)) {
+    const r = evalAt(s, i);
+    assert.equal(r.accepted, true, r.rejectionReasons.join('; '));
+    for (const id of Object.keys(RUN.geos[i].actors)) assert.equal(r.diagnostics.entityCoverage[id] ?? 0, 0, `frame ${i}: ${id} in frame`);
+  }
+  captionClearOfLabel(s, 'button');
+});
+
+test('V3-4. screen direction: s015 neutral insert -> s016a reset_after_neutral -> s016b on-axis -> s017 reset; no reversal anywhere', () => {
+  assert.ok(V3('s016a').screenDirection.startsWith('reset_after_neutral'), V3('s016a').screenDirection);
+  assert.equal(V3('s016b').screenDirection, 'neutral');
+  assert.ok(V3('s017').screenDirection.startsWith('reset_after_neutral'), V3('s017').screenDirection);
+  assert.equal(V3('s024g1').screenDirection, 'neutral');
+  assert.deepEqual(T.shots.filter((x) => x.screenDirection.startsWith('reversed')).map((x) => x.id), []);
+  assert.equal(A.camera.screenDirectionViolations, 0);
+});
+
+test('V3-5. beat b04 (s010-s012) and s026: no partial head at the frame edge; b04 partner head inside the safe margin or out (body <= 3%)', () => {
+  const known = new Set(T.knownIssues.map((k) => k.shot));
+  for (const id of ['s010', 's011', 's012']) {
+    const s = V3(id);
+    assert.equal(s.spec.active, 'kira'); assert.ok(s.spec.optional.includes('zapp'), 'Zapp optional');
+    if (known.has(id)) continue;
+    assert.deepEqual(s.partialHeads, [], `${id} partial heads`);
+    assert.equal(s.camera!.eval.partialHeadsBlocking, true); assert.deepEqual(s.camera!.eval.excludedSubjectIds, ['zapp']);
+    for (const i of framesOf(s)) {
+      const r = evalAt(s, i);
+      assert.equal(r.accepted, true, `${id} frame ${i}: ${r.rejectionReasons.join('; ')}`);
+      assert.deepEqual(r.diagnostics.partialHeads, []);
+      assert.ok(!r.rejectionReasons.some((x) => x.startsWith('EXCLUDED_ACTOR_IN_FRAME')));
+    }
+  }
+  assert.equal(V3('s011').spec.intent, 'reaction', 's011 stays a Kira reaction');
+  assert.ok(EXCLUDED_ACTOR_MAX_BODY_COVERAGE <= 0.03);
+  assert.deepEqual(V3('s026').partialHeads, [], 's026 partial heads');
+  for (const i of framesOf(V3('s026'))) assert.deepEqual(evalAt(V3('s026'), i).diagnostics.partialHeads, []);
+});
+
+test('V3-6. the whole coin stays framed 44.22-49.5 s (coin scale passage)', () => {
+  for (let i = V3('s026').frames[0]; i <= Math.floor(49.5 * RUN.plan.fps); i++) {
+    const s = ownerAt(i), c = I.cameraForFrame(s, i), rim = RUN.geos[i].coinIdentity!.rim;
+    const out = rim.filter((p) => { const q = projectToScreen(c, p, W / H); return !(q.z > 0 && q.x >= 0 && q.x <= 1 && q.y >= 0 && q.y <= 1); });
+    assert.equal(out.length, 0, `frame ${i} (${s.id}): ${out.length}/${rim.length} coin rim points outside the frame`);
+  }
+});
+
+test('V3-7. Kira stays at her safe mark and in frame 51.5-54.7 s', () => {
+  const mark = RUN.plan.assets.marks.kira_safe.pos;
+  for (let i = Math.ceil(51.5 * RUN.plan.fps); i <= Math.floor(54.7 * RUN.plan.fps); i++) {
+    const k = RUN.geos[i].actors.kira.root, s = ownerAt(i);
+    assert.ok(Math.hypot(k[0] - mark[0], k[2] - mark[2]) <= 0.02, `frame ${i}: Kira off her safe mark`);
+    assert.ok((evalAt(s, i).diagnostics.entityCoverage.kira ?? 0) > 0, `frame ${i} (${s.id}): Kira not in frame`);
+  }
+});
+
+test('V3-8. flattened result: the coin and prone Zapp are framed on every result frame', () => {
+  const res = T.shots.filter((x) => x.spec.reason.startsWith('flattened result'));
+  assert.ok(res.length >= 2, 'result 1/2 and 2/2');
+  for (const s of res) for (const i of framesOf(s)) {
+    const r = evalAt(s, i);
+    assert.equal(r.accepted, true, `${s.id} frame ${i}: ${r.rejectionReasons.join('; ')}`);
+    assert.equal(RUN.geos[i].actors.zapp.posture, 'prone');
+    assert.ok((r.diagnostics.entityCoverage.zapp ?? 0) > 0 && (r.diagnostics.entityCoverage.coin ?? 0) > 0, `${s.id} frame ${i}: coin + Zapp in frame`);
+  }
+});
+
+test('V3-9. button reset insert: the caption does not overlap the FREE COINS label', () => {
+  const s = T.shots.find((x) => x.spec.intent === 'neutral_top_down_prop_insert' && x.spec.reason.startsWith('button reset'))!;
+  assert.ok(s, 'reset insert present');
+  captionClearOfLabel(s, 'button');
 });

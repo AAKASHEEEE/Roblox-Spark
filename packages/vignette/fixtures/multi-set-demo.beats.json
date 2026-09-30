@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0",
+  "id": "multi_set_demo",
+  "title": "Multi-set staging demo: hallway -> classroom -> playground",
+  "seed": 23,
+  "source": { "narrated": "none (S6 multi-set staging demo, not narrated)", "narratedId": "s6-multi-set-demo" },
+  "music": [{ "musicId": "bed_upbeat", "start": 0, "end": 16, "gainDb": -18 }],
+  "beats": [
+    {
+      "phraseId": "p01", "start": 0, "end": 4, "text": "Zapp and Kira race down the school hallway before the bell.",
+      "setId": "school_hallway", "lighting": "day",
+      "cast": [
+        { "characterId": "zapp", "role": "lead", "placement": "hall_center", "actionId": "walk", "expressionId": "determined", "lookAt": "kira" },
+        { "characterId": "kira", "role": "foil", "placement": "lockers", "actionId": "idle", "expressionId": "smug", "lookAt": "zapp" }
+      ],
+      "props": [{ "propId": "backpack", "placement": "held:kira", "state": "closed" }],
+      "events": [{ "type": "sfx", "at": 0.5, "sfxId": "bell" }, { "type": "vfx", "at": 1.5, "vfxId": "speed_lines", "target": "zapp", "duration": 0.8 }],
+      "camera": { "recipeId": "establishing_wide", "subject": "zapp" },
+      "captions": [{ "start": 0, "end": 2, "text": "Zapp and Kira", "highlight": "Zapp" }, { "start": 2, "end": 4, "text": "race to class" }],
+      "carryOver": []
+    },
+    {
+      "phraseId": "p02", "start": 4, "end": 8, "text": "Zapp bursts through the classroom door first.",
+      "setId": "school_hallway", "lighting": "day",
+      "cast": [
+        { "characterId": "zapp", "role": "lead", "placement": "exit:hall_door", "actionId": "run", "expressionId": "happy" },
+        { "characterId": "kira", "role": "foil", "placement": "lockers", "actionId": "shrug", "expressionId": "skeptical", "lookAt": "zapp" }
+      ],
+      "props": [{ "propId": "backpack", "placement": "held:kira", "state": "closed" }],
+      "events": [{ "type": "door_open", "at": 5.0, "doorId": "hall_door" }, { "type": "exit", "at": 7.0, "characterId": "zapp", "doorId": "hall_door" }, { "type": "sfx", "at": 5.0, "sfxId": "door_open" }],
+      "camera": { "recipeId": "medium_single", "subject": "kira" },
+      "captions": [{ "start": 4, "end": 6, "text": "Zapp bursts in" }, { "start": 6, "end": 8, "text": "first" }],
+      "carryOver": ["zapp", "kira", "backpack"]
+    },
+    {
+      "phraseId": "p03", "start": 8, "end": 12, "text": "Inside, he finds the free-coins button waiting on the desk.",
+      "setId": "classroom", "lighting": "morning",
+      "cast": [
+        { "characterId": "zapp", "role": "lead", "placement": "enter:classroom_door", "actionId": "walk", "expressionId": "curious", "lookAt": "suspicious_button" },
+        { "characterId": "kira", "role": "foil", "placement": "kira_desk", "actionId": "arms_crossed", "expressionId": "smug", "lookAt": "zapp" }
+      ],
+      "props": [
+        { "propId": "door", "placement": "classroom_door", "state": "closed" },
+        { "propId": "suspicious_button", "placement": "button_desk", "state": "idle" }
+      ],
+      "events": [{ "type": "door_open", "at": 8.3, "doorId": "classroom_door" }, { "type": "enter", "at": 8.6, "characterId": "zapp", "doorId": "classroom_door" }, { "type": "vfx", "at": 10.5, "vfxId": "glow_pulse", "target": "suspicious_button" }],
+      "camera": { "recipeId": "wide_environment", "subject": "zapp" },
+      "captions": [{ "start": 8, "end": 10, "text": "Inside he finds" }, { "start": 10, "end": 12, "text": "the button", "highlight": "button" }],
+      "carryOver": []
+    },
+    {
+      "phraseId": "p04", "start": 12, "end": 16, "text": "Later, on the playground, Zapp is still celebrating.",
+      "setId": "playground", "lighting": "day",
+      "cast": [
+        { "characterId": "zapp", "role": "lead", "placement": "slide", "actionId": "jump", "expressionId": "happy", "lookAt": "camera" },
+        { "characterId": "kira", "role": "foil", "placement": "swings", "actionId": "wave", "expressionId": "laughing", "lookAt": "zapp" }
+      ],
+      "props": [{ "propId": "ball", "placement": "sandpit", "state": "idle" }],
+      "events": [{ "type": "vfx", "at": 12.8, "vfxId": "confetti", "target": "zapp" }, { "type": "sfx", "at": 12.8, "sfxId": "sfx_tada" }],
+      "camera": { "recipeId": "two_shot", "subject": "zapp", "secondary": "kira" },
+      "captions": [{ "start": 12, "end": 14, "text": "Later on" }, { "start": 14, "end": 16, "text": "still celebrating" }],
+      "carryOver": []
+    }
+  ]
+}
