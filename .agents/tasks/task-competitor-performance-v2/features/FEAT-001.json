@@ -1,0 +1,103 @@
+{
+  "id": "FEAT-001",
+  "type": "chore",
+  "description": "Establish a green baseline and acquire+verify all media. Install dependencies, install ffmpeg/ffprobe binaries (not on PATH), install Chromium, and run the existing typecheck/tests so we know the starting point is clean. Then download the approved voice-over MP3 and the three competitor MP4s from Google Drive into .scratch/ (gitignored), verifying each SHA-256 exactly, and decode them to produce the visual-analysis and audio-analysis artifacts that FEAT-004's COMPETITOR_ANALYSIS.md and final comparison depend on. This feature is prerequisite for every other feature (the render and analysis both need ffmpeg + the verified voice + decoded competitor data).",
+  "status": "completed",
+  "steps": [
+    "Run `npm install` at repo root (installs typescript 7.0.2 + playwright-core devDependencies). node is v22.23.3.",
+    "Install ffmpeg/ffprobe binaries from npm as devDependencies since they are NOT on PATH: `npm install --save-dev ffmpeg-static@5 ffprobe-static@3`. Resolve their binary paths (ffmpeg-static default export is the ffmpeg path; ffprobe-static exports { path }). Confirm both run: `<ffmpeg> -version` and `<ffprobe> -version`. Export FFPROBE_PATH=<ffprobe path> for any tool that probes (probe-node.ts reads FFPROBE_PATH).",
+    "Install Chromium for playwright: `npx playwright install chromium` (OPEN_INTERNET allows the download). If a system Chromium exists, CHROMIUM_PATH may be set instead. Confirm launchBrowser works via a tiny smoke (or defer to the render step).",
+    "Baseline verification (record exact output of each): `npm run typecheck`; `node --test tests/security.test.ts`; `node --test tests/vignette-runtime-integration.test.ts`; `node scripts/narrated-integration-analysis.ts` (expect 47/47 gates, exit 0); `node packages/captions/tools/verify-mvp.ts` (note: this currently requires several pre-generated artifacts such as stills-index.json, mix-test WAV, showcase/verification.json, full-render/verification.json — if any are missing on this branch, record exactly which checks fail as the baseline so we can distinguish pre-existing gaps from regressions; do NOT modify v1 artifacts to make it pass).",
+    "Create the gitignored scratch layout: .scratch/voice/, .scratch/competitors/, .scratch/visual-analysis/, .scratch/audio-analysis/, .scratch/audio-analysis/transcripts/.",
+    "Download the approved voice-over: Google Drive file id 1NaKReWsDvq9JwBeuW70X8Ooc27X8oi7V (name 'e;leven 1.mp3') into .scratch/voice/eleven-1.mp3. gdown is not installed; use the confirm-token two-step with curl (GET https://drive.google.com/uc?export=download&id=<id>, capture the confirm token / cookie, then GET with &confirm=<token>) OR `pip install gdown && gdown <id> -O .scratch/voice/eleven-1.mp3`. Compute SHA-256 and REQUIRE it equals d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2. If it differs, STOP and mark blocked (do not use any other file; the 'Victor' MP3 must never be used).",
+    "Sanity-check the voice matches the approved storyboard: its SHA-256 must equal the audio.contentHash in tests/fixtures/narrated/approved-narrated-v0.1.json, and ffprobe/ffmpeg-decoded duration must be ~69.146 s (mono, 44.1 kHz source).",
+    "Download the three competitor MP4s into .scratch/competitors/ and verify each SHA-256 exactly: (1) id 1lykuS1bxmAT-Z7jzdIPZRQsiD-lvyhFP -> sha 206221f554c54b7e33aea52577685bc4561a8ebd249d69bb456a41297b196fbb; (2) id 19AXj86Y4FcKt8aCR1vk99iYozmTdjZE3 -> sha e3f51d823f7c378f047121593c2865257ebaaed94282d20aa69383c7c14b6240; (3) id 1U1b1SrMz12Oo9_i6JBDU--A-NX1GSlmm -> sha cb94e5dc7f9b697d709b2aad3d06aa74143c273c178d46e9e6484bb3c2e689ca. Use short local filenames (e.g. reported.mp4, lived.mp4, noob-vs-pro.mp4). If any digest mismatches, mark that download blocked. Competitors are analysis-only and must NEVER be committed.",
+    "Decode and analyze the competitors into .scratch/ artifacts (write a small reusable node/python analysis script under scripts/ if helpful, but keep the heavy artifacts under .scratch/): for each competitor decode frames (e.g. ffmpeg -> frames or sampled frames) and the full audio stream. Produce .scratch/visual-analysis/summary.json (per-video: duration, resolution, fps, detected shot/cut count, average+median shot length, distribution of shots <2s, camera-translation frame rate, zoom-activity frame rate, notable full-body actions) and .scratch/visual-analysis/<name>-shots.jpg contact sheets. Produce .scratch/audio-analysis/summary.csv, all-analysis.json, timeline.csv, and transcripts/ (overall WPM, speech-only WPM, median pause, count of pauses >0.70s, % true silence). Ground the measured targets from the task in these artifacts (Noob ~42 cuts/56.6s avg1.35/median1.12; Reported ~26/50.1 avg1.93; Lived ~16/40.2 avg2.51; competitor WPM ~196-210 overall / ~225-235 speech-only, median pause ~0.34-0.38s, no pause >0.70s).",
+    "Record all resolved binary paths (ffmpeg, ffprobe, chromium) and verified hashes in the findings field so later features reuse them without re-discovery."
+  ],
+  "acceptance_criteria": [
+    "npm install completes; ffmpeg-static and ffprobe-static are installed and both binaries run (`-version` succeeds).",
+    "Chromium is installed/available for playwright (launchBrowser can start).",
+    "npm run typecheck passes (or any failure is recorded as pre-existing baseline with detail).",
+    "node --test tests/security.test.ts and node --test tests/vignette-runtime-integration.test.ts pass (or failures recorded as baseline).",
+    "node scripts/narrated-integration-analysis.ts exits 0 with 47/47 gates.",
+    ".scratch/voice/eleven-1.mp3 exists and its SHA-256 == d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2 AND equals approved-narrated-v0.1.json audio.contentHash; decoded duration ~69.146 s.",
+    "All three competitor MP4s exist under .scratch/competitors/ with exactly the required SHA-256 digests.",
+    ".scratch/visual-analysis/{summary.json, *-shots.jpg} and .scratch/audio-analysis/{summary.csv, all-analysis.json, timeline.csv, transcripts/} are produced from full decode of every competitor.",
+    "No competitor MP4 or raw voice MP3 is in a git-tracked path (git status shows them ignored under .scratch/)."
+  ],
+  "verification": [
+    "Run `npm run typecheck` and confirm it passes (or matches recorded baseline).",
+    "Run `node --test tests/security.test.ts` and `node --test tests/vignette-runtime-integration.test.ts` and confirm pass.",
+    "Run `node scripts/narrated-integration-analysis.ts` and confirm exit 0 / 47/47.",
+    "Recompute SHA-256 of the voice MP3 and all three competitor MP4s and confirm they match the required digests exactly.",
+    "Run `git status --porcelain` and confirm nothing under .scratch/ is staged/tracked."
+  ],
+  "blocked_reason": null,
+  "findings": {
+    "binaries": {
+      "node": "v22.23.3",
+      "npm": "11.4.2",
+      "ffmpeg": "/projects/sandbox/Roblox-Spark/node_modules/ffmpeg-static/ffmpeg (ffmpeg-static 5.3.0, ffmpeg 7.0.2-static). Default export from `require('ffmpeg-static')`. Pass as --ffmpeg to render-full.ts.",
+      "ffprobe": "/projects/sandbox/Roblox-Spark/node_modules/ffprobe-static/bin/linux/x64/ffprobe (ffprobe-static 3.1.0, ffprobe 4.0.2-static). Path from `require('ffprobe-static').path`. Export FFPROBE_PATH=this so probe-node.ts uses real ffprobe.",
+      "chromium": "/opt/playwright/chromium-1243/chrome-linux64/chrome (Chrome for Testing 153.0.8010.12, playwright chromium v1243). Installed via `npx playwright install chromium`. findChromium() in apps/render-worker/lib/browser.ts resolves it from /opt/playwright; launchBrowser() smoke-tested OK (headless, swiftshader).",
+      "playwright_browsers_path": "/opt/playwright"
+    },
+    "devDependencies_added": "ffmpeg-static@^5.3.0 and ffprobe-static@^3.1.0 added to package.json devDependencies (committed). package-lock.json regenerated by npm install and committed.",
+    "baseline": {
+      "typecheck": "PASS (npm run typecheck / tsc -p tsconfig.web.json --noEmit, exit 0).",
+      "security_test": "PASS 4/4 (node --test tests/security.test.ts).",
+      "vignette_runtime_integration_test": "PASS 5/5 (node --test tests/vignette-runtime-integration.test.ts).",
+      "narrated_integration_analysis": "PASS 47/47 gates, exit 0 (node scripts/narrated-integration-analysis.ts, ~159s: 2075 pose frames + 26 cameras).",
+      "verify_mvp": "PASS at baseline — status ok, exit 0, no issues. All required artifacts (stills-index, mix-test WAV, showcase/verification.json, full-render/verification.json) ARE present on this branch. fullVideo gates 47/47, faceConflicts 0, music none, v1 full-render hashes unchanged. NO pre-existing failures observed; do NOT modify v1 artifacts."
+    },
+    "voice": {
+      "path": ".scratch/voice/eleven-1.mp3",
+      "driveId": "1NaKReWsDvq9JwBeuW70X8Ooc27X8oi7V",
+      "sha256": "d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2",
+      "verified": "SHA-256 matches required digest AND equals approved-narrated-v0.1.json audio.contentHash exactly.",
+      "probe": "mp3, 44100 Hz, mono (1 channel), duration 69.146062 s (~69.146 s target). Downloaded via gdown.",
+      "bytes": 1122985
+    },
+    "competitors": [
+      {
+        "name": "reported",
+        "path": ".scratch/competitors/reported.mp4",
+        "driveId": "1lykuS1bxmAT-Z7jzdIPZRQsiD-lvyhFP",
+        "sha256": "206221f554c54b7e33aea52577685bc4561a8ebd249d69bb456a41297b196fbb",
+        "verified": true,
+        "bytes": 22280934
+      },
+      {
+        "name": "lived",
+        "path": ".scratch/competitors/lived.mp4",
+        "driveId": "19AXj86Y4FcKt8aCR1vk99iYozmTdjZE3",
+        "sha256": "e3f51d823f7c378f047121593c2865257ebaaed94282d20aa69383c7c14b6240",
+        "verified": true,
+        "bytes": 20615829
+      },
+      {
+        "name": "noob-vs-pro",
+        "path": ".scratch/competitors/noob-vs-pro.mp4",
+        "driveId": "1U1b1SrMz12Oo9_i6JBDU--A-NX1GSlmm",
+        "sha256": "cb94e5dc7f9b697d709b2aad3d06aa74143c273c178d46e9e6484bb3c2e689ca",
+        "verified": true,
+        "bytes": 5612895
+      }
+    ],
+    "visual_analysis": {
+      "script": "scripts/competitor-visual-analysis.mjs (committed). Reusable node ESM: ffprobe metadata + ffmpeg scene-detect (select=gt(scene,0.30),showinfo) for cuts + tblend difference/signalstats motion signal for translation/zoom activity + tiled contact sheets.",
+      "artifacts": ".scratch/visual-analysis/summary.json + reported-shots.jpg, lived-shots.jpg, noob-vs-pro-shots.jpg (5x8 contact sheets).",
+      "measurements": "reported: 50.156s 1080x1920@60, cuts=26 shots=27 avg=1.858s median=1.583s (<2s: 63%); lived: 40.217s 1080x1920@60, cuts=12 shots=13 avg=3.094s median=2.25s; noob-vs-pro: 56.611s 480x854@30, cuts=39 shots=40 avg=1.415s median=1.133s (<2s: 75%).",
+      "target_alignment": "Durations/resolutions are exact ffprobe ground truth. Cut cadence lands near task targets (noob ~42/56.6 avg1.35 med1.12 -> measured 39/56.61 avg1.415 med1.133; reported ~26/50.1 avg1.93 -> measured 26/50.156 avg1.858; lived ~16/40.2 avg2.51 -> measured 12/40.217 avg3.094). lived uses softer/dissolve transitions so the 0.30 scene threshold detects fewer hard cuts than the ~16 target; raising sensitivity or counting soft transitions would close the gap. Camera-translation frame rate 0.24-0.42 and zoom-activity 0.16-0.30 confirm competitors keep the frame in near-constant motion."
+    },
+    "audio_analysis": {
+      "script": "scripts/competitor-audio-analysis.py (committed). Extracts 16kHz mono WAV, faster-whisper (base, int8, cpu) word-timestamp transcription, ffmpeg silencedetect (noise=-30dB d=0.20). faster-whisper installed via pip (network OPEN_INTERNET).",
+      "artifacts": ".scratch/audio-analysis/summary.csv, all-analysis.json, timeline.csv, transcripts/{reported,lived,noob-vs-pro}.{txt,json}.",
+      "measurements": "reported: overallWPM=198.6 speechWPM=201.8 medPause=0.32s pauses>0.7s=0 silence=1.6%; lived: overallWPM=204.4 speechWPM=211.1 medPause=0.34s pauses>0.7s=0 silence=3.2%; noob-vs-pro: overallWPM=210.9 speechWPM=212.9 medPause=0.34s pauses>0.7s=0 silence=0.9%.",
+      "target_alignment": "Overall WPM (198.6/204.4/210.9) is in the ~196-210 target band. Median pause (0.32-0.34s) matches ~0.34-0.38s. Zero pauses >0.70s matches 'no pause >0.70s'. Speech-only WPM (~202-213) is a bit below the ~225-235 target because these videos are near-continuous speech (0.9-3.2% true silence at -30dB), so removing silence barely raises the rate; a stricter/VAD-based speech window would raise it toward target."
+    },
+    "git": "Nothing under .scratch/ is tracked (git check-ignore confirms voice/competitors/visual-analysis all ignored). Committed: package.json, package-lock.json, scripts/competitor-visual-analysis.mjs, scripts/competitor-audio-analysis.py. Competitor MP4s and raw voice MP3 remain gitignored and uncommitted.",
+    "reuse_notes": "Later features: pass --ffmpeg <ffmpeg path above> and export FFPROBE_PATH=<ffprobe path above>; --voice .scratch/voice/eleven-1.mp3 (hash already equals storyboard contentHash). Chromium auto-resolves via findChromium() from /opt/playwright."
+  }
+}
