@@ -1,0 +1,871 @@
+{
+  "schema": "blockspark.narrated-draft-v2-quality/1",
+  "sourceCommit": "15a9489",
+  "mp4": "draft-v2-540x960.mp4",
+  "mp4Sha256": "a422875de5a7b25cdcc5ceb4b0448fd49d170c98820cade8cca98b9a2d488fad",
+  "mp4Bytes": 17562965,
+  "renderWallSec": 456.982,
+  "summary": {
+    "renderJobGates": {
+      "total": 64,
+      "passed": 64,
+      "failed": []
+    },
+    "analysisGates": {
+      "total": 47,
+      "passed": 47,
+      "failed": [],
+      "blocking": false
+    },
+    "independentChecks": {
+      "total": 66,
+      "passed": 66,
+      "failed": []
+    },
+    "visualQuality": "NOT CERTIFIED: technical gates pass; visible creative problems are listed under knownVisibleProblems"
+  },
+  "technical": [
+    {
+      "name": "MP4 decodes (FFmpeg full decode + Chromium independent decode)",
+      "pass": true,
+      "detail": "ffmpeg -f null decode exit 0; Chromium: 540x960 69.167s"
+    },
+    {
+      "name": "540x960, 9:16",
+      "pass": true,
+      "detail": "Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 540x960, 1872 kb/s, SAR 1:1 DAR 9:16, 30 fps, 30 tbr, 30k tbn (default)"
+    },
+    {
+      "name": "constant 30 fps",
+      "pass": true,
+      "detail": "2075 video packets, every packet duration 1000/30000 s; decoded frame deltas 0.033333..0.033334 s; 30/1 (avg 30/1)"
+    },
+    {
+      "name": "H.264",
+      "pass": true,
+      "detail": "h264 High, yuv420p, bt709"
+    },
+    {
+      "name": "AAC 48 kHz stereo",
+      "pass": true,
+      "detail": "48000 Hz, 2 ch, AAC-LC"
+    },
+    {
+      "name": "duration matches approved audio",
+      "pass": true,
+      "detail": "video 69.167 s, audio 69.167 s, voice-over 69.146 s (video padded to whole frames, never cut)"
+    },
+    {
+      "name": "audio/video start at zero",
+      "pass": true,
+      "detail": "video first pts 0; audio first decoded pts_time 0 (1024-sample AAC priming removed by the edit list); Chromium decode offset 0.00 ms"
+    },
+    {
+      "name": "loudness -16..-14 LUFS (independent ebur128 on the MP4)",
+      "pass": true,
+      "detail": "-15.1 LUFS (mix report -15.07)"
+    },
+    {
+      "name": "true peak <= -1.5 dBTP (independent ebur128 on the MP4)",
+      "pass": true,
+      "detail": "-1.8 dBTP (mix report 4x oversampled: -1.85)"
+    },
+    {
+      "name": "manifest hash matches MP4",
+      "pass": true,
+      "detail": "a422875de5a7b25cdcc5ceb4b0448fd49d170c98820cade8cca98b9a2d488fad"
+    },
+    {
+      "name": "frame count ~2075",
+      "pass": true,
+      "detail": "2075 frames"
+    }
+  ],
+  "worldMotion": [
+    {
+      "id": "W01",
+      "name": "WorldState applied at every sampled frame",
+      "pass": true,
+      "detail": "2075/2075 frames, max root deviation 0 m"
+    },
+    {
+      "id": "W02",
+      "name": "no unexplained actor/prop teleport",
+      "pass": true,
+      "detail": "max |applied - planned| per-frame delta 0.000001 m"
+    },
+    {
+      "id": "W03",
+      "name": "no shot-boundary transform reset",
+      "pass": true,
+      "detail": "38 boundaries probed, max deviation 0 m, reset flags 0"
+    },
+    {
+      "id": "W04",
+      "name": "Kira reaches kira_safe",
+      "pass": true,
+      "detail": "min distance 0 m (event 47.9795 s)"
+    },
+    {
+      "id": "W05",
+      "name": "Zapp reaches zapp_impact",
+      "pass": true,
+      "detail": "min distance before contact 0 m (event 49.92 s)"
+    },
+    {
+      "id": "W06",
+      "name": "jump has real vertical displacement",
+      "pass": true,
+      "detail": "peak 0.4896 m (>= 0.25)"
+    },
+    {
+      "id": "W07",
+      "name": "press has valid hand/button contact",
+      "pass": true,
+      "detail": "min hand/press-surface gap 0.0525 m at 32.43333333333333 s (<= 0.08)"
+    },
+    {
+      "id": "W08",
+      "name": "coin base drift <= 0.01 m while growing",
+      "pass": true,
+      "detail": "max drift 0 m over 433 frames"
+    },
+    {
+      "id": "W18",
+      "name": "coin keeps its thickness (uniform scale)",
+      "pass": true,
+      "detail": "thickness/radius ratio spread 6.51e-6 (diagnostics rounded to 1e-6 m); final thickness 0.501 m"
+    },
+    {
+      "id": "W09",
+      "name": "exactly one coin/Zapp contact",
+      "pass": true,
+      "detail": "contacts at 55.933 (planned 55.918)"
+    },
+    {
+      "id": "W10",
+      "name": "fall begins on contact",
+      "pass": true,
+      "detail": "fall start 55.933"
+    },
+    {
+      "id": "W11",
+      "name": "no Zapp/coin penetration",
+      "pass": true,
+      "detail": "max depth 0 m, head inside false"
+    },
+    {
+      "id": "W12",
+      "name": "actual posed Zapp/coin clearance >= 0.02 m",
+      "pass": true,
+      "detail": "min 0.0211 m at t=56.067 (frame 1682)"
+    },
+    {
+      "id": "W13",
+      "name": "Kira outside the hazard",
+      "pass": true,
+      "detail": "min Kira/coin gap 1.6393 m; at contact 2.7928 m (>= 0.5)"
+    },
+    {
+      "id": "W14",
+      "name": "Zapp prone through episode end",
+      "pass": true,
+      "detail": "prone from 56.518 s; non-prone frames after: 0"
+    },
+    {
+      "id": "W15",
+      "name": "button reset does not stand Zapp up",
+      "pass": true,
+      "detail": "reset at 65.35 s; non-prone frames after reset 0"
+    },
+    {
+      "id": "W16",
+      "name": "local head displacement <= 0.08 m/frame",
+      "pass": true,
+      "detail": "max 0.0706 m at 56.1 s"
+    },
+    {
+      "id": "W17",
+      "name": "local head angular change <= 12 deg/frame",
+      "pass": true,
+      "detail": "max 10.058 deg at 26.367 s"
+    },
+    {
+      "id": "W19",
+      "name": "no adapter blocking diagnostics",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "id": "S01",
+      "name": "\"jump\" visibly moves vertically",
+      "pass": true,
+      "detail": "peak 0.4896 m; covering wide s007"
+    },
+    {
+      "id": "S02",
+      "name": "\"move safely\" visibly changes Kira's location",
+      "pass": true,
+      "detail": "Kira desk->safe 1.5305 m; shots s026, s027, s028, s033, s034"
+    },
+    {
+      "id": "S03",
+      "name": "\"press\" shows reachable contact",
+      "pass": true,
+      "detail": "press shot s019"
+    },
+    {
+      "id": "S04",
+      "name": "\"grow\" retains a fixed base",
+      "pass": true,
+      "detail": "drift 0 m"
+    },
+    {
+      "id": "S05",
+      "name": "\"tip\" uses continuous rotation",
+      "pass": true,
+      "detail": "43 frames, 810 -> 890.269 deg, monotonic true"
+    },
+    {
+      "id": "S06",
+      "name": "\"flatten/fall\" has one visible contact and coherent end positions",
+      "pass": true,
+      "detail": "contact 55.933; end Zapp prone, coin resting"
+    },
+    {
+      "id": "S07",
+      "name": "\"reset\" preserves the consequence",
+      "pass": true,
+      "detail": "final coin resting visible=true, Zapp prone"
+    },
+    {
+      "id": "S08",
+      "name": "no teacher character instantiated",
+      "pass": true,
+      "detail": "rigs: zapp, kira"
+    }
+  ],
+  "camera": [
+    {
+      "id": "C01",
+      "name": "no lens/body/head/hair/prop collision",
+      "pass": true,
+      "detail": "0 frames with lens collision over 2075 evaluated frames"
+    },
+    {
+      "id": "C02",
+      "name": "no camera path collision",
+      "pass": true,
+      "detail": "0 frames (static cameras: path = lens position)"
+    },
+    {
+      "id": "C03",
+      "name": "required face visibility threshold",
+      "pass": true,
+      "detail": "min required-face visibility 0.8 at 1.333 s over face-carrying intents (floor 0.6: motivated profile/ECU; 0.8 elsewhere per camera); wide/scale-reveal/prop min 0 (no face requirement)"
+    },
+    {
+      "id": "C04",
+      "name": "hero-prop visibility threshold",
+      "pass": true,
+      "detail": "min hero-prop visibility 0.6 at 55.867 s"
+    },
+    {
+      "id": "C05",
+      "name": "foreground clutter <= 35%",
+      "pass": true,
+      "detail": "max 0.11 at 26.633 s"
+    },
+    {
+      "id": "C06",
+      "name": "non-ECU head not cropped",
+      "pass": true,
+      "detail": "0 frames"
+    },
+    {
+      "id": "C07",
+      "name": "required subject size appropriate for intent",
+      "pass": true,
+      "detail": "0 frames outside the intent head-size band"
+    },
+    {
+      "id": "C08",
+      "name": "no unmotivated screen-direction reversal",
+      "pass": true,
+      "detail": "0 frames"
+    },
+    {
+      "id": "C09",
+      "name": "no required actor silently dropped",
+      "pass": true,
+      "detail": "0 frames; sequential-coverage blocks 0"
+    },
+    {
+      "id": "C10",
+      "name": "no camera safety fallback failure (every frame assigned one camera and accepted)",
+      "pass": true,
+      "detail": "2075/2075 frames assigned, 2075/2075 evaluated, 2075 passing, 0 failing"
+    },
+    {
+      "id": "C11",
+      "name": "head/face/prop occlusion",
+      "pass": true,
+      "detail": "0 frames with an occlusion rejection"
+    },
+    {
+      "name": "Kira warning coverage (gate)",
+      "pass": true,
+      "detail": "s016a offset_elevated_speaker_ots, s016b reaction; VISUAL: face mostly hidden by Kira's own side hair (see knownVisibleProblems)"
+    },
+    {
+      "name": "coin growth stages",
+      "pass": true,
+      "detail": "prop_growth_sequence accepted: s024g1 prop, s024g2 scale_reveal"
+    },
+    {
+      "name": "Zapp reaction and coin reveal separate",
+      "pass": true,
+      "detail": "s025a reaction, s025b scale_reveal"
+    },
+    {
+      "name": "button reset neutral insert",
+      "pass": true,
+      "detail": "s038 neutral_insert"
+    },
+    {
+      "name": "final consequence (prone Zapp + coin edge, elevated consequence)",
+      "pass": true,
+      "detail": "s039a medium, s039b elevated_consequence"
+    }
+  ],
+  "captions": [
+    {
+      "name": "26/26 chunks burned",
+      "pass": true,
+      "detail": "26 planned / 26 burned"
+    },
+    {
+      "name": "exact planned text/timing",
+      "pass": true,
+      "detail": "26 chunks compared"
+    },
+    {
+      "name": "no emotion tags",
+      "pass": true,
+      "detail": "41 caption lines scanned"
+    },
+    {
+      "id": "K01",
+      "name": "placement declared in typed render data",
+      "pass": true,
+      "detail": "26/26 chunks carry placement.centerY"
+    },
+    {
+      "id": "K02",
+      "name": "caption inside the safe area",
+      "pass": true,
+      "detail": "centres upper/lower"
+    },
+    {
+      "id": "K03",
+      "name": "caption covers <= 8% of the primary face",
+      "pass": true,
+      "detail": "max 0.0382"
+    },
+    {
+      "id": "K04",
+      "name": "caption avoids the interaction point",
+      "pass": true,
+      "detail": "0 chunks"
+    },
+    {
+      "id": "K05",
+      "name": "caption covers <= 50% of the hero prop",
+      "pass": true,
+      "detail": "max 0.1394"
+    },
+    {
+      "id": "K06",
+      "name": "caption stable through each chunk",
+      "pass": true,
+      "detail": "one placement per chunk (placeCaption: stableForWholeChunk)"
+    },
+    {
+      "id": "K07",
+      "name": "no unresolved CAPTION_PLACEMENT_CONFLICT",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "id": "K08",
+      "name": "no CAPTION_CAMERA_COMPOSITION_BLOCKED",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "bottom platform safe area",
+      "pass": true,
+      "detail": "block centre 0.72, bottom 0.764 <= 0.84; <= 2 lines x 32 chars"
+    }
+  ],
+  "renderJobGates": [
+    {
+      "id": "N01",
+      "name": "duration matches the voice-over",
+      "pass": true,
+      "detail": "video 69.167 s, audio 69.167 s, voice-over 69.146 s"
+    },
+    {
+      "id": "N02",
+      "name": "captions inside the lower-middle safe area",
+      "pass": true,
+      "detail": "block centre 0.72, bottom 0.764 <= 0.84; <= 2 lines x 32 chars"
+    },
+    {
+      "id": "N03",
+      "name": "caption chunks in order, no overlap",
+      "pass": true,
+      "detail": "26 chunks"
+    },
+    {
+      "id": "N04",
+      "name": "captions exactly on their planned intervals and text",
+      "pass": true,
+      "detail": "26 planned / 26 burned"
+    },
+    {
+      "id": "N06",
+      "name": "only registered assets and actions (narrated-draft validation)",
+      "pass": true,
+      "detail": "17 actions, 13 prop events, 2 cast"
+    },
+    {
+      "id": "N07",
+      "name": "no unavailable (off-screen) character instantiated",
+      "pass": true,
+      "detail": "off-screen only: teacher (3 cues)"
+    },
+    {
+      "id": "N08",
+      "name": "no visual shot longer than 3 s",
+      "pass": true,
+      "detail": "39 shots, longest 2.47 s"
+    },
+    {
+      "id": "N09",
+      "name": "a visual change at every caption chunk",
+      "pass": true,
+      "detail": "26/26"
+    },
+    {
+      "id": "N10",
+      "name": "audio codec AAC-LC",
+      "pass": true,
+      "detail": "aac"
+    },
+    {
+      "id": "N11",
+      "name": "video codec H.264",
+      "pass": true,
+      "detail": "h264"
+    },
+    {
+      "id": "N12",
+      "name": "resolution 540x960",
+      "pass": true,
+      "detail": "540x960"
+    },
+    {
+      "id": "N13",
+      "name": "constant 30 fps",
+      "pass": true,
+      "detail": "30/1 (avg 30/1)"
+    },
+    {
+      "id": "N14",
+      "name": "audio 48 kHz",
+      "pass": true,
+      "detail": "48000 Hz, 2 ch"
+    },
+    {
+      "id": "N15",
+      "name": "loudness -16..-14 LUFS, true peak <= -1.5 dBTP",
+      "pass": true,
+      "detail": "-15.07 LUFS, -1.85 dBTP (4x oversampled), SFX ducked 10 dB"
+    },
+    {
+      "id": "N16",
+      "name": "approved audio hash = render input",
+      "pass": true,
+      "detail": "d97fd8656d7c…"
+    },
+    {
+      "id": "N17",
+      "name": "timeline and manifest carry schema/version information",
+      "pass": true,
+      "detail": "blockspark.narrated-timeline/1, storyboard 1.1, episode 1.1"
+    },
+    {
+      "id": "N18",
+      "name": "independent decode of the MP4 (video + audio)",
+      "pass": true,
+      "detail": "540x960 69.167s"
+    },
+    {
+      "id": "W01",
+      "name": "[world] WorldState applied at every sampled frame",
+      "pass": true,
+      "detail": "2075/2075 frames, max root deviation 0 m"
+    },
+    {
+      "id": "W02",
+      "name": "[world] no unexplained actor/prop teleport",
+      "pass": true,
+      "detail": "max |applied - planned| per-frame delta 0.000001 m"
+    },
+    {
+      "id": "W03",
+      "name": "[world] no shot-boundary transform reset",
+      "pass": true,
+      "detail": "38 boundaries probed, max deviation 0 m, reset flags 0"
+    },
+    {
+      "id": "W04",
+      "name": "[world] Kira reaches kira_safe",
+      "pass": true,
+      "detail": "min distance 0 m (event 47.9795 s)"
+    },
+    {
+      "id": "W05",
+      "name": "[world] Zapp reaches zapp_impact",
+      "pass": true,
+      "detail": "min distance before contact 0 m (event 49.92 s)"
+    },
+    {
+      "id": "W06",
+      "name": "[world] jump has real vertical displacement",
+      "pass": true,
+      "detail": "peak 0.4896 m (>= 0.25)"
+    },
+    {
+      "id": "W07",
+      "name": "[world] press has valid hand/button contact",
+      "pass": true,
+      "detail": "min hand/press-surface gap 0.0525 m at 32.43333333333333 s (<= 0.08)"
+    },
+    {
+      "id": "W08",
+      "name": "[world] coin base drift <= 0.01 m while growing",
+      "pass": true,
+      "detail": "max drift 0 m over 433 frames"
+    },
+    {
+      "id": "W09",
+      "name": "[world] exactly one coin/Zapp contact",
+      "pass": true,
+      "detail": "contacts at 55.933 (planned 55.918)"
+    },
+    {
+      "id": "W10",
+      "name": "[world] fall begins on contact",
+      "pass": true,
+      "detail": "fall start 55.933"
+    },
+    {
+      "id": "W11",
+      "name": "[world] no Zapp/coin penetration",
+      "pass": true,
+      "detail": "max depth 0 m, head inside false"
+    },
+    {
+      "id": "W12",
+      "name": "[world] actual posed Zapp/coin clearance >= 0.02 m",
+      "pass": true,
+      "detail": "min 0.0211 m at t=56.067 (frame 1682)"
+    },
+    {
+      "id": "W13",
+      "name": "[world] Kira outside the hazard",
+      "pass": true,
+      "detail": "min Kira/coin gap 1.6393 m; at contact 2.7928 m (>= 0.5)"
+    },
+    {
+      "id": "W14",
+      "name": "[world] Zapp prone through episode end",
+      "pass": true,
+      "detail": "prone from 56.518 s; non-prone frames after: 0"
+    },
+    {
+      "id": "W15",
+      "name": "[world] button reset does not stand Zapp up",
+      "pass": true,
+      "detail": "reset at 65.35 s; non-prone frames after reset 0"
+    },
+    {
+      "id": "W16",
+      "name": "[world] local head displacement <= 0.08 m/frame",
+      "pass": true,
+      "detail": "max 0.0706 m at 56.1 s"
+    },
+    {
+      "id": "W17",
+      "name": "[world] local head angular change <= 12 deg/frame",
+      "pass": true,
+      "detail": "max 10.058 deg at 26.367 s"
+    },
+    {
+      "id": "W18",
+      "name": "[world] coin keeps its thickness (uniform scale)",
+      "pass": true,
+      "detail": "thickness/radius ratio spread 6.51e-6 (diagnostics rounded to 1e-6 m); final thickness 0.501 m"
+    },
+    {
+      "id": "W19",
+      "name": "[world] no adapter blocking diagnostics",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "id": "C01",
+      "name": "[camera] no lens/body/head/hair/prop collision",
+      "pass": true,
+      "detail": "0 frames with lens collision over 2075 evaluated frames"
+    },
+    {
+      "id": "C02",
+      "name": "[camera] no camera path collision",
+      "pass": true,
+      "detail": "0 frames (static cameras: path = lens position)"
+    },
+    {
+      "id": "C03",
+      "name": "[camera] required face visibility threshold",
+      "pass": true,
+      "detail": "min required-face visibility 0.8 at 1.333 s over face-carrying intents (floor 0.6: motivated profile/ECU; 0.8 elsewhere per camera); wide/scale-reveal/prop min 0 (no face requirement)"
+    },
+    {
+      "id": "C04",
+      "name": "[camera] hero-prop visibility threshold",
+      "pass": true,
+      "detail": "min hero-prop visibility 0.6 at 55.867 s"
+    },
+    {
+      "id": "C05",
+      "name": "[camera] foreground clutter <= 35%",
+      "pass": true,
+      "detail": "max 0.11 at 26.633 s"
+    },
+    {
+      "id": "C06",
+      "name": "[camera] non-ECU head not cropped",
+      "pass": true,
+      "detail": "0 frames"
+    },
+    {
+      "id": "C07",
+      "name": "[camera] required subject size appropriate for intent",
+      "pass": true,
+      "detail": "0 frames outside the intent head-size band"
+    },
+    {
+      "id": "C08",
+      "name": "[camera] no unmotivated screen-direction reversal",
+      "pass": true,
+      "detail": "0 frames"
+    },
+    {
+      "id": "C09",
+      "name": "[camera] no required actor silently dropped",
+      "pass": true,
+      "detail": "0 frames; sequential-coverage blocks 0"
+    },
+    {
+      "id": "C10",
+      "name": "[camera] no camera safety fallback failure (every frame assigned one camera and accepted)",
+      "pass": true,
+      "detail": "2075/2075 frames assigned, 2075/2075 evaluated, 2075 passing, 0 failing"
+    },
+    {
+      "id": "C11",
+      "name": "[camera] head/face/prop occlusion",
+      "pass": true,
+      "detail": "0 frames with an occlusion rejection"
+    },
+    {
+      "id": "K01",
+      "name": "[caption] placement declared in typed render data",
+      "pass": true,
+      "detail": "26/26 chunks carry placement.centerY"
+    },
+    {
+      "id": "K02",
+      "name": "[caption] caption inside the safe area",
+      "pass": true,
+      "detail": "centres upper/lower"
+    },
+    {
+      "id": "K03",
+      "name": "[caption] caption covers <= 8% of the primary face",
+      "pass": true,
+      "detail": "max 0.0382"
+    },
+    {
+      "id": "K04",
+      "name": "[caption] caption avoids the interaction point",
+      "pass": true,
+      "detail": "0 chunks"
+    },
+    {
+      "id": "K05",
+      "name": "[caption] caption covers <= 50% of the hero prop",
+      "pass": true,
+      "detail": "max 0.1394"
+    },
+    {
+      "id": "K06",
+      "name": "[caption] caption stable through each chunk",
+      "pass": true,
+      "detail": "one placement per chunk (placeCaption: stableForWholeChunk)"
+    },
+    {
+      "id": "K07",
+      "name": "[caption] no unresolved CAPTION_PLACEMENT_CONFLICT",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "id": "K08",
+      "name": "[caption] no CAPTION_CAMERA_COMPOSITION_BLOCKED",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "id": "K09",
+      "name": "[caption] caption text, line breaks, emphasis and timing unchanged",
+      "pass": true,
+      "detail": "26 chunks compared"
+    },
+    {
+      "id": "S01",
+      "name": "[semantic] \"jump\" visibly moves vertically",
+      "pass": true,
+      "detail": "peak 0.4896 m; covering wide s007"
+    },
+    {
+      "id": "S02",
+      "name": "[semantic] \"move safely\" visibly changes Kira's location",
+      "pass": true,
+      "detail": "Kira desk->safe 1.5305 m; shots s026, s027, s028, s033, s034"
+    },
+    {
+      "id": "S03",
+      "name": "[semantic] \"press\" shows reachable contact",
+      "pass": true,
+      "detail": "press shot s019"
+    },
+    {
+      "id": "S04",
+      "name": "[semantic] \"grow\" retains a fixed base",
+      "pass": true,
+      "detail": "drift 0 m"
+    },
+    {
+      "id": "S05",
+      "name": "[semantic] \"tip\" uses continuous rotation",
+      "pass": true,
+      "detail": "43 frames, 810 -> 890.269 deg, monotonic true"
+    },
+    {
+      "id": "S06",
+      "name": "[semantic] \"flatten/fall\" has one visible contact and coherent end positions",
+      "pass": true,
+      "detail": "contact 55.933; end Zapp prone, coin resting"
+    },
+    {
+      "id": "S07",
+      "name": "[semantic] \"reset\" preserves the consequence",
+      "pass": true,
+      "detail": "final coin resting visible=true, Zapp prone"
+    },
+    {
+      "id": "S08",
+      "name": "[semantic] no teacher character instantiated",
+      "pass": true,
+      "detail": "rigs: zapp, kira"
+    }
+  ],
+  "audio": {
+    "integratedLufs": -15.07,
+    "truePeakDbtp": -1.85,
+    "samplePeakDbfs": -2,
+    "gainAppliedDb": 6.02,
+    "limiterReductionDb": 5.66,
+    "sfxCues": 17,
+    "missing": [],
+    "durationSec": 69.16666666666667,
+    "sampleRate": 48000,
+    "truePeakDbfsApprox": -1.85
+  },
+  "knownVisibleProblems": [
+    {
+      "at": "25.94-26.89 s (s016a, Kira warning)",
+      "severity": "major",
+      "problem": "Kira's face is mostly hidden by her own black side-hair block; the warning expression does not read. The speaker-OTS camera passed because the camera evaluator counts an actor's own head parts (incl. side hair) as never occluding her face."
+    },
+    {
+      "at": "15.68-20.96 s (s010-s012, Kira mediums) and 44.22-45.80 s (s026)",
+      "severity": "moderate",
+      "problem": "Zapp's head/body is cut at the left frame edge. He is an optional supporting actor there, and optional actors are not crop-checked in single-character coverage."
+    },
+    {
+      "at": "44.22-49.50 s (p10: \"taller than the desk, wider than Zapp, almost fills the entire room\")",
+      "severity": "major",
+      "problem": "The coin is mostly off screen while the narration describes its size: s026 shows Zapp and Kira without the coin, s027 shows it only partly at the left edge, s028 shows Kira alone."
+    },
+    {
+      "at": "51.47-54.70 s (p11-c02: \"Kira has already moved safely out of the way\")",
+      "severity": "moderate",
+      "problem": "The picture stays on Zapp; Kira is not shown during the line about her."
+    },
+    {
+      "at": "55.13-56.70 s (s032, impact)",
+      "severity": "minor",
+      "problem": "The tip and flattening read, but the action is small in a distant wide shot (upper-middle third of the frame)."
+    },
+    {
+      "at": "56.70-59.80 s (s033-s034)",
+      "severity": "moderate",
+      "problem": "During \"flattens Zapp against the classroom floor\" the camera shows Kira walking; the flattened Zapp is off screen apart from the coin edge at the bottom."
+    },
+    {
+      "at": "40.24-40.77 s (s024g1)",
+      "severity": "minor",
+      "problem": "The narration says the button flashes, but the insert shows only the small coin."
+    },
+    {
+      "at": "41.0-42.2 s (s024g2) vs 43.1-44.2 s (s025b)",
+      "severity": "minor",
+      "problem": "Near-identical coin framings about one second apart."
+    },
+    {
+      "at": "42.23-43.10 s (s025a)",
+      "severity": "minor",
+      "problem": "Zapp's reaction is shot from above; his face is foreshortened and the shock only partly reads."
+    },
+    {
+      "at": "61.42-65.30 s (s036-s037)",
+      "severity": "minor",
+      "problem": "A 3.9 s near-static very tight close on Kira (head fills the frame width)."
+    },
+    {
+      "at": "65.30-67.57 s (s038)",
+      "severity": "minor",
+      "problem": "The lower-band caption covers the \"FREE COINS\" label on the button base."
+    },
+    {
+      "at": "whole episode",
+      "severity": "info",
+      "problem": "Draft only: no lip-sync, software-GL shading at 540x960, blocky placeholder faces."
+    }
+  ]
+}

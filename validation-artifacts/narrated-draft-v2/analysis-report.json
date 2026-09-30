@@ -1,0 +1,794 @@
+{
+  "schema": "blockspark.narrated-continuity-analysis/1",
+  "frames": 2075,
+  "fps": 30,
+  "resolution": [
+    540,
+    960
+  ],
+  "storyboardId": "nr-b8757cf22e2c",
+  "audioHash": "d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2",
+  "summary": {
+    "total": 47,
+    "passed": 47,
+    "failed": [],
+    "blocking": false
+  },
+  "world": {
+    "framesApplied": 2075,
+    "maxRootDeviationM": 0,
+    "maxUnplannedDeltaM": 0.000001,
+    "shotResetDeviations": [
+      {
+        "frame": 51,
+        "t": 1.7,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 102,
+        "t": 3.4,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 138,
+        "t": 4.6,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 192,
+        "t": 6.4,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 240,
+        "t": 8,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 287,
+        "t": 9.567,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 348,
+        "t": 11.6,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 409,
+        "t": 13.633,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 470,
+        "t": 15.667,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 516,
+        "t": 17.2,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 573,
+        "t": 19.1,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 629,
+        "t": 20.967,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 675,
+        "t": 22.5,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 722,
+        "t": 24.067,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 778,
+        "t": 25.933,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 835,
+        "t": 27.833,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 892,
+        "t": 29.733,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 946,
+        "t": 31.533,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1001,
+        "t": 33.367,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1056,
+        "t": 35.2,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1099,
+        "t": 36.633,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1142,
+        "t": 38.067,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1207,
+        "t": 40.233,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1267,
+        "t": 42.233,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1327,
+        "t": 44.233,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1374,
+        "t": 45.8,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1422,
+        "t": 47.4,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1496,
+        "t": 49.867,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1544,
+        "t": 51.467,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1598,
+        "t": 53.267,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1652,
+        "t": 55.067,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1702,
+        "t": 56.733,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1751,
+        "t": 58.367,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1796,
+        "t": 59.867,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1843,
+        "t": 61.433,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1901,
+        "t": 63.367,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 1959,
+        "t": 65.3,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      },
+      {
+        "frame": 2027,
+        "t": 67.567,
+        "maxRootDevM": 0,
+        "maxPropDevM": 0
+      }
+    ],
+    "maxShotResetDeviationM": 0,
+    "coinBaseDriftM": 0,
+    "contact": {
+      "count": 1,
+      "times": [
+        55.933
+      ],
+      "planned": 55.918,
+      "fallStart": [
+        55.933
+      ]
+    },
+    "coinZappClearance": {
+      "minM": 0.0211,
+      "t": 56.067,
+      "frame": 1682,
+      "maxDepthM": 0,
+      "headInsideCoin": false,
+      "thresholdM": 0.02
+    },
+    "kira": {
+      "reachedSafeMinDistM": 0,
+      "safeAt": 47.9795,
+      "returnedDeskAt": 59.843,
+      "minHazardGapM": 1.6393,
+      "hazardGapAtContactM": 2.7928,
+      "displacementDeskToSafeM": 1.5305
+    },
+    "zapp": {
+      "reachedImpactMinDistM": 0,
+      "jumpPeakM": 0.4896,
+      "pressHandGapM": 0.0525,
+      "pressHandGapT": 32.43333333333333,
+      "finalPosture": "prone",
+      "proneFrom": 56.518,
+      "nonProneAfter": 0
+    },
+    "head": {
+      "maxLocalDisplacementM": 0.0706,
+      "atT": 56.1,
+      "maxAngularDeltaDeg": 10.058,
+      "angularAtT": 26.367
+    },
+    "coinFinal": {
+      "phase": "resting",
+      "thicknessM": 0.501,
+      "radiusM": 1.503,
+      "rotDeg": [
+        890.268911,
+        0,
+        0
+      ]
+    },
+    "adapterBlocking": []
+  },
+  "frameCoverage": {
+    "totalFrames": 2075,
+    "assigned": 2075,
+    "withCamera": 2075,
+    "evaluated": 2075,
+    "passing": 2075,
+    "failing": 0,
+    "firstFailingFrame": null,
+    "lastFailingFrame": null,
+    "failuresByShot": {},
+    "gaps": [],
+    "gapCount": 0,
+    "overlapCount": 0,
+    "ownership": "frame i -> shot with start <= i/fps < end (first frame = ceil(start*fps)); last shot owns through the final frame",
+    "trackingFrames": 0
+  },
+  "camera": {
+    "nonFaceIntentFaceVisibilityMin": 0,
+    "evaluatedFrames": 2075,
+    "collisions": 0,
+    "pathCollisions": 0,
+    "occlusionFrames": 0,
+    "faceVisibilityMin": 0.8,
+    "faceVisibilityMinAt": 1.333,
+    "heroPropVisibilityMin": 0.6,
+    "heroPropVisibilityMinAt": 55.867,
+    "foregroundClutterMax": 0.11,
+    "foregroundClutterAt": 26.633,
+    "headCroppedFrames": 0,
+    "subjectSizeFrames": 0,
+    "screenDirectionViolations": 0,
+    "requiredActorDropFrames": 0,
+    "subjectHeadHeights": {
+      "wide:kira": {
+        "min": 6.8,
+        "max": 22.9
+      },
+      "wide:zapp": {
+        "min": 9.6,
+        "max": 23.2
+      },
+      "medium:kira": {
+        "min": 17.6,
+        "max": 41.7
+      },
+      "medium:zapp": {
+        "min": 20.9,
+        "max": 26.6
+      },
+      "reaction:zapp": {
+        "min": 24.8,
+        "max": 48.6
+      },
+      "reaction:kira": {
+        "min": 24.9,
+        "max": 25.1
+      },
+      "prop:zapp": {
+        "min": 0,
+        "max": 26.8
+      },
+      "scale_reveal:zapp": {
+        "min": 0,
+        "max": 10.5
+      },
+      "close:kira": {
+        "min": 30.7,
+        "max": 51.7
+      },
+      "neutral_top_down_prop_insert:zapp": {
+        "min": 0,
+        "max": 0
+      },
+      "elevated_consequence:zapp": {
+        "min": 15.2,
+        "max": 15.2
+      }
+    },
+    "rejectedFrames": [],
+    "rejectedFrameCount": 0,
+    "blockedShots": []
+  },
+  "captions": {
+    "chunks": 26,
+    "primaryFaceMax": 0.0382,
+    "heroPropMax": 0.1394,
+    "interactionHits": 0,
+    "conflicts": [],
+    "compositionBlocked": [],
+    "cameraRetries": 0,
+    "bands": {
+      "upper": 24,
+      "middle": 0,
+      "lower": 2
+    }
+  },
+  "shots": {
+    "count": 43,
+    "meanSec": 1.609,
+    "minSec": 0.693,
+    "maxSec": 2.472,
+    "sequentialCoverage": [
+      {
+        "sourceShot": "s016",
+        "phraseId": "p06",
+        "reason": "two required actors (kira, zapp); no readable simultaneous portrait medium (rejections: HEAD_CROPPED×163, FACE_VISIBILITY_LOW×111, SHOT_TOO_TIGHT_FOR_INTENT×106)",
+        "split": [
+          "s016a",
+          "s016b"
+        ],
+        "outcome": "sequential coverage accepted"
+      }
+    ],
+    "coveragePatterns": [
+      {
+        "sourceShot": "s024",
+        "phraseId": "p09",
+        "pattern": "prop_growth_sequence",
+        "segments": [
+          "s024g1",
+          "s024g2"
+        ],
+        "boundaries": [
+          1228
+        ],
+        "outcome": "accepted"
+      },
+      {
+        "sourceShot": "s025",
+        "phraseId": "p09",
+        "pattern": "reaction_then_insert",
+        "segments": [
+          "s025a",
+          "s025b"
+        ],
+        "boundaries": [
+          1297
+        ],
+        "outcome": "accepted"
+      },
+      {
+        "sourceShot": "s039",
+        "phraseId": "p14",
+        "pattern": "consequence_sequence",
+        "segments": [
+          "s039a",
+          "s039b"
+        ],
+        "boundaries": [
+          2051
+        ],
+        "outcome": "accepted"
+      }
+    ],
+    "requiredActorDrops": 0
+  },
+  "gates": [
+    {
+      "id": "W01",
+      "group": "world",
+      "name": "WorldState applied at every sampled frame",
+      "pass": true,
+      "detail": "2075/2075 frames, max root deviation 0 m"
+    },
+    {
+      "id": "W02",
+      "group": "world",
+      "name": "no unexplained actor/prop teleport",
+      "pass": true,
+      "detail": "max |applied - planned| per-frame delta 0.000001 m"
+    },
+    {
+      "id": "W03",
+      "group": "world",
+      "name": "no shot-boundary transform reset",
+      "pass": true,
+      "detail": "38 boundaries probed, max deviation 0 m, reset flags 0"
+    },
+    {
+      "id": "W04",
+      "group": "world",
+      "name": "Kira reaches kira_safe",
+      "pass": true,
+      "detail": "min distance 0 m (event 47.9795 s)"
+    },
+    {
+      "id": "W05",
+      "group": "world",
+      "name": "Zapp reaches zapp_impact",
+      "pass": true,
+      "detail": "min distance before contact 0 m (event 49.92 s)"
+    },
+    {
+      "id": "W06",
+      "group": "world",
+      "name": "jump has real vertical displacement",
+      "pass": true,
+      "detail": "peak 0.4896 m (>= 0.25)"
+    },
+    {
+      "id": "W07",
+      "group": "world",
+      "name": "press has valid hand/button contact",
+      "pass": true,
+      "detail": "min hand/press-surface gap 0.0525 m at 32.43333333333333 s (<= 0.08)"
+    },
+    {
+      "id": "W08",
+      "group": "world",
+      "name": "coin base drift <= 0.01 m while growing",
+      "pass": true,
+      "detail": "max drift 0 m over 433 frames"
+    },
+    {
+      "id": "W09",
+      "group": "world",
+      "name": "exactly one coin/Zapp contact",
+      "pass": true,
+      "detail": "contacts at 55.933 (planned 55.918)"
+    },
+    {
+      "id": "W10",
+      "group": "world",
+      "name": "fall begins on contact",
+      "pass": true,
+      "detail": "fall start 55.933"
+    },
+    {
+      "id": "W11",
+      "group": "world",
+      "name": "no Zapp/coin penetration",
+      "pass": true,
+      "detail": "max depth 0 m, head inside false"
+    },
+    {
+      "id": "W12",
+      "group": "world",
+      "name": "actual posed Zapp/coin clearance >= 0.02 m",
+      "pass": true,
+      "detail": "min 0.0211 m at t=56.067 (frame 1682)"
+    },
+    {
+      "id": "W13",
+      "group": "world",
+      "name": "Kira outside the hazard",
+      "pass": true,
+      "detail": "min Kira/coin gap 1.6393 m; at contact 2.7928 m (>= 0.5)"
+    },
+    {
+      "id": "W14",
+      "group": "world",
+      "name": "Zapp prone through episode end",
+      "pass": true,
+      "detail": "prone from 56.518 s; non-prone frames after: 0"
+    },
+    {
+      "id": "W15",
+      "group": "world",
+      "name": "button reset does not stand Zapp up",
+      "pass": true,
+      "detail": "reset at 65.35 s; non-prone frames after reset 0"
+    },
+    {
+      "id": "W16",
+      "group": "world",
+      "name": "local head displacement <= 0.08 m/frame",
+      "pass": true,
+      "detail": "max 0.0706 m at 56.1 s"
+    },
+    {
+      "id": "W17",
+      "group": "world",
+      "name": "local head angular change <= 12 deg/frame",
+      "pass": true,
+      "detail": "max 10.058 deg at 26.367 s"
+    },
+    {
+      "id": "W18",
+      "group": "world",
+      "name": "coin keeps its thickness (uniform scale)",
+      "pass": true,
+      "detail": "thickness/radius ratio spread 6.51e-6 (diagnostics rounded to 1e-6 m); final thickness 0.501 m"
+    },
+    {
+      "id": "W19",
+      "group": "world",
+      "name": "no adapter blocking diagnostics",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "id": "C01",
+      "group": "camera",
+      "name": "no lens/body/head/hair/prop collision",
+      "pass": true,
+      "detail": "0 frames with lens collision over 2075 evaluated frames"
+    },
+    {
+      "id": "C02",
+      "group": "camera",
+      "name": "no camera path collision",
+      "pass": true,
+      "detail": "0 frames (static cameras: path = lens position)"
+    },
+    {
+      "id": "C03",
+      "group": "camera",
+      "name": "required face visibility threshold",
+      "pass": true,
+      "detail": "min required-face visibility 0.8 at 1.333 s over face-carrying intents (floor 0.6: motivated profile/ECU; 0.8 elsewhere per camera); wide/scale-reveal/prop min 0 (no face requirement)"
+    },
+    {
+      "id": "C04",
+      "group": "camera",
+      "name": "hero-prop visibility threshold",
+      "pass": true,
+      "detail": "min hero-prop visibility 0.6 at 55.867 s"
+    },
+    {
+      "id": "C05",
+      "group": "camera",
+      "name": "foreground clutter <= 35%",
+      "pass": true,
+      "detail": "max 0.11 at 26.633 s"
+    },
+    {
+      "id": "C06",
+      "group": "camera",
+      "name": "non-ECU head not cropped",
+      "pass": true,
+      "detail": "0 frames"
+    },
+    {
+      "id": "C07",
+      "group": "camera",
+      "name": "required subject size appropriate for intent",
+      "pass": true,
+      "detail": "0 frames outside the intent head-size band"
+    },
+    {
+      "id": "C08",
+      "group": "camera",
+      "name": "no unmotivated screen-direction reversal",
+      "pass": true,
+      "detail": "0 frames"
+    },
+    {
+      "id": "C09",
+      "group": "camera",
+      "name": "no required actor silently dropped",
+      "pass": true,
+      "detail": "0 frames; sequential-coverage blocks 0"
+    },
+    {
+      "id": "C10",
+      "group": "camera",
+      "name": "no camera safety fallback failure (every frame assigned one camera and accepted)",
+      "pass": true,
+      "detail": "2075/2075 frames assigned, 2075/2075 evaluated, 2075 passing, 0 failing"
+    },
+    {
+      "id": "C11",
+      "group": "camera",
+      "name": "head/face/prop occlusion",
+      "pass": true,
+      "detail": "0 frames with an occlusion rejection"
+    },
+    {
+      "id": "K01",
+      "group": "caption",
+      "name": "placement declared in typed render data",
+      "pass": true,
+      "detail": "26/26 chunks carry placement.centerY"
+    },
+    {
+      "id": "K02",
+      "group": "caption",
+      "name": "caption inside the safe area",
+      "pass": true,
+      "detail": "centres upper/lower"
+    },
+    {
+      "id": "K03",
+      "group": "caption",
+      "name": "caption covers <= 8% of the primary face",
+      "pass": true,
+      "detail": "max 0.0382"
+    },
+    {
+      "id": "K04",
+      "group": "caption",
+      "name": "caption avoids the interaction point",
+      "pass": true,
+      "detail": "0 chunks"
+    },
+    {
+      "id": "K05",
+      "group": "caption",
+      "name": "caption covers <= 50% of the hero prop",
+      "pass": true,
+      "detail": "max 0.1394"
+    },
+    {
+      "id": "K06",
+      "group": "caption",
+      "name": "caption stable through each chunk",
+      "pass": true,
+      "detail": "one placement per chunk (placeCaption: stableForWholeChunk)"
+    },
+    {
+      "id": "K07",
+      "group": "caption",
+      "name": "no unresolved CAPTION_PLACEMENT_CONFLICT",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "id": "K08",
+      "group": "caption",
+      "name": "no CAPTION_CAMERA_COMPOSITION_BLOCKED",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "id": "K09",
+      "group": "caption",
+      "name": "caption text, line breaks, emphasis and timing unchanged",
+      "pass": true,
+      "detail": "26 chunks compared"
+    },
+    {
+      "id": "S01",
+      "group": "semantic",
+      "name": "\"jump\" visibly moves vertically",
+      "pass": true,
+      "detail": "peak 0.4896 m; covering wide s007"
+    },
+    {
+      "id": "S02",
+      "group": "semantic",
+      "name": "\"move safely\" visibly changes Kira's location",
+      "pass": true,
+      "detail": "Kira desk->safe 1.5305 m; shots s026, s027, s028, s033, s034"
+    },
+    {
+      "id": "S03",
+      "group": "semantic",
+      "name": "\"press\" shows reachable contact",
+      "pass": true,
+      "detail": "press shot s019"
+    },
+    {
+      "id": "S04",
+      "group": "semantic",
+      "name": "\"grow\" retains a fixed base",
+      "pass": true,
+      "detail": "drift 0 m"
+    },
+    {
+      "id": "S05",
+      "group": "semantic",
+      "name": "\"tip\" uses continuous rotation",
+      "pass": true,
+      "detail": "43 frames, 810 -> 890.269 deg, monotonic true"
+    },
+    {
+      "id": "S06",
+      "group": "semantic",
+      "name": "\"flatten/fall\" has one visible contact and coherent end positions",
+      "pass": true,
+      "detail": "contact 55.933; end Zapp prone, coin resting"
+    },
+    {
+      "id": "S07",
+      "group": "semantic",
+      "name": "\"reset\" preserves the consequence",
+      "pass": true,
+      "detail": "final coin resting visible=true, Zapp prone"
+    },
+    {
+      "id": "S08",
+      "group": "semantic",
+      "name": "no teacher character instantiated",
+      "pass": true,
+      "detail": "rigs: zapp, kira"
+    }
+  ],
+  "timingSec": 184.848
+}

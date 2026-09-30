@@ -1,0 +1,5026 @@
+{
+ "schema": "blockspark.narrated-integrated-timeline/1",
+ "sourceCommit": "15a9489",
+ "frames": 2075,
+ "fps": 30,
+ "width": 540,
+ "height": 960,
+ "shots": [
+  {
+   "id": "s001",
+   "sourceShot": "s001",
+   "start": 0,
+   "end": 1.696,
+   "frames": [
+    0,
+    51
+   ],
+   "phraseId": "p01",
+   "chunkId": "p01-c01",
+   "spec": {
+    "intent": "wide",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [],
+    "heroProps": [],
+    "reason": "opening comparison: both characters and the classroom geography (both required)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s001:two_character_medium:y-20:d1",
+    "intent": "medium",
+    "kind": "two_character_medium",
+    "position": [
+     -2.2306,
+     1.6903,
+     4.7385
+    ],
+    "target": [
+     0.754,
+     1.4403,
+     -0.4055
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "framedSubjectIds": [
+      "zapp",
+      "kira"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "established:left",
+   "minScore": 0.9383,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 10,
+    "SUBJECT_TOO_SMALL_FOR_INTENT": 11,
+    "FACE_VISIBILITY_LOW": 5
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0008,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s002",
+   "sourceShot": "s002",
+   "start": 1.696,
+   "end": 3.391,
+   "frames": [
+    51,
+    102
+   ],
+   "phraseId": "p01",
+   "chunkId": "p01-c01",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [],
+    "heroProps": [],
+    "reason": "opening comparison: both characters and the classroom geography (both required)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s002:two_character_medium:y0:d1",
+    "intent": "medium",
+    "kind": "two_character_medium",
+    "position": [
+     0.6962,
+     1.6727,
+     5.4725
+    ],
+    "target": [
+     0.7688,
+     1.4227,
+     -0.3217
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "framedSubjectIds": [
+      "zapp",
+      "kira"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9916,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 126,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 42,
+    "REQUIRED_SUBJECT_NOT_IN_FRAME": 3,
+    "FACE_VISIBILITY_LOW": 41,
+    "CAMERA_PATH_COLLISION": 1,
+    "LENS_COLLISION": 1,
+    "PROFILE_ANGLE_OUT_OF_RANGE": 6,
+    "NEAR_EYE_NOT_VISIBLE": 6,
+    "MOUTH_NOT_VISIBLE": 6,
+    "BROW_NOT_READABLE": 6,
+    "FACE_AREA_TOO_SMALL": 10,
+    "SUBJECT_TOO_SMALL_FOR_INTENT": 18
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s003",
+   "sourceShot": "s003",
+   "start": 3.391,
+   "end": 4.6,
+   "frames": [
+    102,
+    138
+   ],
+   "phraseId": "p01",
+   "chunkId": "p01-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [],
+    "heroProps": [],
+    "reason": "opening comparison: both characters and the classroom geography (both required)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s003:two_character_medium:y0:d1",
+    "intent": "medium",
+    "kind": "two_character_medium",
+    "position": [
+     0.7141,
+     1.6732,
+     5.4764
+    ],
+    "target": [
+     0.7687,
+     1.4232,
+     -0.3264
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "framedSubjectIds": [
+      "zapp",
+      "kira"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.998,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 124,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 42,
+    "REQUIRED_SUBJECT_NOT_IN_FRAME": 3,
+    "FACE_VISIBILITY_LOW": 35,
+    "FACE_AREA_TOO_SMALL": 8,
+    "PROFILE_FACE_OBSTRUCTED": 2,
+    "SUBJECT_TOO_SMALL_FOR_INTENT": 18
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s004",
+   "sourceShot": "s004",
+   "start": 4.6,
+   "end": 6.415,
+   "frames": [
+    138,
+    193
+   ],
+   "phraseId": "p02",
+   "chunkId": "p02-c01",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp curious_lean: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s004:three_quarter:a40:d5.40:h0.30",
+    "intent": "three_quarter_profile",
+    "kind": "three_quarter",
+    "position": [
+     3.759,
+     1.6599,
+     3.8136
+    ],
+    "target": [
+     0.2867,
+     1.3599,
+     -0.3245
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "profileScale": "medium",
+     "eyelineTargetId": "eyeline:zapp"
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9966,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 7,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 21,
+    "FACE_VISIBILITY_LOW": 27,
+    "FOREGROUND_CLUTTER": 2,
+    "SCREEN_DIRECTION_REVERSED": 5,
+    "CAMERA_PATH_COLLISION": 1,
+    "LENS_COLLISION": 1,
+    "FACE_AREA_TOO_SMALL": 8,
+    "PROFILE_FACE_OBSTRUCTED": 2
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s005",
+   "sourceShot": "s005",
+   "start": 6.415,
+   "end": 7.998,
+   "frames": [
+    193,
+    240
+   ],
+   "phraseId": "p02",
+   "chunkId": "p02-c02",
+   "spec": {
+    "intent": "reaction",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp curious_lean: active-character reaction (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s005:profile:a10:d2.82:h-0.10",
+    "intent": "motivated_profile",
+    "kind": "profile",
+    "position": [
+     0.7675,
+     1.5726,
+     2.4488
+    ],
+    "target": [
+     0.2915,
+     1.6726,
+     -0.3263
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "profileScale": "close",
+     "eyelineTargetId": "eyeline:zapp"
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9978,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 20,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 28,
+    "FOREGROUND_CLUTTER": 11,
+    "FACE_VISIBILITY_LOW": 106,
+    "SCREEN_DIRECTION_REVERSED": 26,
+    "NEAR_EYE_NOT_VISIBLE": 8,
+    "MOUTH_NOT_VISIBLE": 60,
+    "BROW_NOT_READABLE": 7,
+    "FACE_AREA_TOO_SMALL": 10,
+    "PROFILE_FACE_OBSTRUCTED": 10,
+    "EYES_NOT_VISIBLE": 53,
+    "FACE_OUTSIDE_SAFE_MARGIN": 7,
+    "LENS_TOO_CLOSE_TO_HEAD": 3
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s006",
+   "sourceShot": "s006",
+   "start": 7.998,
+   "end": 9.58,
+   "frames": [
+    240,
+    288
+   ],
+   "phraseId": "p02",
+   "chunkId": "p02-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp curious_lean: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s006:profile:a24:d5.39:h0.30",
+    "intent": "motivated_profile",
+    "kind": "profile",
+    "position": [
+     2.5105,
+     1.6621,
+     4.5828
+    ],
+    "target": [
+     0.2968,
+     1.3621,
+     -0.3308
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "profileScale": "medium",
+     "eyelineTargetId": "eyeline:zapp"
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9988,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 7,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 21,
+    "FOREGROUND_CLUTTER": 2,
+    "FACE_VISIBILITY_LOW": 26,
+    "SCREEN_DIRECTION_REVERSED": 5,
+    "FACE_AREA_TOO_SMALL": 8,
+    "PROFILE_FACE_OBSTRUCTED": 2
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s007",
+   "sourceShot": "s007",
+   "start": 9.58,
+   "end": 11.609,
+   "frames": [
+    288,
+    349
+   ],
+   "phraseId": "p03",
+   "chunkId": "p03-c01",
+   "spec": {
+    "intent": "wide",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "jump: full-body framing so the vertical displacement reads",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s007:two_character_medium:y0:d1",
+    "intent": "medium",
+    "kind": "two_character_medium",
+    "position": [
+     -0.1554,
+     1.6728,
+     5.3265
+    ],
+    "target": [
+     0.7717,
+     1.4228,
+     -0.388
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "framedSubjectIds": [
+      "zapp",
+      "kira"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9291,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 38,
+    "ACTIVE_SUBJECT_HIDDEN": 2,
+    "SCREEN_DIRECTION_REVERSED": 2,
+    "FACE_VISIBILITY_LOW": 5,
+    "SUBJECT_TOO_SMALL_FOR_INTENT": 17
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0708,
+      "postures": [
+       "standing",
+       "jumping"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s008",
+   "sourceShot": "s008",
+   "start": 11.609,
+   "end": 13.637,
+   "frames": [
+    349,
+    410
+   ],
+   "phraseId": "p03",
+   "chunkId": "p03-c01",
+   "spec": {
+    "intent": "reaction",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp jump: active-character reaction (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s008:profile:a10:d2.68:h-0.10",
+    "intent": "motivated_profile",
+    "kind": "profile",
+    "position": [
+     0.7218,
+     1.6116,
+     2.1163
+    ],
+    "target": [
+     0.2557,
+     1.7116,
+     -0.5274
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "profileScale": "close",
+     "eyelineTargetId": "eyeline:zapp"
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.993,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 30,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 28,
+    "FACE_VISIBILITY_LOW": 126,
+    "FOREGROUND_CLUTTER": 12,
+    "NEAR_EYE_NOT_VISIBLE": 4,
+    "MOUTH_NOT_VISIBLE": 59,
+    "BROW_NOT_READABLE": 4,
+    "FACE_AREA_TOO_SMALL": 8,
+    "PROFILE_FACE_OBSTRUCTED": 30,
+    "SCREEN_DIRECTION_REVERSED": 31,
+    "EYES_NOT_VISIBLE": 53,
+    "LENS_TOO_CLOSE_TO_HEAD": 3,
+    "FACE_OUTSIDE_SAFE_MARGIN": 6,
+    "CAMERA_PATH_COLLISION": 3,
+    "LENS_COLLISION": 3
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0018,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s009",
+   "sourceShot": "s009",
+   "start": 13.637,
+   "end": 15.68,
+   "frames": [
+    410,
+    471
+   ],
+   "phraseId": "p03",
+   "chunkId": "p03-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp jump: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s009:medium:a0:d4.94:h0.10",
+    "intent": "medium",
+    "kind": "medium",
+    "position": [
+     0.2564,
+     1.4738,
+     4.4414
+    ],
+    "target": [
+     0.2564,
+     1.3738,
+     -0.4965
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9985,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 7,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 21,
+    "FACE_VISIBILITY_LOW": 32,
+    "FOREGROUND_CLUTTER": 3,
+    "SCREEN_DIRECTION_REVERSED": 6,
+    "FACE_AREA_TOO_SMALL": 8
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s010",
+   "sourceShot": "s010",
+   "start": 15.68,
+   "end": 17.207,
+   "frames": [
+    471,
+    517
+   ],
+   "phraseId": "p04",
+   "chunkId": "p04-c01",
+   "spec": {
+    "intent": "medium",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "kira arms_crossed: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s010:frontal_medium:y60:d2.1",
+    "intent": "medium",
+    "kind": "frontal_medium",
+    "position": [
+     -2.5099,
+     1.8415,
+     1.9617
+    ],
+    "target": [
+     1.2362,
+     1.3585,
+     -0.3654
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9966,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 7,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 31,
+    "FACE_VISIBILITY_LOW": 112,
+    "SCREEN_DIRECTION_REVERSED": 9,
+    "FOREGROUND_CLUTTER": 2,
+    "PROFILE_ANGLE_OUT_OF_RANGE": 18,
+    "NEAR_EYE_NOT_VISIBLE": 8,
+    "MOUTH_NOT_VISIBLE": 14,
+    "BROW_NOT_READABLE": 8,
+    "FACE_AREA_TOO_SMALL": 10,
+    "EYELINE_TARGET_UNKNOWN": 12,
+    "PROFILE_FACE_OBSTRUCTED": 6
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0.0001,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s011",
+   "sourceShot": "s011",
+   "start": 17.207,
+   "end": 19.084,
+   "frames": [
+    517,
+    573
+   ],
+   "phraseId": "p04",
+   "chunkId": "p04-c02",
+   "spec": {
+    "intent": "reaction",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "kira arms_crossed: active-character reaction (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s011:frontal_medium:y60:d2.1",
+    "intent": "medium",
+    "kind": "frontal_medium",
+    "position": [
+     -2.4537,
+     1.8295,
+     1.9097
+    ],
+    "target": [
+     1.2923,
+     1.3465,
+     -0.4174
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9992,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 75,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 24,
+    "FACE_VISIBILITY_LOW": 125,
+    "FOREGROUND_CLUTTER": 22,
+    "SCREEN_DIRECTION_REVERSED": 33,
+    "NEAR_EYE_NOT_VISIBLE": 10,
+    "MOUTH_NOT_VISIBLE": 47,
+    "BROW_NOT_READABLE": 10,
+    "FACE_AREA_TOO_SMALL": 2,
+    "PROFILE_FACE_OBSTRUCTED": 12,
+    "EYES_NOT_VISIBLE": 52,
+    "FACE_OUTSIDE_SAFE_MARGIN": 4,
+    "LENS_TOO_CLOSE_TO_HEAD": 3
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s012",
+   "sourceShot": "s012",
+   "start": 19.084,
+   "end": 20.96,
+   "frames": [
+    573,
+    629
+   ],
+   "phraseId": "p04",
+   "chunkId": "p04-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "kira arms_crossed: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s012:frontal_medium:y60:d2.1",
+    "intent": "medium",
+    "kind": "frontal_medium",
+    "position": [
+     -2.4716,
+     1.8341,
+     1.9303
+    ],
+    "target": [
+     1.2744,
+     1.3511,
+     -0.3968
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9987,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 7,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 23,
+    "SCREEN_DIRECTION_REVERSED": 7,
+    "FACE_VISIBILITY_LOW": 101,
+    "FOREGROUND_CLUTTER": 2,
+    "FACE_AREA_TOO_SMALL": 6,
+    "PROFILE_FACE_OBSTRUCTED": 12,
+    "MOUTH_NOT_VISIBLE": 10,
+    "NEAR_EYE_NOT_VISIBLE": 6,
+    "BROW_NOT_READABLE": 6
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s013",
+   "sourceShot": "s013",
+   "start": 20.96,
+   "end": 22.514,
+   "frames": [
+    629,
+    676
+   ],
+   "phraseId": "p05",
+   "chunkId": "p05-c01",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp look_at: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s013:medium:a0:d4.74:h0.10",
+    "intent": "medium",
+    "kind": "medium",
+    "position": [
+     0.145,
+     1.328,
+     4.4144
+    ],
+    "target": [
+     0.145,
+     1.228,
+     -0.3302
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9905,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 9,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 31,
+    "FACE_VISIBILITY_LOW": 109,
+    "PROFILE_ANGLE_OUT_OF_RANGE": 20,
+    "NEAR_EYE_NOT_VISIBLE": 10,
+    "MOUTH_NOT_VISIBLE": 10,
+    "BROW_NOT_READABLE": 10,
+    "PROFILE_FACE_OBSTRUCTED": 6,
+    "FACE_AREA_TOO_SMALL": 12,
+    "CAMERA_PATH_COLLISION": 1,
+    "LENS_COLLISION": 1,
+    "EYELINE_OFF_TARGET": 5,
+    "EYELINE_SCREEN_MISMATCH": 5
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s014",
+   "sourceShot": "s014",
+   "start": 22.514,
+   "end": 24.067,
+   "frames": [
+    676,
+    723
+   ],
+   "phraseId": "p05",
+   "chunkId": "p05-c01",
+   "spec": {
+    "intent": "reaction",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp look_at: active-character reaction (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s014:reaction:a-25:d2.50:h0.10",
+    "intent": "reaction",
+    "kind": "reaction",
+    "position": [
+     -0.9389,
+     1.6008,
+     1.9587
+    ],
+    "target": [
+     0.1163,
+     1.5008,
+     -0.3041
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9987,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 34,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 28,
+    "FACE_VISIBILITY_LOW": 40,
+    "EYES_NOT_VISIBLE": 18,
+    "MOUTH_NOT_VISIBLE": 7,
+    "FACE_OUTSIDE_SAFE_MARGIN": 7
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s015",
+   "sourceShot": "s015",
+   "start": 24.067,
+   "end": 25.94,
+   "frames": [
+    723,
+    779
+   ],
+   "phraseId": "p05",
+   "chunkId": "p05-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp look_at: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s015:medium:a-25:d4.80:h0.60",
+    "intent": "medium",
+    "kind": "medium",
+    "position": [
+     -1.9282,
+     1.8137,
+     4.0055
+    ],
+    "target": [
+     0.0985,
+     1.2137,
+     -0.3407
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9994,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 9,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 21,
+    "FACE_VISIBILITY_LOW": 22
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s016a",
+   "sourceShot": "s016",
+   "start": 25.94,
+   "end": 26.886,
+   "frames": [
+    779,
+    807
+   ],
+   "phraseId": "p06",
+   "chunkId": "p06-c01",
+   "spec": {
+    "intent": "medium",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "kira warns zapp: speaker + listener required — sequential 1/2: kira",
+    "requiresHeroProp": false,
+    "pattern": "speaker_ots",
+    "foreground": "zapp"
+   },
+   "coverage": "sequential_speaker",
+   "camera": {
+    "id": "s016a:speaker_ots:s-1:u0.35:o1.15:b0.15:close0.36",
+    "intent": "offset_elevated_speaker_ots",
+    "kind": "speaker_ots",
+    "position": [
+     0.075,
+     2.0159,
+     0.8484
+    ],
+    "target": [
+     1.2581,
+     1.676,
+     -0.4061
+    ],
+    "fovDeg": 61,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false,
+     "profileScale": "close",
+     "eyelineTargetId": "eyeline:kira",
+     "foregroundSubjectId": "zapp"
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9157,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 85,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 275,
+    "FACE_VISIBILITY_LOW": 1147,
+    "SCREEN_DIRECTION_REVERSED": 161,
+    "FOREGROUND_CLUTTER": 100,
+    "PROFILE_ANGLE_OUT_OF_RANGE": 82,
+    "NEAR_EYE_NOT_VISIBLE": 573,
+    "MOUTH_NOT_VISIBLE": 641,
+    "BROW_NOT_READABLE": 373,
+    "FACE_AREA_TOO_SMALL": 122,
+    "PROFILE_FACE_OBSTRUCTED": 1290,
+    "LENS_TOO_CLOSE_TO_HEAD": 39,
+    "OTS_FOREGROUND_OBSTRUCTION": 318,
+    "EYELINE_SCREEN_MISMATCH": 54
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s016b",
+   "sourceShot": "s016",
+   "start": 26.886,
+   "end": 27.832,
+   "frames": [
+    807,
+    835
+   ],
+   "phraseId": "p06",
+   "chunkId": "p06-c01",
+   "spec": {
+    "intent": "reaction",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "kira warns zapp: speaker + listener required — sequential 2/2: zapp reaction",
+    "requiresHeroProp": false
+   },
+   "coverage": "sequential_listener",
+   "camera": {
+    "id": "s016b:reaction:a-50:d2.47:h0.10",
+    "intent": "reaction",
+    "kind": "reaction",
+    "position": [
+     -1.7847,
+     1.6032,
+     1.2634
+    ],
+    "target": [
+     0.1074,
+     1.5032,
+     -0.3242
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9988,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 35,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 28,
+    "FACE_VISIBILITY_LOW": 40,
+    "EYES_NOT_VISIBLE": 18,
+    "MOUTH_NOT_VISIBLE": 8,
+    "FACE_OUTSIDE_SAFE_MARGIN": 7
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s017",
+   "sourceShot": "s017",
+   "start": 27.832,
+   "end": 29.724,
+   "frames": [
+    835,
+    892
+   ],
+   "phraseId": "p06",
+   "chunkId": "p06-c01",
+   "spec": {
+    "intent": "medium",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [],
+    "heroProps": [],
+    "reason": "kira warns zapp: speaker + listener required",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s017:two_shot:a-17:d5.88:h0.15",
+    "intent": "medium",
+    "kind": "two_shot",
+    "position": [
+     -1.0127,
+     1.5487,
+     5.278
+    ],
+    "target": [
+     0.6886,
+     1.3987,
+     -0.3543
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false,
+     "framedSubjectIds": [
+      "kira",
+      "zapp"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9649,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "FACE_VISIBILITY_LOW": 110,
+    "HEAD_CROPPED": 164,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 102,
+    "REQUIRED_SUBJECT_NOT_IN_FRAME": 6,
+    "FACE_AREA_TOO_SMALL": 6,
+    "PROFILE_FACE_OBSTRUCTED": 16,
+    "BROW_NOT_READABLE": 6,
+    "NEAR_EYE_NOT_VISIBLE": 4,
+    "SUBJECT_TOO_SMALL_FOR_INTENT": 14
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s018",
+   "sourceShot": "s018",
+   "start": 29.724,
+   "end": 31.52,
+   "frames": [
+    892,
+    946
+   ],
+   "phraseId": "p06",
+   "chunkId": "p06-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [],
+    "heroProps": [],
+    "reason": "kira warns zapp: speaker + listener required",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s018:two_shot:a-17:d5.91:h0.15",
+    "intent": "medium",
+    "kind": "two_shot",
+    "position": [
+     -1.0176,
+     1.548,
+     5.2933
+    ],
+    "target": [
+     0.6863,
+     1.398,
+     -0.3618
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false,
+     "framedSubjectIds": [
+      "kira",
+      "zapp"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9646,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 164,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 102,
+    "FACE_VISIBILITY_LOW": 106,
+    "REQUIRED_SUBJECT_NOT_IN_FRAME": 6,
+    "FACE_AREA_TOO_SMALL": 6,
+    "PROFILE_FACE_OBSTRUCTED": 12,
+    "BROW_NOT_READABLE": 6,
+    "NEAR_EYE_NOT_VISIBLE": 4,
+    "SUBJECT_TOO_SMALL_FOR_INTENT": 14
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s019",
+   "sourceShot": "s019",
+   "start": 31.52,
+   "end": 33.36,
+   "frames": [
+    946,
+    1001
+   ],
+   "phraseId": "p07",
+   "chunkId": "p07-c01",
+   "spec": {
+    "intent": "prop",
+    "active": "zapp",
+    "subjects": [
+     "zapp"
+    ],
+    "optional": [],
+    "heroProps": [
+     "button"
+    ],
+    "reason": "press: hand/button contact and interaction point visible",
+    "requiresHeroProp": true
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s019:frontal_medium:y0:d2.1",
+    "intent": "medium",
+    "kind": "frontal_medium",
+    "position": [
+     -2.9589,
+     1.7538,
+     3.0927
+    ],
+    "target": [
+     -0.0128,
+     1.2708,
+     -0.1889
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": true
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9892,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 18,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 21,
+    "HERO_PROP_UNREADABLE": 26,
+    "INTERACTION_POINT_HIDDEN": 43,
+    "PROP_SHOT_UPSTAGED_BY_BODY": 9
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0019,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s020",
+   "sourceShot": "s020",
+   "start": 33.36,
+   "end": 35.2,
+   "frames": [
+    1001,
+    1056
+   ],
+   "phraseId": "p07",
+   "chunkId": "p07-c01",
+   "spec": {
+    "intent": "reaction",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp press_button: active-character reaction (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s020:reaction:a-50:d2.47:h0.10",
+    "intent": "reaction",
+    "kind": "reaction",
+    "position": [
+     -1.7765,
+     1.6063,
+     1.2518
+    ],
+    "target": [
+     0.1165,
+     1.5063,
+     -0.3366
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9992,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 33,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 28,
+    "FACE_VISIBILITY_LOW": 37,
+    "EYES_NOT_VISIBLE": 17,
+    "MOUTH_NOT_VISIBLE": 6,
+    "FACE_OUTSIDE_SAFE_MARGIN": 7
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s021",
+   "sourceShot": "s021",
+   "start": 35.2,
+   "end": 36.634,
+   "frames": [
+    1056,
+    1100
+   ],
+   "phraseId": "p08",
+   "chunkId": "p08-c01",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp victory_pose: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s021:three_quarter:a-7:d4.90:h-0.10",
+    "intent": "three_quarter_profile",
+    "kind": "three_quarter",
+    "position": [
+     -0.409,
+     1.1897,
+     4.4491
+    ],
+    "target": [
+     0.1813,
+     1.2897,
+     -0.4107
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false,
+     "profileScale": "medium",
+     "eyelineTargetId": "eyeline:zapp"
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9965,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 7,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 23,
+    "FACE_VISIBILITY_LOW": 41,
+    "SCREEN_DIRECTION_REVERSED": 4,
+    "FACE_AREA_TOO_SMALL": 13
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.017,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s022",
+   "sourceShot": "s022",
+   "start": 36.634,
+   "end": 38.068,
+   "frames": [
+    1100,
+    1143
+   ],
+   "phraseId": "p08",
+   "chunkId": "p08-c01",
+   "spec": {
+    "intent": "reaction",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp victory_pose: active-character reaction (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s022:reaction:a-50:d2.47:h0.10",
+    "intent": "reaction",
+    "kind": "reaction",
+    "position": [
+     -1.7765,
+     1.6063,
+     1.2518
+    ],
+    "target": [
+     0.1165,
+     1.5063,
+     -0.3366
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9993,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 34,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 28,
+    "FACE_VISIBILITY_LOW": 37,
+    "EYES_NOT_VISIBLE": 17,
+    "MOUTH_NOT_VISIBLE": 6,
+    "FACE_OUTSIDE_SAFE_MARGIN": 7
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0018,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s023",
+   "sourceShot": "s023",
+   "start": 38.068,
+   "end": 40.24,
+   "frames": [
+    1143,
+    1208
+   ],
+   "phraseId": "p08",
+   "chunkId": "p08-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp victory_pose: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s023:medium:a-25:d4.76:h1.10",
+    "intent": "medium",
+    "kind": "medium",
+    "position": [
+     -1.9076,
+     2.3147,
+     4.0116
+    ],
+    "target": [
+     0.1061,
+     1.2147,
+     -0.307
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9994,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 9,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 21,
+    "FACE_VISIBILITY_LOW": 19
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "id": "s024g1",
+   "sourceShot": "s024",
+   "start": 40.24,
+   "end": 40.9333,
+   "frames": [
+    1208,
+    1228
+   ],
+   "phraseId": "p09",
+   "chunkId": "p09-c01",
+   "spec": {
+    "intent": "prop",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "zapp",
+     "kira"
+    ],
+    "heroProps": [
+     "coin"
+    ],
+    "reason": "prop_growth_sequence 1/2 (small): close prop insert, face not required",
+    "requiresHeroProp": true
+   },
+   "coverage": "growth_stage",
+   "camera": {
+    "id": "s024g1:prop_insert:y60:d1",
+    "intent": "prop",
+    "kind": "prop_insert",
+    "position": [
+     -2.2962,
+     0.4363,
+     -0.7357
+    ],
+    "target": [
+     -2.1,
+     0.09,
+     -1.4
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": true
+    }
+   },
+   "blocked": null,
+   "screenDirection": "neutral",
+   "minScore": 0.675,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HERO_PROP_VISIBILITY_LOW": 40,
+    "WIDE_MISSING_HERO_PROP": 4,
+    "HEAD_CROPPED": 10,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 21,
+    "FACE_VISIBILITY_LOW": 3,
+    "HERO_PROP_UNREADABLE": 131,
+    "CAMERA_PATH_COLLISION": 7,
+    "LENS_COLLISION": 7,
+    "SCREEN_DIRECTION_REVERSED": 4,
+    "FOREGROUND_CLUTTER": 14,
+    "PROP_SHOT_UPSTAGED_BY_BODY": 12,
+    "LENS_TOO_CLOSE_TO_HEAD": 6
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": true,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0091,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     1,
+     2.4365
+    ]
+   }
+  },
+  {
+   "id": "s024g2",
+   "sourceShot": "s024",
+   "start": 40.9333,
+   "end": 42.23,
+   "frames": [
+    1228,
+    1267
+   ],
+   "phraseId": "p09",
+   "chunkId": "p09-c01",
+   "spec": {
+    "intent": "scale_reveal",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "zapp",
+     "kira"
+    ],
+    "heroProps": [
+     "coin"
+    ],
+    "scaleRefs": [],
+    "reason": "prop_growth_sequence 2/2 (mid): prop scale reveal, no face hidden by the prop",
+    "requiresHeroProp": true
+   },
+   "coverage": "growth_stage",
+   "camera": {
+    "id": "s024g2:scale_mid_f42:a-15:d4.13:h0.41:f42",
+    "intent": "scale_reveal",
+    "kind": "scale_mid_f42",
+    "position": [
+     -3.1679,
+     0.945,
+     2.5853
+    ],
+    "target": [
+     -2.1,
+     0.5324,
+     -1.4
+    ],
+    "fovDeg": 42,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": true,
+     "scaleReferenceIds": []
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.6171,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "SCALE_REVEAL_NO_THICKNESS_EDGE": 8,
+    "HERO_PROP_UNREADABLE": 16,
+    "FOREGROUND_CLUTTER": 5,
+    "HERO_PROP_VISIBILITY_LOW": 12,
+    "SCALE_REVEAL_EMBLEM_HIDDEN": 8,
+    "SCALE_REVEAL_SILHOUETTE_LOW": 13,
+    "HEAD_CROPPED": 14,
+    "LENS_TOO_CLOSE_TO_HEAD": 6,
+    "CAMERA_PATH_COLLISION": 24,
+    "LENS_COLLISION": 24
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": true,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     2.6492,
+     6
+    ]
+   }
+  },
+  {
+   "id": "s025a",
+   "sourceShot": "s025",
+   "start": 42.23,
+   "end": 43.2333,
+   "frames": [
+    1267,
+    1297
+   ],
+   "phraseId": "p09",
+   "chunkId": "p09-c01",
+   "spec": {
+    "intent": "reaction",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp reaction (prop not required; supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "sequential_reaction",
+   "camera": {
+    "id": "s025a:reaction_close:y40:d1.7",
+    "intent": "reaction",
+    "kind": "reaction_close",
+    "position": [
+     -2.4017,
+     1.7817,
+     0.2261
+    ],
+    "target": [
+     0.1627,
+     1.6627,
+     -0.6805
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9351,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 28,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 26,
+    "SCREEN_DIRECTION_REVERSED": 33,
+    "PROFILE_FACE_OBSTRUCTED": 25,
+    "MOUTH_NOT_VISIBLE": 19,
+    "FACE_VISIBILITY_LOW": 91,
+    "NEAR_EYE_NOT_VISIBLE": 4,
+    "BROW_NOT_READABLE": 4,
+    "FACE_AREA_TOO_SMALL": 6,
+    "EYES_NOT_VISIBLE": 16,
+    "FACE_OUTSIDE_SAFE_MARGIN": 6
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     6,
+     6
+    ]
+   }
+  },
+  {
+   "id": "s025b",
+   "sourceShot": "s025",
+   "start": 43.2333,
+   "end": 44.22,
+   "frames": [
+    1297,
+    1327
+   ],
+   "phraseId": "p09",
+   "chunkId": "p09-c01",
+   "spec": {
+    "intent": "scale_reveal",
+    "active": "zapp",
+    "subjects": [
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [
+     "coin"
+    ],
+    "scaleRefs": [],
+    "reason": "giant-prop scale insert (zapp optional; supporting actor excluded)",
+    "requiresHeroProp": true
+   },
+   "coverage": "sequential_insert",
+   "camera": {
+    "id": "s025b:scale_mid_f42:a-15:d4.16:h0.42:f42",
+    "intent": "scale_reveal",
+    "kind": "scale_mid_f42",
+    "position": [
+     -3.1779,
+     0.9565,
+     2.6228
+    ],
+    "target": [
+     -2.1,
+     0.54,
+     -1.4
+    ],
+    "fovDeg": 42,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": true,
+     "scaleReferenceIds": []
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.7,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "SCALE_REVEAL_NO_THICKNESS_EDGE": 4,
+    "FOREGROUND_CLUTTER": 4,
+    "HERO_PROP_VISIBILITY_LOW": 6,
+    "SCALE_REVEAL_EMBLEM_HIDDEN": 4,
+    "SCALE_REVEAL_SILHOUETTE_LOW": 6,
+    "HEAD_CROPPED": 6,
+    "LENS_TOO_CLOSE_TO_HEAD": 3,
+    "CAMERA_PATH_COLLISION": 11,
+    "LENS_COLLISION": 11
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     6,
+     6
+    ]
+   }
+  },
+  {
+   "id": "s026",
+   "sourceShot": "s026",
+   "start": 44.22,
+   "end": 45.804,
+   "frames": [
+    1327,
+    1375
+   ],
+   "phraseId": "p10",
+   "chunkId": "p10-c01",
+   "spec": {
+    "intent": "wide",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "Kira visibly walks (move safely / return): full-body wide on Kira",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s026:two_character_medium:y0:d1",
+    "intent": "medium",
+    "kind": "two_character_medium",
+    "position": [
+     -0.8233,
+     1.6505,
+     5.1307
+    ],
+    "target": [
+     0.7335,
+     1.4005,
+     -0.5192
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false,
+     "framedSubjectIds": [
+      "kira",
+      "zapp"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9684,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "FOREGROUND_CLUTTER": 1,
+    "ACTIVE_SUBJECT_HIDDEN": 15,
+    "PROP_COVERS_FACE": 3,
+    "HEAD_CROPPED": 76,
+    "SUBJECT_TOO_SMALL_FOR_INTENT": 13,
+    "FACE_VISIBILITY_LOW": 7,
+    "SCREEN_DIRECTION_REVERSED": 2
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": true,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0.033,
+      "maxStepM": 0.0333,
+      "postures": [
+       "standing",
+       "walking"
+      ]
+     }
+    },
+    "coinScale": [
+     6,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s027",
+   "sourceShot": "s027",
+   "start": 45.804,
+   "end": 47.388,
+   "frames": [
+    1375,
+    1422
+   ],
+   "phraseId": "p10",
+   "chunkId": "p10-c01",
+   "spec": {
+    "intent": "wide",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "Kira visibly walks (move safely / return): full-body wide on Kira",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s027:wideswall:a0:d14.02:h2.58:f42",
+    "intent": "wide",
+    "kind": "wideswall",
+    "position": [
+     0.6949,
+     3.7,
+     13.9503
+    ],
+    "target": [
+     0.6949,
+     1.1177,
+     -0.0654
+    ],
+    "fovDeg": 42,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.6344,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 78,
+    "SUBJECT_TOO_SMALL_FOR_INTENT": 8
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": true,
+    "actors": {
+     "kira": {
+      "displacementM": 1.1864,
+      "maxStepM": 0.0522,
+      "postures": [
+       "standing",
+       "walking"
+      ]
+     },
+     "zapp": {
+      "displacementM": 1.2389,
+      "maxStepM": 0.053,
+      "postures": [
+       "walking"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s028",
+   "sourceShot": "s028",
+   "start": 47.388,
+   "end": 49.86,
+   "frames": [
+    1422,
+    1496
+   ],
+   "phraseId": "p10",
+   "chunkId": "p10-c02",
+   "spec": {
+    "intent": "wide",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "Kira visibly walks (move safely / return): full-body wide on Kira",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s028:widesw:a0:d5.89:h1.47:f42",
+    "intent": "wide",
+    "kind": "widesw",
+    "position": [
+     2.4062,
+     2.5327,
+     6.5314
+    ],
+    "target": [
+     2.4062,
+     1.0592,
+     0.6375
+    ],
+    "fovDeg": 42,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left;movement_reversed:kira",
+   "minScore": 0.8338,
+   "droppedOptional": [
+    "zapp"
+   ],
+   "cameraRejections": {
+    "HEAD_CROPPED": 21,
+    "WIDE_EXCESSIVE_EMPTY_SPACE": 1,
+    "LENS_TOO_CLOSE_TO_HEAD": 1,
+    "ACTIVE_SUBJECT_HIDDEN": 5
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": true,
+    "actors": {
+     "kira": {
+      "displacementM": 0.3075,
+      "maxStepM": 0.0515,
+      "postures": [
+       "walking",
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 1.6124,
+      "maxStepM": 0.0523,
+      "postures": [
+       "walking",
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s029",
+   "sourceShot": "s029",
+   "start": 49.86,
+   "end": 51.473,
+   "frames": [
+    1496,
+    1545
+   ],
+   "phraseId": "p11",
+   "chunkId": "p11-c01",
+   "spec": {
+    "intent": "scale_reveal",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [
+     "coin"
+    ],
+    "scaleRefs": [
+     "zapp"
+    ],
+    "reason": "giant-coin scale reveal with Zapp for scale (his face may turn to the coin)",
+    "requiresHeroProp": true
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s029:scale_mid_f62:a35:d8.08:h0.81:f62",
+    "intent": "scale_reveal",
+    "kind": "scale_mid_f62",
+    "position": [
+     2.5335,
+     2.3064,
+     6.5801
+    ],
+    "target": [
+     -2.1,
+     1.4985,
+     -0.0373
+    ],
+    "fovDeg": 62,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": true,
+     "scaleReferenceIds": [
+      "zapp"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.6672,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "SCALE_REVEAL_NO_THICKNESS_EDGE": 15,
+    "SCALE_REVEAL_EMBLEM_HIDDEN": 18
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0001,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s030",
+   "sourceShot": "s030",
+   "start": 51.473,
+   "end": 53.267,
+   "frames": [
+    1545,
+    1599
+   ],
+   "phraseId": "p11",
+   "chunkId": "p11-c02",
+   "spec": {
+    "intent": "reaction",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp arms_crossed: active-character reaction (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s030:frontal_medium:y0:d2.5",
+    "intent": "medium",
+    "kind": "frontal_medium",
+    "position": [
+     2.9999,
+     2.0036,
+     2.5988
+    ],
+    "target": [
+     -2.0424,
+     1.4286,
+     1.1366
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9989,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 21,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 28,
+    "CAMERA_PATH_COLLISION": 9,
+    "LENS_COLLISION": 9,
+    "FOREGROUND_CLUTTER": 14,
+    "FACE_VISIBILITY_LOW": 57,
+    "LENS_TOO_CLOSE_TO_HEAD": 1,
+    "SCREEN_DIRECTION_REVERSED": 29,
+    "MOUTH_NOT_VISIBLE": 9,
+    "EYELINE_OFF_TARGET": 48,
+    "EYELINE_SCREEN_MISMATCH": 30,
+    "NEAR_EYE_NOT_VISIBLE": 7,
+    "BROW_NOT_READABLE": 7,
+    "FACE_AREA_TOO_SMALL": 10,
+    "PROFILE_FACE_OBSTRUCTED": 8,
+    "PROP_COVERS_FACE": 12,
+    "EYES_NOT_VISIBLE": 3,
+    "FACE_OUTSIDE_SAFE_MARGIN": 6
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s031",
+   "sourceShot": "s031",
+   "start": 53.267,
+   "end": 55.06,
+   "frames": [
+    1599,
+    1652
+   ],
+   "phraseId": "p11",
+   "chunkId": "p11-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [],
+    "reason": "zapp arms_crossed: active-character medium (supporting actor optional)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s031:medium:a39:d4.99:h2.00",
+    "intent": "medium",
+    "kind": "medium",
+    "position": [
+     1.0954,
+     3.3422,
+     5.049
+    ],
+    "target": [
+     -2.0475,
+     1.3422,
+     1.1678
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.9989,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 7,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 21,
+    "CAMERA_PATH_COLLISION": 2,
+    "LENS_COLLISION": 2,
+    "FOREGROUND_CLUTTER": 14,
+    "FACE_VISIBILITY_LOW": 16,
+    "LENS_TOO_CLOSE_TO_HEAD": 3,
+    "SCREEN_DIRECTION_REVERSED": 28,
+    "FACE_AREA_TOO_SMALL": 14,
+    "EYELINE_OFF_TARGET": 46,
+    "EYELINE_SCREEN_MISMATCH": 28,
+    "PROFILE_FACE_OBSTRUCTED": 13,
+    "PROP_COVERS_FACE": 4,
+    "NEAR_EYE_NOT_VISIBLE": 4,
+    "MOUTH_NOT_VISIBLE": 4,
+    "BROW_NOT_READABLE": 4
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s032",
+   "sourceShot": "s032",
+   "start": 55.06,
+   "end": 56.718,
+   "frames": [
+    1652,
+    1702
+   ],
+   "phraseId": "p12",
+   "chunkId": "p12-c01",
+   "spec": {
+    "intent": "wide",
+    "active": "zapp",
+    "subjects": [
+     "zapp",
+     "kira"
+    ],
+    "optional": [
+     "kira"
+    ],
+    "heroProps": [
+     "coin"
+    ],
+    "reason": "tip/contact/fall: impact geography wide (coin + patient; Kira outside the hazard, optional)",
+    "requiresHeroProp": true
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s032:wide:a20:d12.71:h2.53:f42",
+    "intent": "wide",
+    "kind": "wide",
+    "position": [
+     2.2465,
+     3.7,
+     12.1369
+    ],
+    "target": [
+     -2.1,
+     1.1652,
+     0.1951
+    ],
+    "fovDeg": 42,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": true
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.7628,
+   "droppedOptional": [
+    "kira"
+   ],
+   "cameraRejections": {
+    "HERO_PROP_VISIBILITY_LOW": 6
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0253,
+      "postures": [
+       "standing",
+       "falling",
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s033",
+   "sourceShot": "s033",
+   "start": 56.718,
+   "end": 58.375,
+   "frames": [
+    1702,
+    1752
+   ],
+   "phraseId": "p12",
+   "chunkId": "p12-c01",
+   "spec": {
+    "intent": "wide",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "Kira visibly walks (move safely / return): full-body wide on Kira",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s033:widesw:a-85:d5.97:h2.65:f42",
+    "intent": "wide",
+    "kind": "widesw",
+    "position": [
+     -3.6437,
+     3.7,
+     1.0465
+    ],
+    "target": [
+     2.308,
+     1.0496,
+     0.5258
+    ],
+    "fovDeg": 42,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "neutral",
+   "minScore": 0.8006,
+   "droppedOptional": [
+    "zapp"
+   ],
+   "cameraRejections": {
+    "HEAD_CROPPED": 2,
+    "SCREEN_DIRECTION_REVERSED": 10
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": true,
+    "actors": {
+     "kira": {
+      "displacementM": 0.3375,
+      "maxStepM": 0.0489,
+      "postures": [
+       "standing",
+       "walking"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0002,
+      "postures": [
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s034",
+   "sourceShot": "s034",
+   "start": 58.375,
+   "end": 59.86,
+   "frames": [
+    1752,
+    1796
+   ],
+   "phraseId": "p12",
+   "chunkId": "p12-c02",
+   "spec": {
+    "intent": "wide",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "Kira visibly walks (move safely / return): full-body wide on Kira",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s034:wide:a-75:d5.30:h1.32:f42",
+    "intent": "wide",
+    "kind": "wide",
+    "position": [
+     -3.713,
+     2.3939,
+     1.1669
+    ],
+    "target": [
+     1.4025,
+     1.0699,
+     -0.2037
+    ],
+    "fovDeg": 42,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "neutral",
+   "minScore": 0.8296,
+   "droppedOptional": [
+    "zapp"
+   ],
+   "cameraRejections": {
+    "HEAD_CROPPED": 23
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": true,
+    "actors": {
+     "kira": {
+      "displacementM": 1.1563,
+      "maxStepM": 0.0524,
+      "postures": [
+       "walking",
+       "standing"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0001,
+      "postures": [
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s035",
+   "sourceShot": "s035",
+   "start": 59.86,
+   "end": 61.423,
+   "frames": [
+    1796,
+    1843
+   ],
+   "phraseId": "p13",
+   "chunkId": "p13-c01",
+   "spec": {
+    "intent": "close",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "kira implied_seated: waist-up close (no chair/legs shown)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s035:seated_close:a-83:d3.77:h0.00",
+    "intent": "close",
+    "kind": "seated_close",
+    "position": [
+     -2.5099,
+     2.253,
+     0.1155
+    ],
+    "target": [
+     1.2272,
+     2.253,
+     -0.3433
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:right",
+   "minScore": 0.896,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 68,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 26,
+    "FACE_VISIBILITY_LOW": 100,
+    "WAIST_UP_REQUIRED_LEGS_VISIBLE": 10,
+    "SCREEN_DIRECTION_REVERSED": 29,
+    "PROFILE_ANGLE_OUT_OF_RANGE": 28,
+    "NEAR_EYE_NOT_VISIBLE": 22,
+    "MOUTH_NOT_VISIBLE": 22,
+    "BROW_NOT_READABLE": 22,
+    "FACE_AREA_TOO_SMALL": 6,
+    "PROFILE_FACE_OBSTRUCTED": 15,
+    "EYELINE_SCREEN_MISMATCH": 10,
+    "FACE_OUTSIDE_SAFE_MARGIN": 5
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "standing",
+       "implied_seated"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0001,
+      "postures": [
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s036",
+   "sourceShot": "s036",
+   "start": 61.423,
+   "end": 63.362,
+   "frames": [
+    1843,
+    1901
+   ],
+   "phraseId": "p13",
+   "chunkId": "p13-c02",
+   "spec": {
+    "intent": "close",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "kira implied_seated: waist-up close (no chair/legs shown)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s036:reaction_close:y0:d1.35",
+    "intent": "reaction",
+    "kind": "reaction_close",
+    "position": [
+     -0.6638,
+     1.7829,
+     -1.3834
+    ],
+    "target": [
+     1.2407,
+     1.6884,
+     -0.3643
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:right",
+   "minScore": 0.9886,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 20,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 26,
+    "WAIST_UP_REQUIRED_LEGS_VISIBLE": 25,
+    "PROFILE_FACE_OBSTRUCTED": 6,
+    "FACE_AREA_TOO_SMALL": 6,
+    "SCREEN_DIRECTION_REVERSED": 25,
+    "FACE_OUTSIDE_SAFE_MARGIN": 5,
+    "FACE_VISIBILITY_LOW": 29
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "implied_seated"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0001,
+      "postures": [
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s037",
+   "sourceShot": "s037",
+   "start": 63.362,
+   "end": 65.3,
+   "frames": [
+    1901,
+    1959
+   ],
+   "phraseId": "p13",
+   "chunkId": "p13-c02",
+   "spec": {
+    "intent": "close",
+    "active": "kira",
+    "subjects": [
+     "kira",
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [],
+    "reason": "kira implied_seated: waist-up close (no chair/legs shown)",
+    "requiresHeroProp": false
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s037:reaction_close:y0:d1.35",
+    "intent": "reaction",
+    "kind": "reaction_close",
+    "position": [
+     -0.6661,
+     1.783,
+     -1.3804
+    ],
+    "target": [
+     1.2384,
+     1.6885,
+     -0.3613
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "kira",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:right",
+   "minScore": 0.9885,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 20,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 26,
+    "WAIST_UP_REQUIRED_LEGS_VISIBLE": 25,
+    "PROFILE_FACE_OBSTRUCTED": 6,
+    "FACE_AREA_TOO_SMALL": 6,
+    "SCREEN_DIRECTION_REVERSED": 25,
+    "FACE_OUTSIDE_SAFE_MARGIN": 5,
+    "FACE_VISIBILITY_LOW": 29
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "implied_seated"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0002,
+      "postures": [
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s038",
+   "sourceShot": "s038",
+   "start": 65.3,
+   "end": 67.568,
+   "frames": [
+    1959,
+    2028
+   ],
+   "phraseId": "p14",
+   "chunkId": "p14-c01",
+   "spec": {
+    "intent": "neutral_top_down_prop_insert",
+    "active": "zapp",
+    "subjects": [
+     "zapp"
+    ],
+    "optional": [
+     "zapp"
+    ],
+    "heroProps": [
+     "button"
+    ],
+    "reason": "button reset: neutral top-down insert (button + reset point only; no actor in frame; resets geography)",
+    "requiresHeroProp": true
+   },
+   "coverage": "single",
+   "camera": {
+    "id": "s038:top_down_insert:p55:a0:d0.95",
+    "intent": "neutral_top_down_prop_insert",
+    "kind": "top_down_insert",
+    "position": [
+     -0.1,
+     1.6132,
+     0.4249
+    ],
+    "target": [
+     -0.1,
+     0.835,
+     -0.12
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": true
+    }
+   },
+   "blocked": null,
+   "screenDirection": "neutral_insert",
+   "minScore": 0.675,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "LENS_TOO_CLOSE_TO_HEAD": 2,
+    "INSERT_SHOWS_ACTOR": 7,
+    "WAIST_UP_REQUIRED_LEGS_VISIBLE": 8,
+    "CAMERA_PATH_COLLISION": 1,
+    "LENS_COLLISION": 1
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "implied_seated"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0001,
+      "postures": [
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s039a",
+   "sourceShot": "s039",
+   "start": 67.568,
+   "end": 68.3666,
+   "frames": [
+    2028,
+    2051
+   ],
+   "phraseId": "p14",
+   "chunkId": "p14-c02",
+   "spec": {
+    "intent": "medium",
+    "active": "zapp",
+    "subjects": [
+     "zapp"
+    ],
+    "optional": [],
+    "heroProps": [],
+    "reason": "consequence 1/2: zapp close/medium, posture readable, prop thickness edge visible",
+    "requiresHeroProp": false,
+    "propEdge": [
+     "coin"
+    ]
+   },
+   "coverage": "consequence_subject",
+   "camera": {
+    "id": "s039a:frontal_medium:y0:d2.1",
+    "intent": "medium",
+    "kind": "frontal_medium",
+    "position": [
+     -2.103,
+     0.5117,
+     7.3045
+    ],
+    "target": [
+     -2.093,
+     0.0287,
+     2.8946
+    ],
+    "fovDeg": 38,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": false
+    }
+   },
+   "blocked": null,
+   "screenDirection": "reset_after_neutral:left",
+   "minScore": 0.9658,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "HEAD_CROPPED": 8,
+    "SHOT_TOO_TIGHT_FOR_INTENT": 18,
+    "UPPER_BODY_NOT_READABLE": 3,
+    "PROP_EDGE_NOT_VISIBLE": 33,
+    "FACE_VISIBILITY_LOW": 19,
+    "WAIST_UP_REQUIRED_LEGS_VISIBLE": 2
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "implied_seated"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0001,
+      "postures": [
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  },
+  {
+   "id": "s039b",
+   "sourceShot": "s039",
+   "start": 68.3666,
+   "end": 69.167,
+   "frames": [
+    2051,
+    2075
+   ],
+   "phraseId": "p14",
+   "chunkId": "p14-c02",
+   "spec": {
+    "intent": "elevated_consequence",
+    "active": "zapp",
+    "subjects": [
+     "zapp"
+    ],
+    "optional": [],
+    "heroProps": [
+     "coin"
+    ],
+    "scaleRefs": [
+     "zapp"
+    ],
+    "reason": "consequence 2/2: elevated consequence (zapp + prop emblem/thickness, geography)",
+    "requiresHeroProp": true
+   },
+   "coverage": "consequence_elevated",
+   "camera": {
+    "id": "s039b:elevated_consequence:p32:a0:d5.83:f52",
+    "intent": "elevated_consequence",
+    "kind": "elevated_consequence",
+    "position": [
+     -2.1,
+     3.5569,
+     6.0118
+    ],
+    "target": [
+     -2.1,
+     0.4674,
+     1.0677
+    ],
+    "fovDeg": 52,
+    "motion": "static",
+    "eval": {
+     "activeSubjectId": "zapp",
+     "requiresHeroProp": true,
+     "scaleReferenceIds": [
+      "zapp"
+     ]
+    }
+   },
+   "blocked": null,
+   "screenDirection": "consistent:left",
+   "minScore": 0.7,
+   "droppedOptional": [],
+   "cameraRejections": {
+    "SCALE_REVEAL_EMBLEM_UNREADABLE": 8,
+    "WAIST_UP_REQUIRED_LEGS_VISIBLE": 21,
+    "SCALE_REVEAL_SILHOUETTE_LOW": 98,
+    "SCALE_REVEAL_BASE_NOT_VISIBLE": 82,
+    "HEAD_CROPPED": 98,
+    "SCREEN_DIRECTION_REVERSED": 9,
+    "HERO_PROP_VISIBILITY_LOW": 14,
+    "SCALE_REVEAL_NO_THICKNESS_EDGE": 4
+   },
+   "tracking": "not needed",
+   "envelope": {
+    "moves": false,
+    "actors": {
+     "kira": {
+      "displacementM": 0,
+      "maxStepM": 0,
+      "postures": [
+       "implied_seated"
+      ]
+     },
+     "zapp": {
+      "displacementM": 0,
+      "maxStepM": 0.0001,
+      "postures": [
+       "prone"
+      ]
+     }
+    },
+    "coinScale": [
+     16.7,
+     16.7
+    ]
+   }
+  }
+ ],
+ "captions": [
+  {
+   "chunkId": "p01-c01",
+   "phraseId": "p01",
+   "start": 0.06,
+   "end": 3.391,
+   "lines": [
+    "This is the difference between",
+    "Zapp and Kira when the teacher"
+   ],
+   "emphasisWords": [
+    "difference"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p01-c02",
+   "phraseId": "p01",
+   "start": 3.391,
+   "end": 4.3,
+   "lines": [
+    "leaves the classroom."
+   ],
+   "emphasisWords": [
+    "classroom"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p02-c01",
+   "phraseId": "p02",
+   "start": 4.6,
+   "end": 6.415,
+   "lines": [
+    "The second the door closes,"
+   ],
+   "emphasisWords": [
+    "closes"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p02-c02",
+   "phraseId": "p02",
+   "start": 6.415,
+   "end": 9.32,
+   "lines": [
+    "Zapp thinks the entire",
+    "classroom belongs to him."
+   ],
+   "emphasisWords": [
+    "classroom"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p03-c01",
+   "phraseId": "p03",
+   "start": 9.58,
+   "end": 13.637,
+   "lines": [
+    "He jumps up, celebrates,",
+    "and starts acting like he"
+   ],
+   "emphasisWords": [
+    "celebrates"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p03-c02",
+   "phraseId": "p03",
+   "start": 13.637,
+   "end": 15.44,
+   "lines": [
+    "just escaped school forever."
+   ],
+   "emphasisWords": [
+    "forever"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p04-c01",
+   "phraseId": "p04",
+   "start": 15.68,
+   "end": 17.207,
+   "lines": [
+    "Kira stays at her desk"
+   ],
+   "emphasisWords": [],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p04-c02",
+   "phraseId": "p04",
+   "start": 17.207,
+   "end": 20.26,
+   "lines": [
+    "because she knows the teacher",
+    "could return at any moment."
+   ],
+   "emphasisWords": [
+    "because"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p05-c01",
+   "phraseId": "p05",
+   "start": 20.96,
+   "end": 24.067,
+   "lines": [
+    "Then Zapp notices a suspicious",
+    "free-coins button sitting"
+   ],
+   "emphasisWords": [
+    "free-coins"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p05-c02",
+   "phraseId": "p05",
+   "start": 24.067,
+   "end": 25.62,
+   "lines": [
+    "on the front desk."
+   ],
+   "emphasisWords": [],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p06-c01",
+   "phraseId": "p06",
+   "start": 25.94,
+   "end": 29.724,
+   "lines": [
+    "Kira tells him not to touch it,",
+    "which obviously makes him want"
+   ],
+   "emphasisWords": [
+    "obviously"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p06-c02",
+   "phraseId": "p06",
+   "start": 29.724,
+   "end": 31.3,
+   "lines": [
+    "to press it even more."
+   ],
+   "emphasisWords": [],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p07-c01",
+   "phraseId": "p07",
+   "start": 31.52,
+   "end": 34.9,
+   "lines": [
+    "He slams the button,",
+    "and one shiny coin appears."
+   ],
+   "emphasisWords": [
+    "appears"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p08-c01",
+   "phraseId": "p08",
+   "start": 35.2,
+   "end": 38.068,
+   "lines": [
+    "Zapp celebrates so loudly",
+    "that he completely forgets"
+   ],
+   "emphasisWords": [
+    "celebrates"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p08-c02",
+   "phraseId": "p08",
+   "start": 38.068,
+   "end": 39.86,
+   "lines": [
+    "why the classroom is empty."
+   ],
+   "emphasisWords": [
+    "classroom"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p09-c01",
+   "phraseId": "p09",
+   "start": 40.24,
+   "end": 43.96,
+   "lines": [
+    "Then the button flashes again,",
+    "and the coin begins growing."
+   ],
+   "emphasisWords": [
+    "flashes"
+   ],
+   "placement": {
+    "centerY": 0.72
+   }
+  },
+  {
+   "chunkId": "p10-c01",
+   "phraseId": "p10",
+   "start": 44.22,
+   "end": 47.388,
+   "lines": [
+    "It gets taller than the desk,",
+    "wider than Zapp,"
+   ],
+   "emphasisWords": [
+    "taller"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p10-c02",
+   "phraseId": "p10",
+   "start": 47.388,
+   "end": 49.5,
+   "lines": [
+    "and almost fills",
+    "the entire room."
+   ],
+   "emphasisWords": [
+    "almost"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p11-c01",
+   "phraseId": "p11",
+   "start": 49.86,
+   "end": 51.473,
+   "lines": [
+    "Zapp tries to look confident,"
+   ],
+   "emphasisWords": [
+    "confident"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p11-c02",
+   "phraseId": "p11",
+   "start": 51.473,
+   "end": 54.7,
+   "lines": [
+    "but Kira has already moved",
+    "safely out of the way."
+   ],
+   "emphasisWords": [
+    "already"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p12-c01",
+   "phraseId": "p12",
+   "start": 55.06,
+   "end": 58.375,
+   "lines": [
+    "The giant coin tips forward",
+    "and flattens Zapp against"
+   ],
+   "emphasisWords": [
+    "giant"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p12-c02",
+   "phraseId": "p12",
+   "start": 58.375,
+   "end": 59.48,
+   "lines": [
+    "the classroom floor."
+   ],
+   "emphasisWords": [
+    "classroom"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p13-c01",
+   "phraseId": "p13",
+   "start": 59.86,
+   "end": 61.423,
+   "lines": [
+    "At that exact moment,"
+   ],
+   "emphasisWords": [
+    "moment"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p13-c02",
+   "phraseId": "p13",
+   "start": 61.423,
+   "end": 64.94,
+   "lines": [
+    "the teacher returns and sees",
+    "Kira sitting perfectly still."
+   ],
+   "emphasisWords": [
+    "perfectly"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  },
+  {
+   "chunkId": "p14-c01",
+   "phraseId": "p14",
+   "start": 65.3,
+   "end": 67.568,
+   "lines": [
+    "And the free-coins",
+    "button quietly resets"
+   ],
+   "emphasisWords": [
+    "free-coins"
+   ],
+   "placement": {
+    "centerY": 0.72
+   }
+  },
+  {
+   "chunkId": "p14-c02",
+   "phraseId": "p14",
+   "start": 67.568,
+   "end": 69.08,
+   "lines": [
+    "for its next victim."
+   ],
+   "emphasisWords": [
+    "victim"
+   ],
+   "placement": {
+    "centerY": 0.22
+   }
+  }
+ ],
+ "captionPlacements": [
+  {
+   "chunkId": "p01-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 100,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p01-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 27,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p02-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 55,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p02-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 87,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p03-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 122,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p03-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 54,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p04-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 46,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:kira": 0,
+    "entity:supporting_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p04-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 91,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:kira": 0,
+    "entity:supporting_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p05-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 94,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p05-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 46,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p06-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 6,
+    "faces_present": 4,
+    "faces_touched": 0,
+    "frames_sampled": 113,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:kira": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0,
+    "entity:supporting_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p06-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 47,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:kira": 0,
+    "entity:supporting_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p07-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 6,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 101,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:hero_prop:button": 0,
+    "entity:interaction:interaction:press": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p08-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 87,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p08-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 53,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p09-c01",
+   "band": "lower",
+   "centerY": 0.72,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0.1084,
+    "body_background_max": 0.1013,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 5,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 111,
+    "hard_violations": 0,
+    "hero_prop_max": 0.1349,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 73.112427,
+    "primary_face_max": 0.0382,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0.1013,
+    "entity:body:zapp": 0.1084,
+    "entity:hero_prop:coin": 0.1349,
+    "entity:primary_face:zapp": 0.0382,
+    "entity:supporting_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p10-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 4,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 95,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:kira": 0,
+    "entity:supporting_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p10-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 2,
+    "faces_present": 1,
+    "faces_touched": 0,
+    "frames_sampled": 63,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:primary_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p11-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 3,
+    "faces_present": 1,
+    "faces_touched": 0,
+    "frames_sampled": 49,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:zapp": 0,
+    "entity:hero_prop:coin": 0,
+    "entity:primary_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p11-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 2,
+    "faces_present": 1,
+    "faces_touched": 0,
+    "frames_sampled": 96,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:zapp": 0,
+    "entity:primary_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p12-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 6,
+    "faces_present": 2,
+    "faces_touched": 0,
+    "frames_sampled": 100,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:body:zapp": 0,
+    "entity:hero_prop:coin": 0,
+    "entity:interaction:interaction:coin_contact": 0,
+    "entity:primary_face:kira": 0,
+    "entity:primary_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p12-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 2,
+    "faces_present": 1,
+    "faces_touched": 0,
+    "frames_sampled": 33,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:primary_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p13-c01",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 2,
+    "faces_present": 1,
+    "faces_touched": 0,
+    "frames_sampled": 47,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:primary_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p13-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 2,
+    "faces_present": 1,
+    "faces_touched": 0,
+    "frames_sampled": 106,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:kira": 0,
+    "entity:primary_face:kira": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p14-c01",
+   "band": "lower",
+   "centerY": 0.72,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 2,
+    "faces_present": 0,
+    "faces_touched": 0,
+    "frames_sampled": 69,
+    "hard_violations": 0,
+    "hero_prop_max": 0.1394,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 25.08715,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:hero_prop:button": 0.1394,
+    "entity:interaction:interaction:reset": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  },
+  {
+   "chunkId": "p14-c02",
+   "band": "upper",
+   "centerY": 0.22,
+   "violations": [],
+   "warnings": [],
+   "overlap": {
+    "body_active_max": 0,
+    "body_background_max": 0,
+    "bottom_ui_overlap_px": 0,
+    "edge_overflow_px": 0,
+    "entities": 3,
+    "faces_present": 1,
+    "faces_touched": 0,
+    "frames_sampled": 45,
+    "hard_violations": 0,
+    "hero_prop_max": 0,
+    "interaction_clearance_hit": 0,
+    "interaction_max": 0,
+    "penalty": 2,
+    "primary_face_max": 0,
+    "supporting_face_max": 0,
+    "entity:body:zapp": 0,
+    "entity:hero_prop:coin": 0,
+    "entity:primary_face:zapp": 0
+   },
+   "cameraRetries": 0,
+   "blocked": null
+  }
+ ],
+ "sequentialCoverage": [
+  {
+   "sourceShot": "s016",
+   "phraseId": "p06",
+   "reason": "two required actors (kira, zapp); no readable simultaneous portrait medium (rejections: HEAD_CROPPED×163, FACE_VISIBILITY_LOW×111, SHOT_TOO_TIGHT_FOR_INTENT×106)",
+   "split": [
+    "s016a",
+    "s016b"
+   ],
+   "outcome": "sequential coverage accepted"
+  }
+ ],
+ "coveragePatterns": [
+  {
+   "sourceShot": "s024",
+   "phraseId": "p09",
+   "pattern": "prop_growth_sequence",
+   "segments": [
+    "s024g1",
+    "s024g2"
+   ],
+   "boundaries": [
+    1228
+   ],
+   "outcome": "accepted"
+  },
+  {
+   "sourceShot": "s025",
+   "phraseId": "p09",
+   "pattern": "reaction_then_insert",
+   "segments": [
+    "s025a",
+    "s025b"
+   ],
+   "boundaries": [
+    1297
+   ],
+   "outcome": "accepted"
+  },
+  {
+   "sourceShot": "s039",
+   "phraseId": "p14",
+   "pattern": "consequence_sequence",
+   "segments": [
+    "s039a",
+    "s039b"
+   ],
+   "boundaries": [
+    2051
+   ],
+   "outcome": "accepted"
+  }
+ ],
+ "frameCoverage": {
+  "totalFrames": 2075,
+  "assigned": 2075,
+  "withCamera": 2075,
+  "evaluated": 2075,
+  "passing": 2075,
+  "failing": 0,
+  "firstFailingFrame": null,
+  "lastFailingFrame": null,
+  "failuresByShot": {},
+  "gaps": [],
+  "gapCount": 0,
+  "overlapCount": 0,
+  "ownership": "frame i -> shot with start <= i/fps < end (first frame = ceil(start*fps)); last shot owns through the final frame",
+  "trackingFrames": 0
+ }
+}
