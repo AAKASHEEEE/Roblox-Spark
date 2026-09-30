@@ -1,0 +1,805 @@
+{
+  "kind": "character",
+  "id": "teacher",
+  "version": "1.0.0",
+  "displayName": "Teacher",
+  "description": "Adult teacher. Tall grown-up proportions (small head to body), dark hair in a high bun with a mustard band and one silver streak, browline glasses, forest-green cardigan over a cream shirt and burgundy tie, pen in the pocket, brown trousers.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.5,
+      0.5,
+      0.48
+    ],
+    "headBevel": 0.06,
+    "skin": "#b8794f",
+    "torso": [
+      0.62,
+      0.8,
+      0.32
+    ],
+    "torsoColor": "#2f6a4c",
+    "armWidth": 0.16,
+    "upperArm": 0.4,
+    "lowerArm": 0.38,
+    "sleeveColor": "#2f6a4c",
+    "handColor": "#b8794f",
+    "legWidth": 0.23,
+    "upperLeg": 0.56,
+    "lowerLeg": 0.55,
+    "legColor": "#5a4636",
+    "shoeColor": "#2a1f18",
+    "soleColor": "#1a1411"
+  },
+  "parts": [
+    {
+      "id": "hair_top",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.07,
+        0.52
+      ],
+      "pos": [
+        0,
+        0.525,
+        -0.01
+      ],
+      "color": "#2b2622",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_back",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.34,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.36,
+        -0.25
+      ],
+      "color": "#2b2622",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_side_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.2,
+        0.36
+      ],
+      "pos": [
+        0.265,
+        0.42,
+        -0.07
+      ],
+      "color": "#2b2622",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_side_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.05,
+        0.2,
+        0.36
+      ],
+      "pos": [
+        -0.265,
+        0.42,
+        -0.07
+      ],
+      "color": "#2b2622",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_fringe",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.34,
+        0.075,
+        0.06
+      ],
+      "pos": [
+        -0.09,
+        0.495,
+        0.235
+      ],
+      "color": "#2b2622",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_fringe_short",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.05,
+        0.06
+      ],
+      "pos": [
+        0.17,
+        0.51,
+        0.235
+      ],
+      "color": "#2b2622",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_bun",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.26,
+        0.22,
+        0.24
+      ],
+      "pos": [
+        0,
+        0.66,
+        -0.1
+      ],
+      "color": "#2b2622",
+      "bevel": 0.07
+    },
+    {
+      "id": "hair_bun_band",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.27,
+        0.045,
+        0.25
+      ],
+      "pos": [
+        0,
+        0.585,
+        -0.1
+      ],
+      "color": "#c9a227",
+      "bevel": 0.01
+    },
+    {
+      "id": "hair_silver_streak",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.075,
+        0.062
+      ],
+      "pos": [
+        -0.2,
+        0.498,
+        0.238
+      ],
+      "color": "#a9a9b2",
+      "bevel": 0.01
+    },
+    {
+      "id": "glasses_rim_top_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.018,
+        0.014
+      ],
+      "pos": [
+        0.088,
+        0.31,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_rim_top_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.018,
+        0.014
+      ],
+      "pos": [
+        -0.088,
+        0.31,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_rim_bot_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.012,
+        0.012
+      ],
+      "pos": [
+        0.088,
+        0.172,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_rim_bot_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.012,
+        0.012
+      ],
+      "pos": [
+        -0.088,
+        0.172,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_rim_out_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.014,
+        0.15,
+        0.012
+      ],
+      "pos": [
+        0.163,
+        0.241,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_rim_out_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.014,
+        0.15,
+        0.012
+      ],
+      "pos": [
+        -0.163,
+        0.241,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_rim_in_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.012,
+        0.15,
+        0.012
+      ],
+      "pos": [
+        0.013,
+        0.241,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_rim_in_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.012,
+        0.15,
+        0.012
+      ],
+      "pos": [
+        -0.013,
+        0.241,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_bridge",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.014,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.27,
+        0.253
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_arm_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.012,
+        0.016,
+        0.26
+      ],
+      "pos": [
+        0.258,
+        0.3,
+        0.12
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "glasses_arm_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.012,
+        0.016,
+        0.26
+      ],
+      "pos": [
+        -0.258,
+        0.3,
+        0.12
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "shirt_placket",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.2,
+        0.66,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.43,
+        0.162
+      ],
+      "color": "#f3ead6"
+    },
+    {
+      "id": "tie",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.075,
+        0.46,
+        0.016
+      ],
+      "pos": [
+        0,
+        0.5,
+        0.171
+      ],
+      "color": "#8e2436"
+    },
+    {
+      "id": "tie_knot",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.085,
+        0.065,
+        0.022
+      ],
+      "pos": [
+        0,
+        0.745,
+        0.173
+      ],
+      "color": "#6f1b2a",
+      "bevel": 0.008
+    },
+    {
+      "id": "collar_l",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.11,
+        0.05,
+        0.02
+      ],
+      "pos": [
+        0.065,
+        0.77,
+        0.168
+      ],
+      "color": "#f3ead6",
+      "rotDeg": [
+        0,
+        0,
+        -22
+      ]
+    },
+    {
+      "id": "collar_r",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.11,
+        0.05,
+        0.02
+      ],
+      "pos": [
+        -0.065,
+        0.77,
+        0.168
+      ],
+      "color": "#f3ead6",
+      "rotDeg": [
+        0,
+        0,
+        22
+      ]
+    },
+    {
+      "id": "cardigan_lapel_l",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.035,
+        0.78,
+        0.016
+      ],
+      "pos": [
+        0.118,
+        0.4,
+        0.165
+      ],
+      "color": "#245439"
+    },
+    {
+      "id": "cardigan_lapel_r",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.035,
+        0.78,
+        0.016
+      ],
+      "pos": [
+        -0.118,
+        0.4,
+        0.165
+      ],
+      "color": "#245439"
+    },
+    {
+      "id": "cardigan_hem",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.64,
+        0.07,
+        0.34
+      ],
+      "pos": [
+        0,
+        0.035,
+        0
+      ],
+      "color": "#245439",
+      "bevel": 0.02
+    },
+    {
+      "id": "pocket",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.1,
+        0.1,
+        0.012
+      ],
+      "pos": [
+        0.2,
+        0.56,
+        0.163
+      ],
+      "color": "#245439"
+    },
+    {
+      "id": "pen",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.016,
+        0.08,
+        0.016
+      ],
+      "pos": [
+        0.22,
+        0.62,
+        0.17
+      ],
+      "color": "#c9a227"
+    },
+    {
+      "id": "shirt_cuff_l",
+      "attach": "forearm_l",
+      "shape": "box",
+      "size": [
+        0.175,
+        0.05,
+        0.175
+      ],
+      "pos": [
+        0,
+        -0.35,
+        0
+      ],
+      "color": "#f3ead6",
+      "bevel": 0.01
+    },
+    {
+      "id": "shirt_cuff_r",
+      "attach": "forearm_r",
+      "shape": "box",
+      "size": [
+        0.175,
+        0.05,
+        0.175
+      ],
+      "pos": [
+        0,
+        -0.35,
+        0
+      ],
+      "color": "#f3ead6",
+      "bevel": 0.01
+    }
+  ],
+  "face": {
+    "eyeColor": "#111114",
+    "browColor": "#2b2622",
+    "mouthColor": "#3a1c16",
+    "eyeSpacing": 0.36,
+    "eyeY": 0.52,
+    "eyeW": 0.1,
+    "eyeH": 0.16,
+    "browThickness": 0.05,
+    "browWidth": 0.2,
+    "mouthY": 0.76,
+    "mouthW": 0.2,
+    "hasNose": false,
+    "states": {
+      "neutral": {
+        "eyes": "oval",
+        "browL": [
+          0.1,
+          0
+        ],
+        "browR": [
+          0.1,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "curious": {
+        "eyes": "oval",
+        "browL": [
+          0.55,
+          6
+        ],
+        "browR": [
+          -0.08,
+          -8
+        ],
+        "mouth": "tight"
+      },
+      "shock": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "determined": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -24
+        ],
+        "browR": [
+          -0.2,
+          -24
+        ],
+        "mouth": "flat"
+      },
+      "regret": {
+        "eyes": "half_lid",
+        "browL": [
+          0.15,
+          20
+        ],
+        "browR": [
+          0.15,
+          20
+        ],
+        "mouth": "flat"
+      },
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.25,
+          4
+        ],
+        "browR": [
+          -0.05,
+          -8
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.85,
+          8
+        ],
+        "browR": [
+          0.85,
+          8
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      },
+      "happy": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          6
+        ],
+        "browR": [
+          0.3,
+          6
+        ],
+        "mouth": "grin"
+      },
+      "angry": {
+        "eyes": "narrow",
+        "browL": [
+          -0.35,
+          -30
+        ],
+        "browR": [
+          -0.35,
+          -30
+        ],
+        "mouth": "frown"
+      },
+      "calm": {
+        "eyes": "half_lid",
+        "browL": [
+          0.05,
+          0
+        ],
+        "browR": [
+          0.05,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "strict": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -16
+        ],
+        "browR": [
+          -0.05,
+          -10
+        ],
+        "mouth": "flat"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "strict",
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret",
+    "smug",
+    "skeptical",
+    "surprised",
+    "laughing",
+    "happy",
+    "angry",
+    "calm"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.1,
+    "runSpeed": 2.9
+  },
+  "personality": "Firm but fair; tired of the button, secretly amused. The adult in the room.",
+  "identityRules": [
+    "Always adult proportions: tallest head-to-body ratio in the cast.",
+    "Hair bun with mustard band and silver streak on the right; never loose.",
+    "Browline glasses are always worn.",
+    "Burgundy tie and pen in the left breast pocket."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

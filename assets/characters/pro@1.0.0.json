@@ -1,0 +1,723 @@
+{
+  "kind": "character",
+  "id": "pro",
+  "version": "1.0.0",
+  "displayName": "Ace",
+  "description": "Confident expert-player archetype. Teen, a little taller than the kids; black hair swept back into three spikes with lime tips, dark headset with lime rings and a boom mic, black jacket with lime zip and sleeve stripes, black joggers with lime side stripes, dark gloves, lime sneakers.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.5,
+      0.5,
+      0.48
+    ],
+    "headBevel": 0.065,
+    "skin": "#c98f68",
+    "torso": [
+      0.54,
+      0.64,
+      0.28
+    ],
+    "torsoColor": "#17181d",
+    "armWidth": 0.15,
+    "upperArm": 0.34,
+    "lowerArm": 0.31,
+    "sleeveColor": "#17181d",
+    "handColor": "#2b2d33",
+    "legWidth": 0.21,
+    "upperLeg": 0.43,
+    "lowerLeg": 0.42,
+    "legColor": "#26272d",
+    "shoeColor": "#a6f02a",
+    "soleColor": "#17181d"
+  },
+  "parts": [
+    {
+      "id": "hair_top",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.09,
+        0.52
+      ],
+      "pos": [
+        0,
+        0.53,
+        -0.01
+      ],
+      "color": "#1c1a20",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_spike_1",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.1,
+        0.3
+      ],
+      "pos": [
+        -0.16,
+        0.6,
+        -0.07
+      ],
+      "color": "#1c1a20",
+      "rotDeg": [
+        22,
+        0,
+        0
+      ],
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_spike_2",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.1,
+        0.3
+      ],
+      "pos": [
+        0,
+        0.6,
+        -0.07
+      ],
+      "color": "#1c1a20",
+      "rotDeg": [
+        22,
+        0,
+        0
+      ],
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_spike_3",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.1,
+        0.3
+      ],
+      "pos": [
+        0.16,
+        0.6,
+        -0.07
+      ],
+      "color": "#1c1a20",
+      "rotDeg": [
+        22,
+        0,
+        0
+      ],
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_tip_1",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.07,
+        0.1
+      ],
+      "pos": [
+        -0.16,
+        0.655,
+        -0.24
+      ],
+      "color": "#a6f02a",
+      "rotDeg": [
+        22,
+        0,
+        0
+      ],
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_tip_2",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.07,
+        0.1
+      ],
+      "pos": [
+        0,
+        0.655,
+        -0.24
+      ],
+      "color": "#a6f02a",
+      "rotDeg": [
+        22,
+        0,
+        0
+      ],
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_tip_3",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.15,
+        0.07,
+        0.1
+      ],
+      "pos": [
+        0.16,
+        0.655,
+        -0.24
+      ],
+      "color": "#a6f02a",
+      "rotDeg": [
+        22,
+        0,
+        0
+      ],
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_back",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.22,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.41,
+        -0.25
+      ],
+      "color": "#1c1a20",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_fade_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.12,
+        0.36
+      ],
+      "pos": [
+        0.265,
+        0.44,
+        -0.06
+      ],
+      "color": "#34313a",
+      "bevel": 0.01
+    },
+    {
+      "id": "hair_fade_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.12,
+        0.36
+      ],
+      "pos": [
+        -0.265,
+        0.44,
+        -0.06
+      ],
+      "color": "#34313a",
+      "bevel": 0.01
+    },
+    {
+      "id": "headset_band",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.64,
+        0.05,
+        0.08
+      ],
+      "pos": [
+        0,
+        0.665,
+        0.0
+      ],
+      "color": "#2b2d33",
+      "bevel": 0.02
+    },
+    {
+      "id": "headset_arm_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.3,
+        0.06
+      ],
+      "pos": [
+        0.305,
+        0.5,
+        0.0
+      ],
+      "color": "#2b2d33",
+      "bevel": 0.01
+    },
+    {
+      "id": "headset_arm_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.04,
+        0.3,
+        0.06
+      ],
+      "pos": [
+        -0.305,
+        0.5,
+        0.0
+      ],
+      "color": "#2b2d33",
+      "bevel": 0.01
+    },
+    {
+      "id": "headset_cup_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.2,
+        0.2
+      ],
+      "pos": [
+        0.3,
+        0.3,
+        0.0
+      ],
+      "color": "#2b2d33",
+      "bevel": 0.03
+    },
+    {
+      "id": "headset_cup_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.2,
+        0.2
+      ],
+      "pos": [
+        -0.3,
+        0.3,
+        0.0
+      ],
+      "color": "#2b2d33",
+      "bevel": 0.03
+    },
+    {
+      "id": "headset_ring_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.085,
+        0.13,
+        0.13
+      ],
+      "pos": [
+        0.305,
+        0.3,
+        0.0
+      ],
+      "color": "#a6f02a",
+      "bevel": 0.02
+    },
+    {
+      "id": "headset_ring_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.085,
+        0.13,
+        0.13
+      ],
+      "pos": [
+        -0.305,
+        0.3,
+        0.0
+      ],
+      "color": "#a6f02a",
+      "bevel": 0.02
+    },
+    {
+      "id": "headset_mic_boom",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.02,
+        0.22
+      ],
+      "pos": [
+        0.28,
+        0.19,
+        0.13
+      ],
+      "color": "#2b2d33",
+      "rotDeg": [
+        0,
+        -18,
+        0
+      ]
+    },
+    {
+      "id": "headset_mic",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.045,
+        0.045,
+        0.045
+      ],
+      "pos": [
+        0.235,
+        0.165,
+        0.24
+      ],
+      "color": "#a6f02a",
+      "bevel": 0.01
+    },
+    {
+      "id": "jacket_zip",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.022,
+        0.6,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.32,
+        0.142
+      ],
+      "color": "#a6f02a"
+    },
+    {
+      "id": "jacket_collar",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.5,
+        0.1,
+        0.3
+      ],
+      "pos": [
+        0,
+        0.63,
+        -0.01
+      ],
+      "color": "#17181d",
+      "bevel": 0.03
+    },
+    {
+      "id": "sleeve_stripe_l",
+      "attach": "upperarm_l",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.32,
+        0.045
+      ],
+      "pos": [
+        0.076,
+        -0.16,
+        0
+      ],
+      "color": "#a6f02a"
+    },
+    {
+      "id": "sleeve_stripe_r",
+      "attach": "upperarm_r",
+      "shape": "box",
+      "size": [
+        0.02,
+        0.32,
+        0.045
+      ],
+      "pos": [
+        -0.076,
+        -0.16,
+        0
+      ],
+      "color": "#a6f02a"
+    },
+    {
+      "id": "jogger_stripe_l",
+      "attach": "upperleg_l",
+      "shape": "box",
+      "size": [
+        0.016,
+        0.42,
+        0.05
+      ],
+      "pos": [
+        0.107,
+        -0.2,
+        0
+      ],
+      "color": "#a6f02a"
+    },
+    {
+      "id": "jogger_stripe_r",
+      "attach": "upperleg_r",
+      "shape": "box",
+      "size": [
+        0.016,
+        0.42,
+        0.05
+      ],
+      "pos": [
+        -0.107,
+        -0.2,
+        0
+      ],
+      "color": "#a6f02a"
+    }
+  ],
+  "face": {
+    "eyeColor": "#111114",
+    "browColor": "#1c1a20",
+    "mouthColor": "#3a1a12",
+    "eyeSpacing": 0.34,
+    "eyeY": 0.52,
+    "eyeW": 0.1,
+    "eyeH": 0.15,
+    "browThickness": 0.055,
+    "browWidth": 0.21,
+    "mouthY": 0.76,
+    "mouthW": 0.21,
+    "hasNose": false,
+    "states": {
+      "neutral": {
+        "eyes": "oval",
+        "browL": [
+          0.1,
+          0
+        ],
+        "browR": [
+          0.1,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "curious": {
+        "eyes": "oval",
+        "browL": [
+          0.55,
+          6
+        ],
+        "browR": [
+          -0.08,
+          -8
+        ],
+        "mouth": "tight"
+      },
+      "shock": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "determined": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -24
+        ],
+        "browR": [
+          -0.2,
+          -24
+        ],
+        "mouth": "flat"
+      },
+      "regret": {
+        "eyes": "half_lid",
+        "browL": [
+          0.15,
+          20
+        ],
+        "browR": [
+          0.15,
+          20
+        ],
+        "mouth": "flat"
+      },
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.2,
+          2
+        ],
+        "browR": [
+          -0.1,
+          -10
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.85,
+          8
+        ],
+        "browR": [
+          0.85,
+          8
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      },
+      "happy": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          6
+        ],
+        "browR": [
+          0.3,
+          6
+        ],
+        "mouth": "grin"
+      },
+      "angry": {
+        "eyes": "narrow",
+        "browL": [
+          -0.35,
+          -30
+        ],
+        "browR": [
+          -0.35,
+          -30
+        ],
+        "mouth": "frown"
+      },
+      "calm": {
+        "eyes": "half_lid",
+        "browL": [
+          0.05,
+          0
+        ],
+        "browR": [
+          0.05,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "strict": {
+        "eyes": "narrow",
+        "browL": [
+          -0.15,
+          -14
+        ],
+        "browR": [
+          -0.15,
+          -14
+        ],
+        "mouth": "flat"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "smug",
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret",
+    "skeptical",
+    "surprised",
+    "laughing",
+    "happy",
+    "angry",
+    "calm",
+    "strict"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.35,
+    "runSpeed": 3.8
+  },
+  "personality": "Unbothered, fast, a little show-off. Knows the button is a trap.",
+  "identityRules": [
+    "Headset always on, boom mic on the LEFT.",
+    "Hair sweeps back, lime tips.",
+    "Black and lime only; gloves are dark."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

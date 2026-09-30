@@ -1,0 +1,510 @@
+{
+  "kind": "character",
+  "id": "mom",
+  "version": "1.0.0",
+  "displayName": "Mom",
+  "description": "Adult parent. Tall grown-up proportions, long auburn hair to the shoulders with a swept fringe and a yellow clip, gold earrings, coral blouse with a belt, denim jeans, tan flats.",
+  "rig": "blocky_biped_v1",
+  "body": {
+    "headSize": [
+      0.5,
+      0.5,
+      0.48
+    ],
+    "headBevel": 0.065,
+    "skin": "#f0c4a0",
+    "torso": [
+      0.58,
+      0.74,
+      0.3
+    ],
+    "torsoColor": "#f06f5c",
+    "armWidth": 0.15,
+    "upperArm": 0.39,
+    "lowerArm": 0.37,
+    "sleeveColor": "#f06f5c",
+    "handColor": "#f0c4a0",
+    "legWidth": 0.22,
+    "upperLeg": 0.53,
+    "lowerLeg": 0.53,
+    "legColor": "#3f5f96",
+    "shoeColor": "#c89a6a",
+    "soleColor": "#8a6440"
+  },
+  "parts": [
+    {
+      "id": "hair_top",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.54,
+        0.08,
+        0.52
+      ],
+      "pos": [
+        0,
+        0.53,
+        -0.01
+      ],
+      "color": "#8a3a1c",
+      "bevel": 0.025
+    },
+    {
+      "id": "hair_back",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.64,
+        0.1
+      ],
+      "pos": [
+        0,
+        0.19,
+        -0.25
+      ],
+      "color": "#8a3a1c",
+      "bevel": 0.03
+    },
+    {
+      "id": "hair_side_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.54,
+        0.28
+      ],
+      "pos": [
+        0.28,
+        0.25,
+        -0.1
+      ],
+      "color": "#8a3a1c",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_side_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.54,
+        0.28
+      ],
+      "pos": [
+        -0.28,
+        0.25,
+        -0.1
+      ],
+      "color": "#8a3a1c",
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_fringe_swept",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.38,
+        0.09,
+        0.06
+      ],
+      "pos": [
+        0.07,
+        0.49,
+        0.24
+      ],
+      "color": "#8a3a1c",
+      "rotDeg": [
+        0,
+        0,
+        -8
+      ],
+      "bevel": 0.02
+    },
+    {
+      "id": "hair_fringe_short",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.18,
+        0.06,
+        0.06
+      ],
+      "pos": [
+        -0.17,
+        0.505,
+        0.24
+      ],
+      "color": "#8a3a1c",
+      "bevel": 0.015
+    },
+    {
+      "id": "hair_clip",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.09,
+        0.035,
+        0.03
+      ],
+      "pos": [
+        0.19,
+        0.51,
+        0.272
+      ],
+      "color": "#ffd24a",
+      "bevel": 0.008
+    },
+    {
+      "id": "earring_l",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.05,
+        0.03
+      ],
+      "pos": [
+        0.262,
+        0.14,
+        0.1
+      ],
+      "color": "#e8b93a",
+      "bevel": 0.01
+    },
+    {
+      "id": "earring_r",
+      "attach": "head",
+      "shape": "box",
+      "size": [
+        0.03,
+        0.05,
+        0.03
+      ],
+      "pos": [
+        -0.262,
+        0.14,
+        0.1
+      ],
+      "color": "#e8b93a",
+      "bevel": 0.01
+    },
+    {
+      "id": "blouse_neck",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.16,
+        0.1,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.69,
+        0.152
+      ],
+      "color": "#fff3ea"
+    },
+    {
+      "id": "blouse_band",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.6,
+        0.05,
+        0.31
+      ],
+      "pos": [
+        0,
+        0.2,
+        0
+      ],
+      "color": "#d95a49",
+      "bevel": 0.01
+    },
+    {
+      "id": "belt",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.6,
+        0.05,
+        0.32
+      ],
+      "pos": [
+        0,
+        0.035,
+        0
+      ],
+      "color": "#7a4a2a",
+      "bevel": 0.01
+    },
+    {
+      "id": "belt_buckle",
+      "attach": "torso",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.045,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.035,
+        0.165
+      ],
+      "color": "#e8b93a"
+    },
+    {
+      "id": "bracelet_l",
+      "attach": "forearm_l",
+      "shape": "box",
+      "size": [
+        0.165,
+        0.04,
+        0.165
+      ],
+      "pos": [
+        0,
+        -0.34,
+        0
+      ],
+      "color": "#e8b93a",
+      "bevel": 0.01
+    }
+  ],
+  "face": {
+    "eyeColor": "#1a120e",
+    "browColor": "#6e2c14",
+    "mouthColor": "#5a1e1c",
+    "eyeSpacing": 0.34,
+    "eyeY": 0.53,
+    "eyeW": 0.1,
+    "eyeH": 0.17,
+    "browThickness": 0.045,
+    "browWidth": 0.19,
+    "mouthY": 0.76,
+    "mouthW": 0.2,
+    "hasNose": false,
+    "states": {
+      "neutral": {
+        "eyes": "oval",
+        "browL": [
+          0.1,
+          0
+        ],
+        "browR": [
+          0.1,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "curious": {
+        "eyes": "oval",
+        "browL": [
+          0.55,
+          6
+        ],
+        "browR": [
+          -0.08,
+          -8
+        ],
+        "mouth": "tight"
+      },
+      "shock": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.7,
+          4
+        ],
+        "browR": [
+          0.7,
+          4
+        ],
+        "mouth": "o"
+      },
+      "determined": {
+        "eyes": "narrow",
+        "browL": [
+          -0.2,
+          -24
+        ],
+        "browR": [
+          -0.2,
+          -24
+        ],
+        "mouth": "flat"
+      },
+      "regret": {
+        "eyes": "half_lid",
+        "browL": [
+          0.15,
+          20
+        ],
+        "browR": [
+          0.15,
+          20
+        ],
+        "mouth": "flat"
+      },
+      "smug": {
+        "eyes": "half_lid",
+        "browL": [
+          0.25,
+          4
+        ],
+        "browR": [
+          -0.05,
+          -8
+        ],
+        "mouth": "smug"
+      },
+      "skeptical": {
+        "eyes": "narrow",
+        "browL": [
+          0.55,
+          10
+        ],
+        "browR": [
+          -0.25,
+          -18
+        ],
+        "mouth": "flat"
+      },
+      "surprised": {
+        "eyes": "circle_wide",
+        "browL": [
+          0.85,
+          8
+        ],
+        "browR": [
+          0.85,
+          8
+        ],
+        "mouth": "o"
+      },
+      "laughing": {
+        "eyes": "squeeze",
+        "browL": [
+          0.35,
+          14
+        ],
+        "browR": [
+          0.35,
+          14
+        ],
+        "mouth": "open_grin"
+      },
+      "happy": {
+        "eyes": "oval",
+        "browL": [
+          0.3,
+          6
+        ],
+        "browR": [
+          0.3,
+          6
+        ],
+        "mouth": "grin"
+      },
+      "angry": {
+        "eyes": "narrow",
+        "browL": [
+          -0.35,
+          -30
+        ],
+        "browR": [
+          -0.35,
+          -30
+        ],
+        "mouth": "frown"
+      },
+      "calm": {
+        "eyes": "half_lid",
+        "browL": [
+          0.05,
+          0
+        ],
+        "browR": [
+          0.05,
+          0
+        ],
+        "mouth": "half_smile"
+      },
+      "strict": {
+        "eyes": "narrow",
+        "browL": [
+          -0.15,
+          -14
+        ],
+        "browR": [
+          -0.15,
+          -14
+        ],
+        "mouth": "flat"
+      }
+    }
+  },
+  "allowedExpressions": [
+    "happy",
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret",
+    "smug",
+    "skeptical",
+    "surprised",
+    "laughing",
+    "angry",
+    "calm",
+    "strict"
+  ],
+  "allowedActions": [
+    "idle",
+    "walk",
+    "run",
+    "point",
+    "press_button",
+    "pick_up",
+    "hold",
+    "put_down",
+    "drink",
+    "throw",
+    "jump",
+    "fall",
+    "cower",
+    "look_at",
+    "curious_lean",
+    "shock_recoil",
+    "angry_stomp",
+    "victory_pose",
+    "laugh",
+    "facepalm",
+    "regret_freeze",
+    "chase",
+    "turn_toward",
+    "exit_frame",
+    "enter_frame",
+    "arms_crossed",
+    "head_shake",
+    "dive_prone"
+  ],
+  "locomotion": {
+    "walkSpeed": 1.15,
+    "runSpeed": 3.0
+  },
+  "personality": "Warm, quick, unimpressed by excuses. Loves the kids, hates the mess.",
+  "identityRules": [
+    "Adult proportions.",
+    "Long auburn hair always reaches the shoulders; yellow clip on the left.",
+    "Coral blouse, belt with gold buckle, denim jeans."
+  ],
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}
