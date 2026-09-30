@@ -1,0 +1,403 @@
+{
+  "kind": "prop",
+  "id": "stove",
+  "version": "1.0.0",
+  "displayName": "Stove",
+  "category": "appliance",
+  "dimensions": [
+    0.76,
+    1.1,
+    0.72
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.76,
+      1.1,
+      0.72
+    ],
+    "offset": [
+      0,
+      0.55,
+      0.035
+    ]
+  },
+  "parts": [
+    {
+      "id": "body",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.76,
+        0.88,
+        0.64
+      ],
+      "pos": [
+        0,
+        0.44,
+        0
+      ],
+      "color": "#eef1f4",
+      "bevel": 0.02
+    },
+    {
+      "id": "cooktop",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.76,
+        0.04,
+        0.64
+      ],
+      "pos": [
+        0,
+        0.9,
+        0
+      ],
+      "color": "#2b2f36",
+      "sheen": 0.8
+    },
+    {
+      "id": "burner_fr",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.09,
+        0.012
+      ],
+      "pos": [
+        -0.19,
+        0.926,
+        0.15
+      ],
+      "color": "#1a1c20"
+    },
+    {
+      "id": "burner_fl",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.09,
+        0.012
+      ],
+      "pos": [
+        0.19,
+        0.926,
+        0.15
+      ],
+      "color": "#1a1c20"
+    },
+    {
+      "id": "burner_br",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.09,
+        0.012
+      ],
+      "pos": [
+        -0.19,
+        0.926,
+        -0.15
+      ],
+      "color": "#1a1c20"
+    },
+    {
+      "id": "burner_bl",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.09,
+        0.012
+      ],
+      "pos": [
+        0.19,
+        0.926,
+        -0.15
+      ],
+      "color": "#1a1c20"
+    },
+    {
+      "id": "backsplash",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.76,
+        0.18,
+        0.06
+      ],
+      "pos": [
+        0,
+        1.01,
+        -0.29
+      ],
+      "color": "#eef1f4",
+      "bevel": 0.015
+    },
+    {
+      "id": "knob_0",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.025,
+        0.03
+      ],
+      "pos": [
+        -0.27,
+        1,
+        -0.245
+      ],
+      "color": "#2b2f36",
+      "rotDeg": [
+        90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "knob_1",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.025,
+        0.03
+      ],
+      "pos": [
+        -0.09,
+        1,
+        -0.245
+      ],
+      "color": "#2b2f36",
+      "rotDeg": [
+        90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "knob_2",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.025,
+        0.03
+      ],
+      "pos": [
+        0.09,
+        1,
+        -0.245
+      ],
+      "color": "#2b2f36",
+      "rotDeg": [
+        90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "knob_3",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.025,
+        0.03
+      ],
+      "pos": [
+        0.27,
+        1,
+        -0.245
+      ],
+      "color": "#2b2f36",
+      "rotDeg": [
+        90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "oven_door",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.66,
+        0.5,
+        0.03
+      ],
+      "pos": [
+        0,
+        0.42,
+        0.335
+      ],
+      "color": "#dfe4ea",
+      "bevel": 0.01
+    },
+    {
+      "id": "oven_window",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.5,
+        0.26,
+        0.01
+      ],
+      "pos": [
+        0,
+        0.45,
+        0.352
+      ],
+      "color": "#1f232a",
+      "sheen": 0.9
+    },
+    {
+      "id": "handle",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.56,
+        0.035,
+        0.04
+      ],
+      "pos": [
+        0,
+        0.73,
+        0.37
+      ],
+      "color": "#9aa3ad",
+      "bevel": 0.01,
+      "sheen": 0.8
+    },
+    {
+      "id": "drawer",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.66,
+        0.1,
+        0.02
+      ],
+      "pos": [
+        0,
+        0.1,
+        0.33
+      ],
+      "color": "#c3c9d0"
+    },
+    {
+      "id": "pan",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.1,
+        0.04
+      ],
+      "pos": [
+        -0.19,
+        0.952,
+        0.15
+      ],
+      "color": "#3a3d44",
+      "bevel": 0.008
+    },
+    {
+      "id": "pan_handle",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.08,
+        0.02,
+        0.03
+      ],
+      "pos": [
+        -0.33,
+        0.957,
+        0.15
+      ],
+      "color": "#1c1c20"
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.73,
+      0.39
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.92,
+      0
+    ],
+    "burner_fl": [
+      0.19,
+      0.932,
+      0.15
+    ],
+    "burner_fr": [
+      -0.19,
+      0.932,
+      0.15
+    ],
+    "burner_bl": [
+      0.19,
+      0.932,
+      -0.15
+    ],
+    "burner_br": [
+      -0.19,
+      0.932,
+      -0.15
+    ],
+    "pan": [
+      -0.19,
+      0.972,
+      0.15
+    ],
+    "use_front": [
+      0,
+      0,
+      0.75
+    ]
+  },
+  "effectAnchors": {
+    "flame": [
+      0.19,
+      0.95,
+      0.15
+    ],
+    "steam": [
+      -0.19,
+      1.02,
+      0.15
+    ]
+  },
+  "defaultMaterial": "glossy_plastic",
+  "defaultColor": "#eef1f4",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "glow"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/stove.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

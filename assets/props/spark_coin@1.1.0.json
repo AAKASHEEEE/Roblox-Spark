@@ -1,0 +1,118 @@
+{
+  "kind": "prop",
+  "id": "spark_coin",
+  "version": "1.1.0",
+  "displayName": "Spark Coin",
+  "category": "collectible",
+  "dimensions": [
+    0.18,
+    0.03,
+    0.18
+  ],
+  "collision": {
+    "shape": "cylinder",
+    "size": [
+      0.09,
+      0.03,
+      0.09
+    ],
+    "offset": [
+      0,
+      0,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "disc",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.09,
+        0.03
+      ],
+      "pos": [
+        0,
+        0,
+        0
+      ],
+      "color": "#ffffff",
+      "bevel": 0.008,
+      "texture": "coin_face",
+      "sheen": 1,
+      "emissive": "#3a2800"
+    }
+  ],
+  "grips": {
+    "rim": [
+      0.09,
+      0,
+      0
+    ],
+    "face": [
+      0,
+      0.015,
+      0
+    ],
+    "grip": [
+      0.09,
+      0,
+      0
+    ]
+  },
+  "anchors": {
+    "center": [
+      0,
+      0,
+      0
+    ],
+    "top": [
+      0,
+      0.015,
+      0
+    ],
+    "surface": [
+      0,
+      0.015,
+      0
+    ],
+    "floor": [
+      0,
+      -0.015,
+      0
+    ]
+  },
+  "effectAnchors": {
+    "sparkle": [
+      0,
+      0.05,
+      0
+    ]
+  },
+  "defaultMaterial": "metal_gold",
+  "defaultColor": "#ffc21a",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "uniform_scale",
+    "spin",
+    "glow"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change"
+  ],
+  "maxScale": 30,
+  "thumbnail": "assets/thumbnails/spark_coin.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Emblem is an original lightning-spark glyph; not any platform's currency symbol."
+  }
+}

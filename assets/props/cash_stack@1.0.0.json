@@ -1,0 +1,220 @@
+{
+  "kind": "prop",
+  "id": "cash_stack",
+  "version": "1.0.0",
+  "displayName": "Cash Stack",
+  "category": "collectible",
+  "dimensions": [
+    0.18,
+    0.091,
+    0.09
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.18,
+      0.091,
+      0.09
+    ],
+    "offset": [
+      0,
+      0.0455,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "bundle_0",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.17,
+        0.03,
+        0.075
+      ],
+      "pos": [
+        0,
+        0.015,
+        0
+      ],
+      "color": "#5fae4c",
+      "bevel": 0.004
+    },
+    {
+      "id": "band_0",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.035,
+        0.032,
+        0.077
+      ],
+      "pos": [
+        0,
+        0.015,
+        0
+      ],
+      "color": "#f4efe2"
+    },
+    {
+      "id": "bundle_1",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.17,
+        0.03,
+        0.075
+      ],
+      "pos": [
+        0.005,
+        0.045,
+        0.003
+      ],
+      "color": "#5fae4c",
+      "rotDeg": [
+        0,
+        6,
+        0
+      ],
+      "bevel": 0.004
+    },
+    {
+      "id": "band_1",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.035,
+        0.032,
+        0.077
+      ],
+      "pos": [
+        0.005,
+        0.045,
+        0.003
+      ],
+      "color": "#f4efe2",
+      "rotDeg": [
+        0,
+        6,
+        0
+      ]
+    },
+    {
+      "id": "bundle_2",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.17,
+        0.03,
+        0.075
+      ],
+      "pos": [
+        -0.004,
+        0.075,
+        -0.002
+      ],
+      "color": "#5fae4c",
+      "bevel": 0.004
+    },
+    {
+      "id": "band_2",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.035,
+        0.032,
+        0.077
+      ],
+      "pos": [
+        -0.004,
+        0.075,
+        -0.002
+      ],
+      "color": "#f4efe2"
+    },
+    {
+      "id": "print_l",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.05,
+        0.055
+      ],
+      "pos": [
+        0.052,
+        0.0905,
+        -0.002
+      ],
+      "color": "#3f8a36",
+      "rotDeg": [
+        -90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "print_r",
+      "attach": "root",
+      "shape": "plane",
+      "size": [
+        0.05,
+        0.055
+      ],
+      "pos": [
+        -0.06,
+        0.0905,
+        -0.002
+      ],
+      "color": "#3f8a36",
+      "rotDeg": [
+        -90,
+        0,
+        0
+      ]
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.045,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.091,
+      0
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "paper",
+  "defaultColor": "#5fae4c",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "uniform_scale"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change"
+  ],
+  "maxScale": 20,
+  "thumbnail": "assets/thumbnails/cash_stack.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Generic green bundles with paper bands; no real-world currency symbols, faces or platform currency names."
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "kind": "prop",
+  "id": "pizza",
+  "version": "1.0.0",
+  "displayName": "Pizza",
+  "category": "food",
+  "dimensions": [
+    0.4,
+    0.043,
+    0.4
+  ],
+  "collision": {
+    "shape": "cylinder",
+    "size": [
+      0.2,
+      0.043,
+      0.2
+    ],
+    "offset": [
+      0,
+      0.0215,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "crust",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.2,
+        0.03
+      ],
+      "pos": [
+        0,
+        0.015,
+        0
+      ],
+      "color": "#e0a458",
+      "bevel": 0.01
+    },
+    {
+      "id": "cheese",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.18,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.032,
+        0
+      ],
+      "color": "#ffd35a"
+    },
+    {
+      "id": "pep_0",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.028,
+        0.006
+      ],
+      "pos": [
+        0.105,
+        0.04,
+        0
+      ],
+      "color": "#c8312b"
+    },
+    {
+      "id": "pep_1",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.028,
+        0.006
+      ],
+      "pos": [
+        0.0525,
+        0.04,
+        0.0909
+      ],
+      "color": "#c8312b"
+    },
+    {
+      "id": "pep_2",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.028,
+        0.006
+      ],
+      "pos": [
+        -0.0525,
+        0.04,
+        0.0909
+      ],
+      "color": "#c8312b"
+    },
+    {
+      "id": "pep_3",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.028,
+        0.006
+      ],
+      "pos": [
+        -0.105,
+        0.04,
+        0
+      ],
+      "color": "#c8312b"
+    },
+    {
+      "id": "pep_4",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.028,
+        0.006
+      ],
+      "pos": [
+        -0.0525,
+        0.04,
+        -0.0909
+      ],
+      "color": "#c8312b"
+    },
+    {
+      "id": "pep_5",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.028,
+        0.006
+      ],
+      "pos": [
+        0.0525,
+        0.04,
+        -0.0909
+      ],
+      "color": "#c8312b"
+    },
+    {
+      "id": "pep_c",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.028,
+        0.006
+      ],
+      "pos": [
+        0,
+        0.04,
+        0
+      ],
+      "color": "#c8312b"
+    },
+    {
+      "id": "slice",
+      "attach": "root",
+      "shape": "wedge",
+      "size": [
+        0.16,
+        0.2,
+        0.018
+      ],
+      "pos": [
+        0,
+        0.009,
+        0.1
+      ],
+      "color": "#ffd35a",
+      "rotDeg": [
+        -90,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "slice_crust",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.17,
+        0.026,
+        0.03
+      ],
+      "pos": [
+        0,
+        0.013,
+        0.105
+      ],
+      "color": "#e0a458",
+      "bevel": 0.008
+    },
+    {
+      "id": "slice_pep",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.022,
+        0.005
+      ],
+      "pos": [
+        0,
+        0.0205,
+        0.035
+      ],
+      "color": "#c8312b"
+    }
+  ],
+  "grips": {
+    "grip": [
+      0.2,
+      0.02,
+      0
+    ],
+    "grip_slice": [
+      0,
+      0.013,
+      0.105
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.043,
+      0
+    ],
+    "bite": [
+      0,
+      0.01,
+      -0.08
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "matte_plastic",
+  "defaultColor": "#ffd35a",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "uniform_scale"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change"
+  ],
+  "maxScale": 10,
+  "thumbnail": "assets/thumbnails/pizza.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}

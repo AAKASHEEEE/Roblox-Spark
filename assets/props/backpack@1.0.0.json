@@ -1,0 +1,215 @@
+{
+  "kind": "prop",
+  "id": "backpack",
+  "version": "1.0.0",
+  "displayName": "Backpack",
+  "category": "handheld",
+  "dimensions": [
+    0.4,
+    0.51,
+    0.3
+  ],
+  "collision": {
+    "shape": "box",
+    "size": [
+      0.4,
+      0.51,
+      0.3
+    ],
+    "offset": [
+      0,
+      0.255,
+      0.015
+    ]
+  },
+  "parts": [
+    {
+      "id": "body",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.4,
+        0.46,
+        0.2
+      ],
+      "pos": [
+        0,
+        0.23,
+        0
+      ],
+      "color": "#e8503a",
+      "bevel": 0.05
+    },
+    {
+      "id": "pocket",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.32,
+        0.2,
+        0.07
+      ],
+      "pos": [
+        0,
+        0.14,
+        0.125
+      ],
+      "color": "#c63f2c",
+      "bevel": 0.03
+    },
+    {
+      "id": "pocket_zip",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.28,
+        0.012,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.235,
+        0.158
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "main_zip",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.3,
+        0.008,
+        0.012
+      ],
+      "pos": [
+        0,
+        0.462,
+        0.02
+      ],
+      "color": "#1c1c20"
+    },
+    {
+      "id": "badge",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.06,
+        0.01
+      ],
+      "pos": [
+        0.1,
+        0.36,
+        0.103
+      ],
+      "color": "#ffd21a",
+      "bevel": 0.004
+    },
+    {
+      "id": "handle",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.12,
+        0.04,
+        0.025
+      ],
+      "pos": [
+        0,
+        0.48,
+        -0.05
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.008
+    },
+    {
+      "id": "strap_l",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.4,
+        0.03
+      ],
+      "pos": [
+        0.1,
+        0.25,
+        -0.115
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.008
+    },
+    {
+      "id": "strap_r",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.06,
+        0.4,
+        0.03
+      ],
+      "pos": [
+        -0.1,
+        0.25,
+        -0.115
+      ],
+      "color": "#2b2f36",
+      "bevel": 0.008
+    }
+  ],
+  "grips": {
+    "grip": [
+      0,
+      0.49,
+      -0.05
+    ],
+    "grip_strap": [
+      0.1,
+      0.4,
+      -0.13
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.46,
+      0
+    ],
+    "back_mount": [
+      0,
+      0.3,
+      -0.13
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "fabric",
+  "defaultColor": "#e8503a",
+  "allowedTransformations": [
+    "translate",
+    "rotate"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change",
+    "uniform_scale"
+  ],
+  "maxScale": 1,
+  "thumbnail": "assets/thumbnails/backpack.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "back_mount is the point that rests against a wearer's back (torso rear face)."
+  }
+}

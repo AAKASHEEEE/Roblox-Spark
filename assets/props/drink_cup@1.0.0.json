@@ -1,0 +1,143 @@
+{
+  "kind": "prop",
+  "id": "drink_cup",
+  "version": "1.0.0",
+  "displayName": "Drink Cup",
+  "category": "handheld",
+  "dimensions": [
+    0.106,
+    0.28,
+    0.106
+  ],
+  "collision": {
+    "shape": "cylinder",
+    "size": [
+      0.053,
+      0.28,
+      0.053
+    ],
+    "offset": [
+      0,
+      0.14,
+      0
+    ]
+  },
+  "parts": [
+    {
+      "id": "cup",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.05,
+        0.17
+      ],
+      "pos": [
+        0,
+        0.085,
+        0
+      ],
+      "color": "#3f7fd9",
+      "bevel": 0.006
+    },
+    {
+      "id": "band",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.0505,
+        0.05
+      ],
+      "pos": [
+        0,
+        0.09,
+        0
+      ],
+      "color": "#ffd21a"
+    },
+    {
+      "id": "lid",
+      "attach": "root",
+      "shape": "cylinder",
+      "size": [
+        0.053,
+        0.014
+      ],
+      "pos": [
+        0,
+        0.177,
+        0
+      ],
+      "color": "#f4f4f2",
+      "bevel": 0.004
+    },
+    {
+      "id": "straw",
+      "attach": "root",
+      "shape": "box",
+      "size": [
+        0.012,
+        0.11,
+        0.012
+      ],
+      "pos": [
+        0.01,
+        0.225,
+        0
+      ],
+      "color": "#e8322b",
+      "rotDeg": [
+        0,
+        0,
+        -10
+      ]
+    }
+  ],
+  "grips": {
+    "grip": [
+      0.05,
+      0.09,
+      0
+    ]
+  },
+  "anchors": {
+    "floor": [
+      0,
+      0,
+      0
+    ],
+    "surface": [
+      0,
+      0.184,
+      0
+    ],
+    "mouth": [
+      0.02,
+      0.28,
+      0
+    ]
+  },
+  "effectAnchors": {},
+  "defaultMaterial": "matte_plastic",
+  "defaultColor": "#3f7fd9",
+  "allowedTransformations": [
+    "translate",
+    "rotate",
+    "uniform_scale"
+  ],
+  "forbiddenTransformations": [
+    "non_uniform_scale",
+    "recolor",
+    "morph",
+    "duplicate_uncontrolled",
+    "text_change"
+  ],
+  "maxScale": 10,
+  "thumbnail": "assets/thumbnails/drink_cup.png",
+  "status": "ready",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false
+  }
+}
