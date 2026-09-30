@@ -1,0 +1,403 @@
+// Bulk generator core — mocks only: no renderer, browser, FFmpeg or MP4 is touched.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  BulkRunner, BulkStore, JobQueue, JOB_STATES, TRANSITIONS, assertPortable, buildManifest, canTransition, deriveSeed,
+  duplicateWithNewSeed, isBulkError, parseBatchRequest, serializeManifest, sha256Hex, writeManifest,
+  type EpisodePipeline, type RenderResult, type ResolvedBatch, type ApprovalResult,
+} from '../packages/bulk/src/index.ts';
+import { NodeBulkFs } from '../packages/bulk/node/node-fs.ts';
+
+const T0 = Date.parse('2026-01-01T00:00:00.000Z');
+const clock = () => { const c = { t: T0, now: () => c.t }; return c; };
+const made: string[] = [];
+const tmp = () => { const d = mkdtempSync(join(tmpdir(), 'bulk-test-')); made.push(d); return d; };
+
+function episode(id: string, extra: Record<string, unknown> = {}) {
+  return { episodeId: id, prompt: `What if ${id} happened?`, characterIds: ['kira', 'zapp'], environmentId: 'classroom', ...extra };
+}
+function request(n = 3, extra: Record<string, unknown> = {}, eps?: unknown[]): any {
+  return {
+    schemaVersion: '1.0', batchId: 'batch-a', title: 'Batch title', mode: 'narrated_story', concurrency: 1,
+    defaults: { storyPattern: 'comparison', captionPreset: 'shorts-default', draftQuality: '540x960', finalQuality: '1080x1920' },
+    episodes: eps ?? Array.from({ length: n }, (_, i) => episode(`ep-${String(i + 1).padStart(2, '0')}`)),
+    ...extra,
+  };
+}
+function parse(raw: unknown, limits = {}): ResolvedBatch {
+  const r = parseBatchRequest(raw, limits);
+  assert.ok(r.ok, JSON.stringify(!r.ok && r.issues));
+  return r.batch;
+}
+const issuesOf = (raw: unknown, limits = {}) => { const r = parseBatchRequest(raw, limits); assert.ok(!r.ok, 'expected rejection'); return r.issues.map((i) => `${i.path} ${i.message}`).join('\n'); };
+
+function setup(raw: unknown = request(), dir = tmp(), c = clock(), leaseMs = 60_000) {
+  const store = new BulkStore(new NodeBulkFs(dir), { clock: c });
+  const batch = parse(raw);
+  store.createBatch(batch);
+  return { dir, c, store, batch, queue: new JobQueue(store, { leaseMs }) };
+}
+
+interface MockOpts {
+  render?: (ep: string, attempt: number, target: string) => RenderResult | 'hang' | undefined;
+  approve?: (ep: string) => ApprovalResult | undefined;
+  delayMs?: number;
+  onRender?: (ep: string) => void;
+}
+function mockPipeline(o: MockOpts = {}) {
+  const calls: string[] = [];
+  let active = 0, maxActive = 0;
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const p: EpisodePipeline = {
+    async validate(ep) { calls.push(`validate:${ep.episodeId}`); return { ok: true }; },
+    async generateStoryboard(ep) { calls.push(`storyboard:${ep.episodeId}`); return { ok: true, projectHash: sha256Hex(`${ep.inputHash}:project`), projectRef: { id: ep.episodeId } }; },
+    async approve(proj) { calls.push(`approve:${proj.request.episodeId}`); return o.approve?.(proj.request.episodeId) ?? { status: 'approved', approvedHash: sha256Hex(`${proj.projectHash}:ok`), approval: { by: 'mock' } }; },
+    renderDraft: (a, ctx) => render(a.request.episodeId, a.outputDir, a.request.seed, ctx.attempt, 'draft', ctx.signal),
+    renderFinal: (a, ctx) => render(a.request.episodeId, a.outputDir, a.request.seed, ctx.attempt, 'final', ctx.signal),
+  };
+  async function render(ep: string, dir: string, seed: number, attempt: number, target: string, signal: AbortSignal): Promise<RenderResult> {
+    calls.push(`render-${target}:${ep}:${attempt}`);
+    active++; maxActive = Math.max(maxActive, active);
+    try {
+      o.onRender?.(ep);
+      const forced = o.render?.(ep, attempt, target);
+      if (forced === 'hang') await new Promise((_, rej) => signal.addEventListener('abort', () => rej(new Error('aborted')), { once: true }));
+      await wait(o.delayMs ?? 1);
+      if (forced) return forced as RenderResult;
+      return { ok: true, rendererVersion: 'mock-renderer@1', artifacts: { mp4: `${dir}/${target}.mp4`, mp4Sha256: sha256Hex(`${ep}:${seed}:${target}`), episodeJson: `${dir}/episode.json`, timeline: `${dir}/timeline.json`, qualityReport: `${dir}/quality-report.json` } };
+    } finally { active--; }
+  }
+  return { p, calls, get maxActive() { return maxActive; } };
+}
+const states = (q: JobQueue) => Object.fromEntries(q.list('batch-a').map((j) => [j.episodeId, j.state]));
+
+// ── schema ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+test('schema: valid batch resolves with defaults; unknown keys and unknown modes are rejected', () => {
+  const b = parse(request(2, {}, [episode('a'), episode('b', { storyPattern: 'hypothetical', output: 'both', tags: ['kids'], metadata: { series: 's1' } })]));
+  assert.equal(b.episodes[0].storyPattern, 'comparison');
+  assert.equal(b.episodes[0].captionPreset, 'shorts-default');
+  assert.equal(b.episodes[0].output, 'draft');
+  assert.equal(b.episodes[1].output, 'both');
+  assert.equal(b.episodes[0].outputDir, 'batch-a/a');
+  assert.equal(b.maxAttempts, 2);
+  assert.match(b.inputHash, /^[0-9a-f]{64}$/);
+  assert.match(issuesOf(request(1, { extra: 1 })), /\$\.extra unknown key/);
+  assert.match(issuesOf(request(1, {}, [episode('a', { hairColor: 'red' })])), /episodes\[0\]\.hairColor unknown key/);
+  assert.match(issuesOf(request(1, { defaults: { ...request().defaults, bogus: true } })), /defaults\.bogus unknown key/);
+  assert.match(issuesOf(request(1, { mode: 'live_action' })), /\$\.mode/);
+  assert.match(issuesOf(request(1, { schemaVersion: '2.0' })), /schemaVersion/);
+});
+
+test('schema: prototype-pollution keys are rejected anywhere', () => {
+  const raw = JSON.parse(`{"__proto__":{"polluted":true},"episodes":[{"metadata":{"constructor":"x"}}]}`);
+  const text = issuesOf({ ...request(1), ...raw });
+  const nested = JSON.parse(JSON.stringify(request(1)).replace('"prompt"', '"__proto__":{"a":1},"prompt"'));
+  assert.match(issuesOf(nested), /episodes\[0\]\.__proto__ forbidden key/);
+  assert.match(issuesOf(JSON.parse(`{"__proto__":{"x":1}}`)), /\$\.__proto__ forbidden key/);
+  assert.match(text, /\$\.__proto__ forbidden key/);
+  assert.match(text, /\$\.episodes\[0\]\.metadata\.constructor forbidden key/);
+  assert.equal(({} as any).polluted, undefined);
+});
+
+test('schema: duplicate IDs, duplicate seeds, batch limit and invalid concurrency are rejected', () => {
+  assert.match(issuesOf(request(0, {}, [episode('a'), episode('a')])), /duplicate episode ID "a"/);
+  assert.match(issuesOf(request(0, {}, [episode('a', { seed: 7 }), episode('b', { seed: 7 })])), /seed 7 duplicates episode "a"/);
+  parse(request(0, {}, [episode('a', { seed: 7 }), episode('b', { seed: 7 })]), { requireUniqueSeeds: false });
+  assert.match(issuesOf(request(21)), /21 episodes; limit is 20/);
+  assert.match(issuesOf(request(3), { maxEpisodes: 2 }), /limit is 2/);
+  parse(request(20));
+  assert.match(issuesOf(request(3, { concurrency: 0 })), /concurrency/);
+  assert.match(issuesOf(request(3, { concurrency: 1.5 })), /integer/);
+  assert.match(issuesOf(request(3, { concurrency: 5 })), /exceeds limit 4/);
+  assert.match(issuesOf(request(2, { concurrency: 3 })), /exceeds episode count 2/);
+  assert.match(issuesOf(request(0, {}, [])), /at least 1/);
+});
+
+test('schema: unsafe paths and output paths outside the configured root are rejected', () => {
+  for (const bad of ['../escape', '/etc/passwd', 'C:\\x', 'a/../../b', 'a//b', './a', 'file:///x', 'a\u0000b', '~/x']) {
+    assert.match(issuesOf(request(0, {}, [episode('a', { outputDir: bad })])), /outputDir unsafe path/, bad);
+    assert.match(issuesOf(request(0, {}, [episode('a', { voiceOver: { ref: bad } })])), /voiceOver\.ref unsafe path/, bad);
+  }
+  assert.match(issuesOf(request(0, {}, [episode('a', { outputDir: 'elsewhere/a' })]), { outputRoot: 'bulk' }), /outside the configured root "bulk"/);
+  assert.equal(parse(request(1), { outputRoot: 'bulk' }).episodes[0].outputDir, 'bulk/batch-a/ep-01');
+  assert.match(issuesOf(request(0, {}, [episode('a', { outputDir: 'x/a' }), episode('b', { outputDir: 'x/a/b' })])), /overlaps episode "a"/);
+});
+
+// ── seeds ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+test('seeds: deterministic, order-independent, append-stable; hash matches node:crypto', () => {
+  for (const s of ['', 'abc', 'x'.repeat(55), 'x'.repeat(56), 'x'.repeat(64), 'ünïcødé 🎬'.repeat(9)]) assert.equal(sha256Hex(s), createHash('sha256').update(s).digest('hex'));
+  const seeds = (b: ResolvedBatch) => Object.fromEntries(b.episodes.map((e) => [e.episodeId, e.seed]));
+  const a = seeds(parse(request(4)));
+  assert.deepEqual(seeds(parse(request(4))), a);
+  const reordered = request(4); reordered.episodes.reverse();
+  assert.deepEqual(seeds(parse(reordered)), a);
+  const appended = request(4); appended.episodes.push(episode('ep-99'));
+  const s5 = seeds(parse(appended));
+  for (const k of Object.keys(a)) assert.equal(s5[k], a[k]);
+  assert.equal(s5['ep-01'], deriveSeed('batch-a', 'ep-01', 0));
+  assert.notEqual(seeds(parse(request(4, { batchSeed: 1 })))['ep-01'], a['ep-01']);
+  assert.notEqual(seeds(parse(request(4, { batchId: 'batch-b' })))['ep-01'], a['ep-01']);
+  const explicit = parse(request(0, {}, [episode('a', { seed: 42 })]));
+  assert.equal(explicit.episodes[0].seed, 42);
+  assert.equal(explicit.episodes[0].seedDerived, false);
+});
+
+test('seeds: "duplicate with new seed" yields a deterministic new variant and leaves the original alone', () => {
+  const req = request(2);
+  const v1 = duplicateWithNewSeed(req, 'ep-01', 1);
+  assert.deepEqual(duplicateWithNewSeed(req, 'ep-01', 1), v1);
+  const v2 = duplicateWithNewSeed(req, 'ep-01', 2);
+  const b = parse({ ...req, episodes: [...req.episodes, v1, v2] });
+  const byId = Object.fromEntries(b.episodes.map((e) => [e.episodeId, e]));
+  assert.equal(byId['ep-01'].seed, parse(req).episodes[0].seed);
+  assert.equal(byId['ep-01-v1'].seed, deriveSeed('batch-a', 'ep-01', 0, 1));
+  assert.equal(new Set([byId['ep-01'].seed, byId['ep-01-v1'].seed, byId['ep-01-v2'].seed]).size, 3);
+  assert.equal(byId['ep-01-v1'].prompt, byId['ep-01'].prompt);
+  assert.match(issuesOf({ ...req, episodes: [...req.episodes, { ...v1, variantOf: 'nope' }] }), /unknown episode "nope"/);
+});
+
+// ── state machine ───────────────────────────────────────────────────────────────────────────────────────────────────
+test('states: the happy path and retry/recovery edges are legal; everything unlisted is illegal', () => {
+  const happy = ['pending', 'validating', 'storyboard', 'awaiting_approval', 'approved', 'queued', 'leased', 'rendering', 'validating_output', 'completed'] as const;
+  for (let i = 1; i < happy.length; i++) assert.ok(canTransition(happy[i - 1], happy[i]), `${happy[i - 1]}→${happy[i]}`);
+  for (const [f, t] of [['failed', 'retry_pending'], ['retry_pending', 'queued'], ['retry_pending', 'pending'], ['rendering', 'queued'], ['storyboard', 'pending'], ['queued', 'cancelled']] as const) assert.ok(canTransition(f, t));
+  for (const [f, t] of [['pending', 'completed'], ['queued', 'rendering'], ['completed', 'failed'], ['cancelled', 'pending'], ['failed', 'queued'], ['awaiting_approval', 'queued'], ['pending', 'pending']] as const) assert.ok(!canTransition(f, t), `${f}→${t}`);
+  assert.equal(TRANSITIONS.completed.length + TRANSITIONS.cancelled.length, 0);
+  assert.equal(Object.keys(TRANSITIONS).length, JOB_STATES.length);
+});
+
+test('states: illegal transitions fail through the queue and leave the store untouched', () => {
+  const { queue, store } = setup();
+  const before = store.readState('batch-a').revision;
+  assert.throws(() => queue.enqueue('batch-a', 'batch-a--ep-01'), (e) => isBulkError(e, 'ILLEGAL_TRANSITION'));
+  assert.throws(() => queue.retry('batch-a', 'batch-a--ep-01'), (e) => isBulkError(e, 'RETRY_NOT_ALLOWED'));
+  assert.equal(store.readState('batch-a').revision, before);
+  const c = queue.claimPrep('batch-a', 'w1')!;
+  assert.throws(() => queue.advance(c.lease, 'completed'), (e) => isBulkError(e, 'ILLEGAL_TRANSITION'));
+  assert.equal(queue.get('batch-a', c.job.jobId).state, 'validating');
+});
+
+// ── persistence ─────────────────────────────────────────────────────────────────────────────────────────────────────
+test('persistence: content-hashed atomic envelopes; orphan temp files are ignored and swept', () => {
+  const { dir, store, queue } = setup();
+  const bdir = join(dir, 'batches', 'batch-a');
+  assert.deepEqual(readdirSync(bdir).sort(), ['batch.json', 'state.json']);
+  const env = JSON.parse(readFileSync(join(bdir, 'state.json'), 'utf8'));
+  assert.equal(env.format, 'spark-bulk');
+  assert.match(env.contentHash, /^[0-9a-f]{64}$/);
+  // simulate a crash mid-write: a torn temp file next to the intact target
+  writeFileSync(join(bdir, 'state.json.tmp-999-1'), '{"format":"spark-bu');
+  assert.equal(store.readState('batch-a').jobs.length, 3);
+  queue.claimPrep('batch-a', 'w1');
+  assert.deepEqual(store.recover('batch-a'), ['state.json.tmp-999-1']);
+  assert.deepEqual(readdirSync(bdir).sort(), ['batch.json', 'state.json']);
+  assert.deepEqual(store.listBatches(), ['batch-a']);
+  assert.throws(() => store.createBatch(parse(request())), (e) => isBulkError(e, 'ALREADY_EXISTS'));
+  const reopened = new BulkStore(new NodeBulkFs(dir));
+  assert.equal(reopened.readState('batch-a').jobs[0].state, 'validating');
+  assert.equal(reopened.loadBatch('batch-a').batch.inputHash, parse(request()).inputHash);
+});
+
+test('persistence: tampered or truncated store files are detected as STORE_CORRUPT', () => {
+  const { dir, store } = setup();
+  const p = join(dir, 'batches', 'batch-a', 'state.json');
+  const good = readFileSync(p, 'utf8');
+  writeFileSync(p, good.replace('"seed": ', '"seed": 1'));
+  assert.throws(() => store.readState('batch-a'), (e) => isBulkError(e, 'STORE_CORRUPT') && /hash mismatch/.test((e as Error).message));
+  writeFileSync(p, good.slice(0, good.length / 2));
+  assert.throws(() => store.readState('batch-a'), (e) => isBulkError(e, 'STORE_CORRUPT'));
+  assert.throws(() => new JobQueue(store).leaseNext('batch-a', 'w1'), (e) => isBulkError(e, 'STORE_CORRUPT'));
+  writeFileSync(p, good);
+  assert.equal(store.readState('batch-a').jobs.length, 3);
+});
+
+// ── leasing ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+function queueAll(queue: JobQueue) {
+  for (;;) {
+    const c = queue.claimPrep('batch-a', 'prep');
+    if (!c) break;
+    queue.advance(c.lease, 'storyboard'); queue.advance(c.lease, 'awaiting_approval', { projectHash: 'a'.repeat(64) });
+    queue.advance(c.lease, 'approved', { approvedHash: 'b'.repeat(64) }); queue.enqueue('batch-a', c.job.jobId);
+  }
+}
+
+test('leasing: two workers (separate store instances) never own the same job; stale tokens are refused', () => {
+  const { dir, c, queue } = setup(request(2));
+  queueAll(queue);
+  const other = new JobQueue(new BulkStore(new NodeBulkFs(dir), { clock: c }));
+  const a = queue.leaseNext('batch-a', 'w1')!, b = other.leaseNext('batch-a', 'w2')!;
+  assert.notEqual(a.job.jobId, b.job.jobId);
+  assert.equal(queue.leaseNext('batch-a', 'w3'), null);
+  assert.throws(() => other.advance({ ...a.lease, token: b.lease.token }, 'rendering'), (e) => isBulkError(e, 'LEASE_LOST'));
+  c.t += 30_000;
+  const renewed = queue.renewLease(a.lease);
+  assert.equal(renewed.expiresAt, new Date(c.t + 60_000).toISOString());
+  queue.advance(a.lease, 'rendering');
+  assert.equal(queue.get('batch-a', a.job.jobId).lease?.workerId, 'w1');
+});
+
+test('leasing: an expired lease is recovered to queued with the same seed; the old holder loses it', () => {
+  const { c, queue } = setup(request(1), tmp(), clock(), 1_000);
+  queueAll(queue);
+  const a = queue.leaseNext('batch-a', 'w1')!;
+  queue.advance(a.lease, 'rendering');
+  c.t += 1_001;
+  assert.equal(queue.leaseNext('batch-a', 'w2'), null);
+  assert.throws(() => queue.renewLease(a.lease), (e) => isBulkError(e, 'LEASE_LOST'));
+  const moved = queue.recoverExpiredLeases('batch-a');
+  assert.deepEqual(moved.map((j) => j.state), ['queued']);
+  const b = queue.leaseNext('batch-a', 'w2')!;
+  assert.equal(b.job.seed, a.job.seed);
+  assert.equal(b.job.attempt, 1);
+  assert.notEqual(b.lease.token, a.lease.token);
+  assert.throws(() => queue.complete(a.lease), (e) => isBulkError(e, 'LEASE_LOST'));
+});
+
+test('leasing: a live cross-process store lock blocks, a stale one (crashed process) is broken', () => {
+  const { dir, c, store } = setup(request(1));
+  const lock = join(dir, 'batches', 'batch-a', 'state.lock');
+  writeFileSync(lock, JSON.stringify({ owner: 'other-proc', expiresAt: c.t + 10_000 }));
+  const impatient = new BulkStore(new NodeBulkFs(dir), { clock: c, lockWaitMs: 20 });
+  assert.throws(() => new JobQueue(impatient).claimPrep('batch-a', 'w1'), (e) => isBulkError(e, 'STORE_LOCKED'));
+  c.t += 10_001;
+  assert.ok(new JobQueue(store).claimPrep('batch-a', 'w1'));
+  assert.ok(!readdirSync(join(dir, 'batches', 'batch-a')).includes('state.lock'));
+});
+
+// ── runner ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+test('runner: injected mock pipeline completes multiple episodes under the concurrency limit', async () => {
+  const eps = Array.from({ length: 6 }, (_, i) => episode(`ep-${i + 1}`, i === 0 ? { output: 'both' } : {}));
+  const { queue } = setup(request(0, { concurrency: 2 }, eps));
+  const m = mockPipeline({ delayMs: 15 });
+  const events: string[] = [];
+  const summary = await new BulkRunner(queue, m.p).run('batch-a', { onEvent: (e) => events.push(e.type) });
+  assert.deepEqual({ completed: summary.completed, failed: summary.failed, open: summary.open }, { completed: 6, failed: 0, open: 0 });
+  assert.equal(m.maxActive, 2);
+  const j1 = queue.get('batch-a', 'batch-a--ep-1');
+  assert.deepEqual(Object.keys(j1.outputs).sort(), ['draft', 'final']);
+  assert.equal(j1.outputs.final!.mp4, 'batch-a/ep-1/final.mp4');
+  assert.deepEqual(j1.history.map((h) => h.state), ['pending', 'validating', 'storyboard', 'awaiting_approval', 'approved', 'queued', 'leased', 'rendering', 'validating_output', 'completed']);
+  assert.ok(events.includes('done') && events.includes('state'));
+  const wide = setup(request(0, { concurrency: 4 }, eps));
+  const m4 = mockPipeline({ delayMs: 15 });
+  await new BulkRunner(wide.queue, m4.p).run('batch-a', { concurrency: 3 });
+  assert.equal(m4.maxActive, 3);
+});
+
+test('runner: continue-on-error (default) finishes the others; permanent failures are not retried', async () => {
+  const { queue } = setup(request(4));
+  const m = mockPipeline({ render: (ep) => (ep === 'ep-02' ? { ok: false, code: 'BAD_SCENE', message: 'unrenderable', retryable: false } : undefined) });
+  const s = await new BulkRunner(queue, m.p).run('batch-a');
+  assert.deepEqual([s.completed, s.failed], [3, 1]);
+  const j = queue.get('batch-a', 'batch-a--ep-02');
+  assert.deepEqual([j.state, j.error?.code, j.retryable, j.attempt], ['failed', 'BAD_SCENE', false, 1]);
+  assert.equal(m.calls.filter((c) => c.startsWith('render-draft:ep-02')).length, 1);
+  assert.throws(() => queue.retry('batch-a', j.jobId), (e) => isBulkError(e, 'RETRY_NOT_ALLOWED'));
+});
+
+test('runner: stopOnFirstError stops claiming new work and leaves untouched jobs resumable', async () => {
+  const { queue } = setup(request(4, { policy: { stopOnFirstError: true } }));
+  const m = mockPipeline({ render: (ep) => (ep === 'ep-01' ? { ok: false, message: 'boom', retryable: false } : undefined) });
+  const s = await new BulkRunner(queue, m.p).run('batch-a');
+  assert.equal(s.stoppedEarly, true);
+  assert.deepEqual(states(queue), { 'ep-01': 'failed', 'ep-02': 'pending', 'ep-03': 'pending', 'ep-04': 'pending' });
+  const again = await new BulkRunner(queue, mockPipeline().p).run('batch-a', { stopOnFirstError: false });
+  assert.deepEqual([again.completed, again.failed], [3, 1]);
+});
+
+test('runner: retryable failures (incl. timeouts) retry with the same seed and stop at max attempts', async () => {
+  const { queue } = setup(request(3));
+  const m = mockPipeline({
+    render: (ep, attempt) => ep === 'ep-01' && attempt === 1 ? { ok: false, code: 'GPU_BUSY', message: 'transient', retryable: true }
+      : ep === 'ep-02' && attempt === 1 ? 'hang'
+      : ep === 'ep-03' ? { ok: false, code: 'FLAKY', message: 'always', retryable: true } : undefined,
+  });
+  const retries: string[] = [];
+  const s = await new BulkRunner(queue, m.p).run('batch-a', { defaultTimeoutMs: 100, onEvent: (e) => { if (e.type === 'retry') retries.push(`${e.jobId}:${e.code}`); } });
+  assert.deepEqual([s.completed, s.failed], [2, 1]);
+  const [j1, j2, j3] = queue.list('batch-a');
+  assert.deepEqual([j1.state, j1.attempt, j1.errors[0].code], ['completed', 2, 'GPU_BUSY']);
+  assert.deepEqual([j2.state, j2.attempt, j2.errors[0].code], ['completed', 2, 'TIMEOUT']);
+  assert.deepEqual([j3.state, j3.attempt, j3.retryable], ['failed', 2, false]);
+  assert.equal(m.calls.filter((c) => c.startsWith('render-draft:ep-03')).length, 2, 'no infinite retries');
+  assert.equal(m.calls.filter((c) => c.startsWith('validate:ep-01')).length, 1, 'render retry reuses the approval');
+  assert.equal(j1.seed, parse(request(3)).episodes[0].seed);
+  assert.equal(retries.length, 3);
+  assert.throws(() => queue.retry('batch-a', j3.jobId), (e) => isBulkError(e, 'RETRY_NOT_ALLOWED'));
+});
+
+test('runner: cancellation aborts in-flight work and cancels open jobs; a cancelled job cannot be resumed', async () => {
+  const { queue } = setup(request(3, { concurrency: 2 }));
+  const ac = new AbortController();
+  const m = mockPipeline({ render: () => 'hang', onRender: () => setTimeout(() => ac.abort(), 5) });
+  const s = await new BulkRunner(queue, m.p).run('batch-a', { signal: ac.signal });
+  assert.equal(s.aborted, true);
+  assert.equal(s.cancelled, 3);
+  assert.ok(queue.list('batch-a').every((j) => j.state === 'cancelled' && j.lease === null));
+  assert.throws(() => queue.retry('batch-a', 'batch-a--ep-01'), (e) => isBulkError(e, 'RETRY_NOT_ALLOWED'));
+  const again = await new BulkRunner(queue, mockPipeline().p).run('batch-a');
+  assert.equal(again.completed, 0);
+  // single-job cancel while leased: the holder loses its lease
+  const one = setup(request(1));
+  queueAll(one.queue);
+  const l = one.queue.leaseNext('batch-a', 'w1')!;
+  one.queue.cancel('batch-a', l.job.jobId);
+  assert.throws(() => one.queue.advance(l.lease, 'rendering'), (e) => isBulkError(e, 'LEASE_LOST'));
+});
+
+test('runner: restart/resume after pending approval and a crashed worker', async () => {
+  const dir = tmp(), c = clock();
+  const { queue } = setup(request(3), dir, c, 5_000);
+  let approveEp03 = false;
+  const approve = (ep: string): ApprovalResult | undefined => (ep === 'ep-03' && !approveEp03 ? { status: 'pending' } : undefined);
+  // first process: ep-01 is leased then the worker "crashes" (never reports back)
+  const first = await new BulkRunner(queue, mockPipeline({ approve }).p).run('batch-a');
+  assert.deepEqual(states(queue), { 'ep-01': 'completed', 'ep-02': 'completed', 'ep-03': 'awaiting_approval' });
+  const crashed = setup(request(2, { batchId: 'batch-a' }), tmp(), c, 5_000);
+  queueAll(crashed.queue);
+  crashed.queue.leaseNext('batch-a', 'dead-worker');
+  c.t += 6_000;
+  // second process: fresh store instances over the same directories
+  approveEp03 = true;
+  const s1 = await new BulkRunner(new JobQueue(new BulkStore(new NodeBulkFs(dir), { clock: c })), mockPipeline({ approve }).p).run('batch-a');
+  assert.equal(first.awaitingApproval, 1);
+  assert.deepEqual([s1.completed, s1.awaitingApproval], [3, 0]);
+  const s2 = await new BulkRunner(new JobQueue(new BulkStore(new NodeBulkFs(crashed.dir), { clock: c })), mockPipeline().p).run('batch-a');
+  assert.deepEqual([s2.completed, s2.open], [2, 0]);
+  const recovered = new JobQueue(new BulkStore(new NodeBulkFs(crashed.dir))).get('batch-a', 'batch-a--ep-01');
+  assert.ok(recovered.history.some((h) => h.note?.startsWith('lease expired (dead-worker)')));
+  assert.equal(recovered.attempt, 1);
+});
+
+test('manifest: deterministic, portable, with hashes, artifacts, failures and counts', async () => {
+  const run = async () => {
+    const { store, queue } = setup(request(3));
+    const m = mockPipeline({ render: (ep) => (ep === 'ep-03' ? { ok: false, code: 'BAD', message: 'nope', retryable: false } : undefined) });
+    await new BulkRunner(queue, m.p).run('batch-a');
+    return writeManifest(store, 'batch-a');
+  };
+  const a = await run(), b = await run();
+  assert.equal(serializeManifest(a), serializeManifest(b));
+  assert.deepEqual(a.counts, { total: 3, completed: 2, failed: 1, cancelled: 0, awaitingApproval: 0, open: 0 });
+  assert.deepEqual(a.failures.map((f) => [f.episodeId, f.code]), [['ep-03', 'BAD']]);
+  assert.deepEqual(a.rendererVersions, ['mock-renderer@1']);
+  assert.equal(a.batchInputHash, parse(request(3)).inputHash);
+  const j = a.jobs[0];
+  assert.match(j.approvedHash!, /^[0-9a-f]{64}$/);
+  assert.equal(j.artifacts.draft!.mp4Sha256, sha256Hex(`ep-01:${j.seed}:draft`));
+  assert.deepEqual([j.artifacts.draft!.timeline, j.artifacts.draft!.qualityReport], ['batch-a/ep-01/timeline.json', 'batch-a/ep-01/quality-report.json']);
+  assert.equal(a.startedAt, new Date(T0).toISOString());
+  assert.ok(!serializeManifest(a).includes(tmpdir()), 'no machine-specific paths');
+  // renderer returning an absolute path is refused before it can reach a manifest
+  const bad = setup(request(1));
+  await new BulkRunner(bad.queue, mockPipeline({ render: () => ({ ok: true, rendererVersion: 'x', artifacts: { mp4: '/abs/out.mp4' } }) }).p).run('batch-a');
+  assert.equal(bad.queue.list('batch-a')[0].error?.code, 'OUTPUT_INVALID');
+  assert.throws(() => assertPortable({ p: '/home/me/x.mp4' }), (e) => isBulkError(e, 'UNSAFE_PATH'));
+  assert.equal(buildManifest(bad.batch, bad.queue.list('batch-a')).counts.failed, 1);
+});
+
+process.on('exit', () => { for (const d of made) rmSync(d, { recursive: true, force: true }); });
