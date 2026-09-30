@@ -165,6 +165,8 @@ export interface CameraCandidate {
   scaleReferenceIds?: string[];
   /** props whose thickness edge (identity rim) must read in this shot (>= 2 rim points in frame and unoccluded) */
   propEdgeIds?: string[];
+  /** props whose complete silhouette (identity rim, else AABB corners) must stay inside the frame */
+  propFullFrameIds?: string[];
 }
 
 export interface CameraSafetyDiagnostics {
@@ -196,6 +198,10 @@ export interface CameraSafetyDiagnostics {
   droppedRequiredSubjects: string[];
   /** a supporting actor was dropped and every dropped actor was optional */
   droppedOnlyOptionalSupport: boolean;
+  /** non-subject characters whose head is visible but crosses the safe margin (frame edge) */
+  partialHeads: string[];
+  /** facial features of the active subject covered by its own hair / head parts / body */
+  selfOccludedFeatures: string[];
   /** required actors named by at least one rejection reason */
   rejectingRequiredSubjects: string[];
   fallback?: string;
@@ -301,7 +307,8 @@ export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
   scaleRevealViewAngleDeg: [15, 78],
   // upper bound = the motivated-profile bound family: beyond ~75 deg readability is decided by the near-eye / mouth /
   // brow / face-area / no-obstruction checks that this intent always applies
-  speakerOtsAngleDeg: [0, 85],
+  // front or three-quarter only (the face must read with both eyes, brows and mouth)
+  speakerOtsAngleDeg: [0, 60],
   topDownMinPitchDeg: 50,
   consequenceMinPitchDeg: 20,
 };
@@ -481,11 +488,11 @@ function rayObstacle(o: CameraObstacle, org: Vec3, d: Vec3): [number, number] | 
   const lo: Vec3 = [dot(r, ob.axes[0]), dot(r, ob.axes[1]), dot(r, ob.axes[2])], ld: Vec3 = [dot(d, ob.axes[0]), dot(d, ob.axes[1]), dot(d, ob.axes[2])];
   return rayBox(lo, ld, { min: [-ob.half[0], -ob.half[1], -ob.half[2]], max: [ob.half[0], ob.half[1], ob.half[2]] });
 }
-function insideObstacle(o: CameraObstacle, p: Vec3): boolean {
+function insideObstacle(o: CameraObstacle, p: Vec3, e = 1e-6): boolean {
   const ob = o.oriented;
-  if (!ob) return insideBox(o.bounds, p);
+  if (!ob) return insideBox(o.bounds, p, e);
   const r = sub(p, ob.center);
-  return [0, 1, 2].every((k) => Math.abs(dot(r, ob.axes[k])) <= ob.half[k] + 1e-6);
+  return [0, 1, 2].every((k) => Math.abs(dot(r, ob.axes[k])) <= ob.half[k] + e);
 }
 /** is the segment cam→p blocked by any obstacle not excluded? returns blockers */
 function blockers(ix: SceneIndex, from: Vec3, p: Vec3, exclude: (o: CameraObstacle) => boolean): CameraObstacle[] {
@@ -730,6 +737,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     const [a0, a1] = intent0 === 'three_quarter_profile' ? cfg.threeQuarterAngleDeg : intent0 === 'offset_elevated_speaker_ots' ? cfg.speakerOtsAngleDeg : cfg.motivatedProfileAngleDeg;
     if (ang < a0 || ang > a1) reasons.push(`PROFILE_ANGLE_OUT_OF_RANGE:${active}:${ang.toFixed(0)}deg`);
     if (eyesVisible[active!] < 1) reasons.push(`NEAR_EYE_NOT_VISIBLE:${active}`);
+    else if (intent0 === 'offset_elevated_speaker_ots' && eyesVisible[active!] < 2) reasons.push(`EYES_NOT_VISIBLE:${active}:${eyesVisible[active!]}/2`);
     if (!mouthVisible[active!]) reasons.push(`MOUTH_NOT_VISIBLE:${active}`);
     if (![af.samples[1], af.samples[2]].some((p) => pointVisible(active!, af, p, new Set()))) reasons.push(`BROW_NOT_READABLE:${active}`);
     const q = [af.samples[1], af.samples[2], af.samples[4], af.samples[3]].map((p) => project(cam, p));
@@ -749,6 +757,23 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
       if (Math.abs(lookX) > 0.05 && Math.abs(tgtX) > 0.05 && Math.sign(lookX) !== Math.sign(tgtX)) reasons.push(`EYELINE_SCREEN_MISMATCH:${active}:${tid}`);
     }
   }
+  // face TARGET self-occlusion: the actor's own hair / cap / hands may not cover the facial features the intent needs.
+  // A feature point on (or within 2 cm of) a part's surface belongs to that part (the face plane of the head mesh);
+  // any other own part crossing the lens -> feature segment covers it.
+  const selfOccluded: string[] = [];
+  if (af && FACE_INTENTS.has(intent) && intent !== 'extreme_close') {
+    const up = af.up, hh = len(sub(af.samples[1], af.samples[3])) / 2;
+    const feats: Array<[string, Vec3]> = [['centre', af.center], ['mouth', af.mouth]];
+    const d0 = len(sub(af.eyes[0], pos)), d1 = len(sub(af.eyes[1], pos)), nearEye = d0 <= d1 ? 0 : 1;
+    const bothEyes = intent0 === 'offset_elevated_speaker_ots' || ((intent === 'close' || intent === 'reaction') && !profile[active!] && !PROFILE_INTENTS.has(intent0));
+    for (const k of bothEyes ? [0, 1] : [nearEye]) feats.push([k === 0 ? 'left_eye' : 'right_eye', af.eyes[k]]);
+    if (intent0 === 'offset_elevated_speaker_ots') for (const k of [0, 1]) feats.push([k === 0 ? 'left_brow' : 'right_brow', add(af.eyes[k], scale(up, hh * 0.28))]);
+    for (const [name, q] of feats) {
+      if (dot(af.normal, norm(sub(pos, q))) <= 0.1) continue; // facing away is judged by the visibility rules
+      if (blockers(ix, pos, q, (o) => o.entityId !== active || insideObstacle(o, q, 0.02)).length) selfOccluded.push(name);
+    }
+    if (selfOccluded.length) reasons.push(`FACE_SELF_OCCLUDED:${active}:${selfOccluded.join(',')}`);
+  }
   const heroNeed = intent === 'prop' || intent === 'scale_reveal' || cand.requiresHeroProp;
   for (const id of heroes) {
     if (heroNeed && prop[id] < cfg.minHeroPropVisibility) reasons.push(`HERO_PROP_VISIBILITY_LOW:${id}:${prop[id]}<${cfg.minHeroPropVisibility}`);
@@ -765,6 +790,18 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   if (intent !== 'prop' && intent !== 'extreme_close') {
     const refs = cand.scaleReferenceIds ?? roles.required;
     for (const id of required) if (ix.faces.has(id) && id !== fgActor && headCropped[id] && ((id === active && intent !== 'scale_reveal') || (intent === 'wide' && requiredSet.has(id)) || (intent === 'scale_reveal' && refs.includes(id)) || headInFrame[id])) reasons.push(`HEAD_CROPPED:${id}`);
+  }
+  // a visible head that is not a shot subject (e.g. an optional supporting actor left out of a single) left partially
+  // attached to the frame edge: reported (diagnostics.partialHeads) and ranked last by the planner
+  const partialHeads: string[] = [];
+  if (intent !== 'prop' && intent !== 'extreme_close') {
+    for (const id of [...ix.faces.keys()].sort()) if (!required.includes(id) && id !== fgActor && headInFrame[id] && headCropped[id]) partialHeads.push(id);
+  }
+  for (const id of cand.propFullFrameIds ?? []) {
+    const idn = ix.meta.get(id)?.identity, b = ix.bounds.get(id);
+    const pts = idn ? idn.rim : b ? corners(b) : [];
+    const out = pts.filter((q) => !inFrame(project(cam, q), 0.01)).length;
+    if (!pts.length || out) reasons.push(`PROP_SILHOUETTE_CROPPED:${id}:${out}/${pts.length}`);
   }
   if (intent !== 'prop' && intent !== 'wide' && intent !== 'scale_reveal') {
     // a required actor is never silently dropped from a character shot
@@ -918,6 +955,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
       requiredSubjects: [...roles.required].sort(), optionalSubjects: [...roles.optional].sort(), requiredHeadHeightPct, minHeadHeight: minHead, twoShot, subjectsInFrame,
       droppedSubjects, droppedOptionalSubjects: droppedSubjects.filter((id) => !requiredSet.has(id)), droppedRequiredSubjects: droppedSubjects.filter((id) => requiredSet.has(id)),
       droppedOnlyOptionalSupport: droppedSubjects.length > 0 && droppedSubjects.every((id) => !requiredSet.has(id)),
+      partialHeads, selfOccludedFeatures: selfOccluded,
     },
   };
 }
@@ -1004,6 +1042,7 @@ function evaluateIndexed(ix: SceneIndex, cand: CameraCandidate, cfg: CameraSafet
       minHeadHeight: worst.d.minHeadHeight, twoShot: worst.d.twoShot, subjectsInFrame: worst.d.subjectsInFrame,
       droppedSubjects: worst.d.droppedSubjects, droppedOptionalSubjects: worst.d.droppedOptionalSubjects, droppedRequiredSubjects: worst.d.droppedRequiredSubjects,
       droppedOnlyOptionalSupport: worst.d.droppedOnlyOptionalSupport, rejectingRequiredSubjects,
+      partialHeads: [...new Set(evals.flatMap((e) => e.d.partialHeads))].sort(), selfOccludedFeatures: [...new Set(evals.flatMap((e) => e.d.selfOccludedFeatures))].sort(),
     },
   };
 }
