@@ -1,0 +1,36 @@
+{
+  "generator": "S7 __s7.frame -> Canvas -> WebCodecs H.264 High -> in-repo deterministic MP4 muxer + AAC-LC",
+  "notes": "These are short visual feature showcases. Their AAC tracks are intentionally silent; the separate 10 s WAV is the audio-mix acceptance artifact.",
+  "results": [
+    {
+      "file": "packages/captions/showcase/01-world-text-explosion.mp4",
+      "feature": "world_text_3d + explosion + caption_bold",
+      "bytes": 741272,
+      "sha256": "f42ceb893d8345c05de916b4ef9c4ff47b9a5cc1fa8d1f933fcc9ae9a866c7b7",
+      "fastStart": true,
+      "video": { "codec": "h264", "profile": "High", "width": 540, "height": 960, "fps": 15, "frames": 36, "durationSec": 2.4, "pixFmt": "yuv420p" },
+      "audio": { "codec": "aac", "profile": "LC", "channels": 2, "sampleRate": 48000, "durationSec": 2.4, "content": "silence" },
+      "playback": { "ok": true, "framesDecoded": 8, "droppedFrames": 0, "errors": [] }
+    },
+    {
+      "file": "packages/captions/showcase/02-emote-reaction.mp4",
+      "feature": "emote reaction animation",
+      "bytes": 598288,
+      "sha256": "2e8ac5259de3a5d8df88138c8aa6a8a867c810cf3ff01f6fc634a23d0c59870e",
+      "fastStart": true,
+      "video": { "codec": "h264", "profile": "High", "width": 540, "height": 960, "fps": 15, "frames": 36, "durationSec": 2.4, "pixFmt": "yuv420p" },
+      "audio": { "codec": "aac", "profile": "LC", "channels": 2, "sampleRate": 48000, "durationSec": 2.4, "content": "silence" },
+      "playback": { "ok": true, "framesDecoded": 8, "droppedFrames": 0, "errors": [] }
+    },
+    {
+      "file": "packages/captions/showcase/03-caption-popup.mp4",
+      "feature": "caption_bold + ui_popup + face-aware placement",
+      "bytes": 759205,
+      "sha256": "8f5ec85526bc6793acbe6511e19610d31f0e84c01ff1e0a001cb95248a68bd27",
+      "fastStart": true,
+      "video": { "codec": "h264", "profile": "High", "width": 540, "height": 960, "fps": 15, "frames": 36, "durationSec": 2.4, "pixFmt": "yuv420p" },
+      "audio": { "codec": "aac", "profile": "LC", "channels": 2, "sampleRate": 48000, "durationSec": 2.4, "content": "silence" },
+      "playback": { "ok": true, "framesDecoded": 8, "droppedFrames": 0, "errors": [] }
+    }
+  ]
+}

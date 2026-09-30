@@ -1,0 +1,12 @@
+{
+  "file": "packages/audio-mix/samples/mix-test-10s.wav",
+  "sha256": "289aa14bf1608e34a39b002e717afec7cbde63c5a4546d29c30246a218d4bad3",
+  "meter": "pyloudnorm BS.1770 integrated loudness + scipy.signal.resample_poly true peak",
+  "frames": 480000,
+  "sampleRate": 48000,
+  "subtype": "PCM_24",
+  "durationSec": 10,
+  "integratedLufs": -14.05,
+  "truePeak4xDbtp": -1.2,
+  "truePeak8xDbtp": -1.2
+}
