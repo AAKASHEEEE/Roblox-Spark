@@ -28,6 +28,9 @@
     "characters/zapp@1.0.0": "558834f42521e80823cff0d0a55a44b329195e559694361e8bb00a09183b3a06",
     "environments/classroom@1.0.0": "867964e30cc6b1d8ba3efd58e0486d57d679ef15c941fb7b30ed613ae90568d4",
     "environments/classroom@1.1.0": "cd1e3b6fd24acacd2ec0f417b6b13dd8cce7b0640418d61568737af3b06f2a90",
+    "environments/classroom@1.2.0": "c3ba63a7848306d635bfea9e15ef2001a7549db05cd36029db9eb387e51f71b6",
+    "environments/playground@1.0.0": "e68619ae3410bf713d3afe0d75b968c65b126d3ec44efe33f2b71668c418b86c",
+    "environments/school_hallway@1.0.0": "6721e7b0915456db52a8e9c77889eb80228d2d6d037eb7bc80de113fee4909ae",
     "props/spark_coin@1.0.0": "e039c00dd892079b80b40082dfbda4f5ed3bfa1544d278319e663dcd234d6d46",
     "props/student_desk@1.0.0": "c482af9121205ab419b26e917f23e6ead933671e83853c31521854d591227313",
     "props/suspicious_button@1.0.0": "81850afa9f72c59121f741cb978c5b33a73ae574803500da24004539a9f4e8d0"

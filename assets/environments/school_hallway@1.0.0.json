@@ -1,0 +1,1414 @@
+{
+  "kind": "environment",
+  "id": "school_hallway",
+  "version": "1.0.0",
+  "displayName": "North School Hall",
+  "units": "meters",
+  "axes": {
+    "up": "+y",
+    "stageRight": "+x",
+    "towardAudience": "+z"
+  },
+  "bounds": {
+    "min": [
+      -4.6,
+      0,
+      -8.2
+    ],
+    "max": [
+      4.6,
+      4.2,
+      8.2
+    ]
+  },
+  "pieces": [
+    {
+      "id": "floor",
+      "size": [
+        9.2,
+        0.1,
+        16.4
+      ],
+      "pos": [
+        0,
+        -0.05,
+        0
+      ],
+      "color": "#d8d2c4",
+      "collide": true,
+      "bevel": 0.01
+    },
+    {
+      "id": "ceiling",
+      "size": [
+        9.2,
+        0.1,
+        16.4
+      ],
+      "pos": [
+        0,
+        4.15,
+        0
+      ],
+      "color": "#f4f0e8",
+      "collide": false
+    },
+    {
+      "id": "wall_left",
+      "size": [
+        0.2,
+        4.2,
+        16.4
+      ],
+      "pos": [
+        -4.6,
+        2.1,
+        0
+      ],
+      "color": "#c9d9df",
+      "collide": true
+    },
+    {
+      "id": "wall_right",
+      "size": [
+        0.2,
+        4.2,
+        16.4
+      ],
+      "pos": [
+        4.6,
+        2.1,
+        0
+      ],
+      "color": "#c9d9df",
+      "collide": true
+    },
+    {
+      "id": "wall_back_left",
+      "size": [
+        3.9,
+        4.2,
+        0.2
+      ],
+      "pos": [
+        -2.65,
+        2.1,
+        -8.2
+      ],
+      "color": "#b9ced7",
+      "collide": true
+    },
+    {
+      "id": "wall_back_right",
+      "size": [
+        3.9,
+        4.2,
+        0.2
+      ],
+      "pos": [
+        2.65,
+        2.1,
+        -8.2
+      ],
+      "color": "#b9ced7",
+      "collide": true
+    },
+    {
+      "id": "wall_back_lintel",
+      "size": [
+        1.4,
+        1.15,
+        0.2
+      ],
+      "pos": [
+        0,
+        3.625,
+        -8.2
+      ],
+      "color": "#b9ced7",
+      "collide": true
+    },
+    {
+      "id": "wall_front",
+      "size": [
+        9.2,
+        4.2,
+        0.2
+      ],
+      "pos": [
+        0,
+        2.1,
+        8.2
+      ],
+      "color": "#d4e0e4",
+      "collide": true
+    },
+    {
+      "id": "baseboard_left",
+      "size": [
+        0.08,
+        0.24,
+        16
+      ],
+      "pos": [
+        -4.47,
+        0.12,
+        0
+      ],
+      "color": "#426b78",
+      "collide": false
+    },
+    {
+      "id": "baseboard_right",
+      "size": [
+        0.08,
+        0.24,
+        16
+      ],
+      "pos": [
+        4.47,
+        0.12,
+        0
+      ],
+      "color": "#426b78",
+      "collide": false
+    },
+    {
+      "id": "hall_door_frame_left",
+      "size": [
+        0.12,
+        3.05,
+        0.18
+      ],
+      "pos": [
+        -0.76,
+        1.525,
+        -8.06
+      ],
+      "color": "#f4e2b8",
+      "collide": false,
+      "bevel": 0.015
+    },
+    {
+      "id": "hall_door_frame_right",
+      "size": [
+        0.12,
+        3.05,
+        0.18
+      ],
+      "pos": [
+        0.76,
+        1.525,
+        -8.06
+      ],
+      "color": "#f4e2b8",
+      "collide": false,
+      "bevel": 0.015
+    },
+    {
+      "id": "hall_door_frame_header",
+      "size": [
+        1.64,
+        0.12,
+        0.18
+      ],
+      "pos": [
+        0,
+        3.11,
+        -8.06
+      ],
+      "color": "#f4e2b8",
+      "collide": false,
+      "bevel": 0.015
+    },
+    {
+      "id": "hall_door_threshold",
+      "size": [
+        1.4,
+        0.035,
+        0.32
+      ],
+      "pos": [
+        0,
+        0.0175,
+        -8.05
+      ],
+      "color": "#9b8064",
+      "collide": false,
+      "bevel": 0.008
+    },
+    {
+      "id": "hall_door_exit_sign",
+      "size": [
+        0.8,
+        0.28,
+        0.08
+      ],
+      "pos": [
+        0,
+        3.45,
+        -8.05
+      ],
+      "color": "#2f8b57",
+      "collide": false,
+      "emissive": "#58d68d"
+    },
+    {
+      "id": "water_fountain",
+      "size": [
+        0.55,
+        0.85,
+        0.52
+      ],
+      "pos": [
+        4.15,
+        0.425,
+        -2.3
+      ],
+      "color": "#7396a7",
+      "collide": true,
+      "bevel": 0.06
+    },
+    {
+      "id": "water_fountain_basin",
+      "size": [
+        0.62,
+        0.12,
+        0.62
+      ],
+      "pos": [
+        4.05,
+        0.88,
+        -2.3
+      ],
+      "color": "#a9c2cd",
+      "collide": false,
+      "bevel": 0.04
+    },
+    {
+      "id": "trophy_case",
+      "size": [
+        0.4,
+        1.7,
+        2.5
+      ],
+      "pos": [
+        4.25,
+        1.15,
+        3.7
+      ],
+      "color": "#89633f",
+      "collide": true,
+      "bevel": 0.03
+    },
+    {
+      "id": "trophy_case_glass",
+      "size": [
+        0.05,
+        1.42,
+        2.22
+      ],
+      "pos": [
+        4.02,
+        1.2,
+        3.7
+      ],
+      "color": "#9ed7df",
+      "collide": false,
+      "emissive": "#bcebf2"
+    },
+    {
+      "id": "hall_center_stripe",
+      "size": [
+        0.08,
+        0.012,
+        14.5
+      ],
+      "pos": [
+        0,
+        0.012,
+        0
+      ],
+      "color": "#e9b949",
+      "collide": false
+    },
+    {
+      "id": "locker_1",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        -5.4
+      ],
+      "color": "#2f7896",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_1",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        -5.4
+      ],
+      "color": "#438eaa",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_1",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        -5.4
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_1",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        -5.130000000000001
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_2",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        -4.2
+      ],
+      "color": "#356b8c",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_2",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        -4.2
+      ],
+      "color": "#4c88a9",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_2",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        -4.2
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_2",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        -3.93
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_3",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        -3.0000000000000004
+      ],
+      "color": "#2f7896",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_3",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        -3.0000000000000004
+      ],
+      "color": "#438eaa",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_3",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        -3.0000000000000004
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_3",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        -2.7300000000000004
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_4",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        -1.8000000000000007
+      ],
+      "color": "#356b8c",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_4",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        -1.8000000000000007
+      ],
+      "color": "#4c88a9",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_4",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        -1.8000000000000007
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_4",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        -1.5300000000000007
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_5",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        -0.6000000000000005
+      ],
+      "color": "#2f7896",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_5",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        -0.6000000000000005
+      ],
+      "color": "#438eaa",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_5",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        -0.6000000000000005
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_5",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        -0.3300000000000005
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_6",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        0.5999999999999996
+      ],
+      "color": "#356b8c",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_6",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        0.5999999999999996
+      ],
+      "color": "#4c88a9",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_6",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        0.5999999999999996
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_6",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        0.8699999999999997
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_7",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        1.799999999999999
+      ],
+      "color": "#2f7896",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_7",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        1.799999999999999
+      ],
+      "color": "#438eaa",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_7",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        1.799999999999999
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_7",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        2.069999999999999
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_8",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        3
+      ],
+      "color": "#356b8c",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_8",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        3
+      ],
+      "color": "#4c88a9",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_8",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        3
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_8",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        3.27
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_9",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        4.199999999999999
+      ],
+      "color": "#2f7896",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_9",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        4.199999999999999
+      ],
+      "color": "#438eaa",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_9",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        4.199999999999999
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_9",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        4.469999999999999
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "locker_10",
+      "size": [
+        0.48,
+        1.9,
+        1
+      ],
+      "pos": [
+        -4.22,
+        0.95,
+        5.399999999999999
+      ],
+      "color": "#356b8c",
+      "collide": true,
+      "bevel": 0.025
+    },
+    {
+      "id": "locker_door_10",
+      "size": [
+        0.035,
+        1.72,
+        0.9
+      ],
+      "pos": [
+        -3.965,
+        0.98,
+        5.399999999999999
+      ],
+      "color": "#4c88a9",
+      "collide": false,
+      "bevel": 0.018
+    },
+    {
+      "id": "locker_vent_10",
+      "size": [
+        0.025,
+        0.05,
+        0.42
+      ],
+      "pos": [
+        -3.942,
+        1.58,
+        5.399999999999999
+      ],
+      "color": "#173c52",
+      "collide": false
+    },
+    {
+      "id": "locker_handle_10",
+      "size": [
+        0.035,
+        0.18,
+        0.05
+      ],
+      "pos": [
+        -3.93,
+        1.02,
+        5.669999999999998
+      ],
+      "color": "#e2d4aa",
+      "collide": false,
+      "bevel": 0.01
+    },
+    {
+      "id": "classroom_door_1",
+      "size": [
+        0.05,
+        2.8,
+        1.25
+      ],
+      "pos": [
+        4.485,
+        1.4,
+        -4.6
+      ],
+      "color": "#c78345",
+      "collide": false,
+      "bevel": 0.035
+    },
+    {
+      "id": "classroom_door_1_window",
+      "size": [
+        0.035,
+        0.72,
+        0.44
+      ],
+      "pos": [
+        4.45,
+        2.05,
+        -4.6
+      ],
+      "color": "#8ec8d6",
+      "collide": false,
+      "emissive": "#a9deea"
+    },
+    {
+      "id": "classroom_door_1_handle",
+      "size": [
+        0.08,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        4.42,
+        1.15,
+        -5.02
+      ],
+      "color": "#f0cf78",
+      "collide": false,
+      "bevel": 0.02
+    },
+    {
+      "id": "classroom_door_2",
+      "size": [
+        0.05,
+        2.8,
+        1.25
+      ],
+      "pos": [
+        4.485,
+        1.4,
+        0.2
+      ],
+      "color": "#d69a4b",
+      "collide": false,
+      "bevel": 0.035
+    },
+    {
+      "id": "classroom_door_2_window",
+      "size": [
+        0.035,
+        0.72,
+        0.44
+      ],
+      "pos": [
+        4.45,
+        2.05,
+        0.2
+      ],
+      "color": "#8ec8d6",
+      "collide": false,
+      "emissive": "#a9deea"
+    },
+    {
+      "id": "classroom_door_2_handle",
+      "size": [
+        0.08,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        4.42,
+        1.15,
+        -0.21999999999999997
+      ],
+      "color": "#f0cf78",
+      "collide": false,
+      "bevel": 0.02
+    },
+    {
+      "id": "classroom_door_3",
+      "size": [
+        0.05,
+        2.8,
+        1.25
+      ],
+      "pos": [
+        4.485,
+        1.4,
+        5
+      ],
+      "color": "#c78345",
+      "collide": false,
+      "bevel": 0.035
+    },
+    {
+      "id": "classroom_door_3_window",
+      "size": [
+        0.035,
+        0.72,
+        0.44
+      ],
+      "pos": [
+        4.45,
+        2.05,
+        5
+      ],
+      "color": "#8ec8d6",
+      "collide": false,
+      "emissive": "#a9deea"
+    },
+    {
+      "id": "classroom_door_3_handle",
+      "size": [
+        0.08,
+        0.1,
+        0.08
+      ],
+      "pos": [
+        4.42,
+        1.15,
+        4.58
+      ],
+      "color": "#f0cf78",
+      "collide": false,
+      "bevel": 0.02
+    },
+    {
+      "id": "ceiling_light_1",
+      "size": [
+        1.1,
+        0.08,
+        0.4
+      ],
+      "pos": [
+        0,
+        4.04,
+        -6
+      ],
+      "color": "#ffffff",
+      "collide": false,
+      "emissive": "#fff7db"
+    },
+    {
+      "id": "ceiling_light_2",
+      "size": [
+        1.1,
+        0.08,
+        0.4
+      ],
+      "pos": [
+        0,
+        4.04,
+        -3
+      ],
+      "color": "#ffffff",
+      "collide": false,
+      "emissive": "#fff7db"
+    },
+    {
+      "id": "ceiling_light_3",
+      "size": [
+        1.1,
+        0.08,
+        0.4
+      ],
+      "pos": [
+        0,
+        4.04,
+        0
+      ],
+      "color": "#ffffff",
+      "collide": false,
+      "emissive": "#fff7db"
+    },
+    {
+      "id": "ceiling_light_4",
+      "size": [
+        1.1,
+        0.08,
+        0.4
+      ],
+      "pos": [
+        0,
+        4.04,
+        3
+      ],
+      "color": "#ffffff",
+      "collide": false,
+      "emissive": "#fff7db"
+    },
+    {
+      "id": "ceiling_light_5",
+      "size": [
+        1.1,
+        0.08,
+        0.4
+      ],
+      "pos": [
+        0,
+        4.04,
+        6
+      ],
+      "color": "#ffffff",
+      "collide": false,
+      "emissive": "#fff7db"
+    },
+    {
+      "id": "notice_board",
+      "size": [
+        0.06,
+        1.35,
+        2.1
+      ],
+      "pos": [
+        4.48,
+        1.8,
+        6.25
+      ],
+      "color": "#ae6f42",
+      "collide": false,
+      "bevel": 0.025,
+      "decor": true
+    },
+    {
+      "id": "notice_card_blue",
+      "size": [
+        0.03,
+        0.44,
+        0.55
+      ],
+      "pos": [
+        4.44,
+        2.03,
+        5.8
+      ],
+      "color": "#5ba8d1",
+      "collide": false,
+      "decor": true
+    },
+    {
+      "id": "notice_card_yellow",
+      "size": [
+        0.03,
+        0.38,
+        0.48
+      ],
+      "pos": [
+        4.44,
+        1.55,
+        6.45
+      ],
+      "color": "#f4cf55",
+      "collide": false,
+      "decor": true
+    },
+    {
+      "id": "hall_plant_pot",
+      "shape": "cylinder",
+      "size": [
+        0.24,
+        0.45,
+        0
+      ],
+      "pos": [
+        3.95,
+        0.225,
+        7.3
+      ],
+      "color": "#b95f3f",
+      "collide": true,
+      "decor": true
+    },
+    {
+      "id": "hall_plant",
+      "shape": "sphere",
+      "size": [
+        0.48,
+        0,
+        0
+      ],
+      "pos": [
+        3.95,
+        0.85,
+        7.3
+      ],
+      "color": "#4c9d62",
+      "collide": false,
+      "decor": true
+    }
+  ],
+  "marks": {
+    "hall_center": {
+      "pos": [
+        0,
+        0,
+        0
+      ],
+      "facingDeg": 0
+    },
+    "lockers": {
+      "pos": [
+        -3.25,
+        0,
+        1.2
+      ],
+      "facingDeg": -90
+    },
+    "hall_door_inside": {
+      "pos": [
+        0,
+        0,
+        -7
+      ],
+      "facingDeg": 0
+    },
+    "notice_board": {
+      "pos": [
+        3.25,
+        0,
+        6.25
+      ],
+      "facingDeg": 90
+    },
+    "water_fountain": {
+      "pos": [
+        3.25,
+        0,
+        -2.3
+      ],
+      "facingDeg": 90
+    },
+    "hall_end": {
+      "pos": [
+        0,
+        0,
+        5.8
+      ],
+      "facingDeg": 180
+    }
+  },
+  "anchors": {
+    "locker_focus": [
+      -3.95,
+      1.15,
+      1.2
+    ],
+    "trophy_case_focus": [
+      4,
+      1.4,
+      3.7
+    ]
+  },
+  "cameraSafe": {
+    "min": [
+      -4,
+      0.2,
+      -7.6
+    ],
+    "max": [
+      4,
+      3.95,
+      7.6
+    ],
+    "audienceSideOnly": false
+  },
+  "composition": {
+    "actionSafe": {
+      "left": 0.06,
+      "right": 0.86,
+      "top": 0.1,
+      "bottom": 0.8
+    },
+    "stageLine": {
+      "a": [
+        -3.2,
+        0,
+        0
+      ],
+      "b": [
+        3.2,
+        0,
+        0
+      ]
+    }
+  },
+  "lighting": {
+    "day": {
+      "sunDir": [
+        -0.45,
+        0.86,
+        0.35
+      ],
+      "sunColor": "#fff4d8",
+      "sunIntensity": 1.85,
+      "sky": "#c8deea",
+      "ground": "#9d8b73",
+      "ambientIntensity": 0.72,
+      "fog": "#e5edf0",
+      "fogNear": 24,
+      "fogFar": 58,
+      "exposure": 1.02
+    },
+    "after_school": {
+      "sunDir": [
+        0.65,
+        0.68,
+        0.35
+      ],
+      "sunColor": "#ffd2a1",
+      "sunIntensity": 1.55,
+      "sky": "#b8cbe0",
+      "ground": "#95745c",
+      "ambientIntensity": 0.62,
+      "fog": "#e7ded7",
+      "fogNear": 22,
+      "fogFar": 52,
+      "exposure": 1.08
+    }
+  },
+  "extras": {
+    "decorDensity": 1,
+    "backgroundCharacters": 0
+  },
+  "notes": "Original procedural school corridor with ten authored lockers, classroom doors, trophy case, fountain, notices and a collision-clear 1.40m x 3.05m end doorway.",
+  "license": {
+    "source": "original-procedural",
+    "author": "RBLX SPARK (in-house)",
+    "license": "Proprietary - owned",
+    "attributionRequired": false,
+    "notes": "Original primitive geometry and procedural dressing authored in-house; no Roblox or copied map assets."
+  }
+}
