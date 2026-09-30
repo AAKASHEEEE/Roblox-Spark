@@ -1,0 +1,1641 @@
+{
+  "schema": "blockspark.narrated-still-preview/1",
+  "note": "temporary preview, do not merge",
+  "sourceCommit": "d94a0c03667235d390eed56f2052e6c104bd900f",
+  "seed": 17,
+  "size": [
+    540,
+    960
+  ],
+  "fps": 30,
+  "frameRule": "frame = round(t * 30), drawn at t = frame / 30",
+  "renderer": "WebKit WebGL",
+  "analysis": {
+    "total": 47,
+    "passed": 47,
+    "failed": [],
+    "blocking": false
+  },
+  "overview": [
+    {
+      "t": "0.5",
+      "frame": 15,
+      "renderTime": 0.5,
+      "shot": "s001",
+      "camera": "s001:two_character_medium:y-20:d1",
+      "intent": "medium",
+      "screenDirection": "established:left",
+      "caption": {
+        "chunkId": "p01-c01",
+        "lines": [
+          "This is the difference between",
+          "Zapp and Kira when the teacher"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "1.5",
+      "frame": 45,
+      "renderTime": 1.5,
+      "shot": "s001",
+      "camera": "s001:two_character_medium:y-20:d1",
+      "intent": "medium",
+      "screenDirection": "established:left",
+      "caption": {
+        "chunkId": "p01-c01",
+        "lines": [
+          "This is the difference between",
+          "Zapp and Kira when the teacher"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "2.5",
+      "frame": 75,
+      "renderTime": 2.5,
+      "shot": "s002",
+      "camera": "s002:two_character_medium:y0:d1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p01-c01",
+        "lines": [
+          "This is the difference between",
+          "Zapp and Kira when the teacher"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "3.5",
+      "frame": 105,
+      "renderTime": 3.5,
+      "shot": "s003",
+      "camera": "s003:two_character_medium:y0:d1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p01-c02",
+        "lines": [
+          "leaves the classroom."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "4.5",
+      "frame": 135,
+      "renderTime": 4.5,
+      "shot": "s003",
+      "camera": "s003:two_character_medium:y0:d1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": null
+    },
+    {
+      "t": "5.5",
+      "frame": 165,
+      "renderTime": 5.5,
+      "shot": "s004",
+      "camera": "s004:three_quarter:a40:d5.40:h0.30",
+      "intent": "three_quarter_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p02-c01",
+        "lines": [
+          "The second the door closes,"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "6.5",
+      "frame": 195,
+      "renderTime": 6.5,
+      "shot": "s005",
+      "camera": "s005:profile:a10:d2.82:h-0.10",
+      "intent": "motivated_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p02-c02",
+        "lines": [
+          "Zapp thinks the entire",
+          "classroom belongs to him."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "7.5",
+      "frame": 225,
+      "renderTime": 7.5,
+      "shot": "s005",
+      "camera": "s005:profile:a10:d2.82:h-0.10",
+      "intent": "motivated_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p02-c02",
+        "lines": [
+          "Zapp thinks the entire",
+          "classroom belongs to him."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "8.5",
+      "frame": 255,
+      "renderTime": 8.5,
+      "shot": "s006",
+      "camera": "s006:profile:a24:d5.39:h0.30",
+      "intent": "motivated_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p02-c02",
+        "lines": [
+          "Zapp thinks the entire",
+          "classroom belongs to him."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "9.5",
+      "frame": 285,
+      "renderTime": 9.5,
+      "shot": "s006",
+      "camera": "s006:profile:a24:d5.39:h0.30",
+      "intent": "motivated_profile",
+      "screenDirection": "consistent:left",
+      "caption": null
+    },
+    {
+      "t": "10.5",
+      "frame": 315,
+      "renderTime": 10.5,
+      "shot": "s007",
+      "camera": "s007:two_character_medium:y0:d1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p03-c01",
+        "lines": [
+          "He jumps up, celebrates,",
+          "and starts acting like he"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "11.5",
+      "frame": 345,
+      "renderTime": 11.5,
+      "shot": "s007",
+      "camera": "s007:two_character_medium:y0:d1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p03-c01",
+        "lines": [
+          "He jumps up, celebrates,",
+          "and starts acting like he"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "12.5",
+      "frame": 375,
+      "renderTime": 12.5,
+      "shot": "s008",
+      "camera": "s008:profile:a10:d2.68:h-0.10",
+      "intent": "motivated_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p03-c01",
+        "lines": [
+          "He jumps up, celebrates,",
+          "and starts acting like he"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "13.5",
+      "frame": 405,
+      "renderTime": 13.5,
+      "shot": "s008",
+      "camera": "s008:profile:a10:d2.68:h-0.10",
+      "intent": "motivated_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p03-c01",
+        "lines": [
+          "He jumps up, celebrates,",
+          "and starts acting like he"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "14.5",
+      "frame": 435,
+      "renderTime": 14.5,
+      "shot": "s009",
+      "camera": "s009:medium:a0:d4.94:h0.10",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p03-c02",
+        "lines": [
+          "just escaped school forever."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "15.5",
+      "frame": 465,
+      "renderTime": 15.5,
+      "shot": "s009",
+      "camera": "s009:medium:a0:d4.94:h0.10",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": null
+    },
+    {
+      "t": "16.5",
+      "frame": 495,
+      "renderTime": 16.5,
+      "shot": "s010",
+      "camera": "s010:two_shot:a-48:d5.43:h0.90",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p04-c01",
+        "lines": [
+          "Kira stays at her desk"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "17.5",
+      "frame": 525,
+      "renderTime": 17.5,
+      "shot": "s011",
+      "camera": "s011:reaction:a-43:d2.68:h0.10",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p04-c02",
+        "lines": [
+          "because she knows the teacher",
+          "could return at any moment."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "18.5",
+      "frame": 555,
+      "renderTime": 18.5,
+      "shot": "s011",
+      "camera": "s011:reaction:a-43:d2.68:h0.10",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p04-c02",
+        "lines": [
+          "because she knows the teacher",
+          "could return at any moment."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "19.5",
+      "frame": 585,
+      "renderTime": 19.5,
+      "shot": "s012",
+      "camera": "s012:two_shot:a-45:d5.52:h0.90",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p04-c02",
+        "lines": [
+          "because she knows the teacher",
+          "could return at any moment."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "20.5",
+      "frame": 615,
+      "renderTime": 20.5,
+      "shot": "s012",
+      "camera": "s012:two_shot:a-45:d5.52:h0.90",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": null
+    },
+    {
+      "t": "21.5",
+      "frame": 645,
+      "renderTime": 21.5,
+      "shot": "s013",
+      "camera": "s013:medium:a0:d4.74:h0.10",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p05-c01",
+        "lines": [
+          "Then Zapp notices a suspicious",
+          "free-coins button sitting"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "22.5",
+      "frame": 675,
+      "renderTime": 22.5,
+      "shot": "s013",
+      "camera": "s013:medium:a0:d4.74:h0.10",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p05-c01",
+        "lines": [
+          "Then Zapp notices a suspicious",
+          "free-coins button sitting"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "23.5",
+      "frame": 705,
+      "renderTime": 23.5,
+      "shot": "s014",
+      "camera": "s014:reaction_close:y40:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p05-c01",
+        "lines": [
+          "Then Zapp notices a suspicious",
+          "free-coins button sitting"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "24.5",
+      "frame": 735,
+      "renderTime": 24.5,
+      "shot": "s015",
+      "camera": "s015:top_down_insert_long:p50:a270:d2.2:f12",
+      "intent": "neutral_top_down_prop_insert",
+      "screenDirection": "neutral_insert",
+      "caption": {
+        "chunkId": "p05-c02",
+        "lines": [
+          "on the front desk."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "25.5",
+      "frame": 765,
+      "renderTime": 25.5,
+      "shot": "s015",
+      "camera": "s015:top_down_insert_long:p50:a270:d2.2:f12",
+      "intent": "neutral_top_down_prop_insert",
+      "screenDirection": "neutral_insert",
+      "caption": {
+        "chunkId": "p05-c02",
+        "lines": [
+          "on the front desk."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "26.5",
+      "frame": 795,
+      "renderTime": 26.5,
+      "shot": "s016a",
+      "camera": "s016a:speaker_ots:s1:u0:o1.85:b0.6:medium0.26",
+      "intent": "offset_elevated_speaker_ots",
+      "screenDirection": "reset_after_neutral:right",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "27.5",
+      "frame": 825,
+      "renderTime": 27.5,
+      "shot": "s016b",
+      "camera": "s016b:reaction_close:y-60:d2.1",
+      "intent": "reaction",
+      "screenDirection": "neutral",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "28.5",
+      "frame": 855,
+      "renderTime": 28.5,
+      "shot": "s017",
+      "camera": "s017:two_shot:a-17:d5.88:h0.15",
+      "intent": "medium",
+      "screenDirection": "reset_after_neutral:left",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "29.5",
+      "frame": 885,
+      "renderTime": 29.5,
+      "shot": "s017",
+      "camera": "s017:two_shot:a-17:d5.88:h0.15",
+      "intent": "medium",
+      "screenDirection": "reset_after_neutral:left",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "30.5",
+      "frame": 915,
+      "renderTime": 30.5,
+      "shot": "s018",
+      "camera": "s018:two_shot:a-17:d5.91:h0.15",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p06-c02",
+        "lines": [
+          "to press it even more."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "31.5",
+      "frame": 945,
+      "renderTime": 31.5,
+      "shot": "s018",
+      "camera": "s018:two_shot:a-17:d5.91:h0.15",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": null
+    },
+    {
+      "t": "32.5",
+      "frame": 975,
+      "renderTime": 32.5,
+      "shot": "s019",
+      "camera": "s019:frontal_medium:y-20:d2.1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p07-c01",
+        "lines": [
+          "He slams the button,",
+          "and one shiny coin appears."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "33.5",
+      "frame": 1005,
+      "renderTime": 33.5,
+      "shot": "s020",
+      "camera": "s020:reaction_close:y40:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p07-c01",
+        "lines": [
+          "He slams the button,",
+          "and one shiny coin appears."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "34.5",
+      "frame": 1035,
+      "renderTime": 34.5,
+      "shot": "s020",
+      "camera": "s020:reaction_close:y40:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p07-c01",
+        "lines": [
+          "He slams the button,",
+          "and one shiny coin appears."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "35.5",
+      "frame": 1065,
+      "renderTime": 35.5,
+      "shot": "s021",
+      "camera": "s021:frontal_medium:y-20:d2.1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p08-c01",
+        "lines": [
+          "Zapp celebrates so loudly",
+          "that he completely forgets"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "36.5",
+      "frame": 1095,
+      "renderTime": 36.5,
+      "shot": "s021",
+      "camera": "s021:frontal_medium:y-20:d2.1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p08-c01",
+        "lines": [
+          "Zapp celebrates so loudly",
+          "that he completely forgets"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "37.5",
+      "frame": 1125,
+      "renderTime": 37.5,
+      "shot": "s022",
+      "camera": "s022:reaction_close:y40:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p08-c01",
+        "lines": [
+          "Zapp celebrates so loudly",
+          "that he completely forgets"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "38.5",
+      "frame": 1155,
+      "renderTime": 38.5,
+      "shot": "s023",
+      "camera": "s023:frontal_medium:y-20:d2.1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p08-c02",
+        "lines": [
+          "why the classroom is empty."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "39.5",
+      "frame": 1185,
+      "renderTime": 39.5,
+      "shot": "s023",
+      "camera": "s023:frontal_medium:y-20:d2.1",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p08-c02",
+        "lines": [
+          "why the classroom is empty."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "40.5",
+      "frame": 1215,
+      "renderTime": 40.5,
+      "shot": "s024g1",
+      "camera": "s024g1:prop_insert:y60:d1",
+      "intent": "prop",
+      "screenDirection": "neutral",
+      "caption": {
+        "chunkId": "p09-c01",
+        "lines": [
+          "Then the button flashes again,",
+          "and the coin begins growing."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "41.5",
+      "frame": 1245,
+      "renderTime": 41.5,
+      "shot": "s024g2",
+      "camera": "s024g2:scale_mid_f42:a-15:d4.13:h0.41:f42",
+      "intent": "scale_reveal",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p09-c01",
+        "lines": [
+          "Then the button flashes again,",
+          "and the coin begins growing."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "42.5",
+      "frame": 1275,
+      "renderTime": 42.5,
+      "shot": "s025a",
+      "camera": "s025a:reaction_close:y40:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p09-c01",
+        "lines": [
+          "Then the button flashes again,",
+          "and the coin begins growing."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "43.5",
+      "frame": 1305,
+      "renderTime": 43.5,
+      "shot": "s025b",
+      "camera": "s025b:scale_mid_f42:a-15:d4.16:h0.42:f42",
+      "intent": "scale_reveal",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p09-c01",
+        "lines": [
+          "Then the button flashes again,",
+          "and the coin begins growing."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "44.5",
+      "frame": 1335,
+      "renderTime": 44.5,
+      "shot": "s026",
+      "camera": "s026:widesw_f62:a-20:d9.33:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p10-c01",
+        "lines": [
+          "It gets taller than the desk,",
+          "wider than Zapp,"
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "45.5",
+      "frame": 1365,
+      "renderTime": 45.5,
+      "shot": "s026",
+      "camera": "s026:widesw_f62:a-20:d9.33:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p10-c01",
+        "lines": [
+          "It gets taller than the desk,",
+          "wider than Zapp,"
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "46.5",
+      "frame": 1395,
+      "renderTime": 46.5,
+      "shot": "s027",
+      "camera": "s027:widesw_f52:a-12:d13.62:h2.22:f52",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p10-c01",
+        "lines": [
+          "It gets taller than the desk,",
+          "wider than Zapp,"
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "47.5",
+      "frame": 1425,
+      "renderTime": 47.5,
+      "shot": "s028",
+      "camera": "s028:widesw_f62:a0:d11.01:h2.21:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p10-c02",
+        "lines": [
+          "and almost fills",
+          "the entire room."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "48.5",
+      "frame": 1455,
+      "renderTime": 48.5,
+      "shot": "s028",
+      "camera": "s028:widesw_f62:a0:d11.01:h2.21:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p10-c02",
+        "lines": [
+          "and almost fills",
+          "the entire room."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "49.5",
+      "frame": 1485,
+      "renderTime": 49.5,
+      "shot": "s028",
+      "camera": "s028:widesw_f62:a0:d11.01:h2.21:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": null
+    },
+    {
+      "t": "50.5",
+      "frame": 1515,
+      "renderTime": 50.5,
+      "shot": "s029",
+      "camera": "s029:scale_mid_f62:a35:d8.08:h0.81:f62",
+      "intent": "scale_reveal",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p11-c01",
+        "lines": [
+          "Zapp tries to look confident,"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "51.5",
+      "frame": 1545,
+      "renderTime": 51.5,
+      "shot": "s030",
+      "camera": "s030:wide_f62:a20:d11.69:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p11-c02",
+        "lines": [
+          "but Kira has already moved",
+          "safely out of the way."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "52.5",
+      "frame": 1575,
+      "renderTime": 52.5,
+      "shot": "s030",
+      "camera": "s030:wide_f62:a20:d11.69:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p11-c02",
+        "lines": [
+          "but Kira has already moved",
+          "safely out of the way."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "53.5",
+      "frame": 1605,
+      "renderTime": 53.5,
+      "shot": "s031",
+      "camera": "s031:wide_f62:a20:d13.32:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p11-c02",
+        "lines": [
+          "but Kira has already moved",
+          "safely out of the way."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "54.5",
+      "frame": 1635,
+      "renderTime": 54.5,
+      "shot": "s031",
+      "camera": "s031:wide_f62:a20:d13.32:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p11-c02",
+        "lines": [
+          "but Kira has already moved",
+          "safely out of the way."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "55.5",
+      "frame": 1665,
+      "renderTime": 55.5,
+      "shot": "s032a",
+      "camera": "s032a:wide_f62:a40:d7.36:h1.84:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c01",
+        "lines": [
+          "The giant coin tips forward",
+          "and flattens Zapp against"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "56.5",
+      "frame": 1695,
+      "renderTime": 56.5,
+      "shot": "s032b",
+      "camera": "s032b:wide_f52:a30:d9.87:h2.90:f52",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c01",
+        "lines": [
+          "The giant coin tips forward",
+          "and flattens Zapp against"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "57.5",
+      "frame": 1725,
+      "renderTime": 57.5,
+      "shot": "s033",
+      "camera": "s033:frontal_medium:y60:d2.5",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c01",
+        "lines": [
+          "The giant coin tips forward",
+          "and flattens Zapp against"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "58.5",
+      "frame": 1755,
+      "renderTime": 58.5,
+      "shot": "s034",
+      "camera": "s034:elevated_consequence:p24:a60:d7.60:f62",
+      "intent": "elevated_consequence",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c02",
+        "lines": [
+          "the classroom floor."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "t": "59.5",
+      "frame": 1785,
+      "renderTime": 59.5,
+      "shot": "s034",
+      "camera": "s034:elevated_consequence:p24:a60:d7.60:f62",
+      "intent": "elevated_consequence",
+      "screenDirection": "consistent:left",
+      "caption": null
+    },
+    {
+      "t": "60.5",
+      "frame": 1815,
+      "renderTime": 60.5,
+      "shot": "s035",
+      "camera": "s035:seated_close:a-43:d2.93:h0.15",
+      "intent": "close",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p13-c01",
+        "lines": [
+          "At that exact moment,"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "61.5",
+      "frame": 1845,
+      "renderTime": 61.5,
+      "shot": "s036",
+      "camera": "s036:reaction_close:y60:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p13-c02",
+        "lines": [
+          "the teacher returns and sees",
+          "Kira sitting perfectly still."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "62.5",
+      "frame": 1875,
+      "renderTime": 62.5,
+      "shot": "s036",
+      "camera": "s036:reaction_close:y60:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p13-c02",
+        "lines": [
+          "the teacher returns and sees",
+          "Kira sitting perfectly still."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "63.5",
+      "frame": 1905,
+      "renderTime": 63.5,
+      "shot": "s037",
+      "camera": "s037:reaction_close:y60:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p13-c02",
+        "lines": [
+          "the teacher returns and sees",
+          "Kira sitting perfectly still."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "64.5",
+      "frame": 1935,
+      "renderTime": 64.5,
+      "shot": "s037",
+      "camera": "s037:reaction_close:y60:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p13-c02",
+        "lines": [
+          "the teacher returns and sees",
+          "Kira sitting perfectly still."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "65.5",
+      "frame": 1965,
+      "renderTime": 65.5,
+      "shot": "s038",
+      "camera": "s038:top_down_insert:p55:a0:d1.2",
+      "intent": "neutral_top_down_prop_insert",
+      "screenDirection": "neutral_insert",
+      "caption": {
+        "chunkId": "p14-c01",
+        "lines": [
+          "And the free-coins",
+          "button quietly resets"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "66.5",
+      "frame": 1995,
+      "renderTime": 66.5,
+      "shot": "s038",
+      "camera": "s038:top_down_insert:p55:a0:d1.2",
+      "intent": "neutral_top_down_prop_insert",
+      "screenDirection": "neutral_insert",
+      "caption": {
+        "chunkId": "p14-c01",
+        "lines": [
+          "And the free-coins",
+          "button quietly resets"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "67.5",
+      "frame": 2025,
+      "renderTime": 67.5,
+      "shot": "s038",
+      "camera": "s038:top_down_insert:p55:a0:d1.2",
+      "intent": "neutral_top_down_prop_insert",
+      "screenDirection": "neutral_insert",
+      "caption": {
+        "chunkId": "p14-c01",
+        "lines": [
+          "And the free-coins",
+          "button quietly resets"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "t": "68.5",
+      "frame": 2055,
+      "renderTime": 68.5,
+      "shot": "s039b",
+      "camera": "s039b:elevated_consequence:p32:a0:d5.83:f52",
+      "intent": "elevated_consequence",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p14-c02",
+        "lines": [
+          "for its next victim."
+        ],
+        "centerY": 0.22
+      }
+    }
+  ],
+  "keyFrames": [
+    {
+      "file": "t05.5s_s004_three_quarter-a40-d5.40-h0.30.png",
+      "t": "5.5",
+      "frame": 165,
+      "renderTime": 5.5,
+      "shot": "s004",
+      "camera": "s004:three_quarter:a40:d5.40:h0.30",
+      "intent": "three_quarter_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p02-c01",
+        "lines": [
+          "The second the door closes,"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t07.2s_s005_profile-a10-d2.82-h-0.10.png",
+      "t": "7.2",
+      "frame": 216,
+      "renderTime": 7.2,
+      "shot": "s005",
+      "camera": "s005:profile:a10:d2.82:h-0.10",
+      "intent": "motivated_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p02-c02",
+        "lines": [
+          "Zapp thinks the entire",
+          "classroom belongs to him."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t08.8s_s006_profile-a24-d5.39-h0.30.png",
+      "t": "8.8",
+      "frame": 264,
+      "renderTime": 8.8,
+      "shot": "s006",
+      "camera": "s006:profile:a24:d5.39:h0.30",
+      "intent": "motivated_profile",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p02-c02",
+        "lines": [
+          "Zapp thinks the entire",
+          "classroom belongs to him."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t14.7s_s009_medium-a0-d4.94-h0.10.png",
+      "t": "14.7",
+      "frame": 441,
+      "renderTime": 14.7,
+      "shot": "s009",
+      "camera": "s009:medium:a0:d4.94:h0.10",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p03-c02",
+        "lines": [
+          "just escaped school forever."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t21.7s_s013_medium-a0-d4.74-h0.10.png",
+      "t": "21.7",
+      "frame": 651,
+      "renderTime": 21.7,
+      "shot": "s013",
+      "camera": "s013:medium:a0:d4.74:h0.10",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p05-c01",
+        "lines": [
+          "Then Zapp notices a suspicious",
+          "free-coins button sitting"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t42.7s_s025a_reaction_close-y40-d1.7.png",
+      "t": "42.7",
+      "frame": 1281,
+      "renderTime": 42.7,
+      "shot": "s025a",
+      "camera": "s025a:reaction_close:y40:d1.7",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p09-c01",
+        "lines": [
+          "Then the button flashes again,",
+          "and the coin begins growing."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "file": "t16.4s_s010_two_shot-a-48-d5.43-h0.90.png",
+      "t": "16.4",
+      "frame": 492,
+      "renderTime": 16.4,
+      "shot": "s010",
+      "camera": "s010:two_shot:a-48:d5.43:h0.90",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p04-c01",
+        "lines": [
+          "Kira stays at her desk"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t18.1s_s011_reaction-a-43-d2.68-h0.10.png",
+      "t": "18.1",
+      "frame": 543,
+      "renderTime": 18.1,
+      "shot": "s011",
+      "camera": "s011:reaction:a-43:d2.68:h0.10",
+      "intent": "reaction",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p04-c02",
+        "lines": [
+          "because she knows the teacher",
+          "could return at any moment."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t20.0s_s012_two_shot-a-45-d5.52-h0.90.png",
+      "t": "20.0",
+      "frame": 600,
+      "renderTime": 20,
+      "shot": "s012",
+      "camera": "s012:two_shot:a-45:d5.52:h0.90",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p04-c02",
+        "lines": [
+          "because she knows the teacher",
+          "could return at any moment."
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t25.0s_s015_top_down_insert_long-p50-a270-d2.2-f12.png",
+      "t": "25.0",
+      "frame": 750,
+      "renderTime": 25,
+      "shot": "s015",
+      "camera": "s015:top_down_insert_long:p50:a270:d2.2:f12",
+      "intent": "neutral_top_down_prop_insert",
+      "screenDirection": "neutral_insert",
+      "caption": {
+        "chunkId": "p05-c02",
+        "lines": [
+          "on the front desk."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "file": "t26.00s_s016a_speaker_ots-s1-u0-o1.85-b0.6-medium0.26.png",
+      "t": "26.00",
+      "frame": 780,
+      "renderTime": 26,
+      "shot": "s016a",
+      "camera": "s016a:speaker_ots:s1:u0:o1.85:b0.6:medium0.26",
+      "intent": "offset_elevated_speaker_ots",
+      "screenDirection": "reset_after_neutral:right",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t26.27s_s016a_speaker_ots-s1-u0-o1.85-b0.6-medium0.26.png",
+      "t": "26.27",
+      "frame": 788,
+      "renderTime": 26.2667,
+      "shot": "s016a",
+      "camera": "s016a:speaker_ots:s1:u0:o1.85:b0.6:medium0.26",
+      "intent": "offset_elevated_speaker_ots",
+      "screenDirection": "reset_after_neutral:right",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t26.43s_s016a_speaker_ots-s1-u0-o1.85-b0.6-medium0.26.png",
+      "t": "26.43",
+      "frame": 793,
+      "renderTime": 26.4333,
+      "shot": "s016a",
+      "camera": "s016a:speaker_ots:s1:u0:o1.85:b0.6:medium0.26",
+      "intent": "offset_elevated_speaker_ots",
+      "screenDirection": "reset_after_neutral:right",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t26.80s_s016a_speaker_ots-s1-u0-o1.85-b0.6-medium0.26.png",
+      "t": "26.80",
+      "frame": 804,
+      "renderTime": 26.8,
+      "shot": "s016a",
+      "camera": "s016a:speaker_ots:s1:u0:o1.85:b0.6:medium0.26",
+      "intent": "offset_elevated_speaker_ots",
+      "screenDirection": "reset_after_neutral:right",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t27.3s_s016b_reaction_close-y-60-d2.1.png",
+      "t": "27.3",
+      "frame": 819,
+      "renderTime": 27.3,
+      "shot": "s016b",
+      "camera": "s016b:reaction_close:y-60:d2.1",
+      "intent": "reaction",
+      "screenDirection": "neutral",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t28.7s_s017_two_shot-a-17-d5.88-h0.15.png",
+      "t": "28.7",
+      "frame": 861,
+      "renderTime": 28.7,
+      "shot": "s017",
+      "camera": "s017:two_shot:a-17:d5.88:h0.15",
+      "intent": "medium",
+      "screenDirection": "reset_after_neutral:left",
+      "caption": {
+        "chunkId": "p06-c01",
+        "lines": [
+          "Kira tells him not to touch it,",
+          "which obviously makes him want"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t45.0s_s026_widesw_f62-a-20-d9.33-h2.20-f62.png",
+      "t": "45.0",
+      "frame": 1350,
+      "renderTime": 45,
+      "shot": "s026",
+      "camera": "s026:widesw_f62:a-20:d9.33:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p10-c01",
+        "lines": [
+          "It gets taller than the desk,",
+          "wider than Zapp,"
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "file": "t46.6s_s027_widesw_f52-a-12-d13.62-h2.22-f52.png",
+      "t": "46.6",
+      "frame": 1398,
+      "renderTime": 46.6,
+      "shot": "s027",
+      "camera": "s027:widesw_f52:a-12:d13.62:h2.22:f52",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p10-c01",
+        "lines": [
+          "It gets taller than the desk,",
+          "wider than Zapp,"
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "file": "t48.6s_s028_widesw_f62-a0-d11.01-h2.21-f62.png",
+      "t": "48.6",
+      "frame": 1458,
+      "renderTime": 48.6,
+      "shot": "s028",
+      "camera": "s028:widesw_f62:a0:d11.01:h2.21:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p10-c02",
+        "lines": [
+          "and almost fills",
+          "the entire room."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "file": "t50.6s_s029_scale_mid_f62-a35-d8.08-h0.81-f62.png",
+      "t": "50.6",
+      "frame": 1518,
+      "renderTime": 50.6,
+      "shot": "s029",
+      "camera": "s029:scale_mid_f62:a35:d8.08:h0.81:f62",
+      "intent": "scale_reveal",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p11-c01",
+        "lines": [
+          "Zapp tries to look confident,"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t52.4s_s030_wide_f62-a20-d11.69-h2.20-f62.png",
+      "t": "52.4",
+      "frame": 1572,
+      "renderTime": 52.4,
+      "shot": "s030",
+      "camera": "s030:wide_f62:a20:d11.69:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p11-c02",
+        "lines": [
+          "but Kira has already moved",
+          "safely out of the way."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "file": "t54.2s_s031_wide_f62-a20-d13.32-h2.20-f62.png",
+      "t": "54.2",
+      "frame": 1626,
+      "renderTime": 54.2,
+      "shot": "s031",
+      "camera": "s031:wide_f62:a20:d13.32:h2.20:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p11-c02",
+        "lines": [
+          "but Kira has already moved",
+          "safely out of the way."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "file": "t55.4s_s032a_wide_f62-a40-d7.36-h1.84-f62.png",
+      "t": "55.4",
+      "frame": 1662,
+      "renderTime": 55.4,
+      "shot": "s032a",
+      "camera": "s032a:wide_f62:a40:d7.36:h1.84:f62",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c01",
+        "lines": [
+          "The giant coin tips forward",
+          "and flattens Zapp against"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t55.933s_s032b_wide_f52-a30-d9.87-h2.90-f52.png",
+      "t": "55.933",
+      "frame": 1678,
+      "renderTime": 55.9333,
+      "shot": "s032b",
+      "camera": "s032b:wide_f52:a30:d9.87:h2.90:f52",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c01",
+        "lines": [
+          "The giant coin tips forward",
+          "and flattens Zapp against"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t56.3s_s032b_wide_f52-a30-d9.87-h2.90-f52.png",
+      "t": "56.3",
+      "frame": 1689,
+      "renderTime": 56.3,
+      "shot": "s032b",
+      "camera": "s032b:wide_f52:a30:d9.87:h2.90:f52",
+      "intent": "wide",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c01",
+        "lines": [
+          "The giant coin tips forward",
+          "and flattens Zapp against"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t57.5s_s033_frontal_medium-y60-d2.5.png",
+      "t": "57.5",
+      "frame": 1725,
+      "renderTime": 57.5,
+      "shot": "s033",
+      "camera": "s033:frontal_medium:y60:d2.5",
+      "intent": "medium",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c01",
+        "lines": [
+          "The giant coin tips forward",
+          "and flattens Zapp against"
+        ],
+        "centerY": 0.22
+      }
+    },
+    {
+      "file": "t59.1s_s034_elevated_consequence-p24-a60-d7.60-f62.png",
+      "t": "59.1",
+      "frame": 1773,
+      "renderTime": 59.1,
+      "shot": "s034",
+      "camera": "s034:elevated_consequence:p24:a60:d7.60:f62",
+      "intent": "elevated_consequence",
+      "screenDirection": "consistent:left",
+      "caption": {
+        "chunkId": "p12-c02",
+        "lines": [
+          "the classroom floor."
+        ],
+        "centerY": 0.72
+      }
+    },
+    {
+      "file": "t66.4s_s038_top_down_insert-p55-a0-d1.2.png",
+      "t": "66.4",
+      "frame": 1992,
+      "renderTime": 66.4,
+      "shot": "s038",
+      "camera": "s038:top_down_insert:p55:a0:d1.2",
+      "intent": "neutral_top_down_prop_insert",
+      "screenDirection": "neutral_insert",
+      "caption": {
+        "chunkId": "p14-c01",
+        "lines": [
+          "And the free-coins",
+          "button quietly resets"
+        ],
+        "centerY": 0.22
+      }
+    }
+  ],
+  "contactSheet": {
+    "file": "contact-sheet-1fps.jpg",
+    "cols": 10,
+    "cellWidth": 135,
+    "labels": "time + shot id under each cell",
+    "frames": 69
+  },
+  "failed": [],
+  "pageErrors": []
+}
