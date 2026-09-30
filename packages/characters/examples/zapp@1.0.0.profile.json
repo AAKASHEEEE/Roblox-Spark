@@ -3,58 +3,87 @@
   "characterId": "zapp",
   "version": "1.0.0",
   "displayName": "Zapp",
-  "role": { "archetype": "protagonist", "personality": "Impulsive, optimistic, cannot resist a shortcut. Expressive but never mean." },
+  "role": {
+    "archetype": "protagonist",
+    "personality": "Impulsive, optimistic, cannot resist a shortcut. Expressive but never mean."
+  },
   "status": "draft",
   "bodyPreset": "block-teen-slim@1.0.0",
-  "proportions": { "heightM": 1.55, "headScale": 1.0, "limbScale": 1.0 },
+  "proportions": {
+    "heightM": 1.55,
+    "headScale": 1.0,
+    "limbScale": 1.0
+  },
   "appearance": {
-    "head": { "preset": "head-square-bevel@1.0.0", "palette": { "skin": "#f2c53d" } },
-    "hair": { "assetId": "hair-spiky-front@1.0.0", "palette": { "primary": "#ff6a1a", "streak": "#19d3e6" } },
+    "head": {
+      "preset": "head-square-bevel@1.0.0",
+      "palette": {
+        "skin": "#f2c53d"
+      }
+    },
+    "hair": {
+      "assetId": "hair-spiky-front@1.0.0",
+      "palette": {
+        "primary": "#ff6a1a",
+        "streak": "#19d3e6"
+      }
+    },
     "clothing": [
-      { "assetId": "top-zip-hoodie@1.0.0", "slot": "outer", "palette": { "primary": "#1f4fd1", "trim": "#1942b4", "patch": "#19d3e6" } },
-      { "assetId": "top-tshirt@1.0.0", "slot": "top", "palette": { "primary": "#f7f7f5" } },
-      { "assetId": "bottom-cargo@1.0.0", "slot": "bottom", "palette": { "primary": "#3b3d42" } }
+      {
+        "assetId": "top-zip-hoodie@1.0.0",
+        "slot": "outer",
+        "palette": {
+          "primary": "#1f4fd1",
+          "trim": "#1942b4",
+          "patch": "#19d3e6"
+        }
+      },
+      {
+        "assetId": "top-tshirt@1.0.0",
+        "slot": "top",
+        "palette": {
+          "primary": "#f7f7f5"
+        }
+      },
+      {
+        "assetId": "bottom-cargo@1.0.0",
+        "slot": "bottom",
+        "palette": {
+          "primary": "#3b3d42"
+        }
+      }
     ],
-    "shoes": { "assetId": "shoes-sneaker@1.0.0", "palette": { "upper": "#f4f4f2", "sole": "#ffe01a" } },
+    "shoes": {
+      "assetId": "shoes-sneaker@1.0.0",
+      "palette": {
+        "upper": "#f4f4f2",
+        "sole": "#ffe01a"
+      }
+    },
     "accessories": [
-      { "assetId": "acc-wristband@1.0.0", "anchor": "wrist_r", "palette": { "primary": "#19d3e6" } }
+      {
+        "assetId": "acc-wristband@1.0.0",
+        "anchor": "wrist_r",
+        "palette": {
+          "primary": "#19d3e6"
+        }
+      }
     ],
     "faceStyle": "face-bright-classic@1.0.0"
   },
-  "expressions": ["neutral", "curious", "shock", "determined", "regret"],
-  "motionProfile": "motion-energetic-teen@1.0.0",
-  "voice": { "pitch": "mid", "pace": "fast", "notes": "Bright, quick, slightly breathless." },
-  "references": [
-    {
-      "referenceId": "ref_front",
-      "type": "front_image",
-      "contentHash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-      "mimeType": "image/png",
-      "byteSize": 48213,
-      "dimensions": { "width": 1024, "height": 1024 },
-      "displayFilename": "zapp front.png",
-      "provenance": { "source": "original", "owner": "RBLX SPARK (in-house)", "attributionRequired": false, "allowsDerivative": true, "allowsOutput": true, "allowsRedistribution": false },
-      "userAttestation": { "attested": true, "attestedBy": "studio-owner", "attestedAt": "2026-09-30T00:00:00Z", "statement": "Drawn in-house for this character." },
-      "storageRef": "cas://references/sha256/1111111111111111111111111111111111111111111111111111111111111111",
-      "redistributable": false,
-      "mayAppearInOutput": false
-    },
-    {
-      "referenceId": "ref_notes",
-      "type": "written_details",
-      "contentHash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-      "mimeType": "text/plain",
-      "byteSize": 180,
-      "displayFilename": "zapp-notes.txt",
-      "provenance": { "source": "original", "owner": "RBLX SPARK (in-house)", "attributionRequired": false, "allowsDerivative": true, "allowsOutput": true, "allowsRedistribution": false },
-      "userAttestation": { "attested": true, "attestedBy": "studio-owner", "attestedAt": "2026-09-30T00:00:00Z", "statement": "Written in-house." },
-      "storageRef": "cas://references/sha256/2222222222222222222222222222222222222222222222222222222222222222",
-      "redistributable": false,
-      "mayAppearInOutput": false,
-      "details": "Hair spikes lean screen-right. Cyan wristband on the RIGHT wrist only. No visible nose."
-    }
+  "expressions": [
+    "neutral",
+    "curious",
+    "shock",
+    "determined",
+    "regret"
   ],
-  "license": { "source": "original", "owner": "RBLX SPARK (in-house)", "licenseName": "Proprietary - owned", "attributionRequired": false, "allowsDerivative": true, "allowsOutput": true, "allowsRedistribution": false },
-  "identityRules": ["No visible nose.", "Cyan wristband is on the RIGHT wrist only.", "Hair spikes always lean screen-right when facing camera."],
+  "motionProfile": "motion-energetic-teen@1.0.0",
+  "references": [],
+  "identityRules": [
+    "No visible nose.",
+    "Cyan wristband is on the RIGHT wrist only.",
+    "Hair spikes always lean screen-right when facing camera."
+  ],
   "locked": false
 }

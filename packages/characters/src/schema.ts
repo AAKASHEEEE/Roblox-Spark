@@ -41,19 +41,27 @@ export const ProvenanceSchema = v.object({
 });
 export type ProvenanceInfo = SchemaT<typeof ProvenanceSchema>;
 
+/**
+ * A reference record. Only referenceId + type are required to PARSE, so a draft can hold a reference whose bytes
+ * have not been ingested/attested yet. Every evidence field is still required to VALIDATE (see references.ts
+ * REQUIRED_EVIDENCE) and must be confirmed by the trusted workflow (trust.ts). Nothing here has a default: an absent
+ * attestation stays absent.
+ */
+export const AttestationSchema = v.object({ attested: v.boolean(), attestedBy: v.string({ max: 160 }), attestedAt: v.string({ pattern: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/ }), statement: text(500) });
+export type Attestation = SchemaT<typeof AttestationSchema>;
 export const ReferenceSchema = v.object({
   referenceId: v.string({ pattern: /^ref_[a-z0-9_]{1,48}$/ }),
   type: v.enum(REFERENCE_TYPES),
-  contentHash: v.string({ pattern: CONTENT_HASH }),
-  mimeType: v.string({ min: 3, max: 100 }),
-  byteSize: v.int({ min: 1, max: 50 * 1024 * 1024 }),
+  contentHash: v.string({ pattern: CONTENT_HASH }).optional(),
+  mimeType: v.string({ min: 3, max: 100 }).optional(),
+  byteSize: v.int({ min: 1, max: 50 * 1024 * 1024 }).optional(),
   dimensions: v.object({ width: v.int({ min: 1, max: 8192 }), height: v.int({ min: 1, max: 8192 }) }).optional(),
-  displayFilename: v.string({ min: 1, max: 255 }),
-  provenance: ProvenanceSchema,
-  userAttestation: v.object({ attested: v.boolean(), attestedBy: text(120), attestedAt: v.string({ pattern: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/ }), statement: text(500) }),
-  storageRef: v.string({ min: 1, max: 200 }),
-  redistributable: v.boolean(),
-  mayAppearInOutput: v.boolean(),
+  displayFilename: v.string({ min: 1, max: 255 }).optional(),
+  provenance: ProvenanceSchema.optional(),
+  userAttestation: AttestationSchema.optional(),
+  storageRef: v.string({ min: 1, max: 200 }).optional(),
+  redistributable: v.boolean().optional(),
+  mayAppearInOutput: v.boolean().optional(),
   /** written_details only: the user's description (data, never evaluated) */
   details: text(4000).optional(),
 });
@@ -80,7 +88,8 @@ export const ProfileSchema = v.object({
   motionProfile: componentRef(),
   voice: v.object({ voiceId: v.string({ pattern: /^[a-z][a-z0-9_-]{0,47}$/ }).optional(), pitch: v.enum(['low', 'mid', 'high'] as const), pace: v.enum(['slow', 'normal', 'fast'] as const), notes: text(300).optional() }).optional(),
   references: v.array(ReferenceSchema, { max: 16 }),
-  license: ProvenanceSchema,
+  /** optional while drafting; required (and gated) from validation onwards */
+  license: ProvenanceSchema.optional(),
   /** explicitly approved component substitutions; nothing is ever substituted without one */
   substitutions: v.array(v.object({ requested: componentRef(), substitute: componentRef(), approvedBy: text(120), reason: text(300) }), { max: 16 }).optional(),
   identityRules: v.array(text(200), { max: 12 }).optional(),

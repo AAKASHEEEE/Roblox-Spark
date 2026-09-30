@@ -6,4 +6,5 @@ export * from './catalog.ts';
 export * from './recipe.ts';
 export * from './compatibility.ts';
 export * from './lock.ts';
+export * from './trust.ts';
 export { canonicalJson, contentHashOf, sha256Hex } from './hash.ts';

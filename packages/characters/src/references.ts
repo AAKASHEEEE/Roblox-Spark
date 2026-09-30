@@ -2,6 +2,7 @@
 // uploader declared (type, MIME, hash, dimensions, provenance) and reject anything that could smuggle a path, an
 // executable or an archive into the pipeline. Storage is by opaque content-addressed key only.
 import { STORAGE_REF, err, warn, type Finding, type Reference, type ReferenceType } from './schema.ts';
+import { checkAuthenticatedActor, type TrustedWorkflow } from './trust.ts';
 
 const IMAGE = ['image/png', 'image/jpeg', 'image/webp'] as const;
 /** MIME allowlist per reference type */
@@ -26,23 +27,39 @@ const SAFE_FILENAME = /^[A-Za-z0-9][A-Za-z0-9 _().-]{0,119}$/;
 const TRAVERSAL = /(\.\.|[\\/]|%2e|%2f|%5c|^~|\0|[\x00-\x1f])/i;
 const STORAGE_TRAVERSAL = /(\.\.|\\|%|\/\/.*\/\/|[\x00-\x1f]|^(\/|~|file:|[a-z]:[\\/]))/i;
 
-export function validateReference(ref: Reference, path: string): Finding[] {
+/** evidence every reference must carry before its profile can leave draft; none of it is ever defaulted */
+export const REQUIRED_EVIDENCE = ['contentHash', 'mimeType', 'byteSize', 'displayFilename', 'storageRef', 'provenance', 'userAttestation', 'redistributable', 'mayAppearInOutput'] as const;
+const MISSING_CODE: Record<string, string> = { provenance: 'PROVENANCE_MISSING', userAttestation: 'REFERENCE_ATTESTATION_MISSING' };
+
+/**
+ * Validate one reference record. Missing evidence is a blocking error (the draft may still be stored and edited).
+ * Declared evidence is then checked for consistency, and finally confirmed against the trusted workflow: without a
+ * TrustedWorkflow, or when it cannot confirm the actual bytes / the attestation, the reference cannot validate.
+ */
+export function validateReference(ref: Reference, path: string, trust?: TrustedWorkflow): Finding[] {
   const out: Finding[] = [];
+  const missing = REQUIRED_EVIDENCE.filter((k) => ref[k] === undefined);
+  for (const k of missing) out.push(err(MISSING_CODE[k] ?? 'REFERENCE_EVIDENCE_INCOMPLETE', `${path}.${k}`, `reference ${ref.referenceId} has no ${k}; real evidence is added only after the bytes are ingested, hashed and attested`));
+
   const name = ref.displayFilename;
   // --- paths / traversal: the only storage handle is the opaque CAS key; no filename is ever joined into a path
-  if (STORAGE_TRAVERSAL.test(ref.storageRef)) out.push(err('REFERENCE_PATH_TRAVERSAL', `${path}.storageRef`, 'storage references may not contain traversal, absolute paths or encoded characters'));
-  if (TRAVERSAL.test(name)) out.push(err('REFERENCE_PATH_TRAVERSAL', `${path}.displayFilename`, 'display filenames may not contain path separators, traversal or control characters'));
-  else if (!SAFE_FILENAME.test(name)) out.push(err('REFERENCE_FILENAME_INVALID', `${path}.displayFilename`, `display filename "${name}" has unsupported characters`));
-  if (!STORAGE_REF.test(ref.storageRef)) out.push(err('REFERENCE_STORAGE_INVALID', `${path}.storageRef`, 'storageRef must be an opaque cas://references/sha256/<hex> key (no paths or URLs)'));
-  else if (ref.storageRef.slice(-64) !== ref.contentHash.slice(-64)) out.push(err('REFERENCE_HASH_MISMATCH', `${path}.storageRef`, 'storageRef is not addressed by the declared contentHash'));
+  if (ref.storageRef !== undefined) {
+    if (STORAGE_TRAVERSAL.test(ref.storageRef)) out.push(err('REFERENCE_PATH_TRAVERSAL', `${path}.storageRef`, 'storage references may not contain traversal, absolute paths or encoded characters'));
+    if (!STORAGE_REF.test(ref.storageRef)) out.push(err('REFERENCE_STORAGE_INVALID', `${path}.storageRef`, 'storageRef must be an opaque cas://references/sha256/<hex> key (no paths or URLs)'));
+    else if (ref.contentHash && ref.storageRef.slice(-64) !== ref.contentHash.slice(-64)) out.push(err('REFERENCE_HASH_MISMATCH', `${path}.storageRef`, 'storageRef is not addressed by the declared contentHash'));
+  }
+  if (name !== undefined) {
+    if (TRAVERSAL.test(name)) out.push(err('REFERENCE_PATH_TRAVERSAL', `${path}.displayFilename`, 'display filenames may not contain path separators, traversal or control characters'));
+    else if (!SAFE_FILENAME.test(name)) out.push(err('REFERENCE_FILENAME_INVALID', `${path}.displayFilename`, `display filename "${name}" has unsupported characters`));
+  }
 
   // --- executables / archives: every dot segment counts ("sheet.png.exe", "a.tar.gz")
-  const segs = name.toLowerCase().split('.').slice(1);
-  const mime = ref.mimeType.toLowerCase();
-  if (segs.some((s) => EXECUTABLE_EXT.includes(s)) || EXECUTABLE_MIME.test(mime)) out.push(err('REFERENCE_EXECUTABLE_REJECTED', path, 'executable or script content is never accepted as a reference'));
-  else if (segs.some((s) => ARCHIVE_EXT.includes(s)) || ARCHIVE_MIME.test(mime)) out.push(err('REFERENCE_ARCHIVE_REJECTED', path, `archives are not an expected input for "${ref.type}"`));
-  else if (!ALLOWED_MIME[ref.type].includes(mime)) out.push(err('REFERENCE_MIME_UNSUPPORTED', `${path}.mimeType`, `"${ref.mimeType}" is not allowed for ${ref.type} (allowed: ${ALLOWED_MIME[ref.type].join(', ')})`));
-  else {
+  const segs = (name ?? '').toLowerCase().split('.').slice(1);
+  const mime = ref.mimeType?.toLowerCase();
+  if (segs.some((s) => EXECUTABLE_EXT.includes(s)) || (mime && EXECUTABLE_MIME.test(mime))) out.push(err('REFERENCE_EXECUTABLE_REJECTED', path, 'executable or script content is never accepted as a reference'));
+  else if (segs.some((s) => ARCHIVE_EXT.includes(s)) || (mime && ARCHIVE_MIME.test(mime))) out.push(err('REFERENCE_ARCHIVE_REJECTED', path, `archives are not an expected input for "${ref.type}"`));
+  else if (mime !== undefined && !ALLOWED_MIME[ref.type].includes(mime)) out.push(err('REFERENCE_MIME_UNSUPPORTED', `${path}.mimeType`, `"${ref.mimeType}" is not allowed for ${ref.type} (allowed: ${ALLOWED_MIME[ref.type].join(', ')})`));
+  else if (mime !== undefined && name !== undefined) {
     const ext = segs[segs.length - 1];
     if (segs.length !== 1 || !EXT_FOR_MIME[mime].includes(ext ?? '')) out.push(err('REFERENCE_EXTENSION_MISMATCH', `${path}.displayFilename`, `filename extension does not match ${mime}`));
   }
@@ -53,11 +70,28 @@ export function validateReference(ref: Reference, path: string): Finding[] {
   if ((ref.type === 'written_details') !== (ref.details !== undefined)) out.push(err('REFERENCE_DETAILS_MISMATCH', `${path}.details`, 'details text is required for, and only allowed on, written_details'));
   if (ref.type === 'owned_glb' || ref.type === 'owned_texture') out.push(warn('REFERENCE_NOT_IMPORTED', path, 'owned 3D/texture files are recorded for provenance only; they are not converted into registered components in this phase'));
 
-  // --- provenance & attestation (always required, independent of lock state)
+  // --- provenance & licence flags
   const p = ref.provenance;
-  if (!ref.userAttestation.attested) out.push(err('REFERENCE_ATTESTATION_MISSING', `${path}.userAttestation`, 'the uploader must attest they have the right to use this reference'));
-  if (p.source === 'licensed' && !p.licenseName) out.push(err('LICENSE_NAME_MISSING', `${path}.provenance.licenseName`, 'licensed references must name the license'));
-  if (ref.redistributable && !p.allowsRedistribution) out.push(err('LICENSE_REDISTRIBUTION_FORBIDDEN', `${path}.redistributable`, 'reference is marked redistributable but its license does not allow redistribution'));
-  if (ref.mayAppearInOutput && !p.allowsOutput) out.push(err('LICENSE_OUTPUT_FORBIDDEN', `${path}.mayAppearInOutput`, 'reference may not appear in output under its license'));
+  if (p) {
+    if (p.source === 'licensed' && !p.licenseName) out.push(err('LICENSE_NAME_MISSING', `${path}.provenance.licenseName`, 'licensed references must name the license'));
+    if (ref.redistributable && !p.allowsRedistribution) out.push(err('LICENSE_REDISTRIBUTION_FORBIDDEN', `${path}.redistributable`, 'reference is marked redistributable but its license does not allow redistribution'));
+    if (ref.mayAppearInOutput && !p.allowsOutput) out.push(err('LICENSE_OUTPUT_FORBIDDEN', `${path}.mayAppearInOutput`, 'reference may not appear in output under its license'));
+  }
+
+  // --- attestation: explicit, by a real authenticated human; never inferred
+  const a = ref.userAttestation;
+  if (a) {
+    if (a.attested !== true) out.push(err('REFERENCE_ATTESTATION_MISSING', `${path}.userAttestation.attested`, 'the uploader must explicitly attest they have the right to use this reference'));
+    out.push(...checkAuthenticatedActor(a.attestedBy, `${path}.userAttestation.attestedBy`, trust));
+  }
+
+  // --- actual-byte + attestation verification by the trusted workflow (only meaningful once evidence is complete)
+  if (!missing.length) {
+    const v = trust?.verifyReference(ref);
+    if (!v || v.bytes === 'unknown') out.push(err('REFERENCE_BYTES_UNVERIFIED', `${path}.contentHash`, `the stored bytes for ${ref.referenceId} have not been re-hashed by the trusted ingest workflow`));
+    else if (v.bytes === 'mismatch') out.push(err('REFERENCE_BYTES_MISMATCH', `${path}.contentHash`, `the stored bytes for ${ref.referenceId} do not match the declared hash/size/MIME`));
+    if (!v || v.attestation === 'unknown') out.push(err('REFERENCE_ATTESTATION_UNVERIFIED', `${path}.userAttestation`, `the attestation for ${ref.referenceId} was not recorded by an authenticated human session`));
+    else if (v.attestation === 'mismatch') out.push(err('REFERENCE_ATTESTATION_MISMATCH', `${path}.userAttestation`, `the attestation for ${ref.referenceId} differs from the recorded one`));
+  }
   return out;
 }

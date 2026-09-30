@@ -8,10 +8,22 @@ import { canonicalJson, clone, contentHashOf, deepFreeze } from './hash.ts';
 import { checkLicensing } from './licensing.ts';
 import { resolveRecipe, type ResolvedRecipe } from './recipe.ts';
 import { validateReference } from './references.ts';
+import { checkAuthenticatedActor, type TrustedWorkflow } from './trust.ts';
 import { CONTENT_HASH, err, findForbiddenKeys, parseProfile, type CharacterProfile, type Finding, type ProfileStatus } from './schema.ts';
 
-/** fields that are lifecycle state, not identity; everything else is identity and is hashed */
-const LIFECYCLE_FIELDS = ['status', 'locked', 'contentHash', 'deprecation'] as const;
+/**
+ * CONTENT-HASH RULE. contentHash = sha256(canonicalJson(profile WITHOUT the fields below, PLUS the resolved recipe)).
+ * Exclusion is an explicit allow-list of lifecycle-operational fields; every other field — present now or added to
+ * the schema later — is hashed automatically. That includes every reference record (content hash, MIME, size,
+ * dimensions, filename, storage key, provenance/ownership, licence terms, attribution, redistribution/output flags,
+ * the full user attestation), the character licence, identity rules, approved substitutions, role, voice,
+ * proportions, expressions, motion profile and face style; and, via the recipe, every resolved component id@version,
+ * component hash (which covers the component definition, e.g. a face set's expressions) and resolved colour.
+ * Excluded (lifecycle only): status, locked, contentHash itself, deprecation. Approver identity and trust-workflow
+ * verification results are lifecycle facts held by the registry, not identity. There are no lock timestamps.
+ */
+export const LIFECYCLE_FIELDS = ['status', 'locked', 'contentHash', 'deprecation'] as const;
+export type EvaluateOptions = CompatibilityOptions & { trust?: TrustedWorkflow };
 export type IdentityPayload = Omit<CharacterProfile, (typeof LIFECYCLE_FIELDS)[number]> & { recipe: ResolvedRecipe };
 
 export interface Evaluation {
@@ -34,7 +46,7 @@ export function identityPayload(p: CharacterProfile, recipe: ResolvedRecipe): Id
 }
 
 /** full validation: schema, references, licensing/IP, recipe resolution, compatibility, hash */
-export function evaluateProfile(raw: unknown, catalog: Catalog = createCatalog(), opts: CompatibilityOptions = {}): Evaluation {
+export function evaluateProfile(raw: unknown, catalog: Catalog = createCatalog(), opts: EvaluateOptions = {}): Evaluation {
   const parsed = parseProfile(raw);
   if (!parsed.ok) return { ok: false, errors: parsed.errors, warnings: [] };
   const p = parsed.profile;
@@ -45,7 +57,7 @@ export function evaluateProfile(raw: unknown, catalog: Catalog = createCatalog()
   p.references.forEach((r, i) => {
     if (ids.has(r.referenceId)) errors.push(err('REFERENCE_DUPLICATE', `$.references[${i}].referenceId`, `duplicate ${r.referenceId}`));
     ids.add(r.referenceId);
-    push(validateReference(r, `$.references[${i}]`));
+    push(validateReference(r, `$.references[${i}]`, opts.trust));
   });
   push(checkLicensing(p));
   const isLockedState = p.status === 'locked' || p.status === 'deprecated';
@@ -94,9 +106,14 @@ const fail = (code: string, path: string, message: string): { ok: false; errors:
  */
 export class CharacterRegistry {
   readonly catalog: Catalog;
-  private opts: CompatibilityOptions;
+  private opts: EvaluateOptions;
+  private trust: TrustedWorkflow;
   private records = new Map<string, VersionRecord>();
-  constructor(catalog: Catalog = createCatalog(), opts: CompatibilityOptions = {}) { this.catalog = catalog; this.opts = opts; }
+  /** `trust` is mandatory and has no default: only the caller's authenticated workflow can verify bytes and people */
+  constructor(trust: TrustedWorkflow, catalog: Catalog = createCatalog(), opts: CompatibilityOptions = {}) {
+    if (!trust || typeof trust.verifyReference !== 'function' || typeof trust.isAuthenticatedActor !== 'function') throw new Error('CharacterRegistry requires a TrustedWorkflow');
+    this.trust = trust; this.catalog = catalog; this.opts = { ...opts, trust };
+  }
 
   static key(characterId: string, version: string) { return `${characterId}@${version}`; }
 
@@ -113,7 +130,10 @@ export class CharacterRegistry {
     if (newer) return fail('VERSION_NOT_INCREASING', '$.version', `${p.version} is older than locked ${p.characterId}@${newer}`);
   }
 
-  /** create or replace an unlocked draft */
+  /** current stored profile (frozen copy) — drafts may be incomplete */
+  get(key: string): CharacterProfile | undefined { return this.records.get(key)?.profile; }
+
+  /** create or replace an unlocked draft; incomplete evidence is allowed here and blocks validate/approve/lock */
   createDraft(raw: unknown): OpResult<{ key: string; warnings: Finding[] }> {
     const parsed = parseProfile(raw);
     if (!parsed.ok) return { ok: false, errors: parsed.errors };
@@ -141,7 +161,11 @@ export class CharacterRegistry {
     const r = this.records.get(key);
     if (!r) return fail('PROFILE_NOT_FOUND', '$', `${key} not found`);
     if (r.state !== 'validated') return fail('LIFECYCLE_INVALID', '$.status', `${key} must be validated before approval (is ${r.state})`);
-    if (!approvedBy.trim()) return fail('APPROVER_REQUIRED', '$', 'approval requires an approver');
+    const actor = checkAuthenticatedActor(approvedBy, '$.approvedBy', this.trust);
+    if (actor.length) return { ok: false, errors: actor };
+    // evidence is re-verified at the approval boundary (storage or attestation state may have changed since validate)
+    const ev = evaluateProfile(r.profile, this.catalog, this.opts);
+    if (!ev.ok || ev.contentHash !== r.evaluation?.contentHash) { r.state = 'draft'; return { ok: false, errors: ev.ok ? [err('CONTENT_HASH_MISMATCH', '$', 'profile or catalog changed since validation')] : ev.errors }; }
     r.state = 'approved'; r.approvedBy = approvedBy;
     return { ok: true };
   }
@@ -158,7 +182,9 @@ export class CharacterRegistry {
   }
 
   /** register an already-locked manifest (e.g. loaded from storage); the hash is recomputed, never trusted */
-  importLocked(raw: unknown): OpResult<{ manifest: LockedManifest; pin: CharacterPin }> {
+  importLocked(raw: unknown, approvedBy: string): OpResult<{ manifest: LockedManifest; pin: CharacterPin }> {
+    const actor = checkAuthenticatedActor(approvedBy, '$.approvedBy', this.trust);
+    if (actor.length) return { ok: false, errors: actor };
     const forbidden = findForbiddenKeys(raw);
     if (forbidden.length) return { ok: false, errors: forbidden };
     const o = raw && typeof raw === 'object' ? { ...(raw as Record<string, unknown>) } : raw;
@@ -169,7 +195,7 @@ export class CharacterRegistry {
     const g = this.guardFrozen(ev.profile, ev.contentHash);
     if (g) return g;
     const manifest = buildLockedManifest(ev);
-    this.records.set(CharacterRegistry.key(manifest.characterId, manifest.version), { state: 'locked', profile: deepFreeze(clone(ev.profile)), evaluation: ev, manifest });
+    this.records.set(CharacterRegistry.key(manifest.characterId, manifest.version), { state: 'locked', profile: deepFreeze(clone(ev.profile)), evaluation: ev, approvedBy, manifest });
     return { ok: true, manifest, pin: pinOf(manifest) };
   }
 
@@ -218,9 +244,9 @@ export class CharacterRegistry {
   }
 
   /** authoring-time listing (all versions incl. deprecated). Render code must use resolvePin. */
-  versions(characterId: string): { version: string; state: ProfileStatus; contentHash?: string }[] {
+  versions(characterId: string): { version: string; state: ProfileStatus; contentHash?: string; approvedBy?: string }[] {
     return [...this.records.values()].filter((r) => r.profile.characterId === characterId)
-      .map((r) => ({ version: r.profile.version, state: r.state, contentHash: r.manifest?.contentHash }))
+      .map((r) => ({ version: r.profile.version, state: r.state, contentHash: r.manifest?.contentHash, approvedBy: r.approvedBy }))
       .sort((a, b) => semverCmp(a.version, b.version));
   }
 }

@@ -22,14 +22,14 @@ const norm = (s: string) => ' ' + s.toLowerCase().replace(/[^a-z0-9:]+/g, ' ').t
 
 /** every free-text field a user controls */
 function textFields(p: CharacterProfile): [string, string][] {
-  const t: [string, string][] = [['$.displayName', p.displayName], ['$.characterId', p.characterId.replace(/[_-]/g, ' ')], ['$.role.personality', p.role.personality], ['$.license.notes', p.license.notes ?? '']];
+  const t: [string, string][] = [['$.displayName', p.displayName], ['$.characterId', p.characterId.replace(/[_-]/g, ' ')], ['$.role.personality', p.role.personality], ['$.license.notes', p.license?.notes ?? '']];
   (p.identityRules ?? []).forEach((r, i) => t.push([`$.identityRules[${i}]`, r]));
   if (p.voice?.notes) t.push(['$.voice.notes', p.voice.notes]);
   p.references.forEach((r, i) => {
-    t.push([`$.references[${i}].displayFilename`, r.displayFilename.replace(/\.[a-z0-9]+$/i, '')]);
-    t.push([`$.references[${i}].userAttestation.statement`, r.userAttestation.statement]);
+    if (r.displayFilename) t.push([`$.references[${i}].displayFilename`, r.displayFilename.replace(/\.[a-z0-9]+$/i, '')]);
+    if (r.userAttestation) t.push([`$.references[${i}].userAttestation.statement`, r.userAttestation.statement]);
     if (r.details) t.push([`$.references[${i}].details`, r.details]);
-    if (r.provenance.notes) t.push([`$.references[${i}].provenance.notes`, r.provenance.notes]);
+    if (r.provenance?.notes) t.push([`$.references[${i}].provenance.notes`, r.provenance.notes]);
   });
   return t;
 }
@@ -58,12 +58,18 @@ function provenanceGate(pv: ProvenanceInfo, path: string, subject: string): Find
 
 /** blocking checks for validation / approval / locking */
 export function checkLicensing(p: CharacterProfile): Finding[] {
-  const out: Finding[] = [...provenanceGate(p.license, '$.license', 'the character design')];
-  if (p.license.source === 'licensed' && !p.license.licenseName) out.push(err('LICENSE_NAME_MISSING', '$.license.licenseName', 'licensed characters must name the license'));
-  if (!p.license.allowsDerivative) out.push(err('LICENSE_DERIVATIVE_FORBIDDEN', '$.license.allowsDerivative', 'the character license must allow creating episode output from it'));
-  if (!p.license.allowsOutput) out.push(err('LICENSE_OUTPUT_FORBIDDEN', '$.license.allowsOutput', 'the character license must allow appearing in final output'));
+  const out: Finding[] = [];
+  const L = p.license;
+  if (!L) out.push(err('PROVENANCE_MISSING', '$.license', 'the character design has no provenance/licence record; it must be supplied by the owner before validation'));
+  else {
+    out.push(...provenanceGate(L, '$.license', 'the character design'));
+    if (L.source === 'licensed' && !L.licenseName) out.push(err('LICENSE_NAME_MISSING', '$.license.licenseName', 'licensed characters must name the license'));
+    if (!L.allowsDerivative) out.push(err('LICENSE_DERIVATIVE_FORBIDDEN', '$.license.allowsDerivative', 'the character license must allow creating episode output from it'));
+    if (!L.allowsOutput) out.push(err('LICENSE_OUTPUT_FORBIDDEN', '$.license.allowsOutput', 'the character license must allow appearing in final output'));
+  }
   p.references.forEach((r, i) => {
     const path = `$.references[${i}]`;
+    if (!r.provenance) return; // reported as PROVENANCE_MISSING by validateReference
     out.push(...provenanceGate(r.provenance, `${path}.provenance`, `reference ${r.referenceId}`));
     // a reference whose license forbids derivatives cannot inform a character at all
     if (!r.provenance.allowsDerivative) out.push(err('LICENSE_DERIVATIVE_FORBIDDEN', `${path}.provenance.allowsDerivative`, `reference ${r.referenceId} forbids derivative use`));
