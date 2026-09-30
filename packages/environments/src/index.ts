@@ -3,7 +3,7 @@ import { parseProfile, type EnvironmentProfile } from './schema.ts';
 import { validateMarks, type CatalogIssue } from './marks.ts';
 import { validateAnchors } from './anchors.ts';
 import { validateCameraZones } from './camera-zones.ts';
-import { verifyLock, profileKey, profileContentHash, type Catalog } from './lock.ts';
+import { profileKey, profileContentHash, type Catalog } from './lock.ts';
 
 export * from './lock-source.ts';
 export * from './schema.ts';
@@ -58,7 +58,9 @@ export function hashableValueIssues(x: unknown, path = '$', out: CatalogIssue[] 
       if (UNSAFE_KEYS.has(k)) { out.push({ code: 'unsafe_key', path: p, message: `unsafe key "${k}" at ${path}` }); continue; }
       if (!d.enumerable) { out.push({ code: 'hash_non_enumerable', path: p, message: `hidden (non-enumerable) property at ${p}` }); continue; }
       if (d.get || d.set) { out.push({ code: 'hash_accessor', path: p, message: `accessor property at ${p}` }); continue; }
-      if (d.value !== undefined) hashableValueIssues(d.value, p, out, stack);
+      // canonicalJson would silently drop it; an optional field must be absent, never present-but-undefined
+      if (d.value === undefined) { out.push({ code: 'hash_invalid_value', path: p, message: `undefined value at ${p} (omit the property instead)` }); continue; }
+      hashableValueIssues(d.value, p, out, stack);
     }
   }
   stack.delete(x);
@@ -66,15 +68,23 @@ export function hashableValueIssues(x: unknown, path = '$', out: CatalogIssue[] 
 }
 
 /**
- * THE combined catalog validator. Runs before any lock hash is accepted or generated: hashability, every profile's
- * strict schema + semantic validation, duplicate id@version, and lock structure (key format, exact id@version match,
- * hash format, conflicting entries, unsafe keys, locked profiles that disappeared). Does not compare hashes — that is
- * planEnvironmentLock's job, and it only happens once this passes. Every issue carries the affected id@version.
+ * AUTHORITATIVE catalog validator — new callers must use this (lock maintenance uses planEnvironmentLock, which runs
+ * the same stages). Stage 1, before anything is hashed: hashability (cycles, undefined, non-finite… fail safely),
+ * every profile's strict schema + semantic validation, duplicate id@version, and lock structure (key format, exact
+ * id@version match, hash format, conflicting entries, unsafe keys, locked profiles that disappeared). Stage 2, only if
+ * stage 1 passes: check-mode lock verification — a mismatched or missing lock entry is blocking.
+ * Identical result to planEnvironmentLock(catalog, 'check'). Every issue carries the affected id@version.
  */
 export function validateEnvironmentCatalog(c: Catalog): { ok: boolean; issues: KeyedCatalogIssue[] } {
+  const plan = planEnvironmentLock(c, 'check');
+  return { ok: plan.ok, issues: plan.issues };
+}
+
+/** stage 1 of the authoritative path (internal): everything that must hold before any hash is computed */
+function catalogStructureIssues(c: Catalog): KeyedCatalogIssue[] {
   const issues: KeyedCatalogIssue[] = [];
   const add = (key: string, i: CatalogIssue) => issues.push({ ...i, key, message: `${key}: ${i.message}` });
-  if (!c || typeof c !== 'object' || !Array.isArray(c.profiles)) { add('catalog', { code: 'catalog_shape', path: '$', message: 'catalog must have a profiles array' }); return { ok: false, issues }; }
+  if (!c || typeof c !== 'object' || !Array.isArray(c.profiles)) { add('catalog', { code: 'catalog_shape', path: '$', message: 'catalog must have a profiles array' }); return issues; }
   const byKey = new Map<string, EnvironmentProfile>();
   c.profiles.forEach((p, i) => {
     const raw = p as unknown as Record<string, unknown> | null;
@@ -89,7 +99,7 @@ export function validateEnvironmentCatalog(c: Catalog): { ok: boolean; issues: K
     else byKey.set(key, p);
   });
   const lock = c.lock as unknown;
-  if (!lock || typeof lock !== 'object' || Array.isArray(lock)) { add('lock', { code: 'lock_shape', path: 'lock', message: 'lock must be an object of id@version -> sha256' }); return { ok: false, issues }; }
+  if (!lock || typeof lock !== 'object' || Array.isArray(lock)) { add('lock', { code: 'lock_shape', path: 'lock', message: 'lock must be an object of id@version -> sha256' }); return issues; }
   const proto = Object.getPrototypeOf(lock);
   if (proto !== Object.prototype && proto !== null) add('lock', { code: 'lock_shape', path: 'lock', message: 'lock must be a plain object' });
   if (Object.getOwnPropertySymbols(lock).length) add('lock', { code: 'lock_shape', path: 'lock', message: 'lock has symbol keys' });
@@ -107,7 +117,7 @@ export function validateEnvironmentCatalog(c: Catalog): { ok: boolean; issues: K
     if (!p) add(k, { code: 'lock_orphan', path: `lock.${k}`, message: 'previously locked profile has disappeared from the catalog; pinned episodes would no longer reproduce' });
     else if (p.status !== 'locked') add(k, { code: 'lock_status', path: `lock.${k}`, message: 'lock entry exists but the profile is not marked locked' });
   }
-  return { ok: issues.length === 0, issues };
+  return issues;
 }
 
 export type LockMode = 'check' | 'update';
@@ -128,8 +138,8 @@ const keyOrder = (a: string, b: string) => {
  * update. Existing entries are never rewritten, reordered or removed. Hashes come only from profileContentHash.
  */
 export function planEnvironmentLock(c: Catalog, mode: LockMode): LockPlan {
-  const v = validateEnvironmentCatalog(c);
-  if (!v.ok) return { mode, ok: false, issues: v.issues, entries: [], appended: [], nextLock: null }; // nothing hashed
+  const structural = catalogStructureIssues(c);
+  if (structural.length) return { mode, ok: false, issues: structural, entries: [], appended: [], nextLock: null }; // nothing hashed
   const entries: LockPlanEntry[] = c.profiles.filter((p) => p.status === 'locked').map((p) => {
     const key = profileKey(p.id, p.version), computed = profileContentHash(p);
     const locked = Object.hasOwn(c.lock, key) ? c.lock[key] : null;
@@ -149,12 +159,10 @@ export function planEnvironmentLock(c: Catalog, mode: LockMode): LockPlan {
   return { mode, ok: true, issues, entries, appended, nextLock };
 }
 
-/** validate every profile and the lock */
-export function validateCatalog(c: Catalog): CatalogIssue[] {
-  const out: CatalogIssue[] = [];
-  for (const p of c.profiles) {
-    const r = validateProfile(p);
-    if (!r.ok) out.push(...r.issues.map((i) => ({ ...i, path: `${p.id}@${p.version}:${i.path}` })));
-  }
-  return [...out, ...verifyLock(c)];
+/**
+ * @deprecated Legacy wrapper kept for existing callers. New callers must use validateEnvironmentCatalog.
+ * Delegates to the authoritative path (no separate logic): returns exactly validateEnvironmentCatalog(c).issues.
+ */
+export function validateCatalog(c: Catalog): KeyedCatalogIssue[] {
+  return validateEnvironmentCatalog(c).issues;
 }

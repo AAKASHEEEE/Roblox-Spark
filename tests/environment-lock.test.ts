@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import {
   ENVIRONMENT_CATALOG, ENVIRONMENT_LOCK, CLASSROOM_1_0_0, CLASSROOM_1_1_0, canonicalJson, profileContentHash,
   validateEnvironmentCatalog, planEnvironmentLock, parseLockBlock, renderLockBlock, replaceLockBlock, type EnvironmentProfile,
+  validateCatalog, hashableValueIssues, type Catalog,
 } from '../packages/environments/src/index.ts';
 import { runEnvironmentLock, LOCK_SOURCE } from '../scripts/environment-lock.ts';
 
@@ -150,4 +151,70 @@ test('hashes are identical across repeated runs and match node:crypto SHA-256 of
   assert.deepEqual(runs[0].entries.map((e) => [e.key, e.computed, e.status]), Object.entries(EXPECTED).map(([k, h]) => [k, h, 'unchanged']));
   for (const p of PROFILES) assert.equal(profileContentHash(p), createHash('sha256').update(canonicalJson(p)).digest('hex'));
   assert.equal(renderLockBlock(EXPECTED), renderLockBlock({ ...EXPECTED }));
+});
+
+const withUndefinedOptional = () => { const p = clone(CLASSROOM_1_0_0); (p.license as any).url = undefined; return p; };
+const withNestedUndefined = () => { const p = clone(CLASSROOM_1_0_0); (p.marks[0].hazard as any).note = undefined; return p; };
+
+test('present-but-undefined properties (optional and nested) are rejected before hashing; absent optionals stay valid', () => {
+  for (const [p, path] of [[withUndefinedOptional(), 'profiles[0].license.url'], [withNestedUndefined(), 'profiles[0].marks[0].hazard.note']] as const) {
+    const plan = planEnvironmentLock({ profiles: [p, CLASSROOM_1_1_0], lock: ENVIRONMENT_LOCK }, 'check');
+    assert.equal(plan.ok, false);
+    assert.deepEqual([plan.entries, plan.nextLock], [[], null]); // never reached profileContentHash
+    assert.deepEqual(plan.issues.map((i) => [i.key, i.code, i.path]), [['classroom@1.0.0', 'hash_invalid_value', path]]);
+    // why it matters: canonical hashing silently drops the key, so the tampered object would "match" the lock
+    assert.equal(profileContentHash(p), EXPECTED['classroom@1.0.0']);
+  }
+  assert.equal(Object.hasOwn(CLASSROOM_1_0_0.license, 'url'), false); // committed profiles use absent optionals
+  const absent = v120();
+  delete (absent.provenance as any).notes;
+  delete (absent.marks.find((m) => m.hazard.note !== undefined)!.hazard as any).note;
+  assert.deepEqual(hashableValueIssues(absent), []);
+  const up = planEnvironmentLock({ profiles: [...PROFILES, absent], lock: ENVIRONMENT_LOCK }, 'update');
+  assert.deepEqual([up.ok, up.appended, up.issues], [true, ['classroom@1.2.0'], []]);
+});
+
+test('undefined array entries and holes stay rejected; update writes nothing while any unhashable value exists', () => {
+  const undef = clone(CLASSROOM_1_0_0); (undef.marks[0].postures as unknown[]).push(undefined);
+  const hole = clone(CLASSROOM_1_0_0); hole.marks[0].reachable.length = 2;
+  assert.deepEqual(hashableValueIssues(undef).map((i) => [i.code, i.path]), [['hash_array_hole', '$.marks[0].postures[1]']]);
+  assert.deepEqual(hashableValueIssues(hole).map((i) => [i.code, i.path]), [['hash_array_hole', '$.marks[0].reachable[1]']]);
+  const tmp = tempLock();
+  try {
+    const before = readFileSync(tmp.path, 'utf8');
+    for (const bad of [withUndefinedOptional(), withNestedUndefined(), undef, hole]) {
+      const r = runEnvironmentLock({ mode: 'update', profiles: [bad, CLASSROOM_1_1_0, v120()], lockSourcePath: tmp.path });
+      assert.deepEqual([r.code, r.wrote], [1, false]);
+      assert.ok(r.lines.some((l) => /\[hash_(invalid_value|array_hole)\] classroom@1\.0\.0: /.test(l)), r.lines.join('\n'));
+    }
+    assert.equal(readFileSync(tmp.path, 'utf8'), before);
+  } finally { tmp.done(); }
+});
+
+test('legacy validateCatalog delegates to the authoritative path: same issues, never accepts what it rejects', () => {
+  const tampered = clone(CLASSROOM_1_0_0); tampered.marks[1].position[0] += 0.001;
+  const hidden = clone(CLASSROOM_1_0_0); Object.defineProperty(hidden, 'hidden', { value: 1, enumerable: false });
+  const cyclic: any = clone(CLASSROOM_1_1_0); cyclic.self = cyclic;
+  const { 'classroom@1.1.0': _dropped, ...lockMissing } = ENVIRONMENT_LOCK;
+  const cases: Array<[string, Catalog, string]> = [
+    ['hash mismatch', { profiles: [tampered, CLASSROOM_1_1_0], lock: ENVIRONMENT_LOCK }, 'version_bump_required'],
+    ['missing lock entry', { profiles: PROFILES, lock: lockMissing }, 'lock_missing'],
+    ['deleted locked profile', { profiles: [CLASSROOM_1_1_0], lock: ENVIRONMENT_LOCK }, 'lock_orphan'],
+    // the three below were accepted (or crashed) under the old, separate validateCatalog logic
+    ['undefined optional', { profiles: [withUndefinedOptional(), CLASSROOM_1_1_0], lock: ENVIRONMENT_LOCK }, 'hash_invalid_value'],
+    ['hidden property', { profiles: [hidden, CLASSROOM_1_1_0], lock: ENVIRONMENT_LOCK }, 'hash_non_enumerable'],
+    ['cycle', { profiles: [CLASSROOM_1_0_0, cyclic], lock: ENVIRONMENT_LOCK }, 'hash_cycle'],
+  ];
+  for (const [name, cat, code] of cases) {
+    const combined = validateEnvironmentCatalog(cat);
+    assert.equal(combined.ok, false, name);
+    assert.ok(combined.issues.some((i) => i.code === code), `${name}: ${combined.issues.map((i) => i.code).join(' ')}`);
+    assert.ok(combined.issues.every((i) => /^classroom@\d+\.\d+\.\d+$/.test(i.key)), name);
+    assert.deepEqual(validateCatalog(cat), combined.issues, name);
+    assert.deepEqual(planEnvironmentLock(cat, 'check').issues, combined.issues, name);
+  }
+  assert.deepEqual(validateCatalog(ENVIRONMENT_CATALOG), []);
+  assert.deepEqual(validateEnvironmentCatalog(ENVIRONMENT_CATALOG), { ok: true, issues: [] });
+  assert.deepEqual({ ...ENVIRONMENT_LOCK }, EXPECTED);
+  assert.deepEqual(Object.fromEntries(PROFILES.map((p) => [`${p.id}@${p.version}`, profileContentHash(p)])), EXPECTED);
 });

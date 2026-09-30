@@ -68,7 +68,11 @@ export const ENVIRONMENT_LOCK: EnvironmentLock = Object.freeze({
 
 export interface Catalog { profiles: readonly EnvironmentProfile[]; lock: EnvironmentLock }
 
-/** verify every locked profile still hashes to its lock entry and every lock entry still has its profile */
+/**
+ * Low-level hash comparison only (no profile/hashability validation). Catalog validation must go through
+ * validateEnvironmentCatalog in index.ts, which validates everything before hashing.
+ * Verifies every locked profile still hashes to its lock entry and every lock entry still has its profile.
+ */
 export function verifyLock(c: Catalog): CatalogIssue[] {
   const out: CatalogIssue[] = [];
   const keys = new Set<string>();
