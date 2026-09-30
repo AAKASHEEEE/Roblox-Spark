@@ -1,0 +1,429 @@
+{
+  "p01": {
+    "beat": "p01",
+    "recipeId": "establishing_wide",
+    "recipeKnown": true,
+    "intent": "wide",
+    "motion": "static",
+    "framingFrom": 0,
+    "source": "recipe",
+    "candidateId": "establishing_wide:y30_s1_h16_f56",
+    "variant": {
+      "id": "y30_s1_h16_f56",
+      "yaw": 30,
+      "size": 1,
+      "height": 16,
+      "fov": 56
+    },
+    "keys": [
+      {
+        "lt": 0,
+        "pose": {
+          "pos": [
+            2.278683069400757,
+            2.4423720379641702,
+            3.9095505359337035
+          ],
+          "target": [
+            -0.0065186344366521265,
+            1.131829949757084,
+            -0.04853492065565662
+          ],
+          "fovDeg": 56
+        }
+      }
+    ],
+    "samples": [
+      {
+        "t": 0.05,
+        "accepted": true,
+        "score": 0.955703,
+        "reasons": [],
+        "screenDirection": "established:left"
+      },
+      {
+        "t": 0.5,
+        "accepted": true,
+        "score": 0.952771,
+        "reasons": [],
+        "screenDirection": "established:left"
+      },
+      {
+        "t": 1.5,
+        "accepted": true,
+        "score": 0.951521,
+        "reasons": [],
+        "screenDirection": "established:left"
+      },
+      {
+        "t": 2,
+        "accepted": true,
+        "score": 0.951376,
+        "reasons": [],
+        "screenDirection": "established:left"
+      },
+      {
+        "t": 3.95,
+        "accepted": true,
+        "score": 0.952408,
+        "reasons": [],
+        "screenDirection": "established:left"
+      }
+    ],
+    "accepted": true,
+    "minScore": 0.9514,
+    "coverageAtSelection": 1,
+    "evaluated": {
+      "candidates": 20,
+      "accepted": 20,
+      "fallbacks": 0
+    },
+    "rejectionSummary": {},
+    "subjects": {
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "heroProps": []
+    },
+    "diagnostics": {
+      "headHeightPct": {
+        "zapp": 17.8
+      },
+      "faceVisibility": {
+        "kira": 0,
+        "zapp": 1
+      },
+      "selfOccludedFeatures": [],
+      "cameraSide": "left"
+    }
+  },
+  "p02": {
+    "beat": "p02",
+    "recipeId": "medium_single",
+    "recipeKnown": true,
+    "intent": "medium",
+    "motion": "static",
+    "framingFrom": 0,
+    "source": "blocked_best_effort",
+    "candidateId": "medium_single:y50_s0.22_h-0.08_f38",
+    "variant": {
+      "id": "y50_s0.22_h-0.08_f38",
+      "yaw": 50,
+      "size": 0.22,
+      "height": -0.08,
+      "fov": 38
+    },
+    "keys": [
+      {
+        "lt": 0,
+        "pose": {
+          "pos": [
+            -3.8271242200770645,
+            1.473750161284023,
+            2.892062110100831
+          ],
+          "target": [
+            0.42980098724365234,
+            1.3253461837768554,
+            0.031314119696617126
+          ],
+          "fovDeg": 38
+        }
+      }
+    ],
+    "samples": [
+      {
+        "t": 4.05,
+        "accepted": false,
+        "score": 0.969966,
+        "reasons": [
+          "HEAD_CROPPED:zapp"
+        ],
+        "screenDirection": "consistent:left"
+      },
+      {
+        "t": 5,
+        "accepted": false,
+        "score": 0.918926,
+        "reasons": [
+          "PROP_COVERS_FACE:kira:backpack",
+          "HEAD_CROPPED:zapp"
+        ],
+        "screenDirection": "consistent:left"
+      },
+      {
+        "t": 6,
+        "accepted": false,
+        "score": 0.920588,
+        "reasons": [
+          "PROP_COVERS_FACE:kira:backpack"
+        ],
+        "screenDirection": "consistent:left"
+      },
+      {
+        "t": 7,
+        "accepted": false,
+        "score": 0.920559,
+        "reasons": [
+          "PROP_COVERS_FACE:kira:backpack"
+        ],
+        "screenDirection": "consistent:left"
+      },
+      {
+        "t": 7.95,
+        "accepted": false,
+        "score": 0.922194,
+        "reasons": [
+          "PROP_COVERS_FACE:kira:backpack"
+        ],
+        "screenDirection": "no_axis"
+      }
+    ],
+    "accepted": false,
+    "minScore": 0.9189,
+    "coverageAtSelection": 1,
+    "evaluated": {
+      "candidates": 84,
+      "accepted": 0,
+      "fallbacks": 3
+    },
+    "rejectionSummary": {
+      "FACE_VISIBILITY_LOW": 71,
+      "HEAD_CROPPED": 135,
+      "SCREEN_DIRECTION_REVERSED": 164,
+      "PROP_COVERS_FACE": 336,
+      "CAMERA_PATH_COLLISION": 9,
+      "LENS_COLLISION": 9,
+      "LENS_TOO_CLOSE_TO_HEAD": 4,
+      "SHOT_TOO_TIGHT_FOR_INTENT": 8
+    },
+    "subjects": {
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "heroProps": []
+    },
+    "diagnostics": {
+      "headHeightPct": {
+        "kira": 22
+      },
+      "faceVisibility": {
+        "kira": 0.8
+      },
+      "selfOccludedFeatures": [],
+      "cameraSide": "none"
+    }
+  },
+  "p03": {
+    "beat": "p03",
+    "recipeId": "wide_environment",
+    "recipeKnown": true,
+    "intent": "wide",
+    "motion": "static",
+    "framingFrom": 0,
+    "source": "recipe",
+    "candidateId": "wide_environment:y0_s1_h6_f44",
+    "variant": {
+      "id": "y0_s1_h6_f44",
+      "yaw": 0,
+      "size": 1,
+      "height": 6,
+      "fov": 44
+    },
+    "keys": [
+      {
+        "lt": 0,
+        "pose": {
+          "pos": [
+            41.84658950805664,
+            2.4412360123612675,
+            10.278394676424472
+          ],
+          "target": [
+            41.84658950805664,
+            1.1140839049592612,
+            -2.34861415958777
+          ],
+          "fovDeg": 44
+        }
+      }
+    ],
+    "samples": [
+      {
+        "t": 8.6,
+        "accepted": true,
+        "score": 0.935976,
+        "reasons": [],
+        "screenDirection": "established:right"
+      },
+      {
+        "t": 10,
+        "accepted": true,
+        "score": 0.942859,
+        "reasons": [],
+        "screenDirection": "established:right"
+      },
+      {
+        "t": 10.5,
+        "accepted": true,
+        "score": 0.942011,
+        "reasons": [],
+        "screenDirection": "established:right"
+      },
+      {
+        "t": 11.95,
+        "accepted": true,
+        "score": 0.941995,
+        "reasons": [],
+        "screenDirection": "established:right"
+      }
+    ],
+    "accepted": true,
+    "minScore": 0.936,
+    "coverageAtSelection": 1,
+    "evaluated": {
+      "candidates": 20,
+      "accepted": 18,
+      "fallbacks": 0
+    },
+    "rejectionSummary": {
+      "ACTIVE_SUBJECT_HIDDEN": 2
+    },
+    "subjects": {
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "heroProps": []
+    },
+    "diagnostics": {
+      "headHeightPct": {
+        "zapp": 8.1
+      },
+      "faceVisibility": {
+        "kira": 0,
+        "zapp": 1
+      },
+      "selfOccludedFeatures": [],
+      "cameraSide": "right"
+    }
+  },
+  "p04": {
+    "beat": "p04",
+    "recipeId": "two_shot",
+    "recipeKnown": true,
+    "intent": "medium",
+    "motion": "static",
+    "framingFrom": 0,
+    "source": "recipe",
+    "candidateId": "two_shot:aud_y-40_s1_h0.3_f34",
+    "variant": {
+      "id": "aud_y-40_s1_h0.3_f34",
+      "yaw": -40,
+      "size": 1,
+      "height": 0.3,
+      "fov": 34,
+      "side": 1
+    },
+    "keys": [
+      {
+        "lt": 0,
+        "pose": {
+          "pos": [
+            75.7,
+            2.158906533050537,
+            5.7922756972950245
+          ],
+          "target": [
+            79.91278076171875,
+            1.5237004280090332,
+            0.13600703235715628
+          ],
+          "fovDeg": 34
+        }
+      }
+    ],
+    "samples": [
+      {
+        "t": 12.05,
+        "accepted": true,
+        "score": 0.99013,
+        "reasons": [],
+        "screenDirection": "established:left"
+      },
+      {
+        "t": 12.5,
+        "accepted": true,
+        "score": 0.990115,
+        "reasons": [],
+        "screenDirection": "established:left"
+      },
+      {
+        "t": 12.8,
+        "accepted": true,
+        "score": 0.99035,
+        "reasons": [],
+        "screenDirection": "established:left"
+      },
+      {
+        "t": 14,
+        "accepted": true,
+        "score": 0.991102,
+        "reasons": [],
+        "screenDirection": "established:left"
+      },
+      {
+        "t": 15.95,
+        "accepted": true,
+        "score": 0.990914,
+        "reasons": [],
+        "screenDirection": "established:left"
+      }
+    ],
+    "accepted": true,
+    "minScore": 0.9901,
+    "coverageAtSelection": 1,
+    "evaluated": {
+      "candidates": 56,
+      "accepted": 12,
+      "fallbacks": 0
+    },
+    "rejectionSummary": {
+      "SUBJECT_TOO_SMALL_FOR_INTENT": 74,
+      "HEAD_CROPPED": 54,
+      "FACE_VISIBILITY_LOW": 6
+    },
+    "subjects": {
+      "active": "zapp",
+      "required": [
+        "zapp",
+        "kira"
+      ],
+      "optional": [],
+      "heroProps": []
+    },
+    "diagnostics": {
+      "headHeightPct": {
+        "kira": 16.1,
+        "zapp": 21.6
+      },
+      "faceVisibility": {
+        "kira": 1,
+        "zapp": 1
+      },
+      "selfOccludedFeatures": [],
+      "cameraSide": "left"
+    }
+  }
+}

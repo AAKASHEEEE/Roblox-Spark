@@ -1,0 +1,224 @@
+// Beat cameras (S6): one shot per beat, from the beat's camera recipe, judged by camera safety on every sampled frame
+// of the beat. Candidates that pass on every sample are ranked by script coverage (cast / props / events visible),
+// then by the safety score. If no recipe variant passes, camera safety's own vetted fallbacks (fallbackChain of the
+// recipe intent) are tried; if those fail too the beat is BLOCKED (the best-effort camera is kept for the still and
+// named in the report). Screen direction carries across consecutive beats in the same set and resets on a set change.
+import { evaluateCameraCandidate, buildSafeFallbackCandidates, fallbackChain, nextScreenDirectionState, baseIntent, type CameraCandidate, type CameraIntent, type CameraSafetyResult, type ScreenDirectionState } from '../../engine/src/camera-safety.ts';
+import type { Vec3 } from '../../engine/src/math.ts';
+import type { CameraSubject } from '../../library/src/types.ts';
+import { CAMERA_RECIPES, ASPECT, type RecipeCtx, type RecipePlan, type Variant, type VignetteCameraRecipe } from './camera-recipes.ts';
+import { frameGeometry, safetyScene, subjectOf, visibilityOf, boundsOf, projectedHeightFrac, projectPointFrom, type CamPose, type FrameGeometry, type SafetySpec } from './geometry.ts';
+import type { VignetteScene } from './scene.ts';
+import { actorPresent, type StagedBeat } from './stage.ts';
+
+export const FRAME_W = 1080, FRAME_H = 1920;
+
+export interface ShotChoice {
+  beat: string; recipeId: string; recipeKnown: boolean; intent: CameraIntent; motion: RecipePlan['motion']; framingFrom: number;
+  source: 'recipe' | 'fallback' | 'blocked_best_effort'; candidateId: string; variant: Variant | null; fallback?: string;
+  /** lens pose at beat-local time (piecewise-linear through the sampled poses for moving recipes) */
+  keys: Array<{ lt: number; pose: CamPose }>;
+  samples: Array<{ t: number; accepted: boolean; score: number; reasons: string[]; screenDirection: string }>;
+  accepted: boolean; minScore: number; coverageAtSelection: number;
+  evaluated: { candidates: number; accepted: number; fallbacks: number };
+  rejectionSummary: Record<string, number>;
+  subjects: { active: string; required: string[]; optional: string[]; heroProps: string[]; foreground?: string };
+  diagnostics: { headHeightPct: Record<string, number>; faceVisibility: Record<string, number>; selfOccludedFeatures: string[]; faceAreaHairFree?: number; cameraSide: string };
+}
+
+const r4 = (x: number) => Math.round(x * 1e4) / 1e4;
+const lerp3 = (a: Vec3, b: Vec3, u: number): Vec3 => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
+
+/** camera pose at absolute time t for a chosen shot */
+export function poseAt(shot: ShotChoice, beatStart: number, t: number): CamPose {
+  const lt = t - beatStart, k = shot.keys;
+  if (lt <= k[0].lt || k.length === 1) return k[0].pose;
+  for (let i = 1; i < k.length; i++) if (lt <= k[i].lt) { const u = (lt - k[i - 1].lt) / Math.max(1e-6, k[i].lt - k[i - 1].lt); return { pos: lerp3(k[i - 1].pose.pos, k[i].pose.pos, u), target: lerp3(k[i - 1].pose.target, k[i].pose.target, u), fovDeg: k[i - 1].pose.fovDeg + (k[i].pose.fovDeg - k[i - 1].pose.fovDeg) * u }; }
+  return k[k.length - 1].pose;
+}
+
+/** sample times of a beat: start / mid / end + key times (events, contacts, arrivals), at most `max`, >= 0.15 s apart */
+export function beatSamples(b: StagedBeat, max = 8): number[] {
+  const S = b.start + 0.05, E = b.end - 0.05;
+  const must = [S, (b.start + b.end) / 2, E];
+  const keys = b.keyTimes.filter((t) => t > S && t < E && must.every((m) => Math.abs(m - t) > 0.15));
+  const out = [...must];
+  const step = Math.max(1, Math.ceil(keys.length / Math.max(1, max - must.length)));
+  for (let i = 0; i < keys.length && out.length < max; i += step) if (out.every((m) => Math.abs(m - keys[i]) > 0.15)) out.push(keys[i]);
+  return out.map(r4).sort((a, b) => a - b);
+}
+
+interface SampleFrame { t: number; geo: FrameGeometry }
+interface Cand { id: string; variant: Variant | null; intent: CameraIntent; plan: RecipePlan; poseAt: (lt: number) => CamPose; extras: Partial<CameraCandidate>; fallback?: string }
+
+function unionSubject(samples: SampleFrame[], id: string): CameraSubject | undefined {
+  const subs = samples.map((s) => subjectOf(s.geo, id)).filter(Boolean) as CameraSubject[];
+  if (!subs.length) return undefined;
+  const moved = Math.max(...subs.map((s) => Math.hypot(s.center[0] - subs[0].center[0], s.center[2] - subs[0].center[2])));
+  const last = subs[subs.length - 1];
+  if (moved < 0.3) return subs[Math.floor(subs.length / 2)];
+  const b = boundsOf(subs.flatMap((s) => [[s.center[0] - s.radius, s.bottom[1], s.center[2] - s.radius], [s.center[0] + s.radius, s.top[1], s.center[2] + s.radius]] as Vec3[]));
+  const c: Vec3 = [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, (b.min[2] + b.max[2]) / 2];
+  const heads = subs.filter((s) => s.head).map((s) => s.head!);
+  return { center: c, ...(heads.length ? { head: [c[0], heads.reduce((a, h) => a + h[1], 0) / heads.length, c[2]] as Vec3 } : {}), top: [c[0], b.max[1], c[2]], bottom: [c[0], b.min[1], c[2]], radius: Math.max(b.max[0] - b.min[0], b.max[2] - b.min[2]) / 2, ...(last.facingYaw !== undefined ? { facingYaw: last.facingYaw } : {}) };
+}
+
+export interface BeatCameraInput { scene: VignetteScene; beat: StagedBeat; samples: SampleFrame[]; screenDirection?: ScreenDirectionState; waistUp: boolean }
+
+/** coverage of the beat's cast + props over the sampled frames for one lens path (fraction of items seen in >= half their present samples) */
+function quickCoverage(beat: StagedBeat, samples: SampleFrame[], pose: (lt: number) => CamPose): number {
+  const items = [...beat.cast.map((c) => c.id), ...beat.props];
+  let ok = 0;
+  for (const id of items) {
+    let present = 0, seen = 0;
+    for (const s of samples) {
+      if (!s.geo.actors[id] && !s.geo.props[id]) continue;
+      present++;
+      if (visibilityOf(s.geo, pose(s.t - beat.start), ASPECT, id).ok) seen++;
+    }
+    if (present && seen * 2 >= present) ok++;
+  }
+  return items.length ? ok / items.length : 1;
+}
+
+export function solveBeatCamera(inp: BeatCameraInput): { shot: ShotChoice; next: ScreenDirectionState | undefined } {
+  const { scene, beat, samples } = inp;
+  const recipeKnown = !!CAMERA_RECIPES[beat.camera.recipeId];
+  const recipe: VignetteCameraRecipe = CAMERA_RECIPES[beat.camera.recipeId] ?? CAMERA_RECIPES.medium_single;
+  const subjectId = beat.camera.subject, secondaryId = beat.camera.secondary;
+  const mid = samples[Math.floor(samples.length / 2)];
+  const kindOf = (id: string) => (samples.some((s) => s.geo.actors[id]) ? 'character' : 'prop') as 'character' | 'prop';
+  const subject = unionSubject(samples, subjectId) ?? unionSubject(samples, beat.cast[0]?.id ?? '')!;
+  const secondary = secondaryId ? unionSubject(samples, secondaryId) : undefined;
+  const castIds = beat.cast.map((c) => c.id), propIds = beat.props;
+  const set = scene.stack.get(beat.setId)!;
+  // content for wides: every present cast member and prop, over the beat (the door when a door event happens)
+  const contentPts: Vec3[] = [];
+  for (const s of samples) for (const id of [...castIds, ...propIds]) { const x = subjectOf(s.geo, id); if (x) contentPts.push([x.center[0] - x.radius, x.bottom[1], x.center[2] - x.radius], [x.center[0] + x.radius, x.top[1], x.center[2] + x.radius]); }
+  const content = contentPts.length ? boundsOf(contentPts) : { min: subject.bottom, max: subject.top };
+  const viewerId = castIds.find((id) => id !== subjectId && beat.cast.find((c) => c.id === id)?.lookAt === subjectId);
+  const ctx: RecipeCtx = {
+    d: beat.end - beat.start, subject, subjectKind: kindOf(subjectId), ...(secondary ? { secondary, secondaryKind: kindOf(secondaryId!) } : {}), content,
+    ...(viewerId ? { viewer: unionSubject(samples, viewerId) } : {}),
+    actorsNear: castIds.some((id) => id !== subjectId && samples.some((sm) => { const a = sm.geo.actors[id], s0 = subjectOf(sm.geo, subjectId); return !!a && !!s0 && Math.hypot((a.body.min[0] + a.body.max[0]) / 2 - s0.center[0], (a.body.min[2] + a.body.max[2]) / 2 - s0.center[2]) < s0.radius + 2.5; })),
+    subjectAt: (lt) => { const t = beat.start + lt; const s = samples.reduce((a, x) => (Math.abs(x.t - t) < Math.abs(a.t - t) ? x : a), samples[0]); return subjectOf(s.geo, subjectId); },
+    safeMin: set.safeMin, safeMax: set.safeMax, seed: scene.plan.seed,
+  };
+  const plan = recipe.plan(ctx);
+  // subject roles for camera safety
+  const others = castIds.filter((id) => id !== subjectId && id !== secondaryId);
+  const secRequired = plan.secondaryRole === 'required' && !!secondaryId;
+  const heroProps = [...(plan.heroSubject && kindOf(subjectId) === 'prop' ? [subjectId] : []), ...(plan.secondaryRole === 'foreground' && secondaryId && kindOf(secondaryId) === 'prop' ? [] : [])];
+  const spec: SafetySpec = {
+    active: subjectId,
+    subjects: [subjectId, ...(secondaryId && plan.secondaryRole !== 'none' ? [secondaryId] : []), ...(plan.secondaryRole === 'none' || plan.intent === 'neutral_top_down_prop_insert' ? [] : others)],
+    optional: [...(secondaryId && !secRequired && plan.secondaryRole !== 'foreground' ? [secondaryId] : []), ...others],
+    heroProps, waistUp: inp.waistUp, ...(inp.screenDirection ? { screenDirection: inp.screenDirection } : {}),
+  };
+  // scale reveal: the nearest character of the beat reads as the scale reference (and is fitted into the frame)
+  const nearestChar = castIds.filter((id) => id !== subjectId && mid.geo.actors[id]).map((id) => { const a = mid.geo.actors[id]; return { id, d: Math.hypot((a.body.min[0] + a.body.max[0]) / 2 - subject.center[0], (a.body.min[2] + a.body.max[2]) / 2 - subject.center[2]) }; }).sort((a, b) => a.d - b.d || (a.id < b.id ? -1 : 1))[0];
+  const scaleRef = plan.intent === 'scale_reveal' && nearestChar && nearestChar.d < subject.radius + 3 ? nearestChar.id : undefined;
+  const extras: Partial<CameraCandidate> = { ...plan.extras, ...(scaleRef ? { scaleReferenceIds: [scaleRef] } : plan.intent === 'scale_reveal' ? { scaleReferenceIds: [] } : {}), ...(secRequired ? { framedSubjectIds: [subjectId, secondaryId!] } : {}), ...(plan.secondaryRole === 'foreground' && secondaryId ? { foregroundSubjectId: secondaryId } : {}) };
+  // framing is judged where the recipe frames (after a whip pan) and while the active subject is on screen
+  const subjPresent = (s: SampleFrame) => !!s.geo.actors[subjectId] || !!s.geo.props[subjectId];
+  const framed = samples.filter((s) => s.t - beat.start >= plan.framingFrom - 1e-9);
+  const frames = framed.some(subjPresent) ? framed.filter(subjPresent) : framed;
+  const scenes = new Map(frames.map((s) => [s.t, safetyScene(s.geo, spec, FRAME_W, FRAME_H)]));
+
+  const evaluate = (c: Cand) => {
+    let prev: CamPose | null = null;
+    const out: Array<{ t: number; r: CameraSafetyResult }> = [];
+    for (const s of frames) {
+      const p = c.poseAt(s.t - beat.start);
+      const cand: CameraCandidate = { id: c.id, transform: { position: p.pos, ...(p.roll ? { roll: p.roll } : {}) }, target: p.target, fov: p.fovDeg, intent: c.intent, activeSubjectId: spec.active, ...c.extras, ...(prev && plan.motion !== 'static' ? { lensPath: [prev.pos] } : {}) };
+      out.push({ t: s.t, r: evaluateCameraCandidate(scenes.get(s.t)!, cand) });
+      prev = p;
+    }
+    return out;
+  };
+  // ---- calibration on the POSED geometry: head-size bands on the subject's real head (hair included), and distance fit
+  // so every point a wide / two-shot must show stays inside the frame across all samples
+  const headPts = (t: number): Vec3[] => { const s = samples.reduce((a, x) => (Math.abs(x.t - t) < Math.abs(a.t - t) ? x : a), samples[0]); return s.geo.actors[subjectId]?.headCorners ?? []; };
+  const fitPtsFor = (fit: 'content' | 'pair' | undefined): Vec3[] => {
+  const fitPts: Vec3[] = [];
+  const pairIds = [subjectId, ...(secondaryId ? [secondaryId] : scaleRef ? [scaleRef] : [])];
+  if (fit) for (const s of samples) for (const id of fit === 'pair' ? pairIds : [...castIds, ...propIds]) {
+    const a = s.geo.actors[id], pr = s.geo.props[id];
+    if (a) fitPts.push(...a.headCorners, [(a.body.min[0] + a.body.max[0]) / 2, fit === 'pair' ? a.head.min[1] - 0.25 : a.body.min[1], (a.body.min[2] + a.body.max[2]) / 2]);
+    else if (pr) { const b = pr.bounds; for (const x of [b.min[0], b.max[0]]) for (const y of [b.min[1], b.max[1]]) for (const z of [b.min[2], b.max[2]]) fitPts.push([x, y, z]); }
+  }
+  return fitPts;
+  };
+  const scaleAbout = (p: CamPose, c: Vec3, k: number): CamPose => ({ ...p, pos: [c[0] + (p.pos[0] - c[0]) * k, c[1] + (p.pos[1] - c[1]) * k, c[2] + (p.pos[2] - c[2]) * k] });
+  const inside = (p: CamPose, fitPts: Vec3[]) => fitPts.every((q) => { const s = projectPointFrom(p, q, ASPECT); return s.z > 0.05 && s.x >= 0.04 && s.x <= 0.96 && s.y >= 0.05 && s.y <= 0.96; });
+  const calibrated = (v: Variant): ((lt: number) => CamPose) => {
+    const raw = (lt: number) => recipe.pose(ctx, v, lt);
+    let k = 1;
+    if (plan.headSize && kindOf(subjectId) === 'character' && !v.intent) {
+      const lt = mid.t - beat.start, p = raw(lt), hp = headPts(mid.t), want = plan.headSize(v, lt), got = projectedHeightFrac(p, hp, ASPECT);
+      if (got > 0.01 && want > 0) k = got / want;
+    }
+    let f = 1;
+    const fitPts = fitPtsFor(v.fit ?? plan.fit ?? (scaleRef ? 'pair' : undefined));
+    if (fitPts.length) {
+      const p0 = raw(0), c = p0.target;
+      let lo = 0.55, hi = 3.2;
+      if (!inside(scaleAbout(p0, c, hi), fitPts)) f = hi;
+      else { for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (inside(scaleAbout(p0, c, m), fitPts)) hi = m; else lo = m; } f = hi * 1.02; }
+    }
+    return (lt: number) => {
+      let p = raw(lt);
+      if (k !== 1) { const hp = headPts(beat.start + lt); const hc: Vec3 = hp.length ? [hp.reduce((a, q) => a + q[0], 0) / hp.length, hp.reduce((a, q) => a + q[1], 0) / hp.length, hp.reduce((a, q) => a + q[2], 0) / hp.length] : p.target; p = scaleAbout(p, hc, k); }
+      if (f !== 1) p = scaleAbout(p, p.target, f);
+      return { ...p, pos: [Math.max(set.safeMin[0], Math.min(set.safeMax[0], p.pos[0])), Math.max(set.safeMin[1], Math.min(set.safeMax[1], p.pos[1])), Math.max(set.safeMin[2], Math.min(set.safeMax[2], p.pos[2]))] };
+    };
+  };
+  // every calibrated single also tries a longer and a wider lens: the head size stays in band, the background (and
+  // who is half in frame at its edges) changes
+  const base = recipe.variants(ctx);
+  const variants = plan.headSize && kindOf(subjectId) === 'character' ? base.flatMap((v) => (v.intent ? [v] : [v, { ...v, fov: v.fov - 8, id: `${v.id}_n` }, { ...v, fov: v.fov + 8, id: `${v.id}_w` }])) : base;
+  const cands: Cand[] = variants.map((v) => ({ id: `${recipe.id}:${v.id}`, variant: v, intent: v.intent ?? plan.intent, plan, poseAt: calibrated(v), extras: v.intent && v.intent !== plan.intent ? { ...extras, requiresHeroProp: false } : extras }));
+  const results = cands.map((c) => ({ c, ev: evaluate(c) }));
+  const rank = (list: typeof results) => list.map((x) => ({ ...x, ok: x.ev.every((e) => e.r.accepted), minScore: Math.min(...x.ev.map((e) => e.r.score)), fails: x.ev.filter((e) => !e.r.accepted).length, cov: quickCoverage(beat, samples, x.c.poseAt) }))
+    .sort((a, b) => Number(b.ok) - Number(a.ok) || (a.ok ? b.cov - a.cov : a.fails - b.fails || b.cov - a.cov) || b.minScore - a.minScore || (a.c.id < b.c.id ? -1 : 1));
+  let ranked = rank(results);
+  let source: ShotChoice['source'] = 'recipe', fallbackKind: string | undefined, nFallback = 0;
+  if (!ranked[0]?.ok) {
+    // camera safety's vetted fallbacks, built on the middle sample, judged on every sample
+    const chain = fallbackChain(baseIntent(plan.intent), secRequired || castIds.length >= 2);
+    const midScene = scenes.get(frames[Math.floor(frames.length / 2)]?.t ?? mid.t) ?? safetyScene(mid.geo, spec, FRAME_W, FRAME_H);
+    const fbs = buildSafeFallbackCandidates(midScene).filter((f) => chain.includes(f.fallback)).sort((a, b) => chain.indexOf(a.fallback) - chain.indexOf(b.fallback));
+    nFallback = fbs.length;
+    const fres = fbs.map((f) => ({ c: { id: f.id, variant: null, intent: f.intent, plan, fallback: f.fallback, poseAt: () => ({ pos: f.transform.position, target: f.target, fovDeg: f.fov }), extras: { ...(f.framedSubjectIds ? { framedSubjectIds: f.framedSubjectIds } : {}) } } as Cand, ev: [] as Array<{ t: number; r: CameraSafetyResult }> }));
+    for (const x of fres) { x.ev = evaluate(x.c); if (x.ev.every((e) => e.r.accepted)) break; }
+    const okFb = rank(fres.filter((x) => x.ev.length)).find((x) => x.ok);
+    if (okFb) { ranked = [okFb, ...ranked]; source = 'fallback'; fallbackKind = okFb.c.fallback; }
+    else source = 'blocked_best_effort';
+  }
+  const best = ranked[0];
+  const keysAt = plan.motion === 'static' ? [0] : [...new Set([0, ...samples.map((s) => r4(s.t - beat.start)), ...(plan.motion === 'pan' ? [0.1, 0.2, 0.35] : plan.motion === 'punch' ? [0.1, 0.2, 0.3] : []), r4(beat.end - beat.start)])].sort((a, b) => a - b);
+  const keys = keysAt.map((lt) => ({ lt, pose: best.c.poseAt(lt) }));
+  const rej: Record<string, number> = {};
+  for (const x of results) for (const e of x.ev) for (const r of e.r.rejectionReasons) { const k = r.split(':')[0]; rej[k] = (rej[k] ?? 0) + 1; }
+  const last = best.ev[best.ev.length - 1]?.r, lastScene = scenes.get(frames[frames.length - 1]?.t ?? mid.t);
+  const lastPose = best.c.poseAt((frames[frames.length - 1]?.t ?? mid.t) - beat.start);
+  const next = lastScene ? nextScreenDirectionState(lastScene, { id: best.c.id, transform: { position: lastPose.pos }, target: lastPose.target, fov: lastPose.fovDeg, intent: best.c.intent }) : inp.screenDirection;
+  const shot: ShotChoice = {
+    beat: beat.phraseId, recipeId: beat.camera.recipeId, recipeKnown, intent: best.c.intent, motion: best.c.fallback ? 'static' : plan.motion, framingFrom: plan.framingFrom, source,
+    candidateId: best.c.id, variant: best.c.variant, ...(fallbackKind ? { fallback: fallbackKind } : {}), keys,
+    samples: best.ev.map((e) => ({ t: e.t, accepted: e.r.accepted, score: e.r.score, reasons: e.r.rejectionReasons, screenDirection: e.r.screenDirectionResult })),
+    accepted: best.ok, minScore: r4(best.minScore), coverageAtSelection: r4(best.cov),
+    evaluated: { candidates: results.length, accepted: results.filter((x) => x.ev.every((e) => e.r.accepted)).length, fallbacks: nFallback },
+    rejectionSummary: rej,
+    subjects: { active: spec.active, required: spec.subjects.filter((s) => !spec.optional.includes(s)), optional: spec.optional, heroProps: spec.heroProps, ...(extras.foregroundSubjectId ? { foreground: extras.foregroundSubjectId } : {}) },
+    diagnostics: { headHeightPct: last?.diagnostics.requiredHeadHeightPct ?? {}, faceVisibility: last?.faceVisibility ?? {}, selfOccludedFeatures: last?.diagnostics.selfOccludedFeatures ?? [], ...(last?.diagnostics.faceAreaHairFree !== undefined ? { faceAreaHairFree: last.diagnostics.faceAreaHairFree } : {}), cameraSide: last?.diagnostics.cameraSide ?? 'none' },
+  };
+  return { shot, next };
+}
+
+/** pose + geometry for the beat's samples (the scene is left posed at the last sample) */
+export function sampleBeat(scene: VignetteScene, beat: StagedBeat, times: number[]): SampleFrame[] {
+  return times.map((t) => { const f = scene.pose(t); return { t, geo: frameGeometry(scene, f) }; });
+}
+
+export { actorPresent };

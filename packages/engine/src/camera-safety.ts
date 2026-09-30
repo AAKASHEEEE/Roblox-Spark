@@ -165,6 +165,13 @@ export interface CameraCandidate {
   scaleReferenceIds?: string[];
   /** props whose thickness edge (identity rim) must read in this shot (>= 2 rim points in frame and unoccluded) */
   propEdgeIds?: string[];
+  /** props whose complete silhouette (identity rim, else AABB corners) must stay inside the frame */
+  propFullFrameIds?: string[];
+  /** characters kept out of the composition: head fully inside the safe margin or fully out of frame; with the head out,
+   *  at most EXCLUDED_ACTOR_MAX_BODY_COVERAGE of the frame may show the body */
+  excludedSubjectIds?: string[];
+  /** a non-subject head partially attached to the frame edge (diagnostics.partialHeads) rejects the camera */
+  partialHeadsBlocking?: boolean;
 }
 
 export interface CameraSafetyDiagnostics {
@@ -196,6 +203,13 @@ export interface CameraSafetyDiagnostics {
   droppedRequiredSubjects: string[];
   /** a supporting actor was dropped and every dropped actor was optional */
   droppedOnlyOptionalSupport: boolean;
+  /** non-subject characters whose head is visible but crosses the safe margin (frame edge) */
+  partialHeads: string[];
+  /** facial features of the active subject covered by its own hair / head parts / body */
+  selfOccludedFeatures: string[];
+  /** profile intents: share of the active face grid the lens sees past the actor's own hair / head parts (1 = none
+   *  covered); the FACE_AREA_TOO_SMALL measure is the projected face quad times this share (worst sample) */
+  faceAreaHairFree?: number;
   /** required actors named by at least one rejection reason */
   rejectingRequiredSubjects: string[];
   fallback?: string;
@@ -261,6 +275,9 @@ export interface CameraSafetyConfig {
   consequenceMinPitchDeg: number;
 }
 
+/** excluded actor with the head out of frame: max share of the frame its body may cover (V2 s011 peaked at 0.025) */
+export const EXCLUDED_ACTOR_MAX_BODY_COVERAGE = 0.03;
+
 export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
   lensRadius: 0.12,
   minHeadDistance: 0.9,
@@ -301,7 +318,8 @@ export const CAMERA_SAFETY_DEFAULTS: CameraSafetyConfig = {
   scaleRevealViewAngleDeg: [15, 78],
   // upper bound = the motivated-profile bound family: beyond ~75 deg readability is decided by the near-eye / mouth /
   // brow / face-area / no-obstruction checks that this intent always applies
-  speakerOtsAngleDeg: [0, 85],
+  // front or three-quarter only (the face must read with both eyes, brows and mouth)
+  speakerOtsAngleDeg: [0, 60],
   topDownMinPitchDeg: 50,
   consequenceMinPitchDeg: 20,
 };
@@ -481,11 +499,11 @@ function rayObstacle(o: CameraObstacle, org: Vec3, d: Vec3): [number, number] | 
   const lo: Vec3 = [dot(r, ob.axes[0]), dot(r, ob.axes[1]), dot(r, ob.axes[2])], ld: Vec3 = [dot(d, ob.axes[0]), dot(d, ob.axes[1]), dot(d, ob.axes[2])];
   return rayBox(lo, ld, { min: [-ob.half[0], -ob.half[1], -ob.half[2]], max: [ob.half[0], ob.half[1], ob.half[2]] });
 }
-function insideObstacle(o: CameraObstacle, p: Vec3): boolean {
+function insideObstacle(o: CameraObstacle, p: Vec3, e = 1e-6): boolean {
   const ob = o.oriented;
-  if (!ob) return insideBox(o.bounds, p);
+  if (!ob) return insideBox(o.bounds, p, e);
   const r = sub(p, ob.center);
-  return [0, 1, 2].every((k) => Math.abs(dot(r, ob.axes[k])) <= ob.half[k] + 1e-6);
+  return [0, 1, 2].every((k) => Math.abs(dot(r, ob.axes[k])) <= ob.half[k] + e);
 }
 /** is the segment cam→p blocked by any obstacle not excluded? returns blockers */
 function blockers(ix: SceneIndex, from: Vec3, p: Vec3, exclude: (o: CameraObstacle) => boolean): CameraObstacle[] {
@@ -496,6 +514,25 @@ function blockers(ix: SceneIndex, from: Vec3, p: Vec3, exclude: (o: CameraObstac
     if (h && h[0] < 1 - 1e-4 && h[1] > 1e-4) out.push(o);
   }
   return out;
+}
+
+/** FACE_AREA grid: 5 x 5 points over the face rectangle */
+const FACE_AREA_GRID = 5;
+/**
+ * Share of the face rectangle the lens sees past the actor's OWN hair and head parts (fringe, cap, brim, crown).
+ * The head block owns the face plane (a point on / within 2 cm of a part's surface belongs to that part, the same rule
+ * as FACE_SELF_OCCLUDED); own body parts (hands, arms) are left to the obstruction rules.
+ */
+function faceFreeOfOwnHair(ix: SceneIndex, f: FaceFrame, pos: Vec3): number {
+  const hw = dot(sub(f.samples[2], f.center), f.right), hh = dot(sub(f.samples[1], f.center), f.up);
+  let free = 0, n = 0;
+  for (let i = 0; i < FACE_AREA_GRID; i++) for (let j = 0; j < FACE_AREA_GRID; j++) {
+    const a = (2 * i) / (FACE_AREA_GRID - 1) - 1, b = (2 * j) / (FACE_AREA_GRID - 1) - 1;
+    const p = add(f.center, add(scale(f.right, a * hw), scale(f.up, b * hh)));
+    n++;
+    if (!blockers(ix, pos, p, (o) => o.entityId !== f.entityId || o.type === 'body' || o.type === 'environment' || o.type === 'prop' || insideObstacle(o, p, 0.02)).length) free++;
+  }
+  return n ? free / n : 1;
 }
 
 // ───────────────────────────── screen direction ─────────────────────────────
@@ -708,7 +745,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   }
   // "fully hidden": for face intents the face rule applies; in a wide an actor walking / turned away from the lens is not
   // hidden — it is hidden when nothing of it covers the screen or something occludes its face
-  const hiddenInWide = intent !== 'wide' || !(entityCoverage[active!] > 0) || faceOccluders[active!].some((o) => !o.endsWith(`:${active}`));
+  const hiddenInWide = intent !== 'wide' || !(entityCoverage[active!] > 0) || (faceOccluders[active!] ?? []).some((o) => !o.endsWith(`:${active}`)); // a prop-led wide has no face record
   if (af && intent !== 'prop' && intent !== 'scale_reveal' && face[active!] === 0 && hiddenInWide && !reasons.some((r) => r.startsWith('FACE_VISIBILITY_LOW'))) reasons.push(`ACTIVE_SUBJECT_HIDDEN:${active}`);
   if (af && !cand.allowPropOverFace && intent !== 'prop' && intent !== 'scale_reveal') {
     const props = faceOccluders[active!].filter((o) => o.startsWith('prop:'));
@@ -724,17 +761,24 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
     if (clutter.length) reasons.push(`ECU_FOREGROUND_OVER_FACE:${active}:${clutter.join(',')}`);
   }
   // ── profile intents (explicit only; never applied to frontal intents)
+  let faceAreaHairFree: number | undefined;
   if (af && PROFILE_INTENTS.has(intent0)) {
     const nxz = norm([af.normal[0], 0, af.normal[2]]), toCam = norm([pos[0] - af.center[0], 0, pos[2] - af.center[2]]);
     const ang = Math.acos(clamp(dot(toCam, nxz), -1, 1)) / DEG;
     const [a0, a1] = intent0 === 'three_quarter_profile' ? cfg.threeQuarterAngleDeg : intent0 === 'offset_elevated_speaker_ots' ? cfg.speakerOtsAngleDeg : cfg.motivatedProfileAngleDeg;
     if (ang < a0 || ang > a1) reasons.push(`PROFILE_ANGLE_OUT_OF_RANGE:${active}:${ang.toFixed(0)}deg`);
     if (eyesVisible[active!] < 1) reasons.push(`NEAR_EYE_NOT_VISIBLE:${active}`);
+    else if (intent0 === 'offset_elevated_speaker_ots' && eyesVisible[active!] < 2) reasons.push(`EYES_NOT_VISIBLE:${active}:${eyesVisible[active!]}/2`);
     if (!mouthVisible[active!]) reasons.push(`MOUTH_NOT_VISIBLE:${active}`);
     if (![af.samples[1], af.samples[2]].some((p) => pointVisible(active!, af, p, new Set()))) reasons.push(`BROW_NOT_READABLE:${active}`);
     const q = [af.samples[1], af.samples[2], af.samples[4], af.samples[3]].map((p) => project(cam, p));
-    const area = q.every((x) => x.z > NEAR) ? Math.abs(q.reduce((a, x, k) => a + x.x * q[(k + 1) % 4].y - q[(k + 1) % 4].x * x.y, 0)) / 2 : 0;
-    if (area < cfg.profileMinFaceArea) reasons.push(`FACE_AREA_TOO_SMALL:${active}:${area.toFixed(4)}<${cfg.profileMinFaceArea}`);
+    const quad = q.every((x) => x.z > NEAR) ? Math.abs(q.reduce((a, x, k) => a + x.x * q[(k + 1) % 4].y - q[(k + 1) % 4].x * x.y, 0)) / 2 : 0;
+    // the measure counts only face the lens can see past the actor's OWN hair / cap / fringe (head parts other than the
+    // head block, which owns the face plane): a fringe or brim over the forehead shrinks the readable face area
+    const hairFree = quad > 0 ? faceFreeOfOwnHair(ix, af, pos) : 0;
+    const area = quad * hairFree;
+    faceAreaHairFree = r6(hairFree);
+    if (area < cfg.profileMinFaceArea) reasons.push(`FACE_AREA_TOO_SMALL:${active}:${area.toFixed(4)}<${cfg.profileMinFaceArea}${hairFree < 1 ? `:own_hair_covers_${pct(1 - hairFree)}%` : ''}`);
     // any occluder over the face — another actor, a prop, or the actor's own hair / hoodie / arm — is an obstruction
     if (faceOccluders[active!].length) reasons.push(`PROFILE_FACE_OBSTRUCTED:${active}:${faceOccluders[active!].join(',')}`);
     const tid = cand.eyelineTargetId, tf = tid ? ix.faces.get(tid) : undefined, tb = tid ? ix.bounds.get(tid) : undefined;
@@ -748,6 +792,23 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
       const lookX = dot(nxz, cam.r), tgtX = dot(sub(tp, af.center), cam.r);
       if (Math.abs(lookX) > 0.05 && Math.abs(tgtX) > 0.05 && Math.sign(lookX) !== Math.sign(tgtX)) reasons.push(`EYELINE_SCREEN_MISMATCH:${active}:${tid}`);
     }
+  }
+  // face TARGET self-occlusion: the actor's own hair / cap / hands may not cover the facial features the intent needs.
+  // A feature point on (or within 2 cm of) a part's surface belongs to that part (the face plane of the head mesh);
+  // any other own part crossing the lens -> feature segment covers it.
+  const selfOccluded: string[] = [];
+  if (af && FACE_INTENTS.has(intent) && intent !== 'extreme_close') {
+    const up = af.up, hh = len(sub(af.samples[1], af.samples[3])) / 2;
+    const feats: Array<[string, Vec3]> = [['centre', af.center], ['mouth', af.mouth]];
+    const d0 = len(sub(af.eyes[0], pos)), d1 = len(sub(af.eyes[1], pos)), nearEye = d0 <= d1 ? 0 : 1;
+    const bothEyes = intent0 === 'offset_elevated_speaker_ots' || ((intent === 'close' || intent === 'reaction') && !profile[active!] && !PROFILE_INTENTS.has(intent0));
+    for (const k of bothEyes ? [0, 1] : [nearEye]) feats.push([k === 0 ? 'left_eye' : 'right_eye', af.eyes[k]]);
+    if (intent0 === 'offset_elevated_speaker_ots') for (const k of [0, 1]) feats.push([k === 0 ? 'left_brow' : 'right_brow', add(af.eyes[k], scale(up, hh * 0.28))]);
+    for (const [name, q] of feats) {
+      if (dot(af.normal, norm(sub(pos, q))) <= 0.1) continue; // facing away is judged by the visibility rules
+      if (blockers(ix, pos, q, (o) => o.entityId !== active || insideObstacle(o, q, 0.02)).length) selfOccluded.push(name);
+    }
+    if (selfOccluded.length) reasons.push(`FACE_SELF_OCCLUDED:${active}:${selfOccluded.join(',')}`);
   }
   const heroNeed = intent === 'prop' || intent === 'scale_reveal' || cand.requiresHeroProp;
   for (const id of heroes) {
@@ -765,6 +826,24 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
   if (intent !== 'prop' && intent !== 'extreme_close') {
     const refs = cand.scaleReferenceIds ?? roles.required;
     for (const id of required) if (ix.faces.has(id) && id !== fgActor && headCropped[id] && ((id === active && intent !== 'scale_reveal') || (intent === 'wide' && requiredSet.has(id)) || (intent === 'scale_reveal' && refs.includes(id)) || headInFrame[id])) reasons.push(`HEAD_CROPPED:${id}`);
+  }
+  // a visible head that is not a shot subject (e.g. an optional supporting actor left out of a single) left partially
+  // attached to the frame edge: reported (diagnostics.partialHeads) and ranked last by the planner
+  const partialHeads: string[] = [];
+  if (intent !== 'prop' && intent !== 'extreme_close') {
+    for (const id of [...ix.faces.keys()].sort()) if (!required.includes(id) && id !== fgActor && headInFrame[id] && headCropped[id]) partialHeads.push(id);
+  }
+  if (cand.partialHeadsBlocking) for (const id of partialHeads) reasons.push(`PARTIAL_HEAD_AT_FRAME_EDGE:${id}`);
+  for (const id of cand.excludedSubjectIds ?? []) {
+    if (!ix.faces.has(id)) continue;
+    if (headInFrame[id] && headCropped[id]) reasons.push(`EXCLUDED_ACTOR_IN_FRAME:${id}:head_partial`);
+    else if (!headInFrame[id] && (entityCoverage[id] ?? 0) > EXCLUDED_ACTOR_MAX_BODY_COVERAGE) reasons.push(`EXCLUDED_ACTOR_IN_FRAME:${id}:body_${entityCoverage[id].toFixed(3)}>${EXCLUDED_ACTOR_MAX_BODY_COVERAGE}`);
+  }
+  for (const id of cand.propFullFrameIds ?? []) {
+    const idn = ix.meta.get(id)?.identity, b = ix.bounds.get(id);
+    const pts = idn ? idn.rim : b ? corners(b) : [];
+    const out = pts.filter((q) => !inFrame(project(cam, q), 0.01)).length;
+    if (!pts.length || out) reasons.push(`PROP_SILHOUETTE_CROPPED:${id}:${out}/${pts.length}`);
   }
   if (intent !== 'prop' && intent !== 'wide' && intent !== 'scale_reveal') {
     // a required actor is never silently dropped from a character shot
@@ -918,6 +997,7 @@ function evaluateSample(ix: SceneIndex, cand: CameraCandidate, pos: Vec3, target
       requiredSubjects: [...roles.required].sort(), optionalSubjects: [...roles.optional].sort(), requiredHeadHeightPct, minHeadHeight: minHead, twoShot, subjectsInFrame,
       droppedSubjects, droppedOptionalSubjects: droppedSubjects.filter((id) => !requiredSet.has(id)), droppedRequiredSubjects: droppedSubjects.filter((id) => requiredSet.has(id)),
       droppedOnlyOptionalSupport: droppedSubjects.length > 0 && droppedSubjects.every((id) => !requiredSet.has(id)),
+      partialHeads, selfOccludedFeatures: selfOccluded, ...(faceAreaHairFree !== undefined ? { faceAreaHairFree } : {}),
     },
   };
 }
@@ -1004,6 +1084,8 @@ function evaluateIndexed(ix: SceneIndex, cand: CameraCandidate, cfg: CameraSafet
       minHeadHeight: worst.d.minHeadHeight, twoShot: worst.d.twoShot, subjectsInFrame: worst.d.subjectsInFrame,
       droppedSubjects: worst.d.droppedSubjects, droppedOptionalSubjects: worst.d.droppedOptionalSubjects, droppedRequiredSubjects: worst.d.droppedRequiredSubjects,
       droppedOnlyOptionalSupport: worst.d.droppedOnlyOptionalSupport, rejectingRequiredSubjects,
+      partialHeads: [...new Set(evals.flatMap((e) => e.d.partialHeads))].sort(), selfOccludedFeatures: [...new Set(evals.flatMap((e) => e.d.selfOccludedFeatures))].sort(),
+      ...(evals.some((e) => e.d.faceAreaHairFree !== undefined) ? { faceAreaHairFree: Math.min(...evals.map((e) => e.d.faceAreaHairFree ?? 1)) } : {}),
     },
   };
 }
