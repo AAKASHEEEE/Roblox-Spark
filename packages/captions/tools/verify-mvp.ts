@@ -97,12 +97,31 @@ if (existsSync(showcasePath)) {
   }
 }
 
+const fullPath = join(ROOT, 'packages/captions/full-render/verification.json');
+ok(existsSync(fullPath), 'full real-voice render verification missing');
+let fullVideo: unknown = 'missing';
+if (existsSync(fullPath)) {
+  const full = JSON.parse(readFileSync(fullPath, 'utf8')), p = join(ROOT, full.output.file);
+  ok(existsSync(p), `full render: ${full.output.file} missing`);
+  if (existsSync(p)) {
+    const bytes = new Uint8Array(readFileSync(p)), digest = createHash('sha256').update(bytes).digest('hex');
+    ok(bytes.length === full.output.bytes, 'full render byte count changed');
+    ok(digest === full.output.sha256, 'full render SHA-256 changed');
+  }
+  ok(full.input.voiceMatchesApprovedStoryboard && full.input.phraseTimingsMatched === '14/14', 'full render voice approval mismatch');
+  ok(full.s7.faceConflicts === 0 && full.s7.music === 'none' && full.s7.sfx === 19, 'full render S7 policy failed');
+  ok(Math.abs(full.audio.integratedLufs + 14) <= 0.5 && full.audio.truePeakDbtp <= -1, 'full render audio limits failed');
+  ok(full.gates.allPassed && full.gates.narratedIntegration === '47/47' && full.gates.droppedFrames === 0, 'full render media gates failed');
+  fullVideo = { durationSec: full.output.durationSec, resolution: `${full.output.width}x${full.output.height}`, fps: full.output.fps, faceConflicts: full.s7.faceConflicts, music: full.s7.music, gates: full.gates.narratedIntegration };
+}
+
 const summary = {
   status: issues.length ? 'failed' : 'ok',
   plannedImplemented: { vfx: plannedVfx.length, textStyles: plannedText.length, sfx: plannedSfx.length },
   captions: { phrases: phrases.length, captions: plan.captions.length, oneToFourWords: plan.captions.every((c) => c.words.length <= 4), faceSafe: stills ? `${stills.summary.clearOfFaces}/${stills.summary.captions}` : 'missing' },
   audio: mix && measuredAudio ? { durationSec: mix.fileCheck.durationSec, integratedLufs: measuredAudio.integratedLufs, truePeakDbtp: measuredAudio.truePeakDbtp, music: mix.mix.music, eventSfx: mix.mix.cues.length } : 'missing',
   showcaseMp4s: showcaseCount,
+  fullVideo,
   issues,
 };
 console.log(JSON.stringify(summary, null, 2));
