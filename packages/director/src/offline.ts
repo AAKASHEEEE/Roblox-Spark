@@ -236,7 +236,7 @@ const REQUIRED_PROP_ACTIONS = new Set([...PROP_STATE_ACTIONS].filter((action) =>
 const MOTION_ACTIONS = new Set(['walk', 'run', 'chase', 'sneak', 'enter_frame', 'exit_frame', 'enter_door', 'exit_door']);
 const CONCEPT_DETERMINERS = new Set(['a', 'an', 'the', 'this', 'that', 'these', 'those', 'another', 'his', 'her', 'their', 'our', 'my', 'your']);
 const PLACE_PREPOSITIONS = new Set(['at', 'in', 'inside', 'into', 'outside', 'near']);
-const CONCEPT_FILLERS = new Set(['big', 'small', 'tiny', 'giant', 'new', 'old', 'red', 'blue', 'green', 'flying', 'broken', 'shiny', 'wooden', 'metal', 'toy', 'huge']);
+const CONCEPT_FILLERS = new Set(['big', 'small', 'tiny', 'giant', 'new', 'old', 'red', 'blue', 'green', 'purple', 'orange', 'yellow', 'black', 'white', 'silver', 'gold', 'golden', 'pink', 'brown', 'gray', 'grey', 'flying', 'broken', 'shiny', 'wooden', 'metal', 'toy', 'huge']);
 const GRAMMAR_WORDS = new Set([
   ...CONCEPT_DETERMINERS, ...PLACE_PREPOSITIONS, ...CAST_PRONOUNS, ...OBJECT_PRONOUNS, ...CLAUSE_CONJUNCTIONS,
   'to', 'from', 'with', 'without', 'of', 'on', 'under', 'over', 'through', 'across', 'past', 'by', 'for', 'as', 'beside', 'behind', 'ahead', 'around', 'between', 'is', 'are', 'was', 'were',
@@ -404,6 +404,7 @@ function conceptMatch(term: string, lib: Library): { kind: 'sets' | 'characters'
 interface VisibleConceptCandidate { term: string; category: ConceptDiagnostic['category'] }
 const DESTINATION_VERBS = new Set(['enters', 'enter', 'visits', 'visit', 'reaches', 'reach', 'leaves', 'leave', 'arrives', 'arrive', 'travels', 'travel']);
 const MODAL_VERBS = new Set(['can', 'could', 'will', 'would', 'should', 'must', 'may', 'might']);
+const NON_NOUN_TAILS = new Set(['often', 'well', 'today', 'tomorrow', 'yesterday', 'now', 'here', 'there', 'away', 'together', 'apart']);
 const looksVerbLike = (word: string) => /(?:s|ed|ing)$/.test(word) && word.length > 3;
 /**
  * Build a conservative noun-phrase inventory independently from authorization. Complete available catalog spans are
@@ -436,12 +437,15 @@ function requiredVisibleConcepts(text: string, lib: Library): VisibleConceptCand
   for (const kind of ['actions', 'expressions'] as const) for (const hit of literalHits(availableEntries(kind, lib), phraseWords)) {
     for (let word = hit.startWord; word < hit.endWord; word++) { recognized.add(word); if (kind === 'actions') actionWords.add(word); }
   }
-  for (let i = 0; i < tokens.length; i++) if (!recognized.has(i) && VISIBLE_CONCEPTS[tokens[i]]) add(tokens[i], VISIBLE_CONCEPTS[tokens[i]]);
+  const visibleWords = new Set<number>();
+  for (let i = 0; i < tokens.length; i++) if (!recognized.has(i) && VISIBLE_CONCEPTS[tokens[i]]) { add(tokens[i], VISIBLE_CONCEPTS[tokens[i]]); visibleWords.add(i); }
   let inheritedAction = false;
   for (const clause of splitDirectorClauses(text, lib)) {
     const indexes = Array.from({ length: clause.words[1] - clause.words[0] }, (_, offset) => clause.words[0] + offset);
-    const content = indexes.filter((index) => !recognized.has(index) && !GRAMMAR_WORDS.has(tokens[index])
-      && !VISIBLE_CONCEPTS[tokens[index]] && !/ly$/.test(tokens[index]));
+    let content = indexes.filter((index) => !recognized.has(index) && !GRAMMAR_WORDS.has(tokens[index])
+      && !VISIBLE_CONCEPTS[tokens[index]] && !CONCEPT_FILLERS.has(tokens[index]) && !NON_NOUN_TAILS.has(tokens[index]) && !/ly$/.test(tokens[index]));
+    const visibleAt = indexes.find((index) => visibleWords.has(index));
+    if (visibleAt !== undefined) content = content.filter((index) => index > visibleAt); // preceding unknowns modify the recognized noun head
     const knownAction = indexes.find((index) => actionWords.has(index));
     const knownPerson = indexes.filter((index) => characterWords.has(index)).at(-1);
     let verb = knownAction;
@@ -452,12 +456,17 @@ function requiredVisibleConcepts(text: string, lib: Library): VisibleConceptCand
     if (verb === undefined) {
       const possible = content.find((index, position) => position > 0 && position < content.length - 1 && looksVerbLike(tokens[index]));
       if (possible !== undefined) verb = possible;
+      else if (content.length === 2 && CONCEPT_DETERMINERS.has(tokens[content[0] - 1])) {
+        add(tokens[content[0]], 'entity');
+        verb = content[1];
+      }
     }
     if (verb !== undefined) {
       const before = content.filter((index) => index < verb), after = content.filter((index) => index > verb);
       if (before.length && knownPerson === undefined) add(tokens[before.at(-1)!], 'entity');
       if (after.length) {
-        const head = after.at(-1)!;
+        const determiner = after.find((index) => CONCEPT_DETERMINERS.has(tokens[index - 1]));
+        const head = determiner !== undefined ? after.at(-1)! : after[0];
         const destination = DESTINATION_VERBS.has(tokens[verb]) || after.some((index) => PLACE_PREPOSITIONS.has(tokens[index - 1]));
         add(tokens[head], destination ? 'place' : 'prop');
       }

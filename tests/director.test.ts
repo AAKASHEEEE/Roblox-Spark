@@ -395,3 +395,16 @@ test('noun heads survive suffixes, modifiers, adverbs, coordination, and catalog
   assert.ok(unresolved.unresolved > 0);
   assert.ok(unresolved.pct < 1, 'missing concepts cannot report complete realization');
 });
+
+test('subject heads, recognized-concept modifiers, and non-ly adverbs stay semantic', async () => {
+  const result = await directScript({
+    script: [
+      'A compass gleams.', 'A painting hangs.', 'A sled glides.',
+      'A wooden drone hovers.', 'A purple dragon dances.',
+      'Kira repairs violin often.', 'Kira repairs telescope well.', 'Kira repairs suitcase today.',
+    ], duration: 24, seed: 29,
+  }, { provider: 'offline' });
+  const terms = new Set(result.report.conceptDiagnostics.map((item) => item.term));
+  for (const expected of ['compass', 'painting', 'sled', 'drone', 'dragon', 'violin', 'telescope', 'suitcase']) assert.ok(terms.has(expected), expected);
+  for (const falseHead of ['gleams', 'hangs', 'glides', 'wooden', 'purple', 'often', 'well', 'today']) assert.equal(terms.has(falseHead), false, falseHead);
+});
