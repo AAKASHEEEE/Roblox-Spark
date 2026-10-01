@@ -412,45 +412,61 @@ const looksVerbLike = (word: string) => /(?:s|ed|ing)$/.test(word) && word.lengt
  * adjective allowlist and handles base-form verbs after modals.
  */
 function requiredVisibleConcepts(text: string, lib: Library): VisibleConceptCandidate[] {
-  const phraseWords = words(text), tokens = canonicalWords(text);
-  const recognized = new Set<number>(), characterWords = new Set<number>(), verbWords = new Set<number>();
-  const availableKinds = ['sets', 'characters', 'props', 'actions', 'expressions'] as const;
-  for (const kind of availableKinds) for (const hit of literalHits(availableEntries(kind, lib), phraseWords)) {
-    for (let word = hit.startWord; word < hit.endWord; word++) {
-      recognized.add(word);
-      if (kind === 'characters') characterWords.add(word);
-      if (kind === 'actions') verbWords.add(word);
-    }
-  }
-  for (let i = 0; i < tokens.length; i++) {
-    if (!recognized.has(i) && (looksVerbLike(tokens[i]) || (i > 0 && MODAL_VERBS.has(tokens[i - 1])))) verbWords.add(i);
-  }
+  const phraseWords = words(text), tokens = phraseWords.map(canonical);
+  const recognized = new Set<number>(), characterWords = new Set<number>(), actionWords = new Set<number>();
   const found = new Map<string, ConceptDiagnostic['category']>();
   const priority = (category: ConceptDiagnostic['category']) => category === 'place' ? 3 : category === 'entity' ? 2 : 1;
   const add = (term: string, category: ConceptDiagnostic['category']) => {
     const normalized = canonical(term), current = found.get(normalized);
-    if (normalized && !GRAMMAR_WORDS.has(normalized)
-      && (!current || priority(category) > priority(current))) found.set(normalized, category);
+    if (normalized && !GRAMMAR_WORDS.has(normalized) && (!current || priority(category) > priority(current))) found.set(normalized, category);
   };
+  const conceptHits = allConceptEntries(lib).flatMap(({ kind, entry }) => literalHits([entry], phraseWords).map((hit) => ({ kind, entry, hit })))
+    .sort((a, b) => a.hit.startWord - b.hit.startWord || (b.hit.endWord - b.hit.startWord) - (a.hit.endWord - a.hit.startWord)
+      || (a.entry.id < b.entry.id ? -1 : a.entry.id > b.entry.id ? 1 : 0));
+  const selectedConceptHits: typeof conceptHits = [];
+  for (const candidate of conceptHits) {
+    if (selectedConceptHits.some(({ hit }) => hit.startWord < candidate.hit.endWord && candidate.hit.startWord < hit.endWord)) continue;
+    selectedConceptHits.push(candidate);
+  }
+  for (const { kind, entry, hit } of selectedConceptHits) {
+    for (let word = hit.startWord; word < hit.endWord; word++) recognized.add(word);
+    if (kind === 'characters') for (let word = hit.startWord; word < hit.endWord; word++) characterWords.add(word);
+    if (entry.status === 'planned') add(phraseWords.slice(hit.startWord, hit.endWord).join(' '), kind === 'sets' ? 'place' : kind === 'characters' ? 'entity' : 'prop');
+  }
+  for (const kind of ['actions', 'expressions'] as const) for (const hit of literalHits(availableEntries(kind, lib), phraseWords)) {
+    for (let word = hit.startWord; word < hit.endWord; word++) { recognized.add(word); if (kind === 'actions') actionWords.add(word); }
+  }
   for (let i = 0; i < tokens.length; i++) if (!recognized.has(i) && VISIBLE_CONCEPTS[tokens[i]]) add(tokens[i], VISIBLE_CONCEPTS[tokens[i]]);
-  const clauses = splitDirectorClauses(text, lib);
-  for (const clause of clauses) {
+  let inheritedAction = false;
+  for (const clause of splitDirectorClauses(text, lib)) {
     const indexes = Array.from({ length: clause.words[1] - clause.words[0] }, (_, offset) => clause.words[0] + offset);
-    const firstVerb = indexes.find((index) => verbWords.has(index));
-    const unknown = indexes.filter((index) => !recognized.has(index) && !verbWords.has(index) && !GRAMMAR_WORDS.has(tokens[index]) && !VISIBLE_CONCEPTS[tokens[index]]);
-    if (firstVerb === undefined) {
-      const afterPlace = unknown.find((index) => PLACE_PREPOSITIONS.has(tokens[index - 1]));
-      if (afterPlace !== undefined) add(tokens[unknown.at(-1) ?? afterPlace], 'place');
-      continue;
+    const content = indexes.filter((index) => !recognized.has(index) && !GRAMMAR_WORDS.has(tokens[index])
+      && !VISIBLE_CONCEPTS[tokens[index]] && !/ly$/.test(tokens[index]));
+    const knownAction = indexes.find((index) => actionWords.has(index));
+    const knownPerson = indexes.filter((index) => characterWords.has(index)).at(-1);
+    let verb = knownAction;
+    if (verb === undefined && knownPerson !== undefined) {
+      const modal = indexes.find((index) => index > knownPerson && MODAL_VERBS.has(tokens[index]));
+      verb = modal !== undefined ? indexes.find((index) => index > modal && content.includes(index)) : content.find((index) => index > knownPerson);
     }
-    const before = unknown.filter((index) => index < firstVerb);
-    const after = unknown.filter((index) => index > firstVerb);
-    const knownPersonBefore = indexes.some((index) => index < firstVerb && characterWords.has(index));
-    if (before.length && !knownPersonBefore) add(tokens[before.at(-1)!], 'entity');
-    if (after.length) {
-      const head = after.at(-1)!;
-      const destination = DESTINATION_VERBS.has(tokens[firstVerb]) || after.some((index) => PLACE_PREPOSITIONS.has(tokens[index - 1]));
-      add(tokens[head], destination ? 'place' : 'prop');
+    if (verb === undefined) {
+      const possible = content.find((index, position) => position > 0 && position < content.length - 1 && looksVerbLike(tokens[index]));
+      if (possible !== undefined) verb = possible;
+    }
+    if (verb !== undefined) {
+      const before = content.filter((index) => index < verb), after = content.filter((index) => index > verb);
+      if (before.length && knownPerson === undefined) add(tokens[before.at(-1)!], 'entity');
+      if (after.length) {
+        const head = after.at(-1)!;
+        const destination = DESTINATION_VERBS.has(tokens[verb]) || after.some((index) => PLACE_PREPOSITIONS.has(tokens[index - 1]));
+        add(tokens[head], destination ? 'place' : 'prop');
+      }
+      inheritedAction = true;
+    } else if (content.length) {
+      const head = content.at(-1)!;
+      if (indexes.some((index) => PLACE_PREPOSITIONS.has(tokens[index]))) add(tokens[head], 'place');
+      else if (inheritedAction) add(tokens[head], 'prop');
+      else if (!indexes.some((index) => characterWords.has(index))) add(tokens[head], 'entity');
     }
   }
   return [...found].map(([term, category]) => ({ term, category }));
@@ -992,10 +1008,14 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
     const realized = editBeats.reduce((sum, beat) => sum + beat[realizedKey], 0);
     return { required, realized, pct: required ? realized / required : 1 };
   };
-  const unresolved = state.conceptRequirements.size;
+  const requiredConceptCount = state.conceptRequirements.size;
   const diagnosed = new Set(state.conceptDiagnostics.map((concept) => `${concept.beat}:${concept.term}`)).size;
+  const unresolved = state.conceptDiagnostics.filter((concept) => concept.disposition !== 'approved_substitution').length;
+  const realizedConcepts = Math.max(0, requiredConceptCount - unresolved);
   const unresolvedConceptCoverage: UnresolvedConceptCoverage = {
-    required: unresolved, realized: diagnosed, pct: unresolved ? diagnosed / unresolved : 1, unresolved, diagnosed,
+    required: requiredConceptCount, realized: realizedConcepts,
+    pct: requiredConceptCount ? realizedConcepts / requiredConceptCount : 1,
+    unresolved, diagnosed,
   };
   const report: DirectorReport = {
     algorithmVersion: DIRECTOR_ALGORITHM_VERSION,

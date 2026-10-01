@@ -249,7 +249,7 @@ test('broad deterministic corpus diagnoses at least 90% of unsupported visible c
   assert.ok(diagnosedCount / expected.length >= 0.9, `diagnosed ${diagnosedCount}/${expected.length}: ${[...diagnosed].join(', ')}`);
   for (const required of ['drone', 'microwave', 'skateboard', 'spaceship', 'robot', 'airplane', 'dragon']) assert.ok(diagnosed.has(required));
   assert.ok(first.report.conceptDiagnostics.every((item) => ['missing', 'approved_substitution', 'authorization_blocker'].includes(item.disposition)));
-  assert.equal(first.report.editPlan.coverage.unresolvedConceptCoverage.pct, 1);
+  assert.equal(first.report.editPlan.coverage.unresolvedConceptCoverage.pct, 0, 'listed-but-missing concepts are not realized');
   assert.equal(first.report.editPlan.coverage.unresolvedConceptCoverage.diagnosed, first.report.conceptDiagnostics.length);
 });
 
@@ -372,4 +372,26 @@ test('one emitted beat action cannot realize repeated narrated occurrences', asy
   const coverage = result.report.editPlan.coverage.actionRealizationCoverage;
   assert.equal(coverage.required, 2);
   assert.equal(coverage.realized, 1);
+});
+
+test('noun heads survive suffixes, modifiers, adverbs, coordination, and catalog token spans', async () => {
+  const result = await directScript({
+    script: [
+      'Kira can repair an unusual compass.',
+      'Kira admires a bright painting carefully.',
+      'Kira can repair a wooden sled.',
+      'Kira repairs violin and telescope.',
+      'Kira presses free-coins beside a crystal orb.',
+      'Kira waits in the living room.',
+    ],
+    duration: 24, seed: 21,
+  }, { provider: 'offline' });
+  const diagnostics = result.report.conceptDiagnostics;
+  const terms = diagnostics.map((item) => item.term);
+  for (const expected of ['compass', 'painting', 'sled', 'violin', 'telescope', 'orb', 'living room']) assert.ok(terms.includes(expected), `${expected}: ${terms.join(', ')}`);
+  for (const falseHead of ['unusual', 'bright', 'carefully', 'wooden', 'crystal', 'room']) assert.equal(terms.includes(falseHead), false, falseHead);
+  assert.ok(diagnostics.some((item) => item.term === 'living room' && item.disposition === 'approved_substitution'));
+  const unresolved = result.report.editPlan.coverage.unresolvedConceptCoverage;
+  assert.ok(unresolved.unresolved > 0);
+  assert.ok(unresolved.pct < 1, 'missing concepts cannot report complete realization');
 });
