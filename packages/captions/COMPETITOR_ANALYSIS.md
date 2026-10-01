@@ -81,12 +81,15 @@ scripts.
    **identical** cut/motion pipeline on the decoded v1 and v2 MP4s so their
    cut cadence and motion frame-rates sit on the same scale as the competitors.
    Output: `.scratch/visual-analysis/render-summary.json`.
-4. **Own-render structural + performance metrics** — taken from the render's own
-   full-decode gates recorded in each `verification.json`: composition/cut count
-   from the deterministic camera solver, dense 30 fps camera audit (all 2075
-   frames), teacher/door pixel-geometry evidence, per-action joint/root deltas,
-   caption face-safety over every output frame, VFX/SFX resolution, and the
-   AAC/alignment/playback media gates.
+4. **Own-render structural + performance evidence** — deterministic composition
+   count is recomputed from the manifest-pinned BeatSheet/assets; MP4 bytes and media
+   structure are recomputed by the independent v2 verifier; representative PNGs and
+   the comparison sheet are hash-bound in `render-evidence.json`. Teacher/door/joint,
+   caption, and playback measurements remain renderer diagnostics in
+   `verification.json`; they are useful review data but are not accepted as proof
+   merely because that file says a gate passed. The former "dense camera audit" is
+   accurately described as solved-composition acceptance coverage, not a fresh
+   camera-safety projection at every output frame.
 5. **Comparison sheet** — `scripts/build-comparison-sheet.mjs` extracts
    representative decoded v1/v2 frames and lays them out with the derived pacing
    charts via a headless-Chromium screenshot to a real JPEG.
@@ -94,7 +97,7 @@ scripts.
 Two lenses are reported for our renders and they measure different things, both
 honestly:
 
-- **Solver compositions** (from `verification.json`): the count of distinct
+- **Solver compositions** (recomputed from `render-input-manifest.json` pins): the count of distinct
   camera compositions the vignette pipeline emits, including smooth intra-beat
   sub-shot moves that are *not* hard cuts. v2 = **41**, median **1.6 s**.
 - **Decoded hard cuts** (from `render-summary.json`): scene-detected hard cuts in

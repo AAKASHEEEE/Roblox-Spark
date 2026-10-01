@@ -1,0 +1,71 @@
+{
+  "schema": "blockspark.render-evidence/2",
+  "inputManifest": {
+    "file": "packages/captions/full-render-v2/render-input-manifest.json",
+    "sha256": "5b421847f23f0da5f3bc5caa8f140834288eaf26c2eab0d04b107c8eadf4d0e1"
+  },
+  "output": {
+    "file": "packages/captions/full-render-v2/zapp-vs-kira-competitor-performance-v2.mp4",
+    "sha256": "e02fb254c39ae613d59349e148192936ca2a7d7b05b1863a3f0b20e471ebb4b1",
+    "bytes": 24491401
+  },
+  "media": {
+    "sha256": "ed5d5c2874c34101b190de90b0af8e6b4708e575c645025056a3351766353759"
+  },
+  "evidence": [
+    {
+      "file": "packages/captions/full-render-v2/frame-teacher-exit.png",
+      "sha256": "ccf790354977888911303ad69bf26a4dcd1508f07fcc536e6d2b0b764ef27b86",
+      "bytes": 275807,
+      "kind": "frame-png"
+    },
+    {
+      "file": "packages/captions/full-render-v2/frame-zapp-celebrate.png",
+      "sha256": "48da0ef890009953555c02de8360a93326e1a54e13356a2f19b716a7729d77fe",
+      "bytes": 260066,
+      "kind": "frame-png"
+    },
+    {
+      "file": "packages/captions/full-render-v2/frame-button-press.png",
+      "sha256": "53499804290351c336ba88c4b2c3ae278c3c87de02fe34ef43d8c3ded210f129",
+      "bytes": 291449,
+      "kind": "frame-png"
+    },
+    {
+      "file": "packages/captions/full-render-v2/frame-coin-growth.png",
+      "sha256": "f42176c4d2c1019d38e0480e7acc2567cc3953b1834330125cfd6a483b64c301",
+      "bytes": 263826,
+      "kind": "frame-png"
+    },
+    {
+      "file": "packages/captions/full-render-v2/frame-impact.png",
+      "sha256": "f901ec73006c481d72cfe8d8671a8bea29f7fe7f0ec4b7ec6619455a14f77199",
+      "bytes": 215346,
+      "kind": "frame-png"
+    },
+    {
+      "file": "packages/captions/full-render-v2/frame-teacher-return.png",
+      "sha256": "0ba6ef7cf1e662e3824d73b39fa685eafdfc3891286b2363d903a6524742da8b",
+      "bytes": 282009,
+      "kind": "frame-png"
+    },
+    {
+      "file": "packages/captions/full-render-v2/frame-final-payoff.png",
+      "sha256": "6f512627e75db7aa8257ab56967db14c71b7386e6a544c0e2de334bc3bc68ba1",
+      "bytes": 251210,
+      "kind": "frame-png"
+    },
+    {
+      "file": "packages/captions/full-render-v2/comparison-sheet.jpg",
+      "sha256": "b1a13d15c4577a77806c1b7067b16d7aa141db851713c180df5787a18d690f94",
+      "bytes": 448444,
+      "kind": "comparison-jpeg"
+    },
+    {
+      "file": "packages/captions/full-render-v2/verification.json",
+      "sha256": "06efa69ab8d1eac34d07d1c49461965e58e686312470ecb6dd06b26d428e9a18",
+      "bytes": 27131,
+      "kind": "diagnostics"
+    }
+  ]
+}

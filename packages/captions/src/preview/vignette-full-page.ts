@@ -13,16 +13,14 @@
 // whichever matches the selected visual mode. Browser-only imports (same sources as stills-page.ts / web-entry.ts).
 import { Renderer, type CameraState } from '../../../engine/src/gl/renderer.ts';
 import type { Node } from '../../../engine/src/gl/scene.ts';
-import { applyShake } from '../../../engine/src/camera.ts';
 import { FrameCapture, type EncodedBatch, type EncoderMeta } from '../../../engine/src/capture.ts';
 import { m4TransformPoint, type Vec3 } from '../../../engine/src/math.ts';
 import type { ManifestLibrary } from '../../../engine/src/build-dispatch.ts';
-import { evalVfxEvents, applyZoom, EmoteLayer, drawEmoteIcon, EMOTE_SYMBOLS, type VfxEvent } from '../../../engine/src/vfx/index.ts';
-import { validateBeatSheet } from '../../../director/src/beat-sheet.ts';
-import { stageBeatSheet, beatAt, actorPresent, type StagePlan, type StagedBeat } from '../../../vignette/src/stage.ts';
-import { VignetteScene } from '../../../vignette/src/scene.ts';
-import { poseAt, type ShotChoice } from '../../../vignette/src/camera.ts';
-import { registerRuntimeLibrary } from '../../../vignette/src/runtime-library.ts';
+import { EmoteLayer, drawEmoteIcon, EMOTE_SYMBOLS, type VfxEvent } from '../../../engine/src/vfx/index.ts';
+import { beatAt, actorPresent, type StagePlan } from '../../../vignette/src/stage.ts';
+import type { VignetteScene } from '../../../vignette/src/scene.ts';
+import type { ShotChoice } from '../../../vignette/src/camera.ts';
+import { VignetteRenderSession, type VignetteComposition, type VignetteFrameContext } from './vignette-render-session.ts';
 import { WorldTextLayer } from '../world-text.ts';
 import { drawOverlay, graphicOccupancy, type TextGraphicEvent } from '../graphics.ts';
 import { placeBoldCaption, drawBoldCaption, type Ctx2D } from '../render.ts';
@@ -31,11 +29,9 @@ import type { BoldCaption } from '../bold.ts';
 
 let W = 1080, H = 1920;
 let canvas: HTMLCanvasElement, out: HTMLCanvasElement, renderer: Renderer;
-let scene: VignetteScene, plan: StagePlan, shots: Record<string, ShotChoice> = {};
-/** compositions: one or more per beat (intra-beat sub-shot cuts). Sorted by start; each drives its own solved shot. */
-interface Composition { beat: string; index: number; start: number; end: number; shot: ShotChoice }
-let compositions: Composition[] = [];
-let warm = false;
+let session: VignetteRenderSession, scene: VignetteScene, plan: StagePlan;
+/** compositions: one or more per beat (intra-beat sub-shot cuts). Sorted, validated half-open intervals. */
+let compositions: VignetteComposition[] = [];
 let capture: FrameCapture | null = null;
 let capturePlan: Omit<FrameIn, 't' | 'showBoxes'> | null = null;
 let captureFps = 30;
@@ -63,32 +59,9 @@ function projectedAreaFrac(cam: CameraState, pts: Vec3[]): number {
 function meshes(root: Node): Node[] { const o: Node[] = []; root.traverse((n) => { if (n.geometry && n.material && !n.name.startsWith('s7:')) o.push(n); }, true); return o; }
 function headMesh(rig: { root: Node }): Node | undefined { return meshes(rig.root).find((n) => n.name === 'head_mesh'); }
 
-/** world point of a beat-sheet vfx/emote/text target id (actor face / prop anchor / mark) for the active beat */
-function anchorPoint(id: string): Vec3 | undefined { return scene.entityPoint(id, beatAt(plan, currentT)); }
-let currentT = 0;
-
-/** the composition (sub-shot) active at time t: its solved shot and window start. Falls back to the beat's shot. */
-function compAt(t: number): { shot: ShotChoice; start: number } {
-  const b = beatAt(plan, t);
-  if (compositions.length) {
-    for (let i = compositions.length - 1; i >= 0; i--) if (t >= compositions[i].start - 1e-9) return { shot: compositions[i].shot, start: compositions[i].start };
-    return { shot: compositions[0].shot, start: compositions[0].start };
-  }
-  return { shot: shots[b.phraseId], start: b.start };
-}
-
-// ---------------------------------------------------------------- camera (poseAt lens + scene shake + S7 zoom/shake)
-function pose(t: number, vfx?: VfxEvent[]): CameraState {
-  const f = scene.pose(t);
-  const c = compAt(t), shot = c.shot;
-  const p = poseAt(shot, c.start, t);
-  // 1) beat-solved lens, 2) the scene's own VFX shake (web-entry), 3) the S7 vfx event zoom + shake (stills-page).
-  const sceneFx = scene.vfx(f);
-  let cam: CameraState = applyShake({ pos: p.pos, target: p.target, fovY: (p.fovDeg * Math.PI) / 180, ...(p.roll ? { roll: p.roll } : {}) }, sceneFx.shake, t, plan.seed);
-  const vf = evalVfxEvents(vfx ?? [], t, (id) => anchorPoint(id), plan.seed);
-  cam = applyZoom(applyShake(cam, vf.shake, t, plan.seed), vf.zoom);
-  return cam;
-}
+/** Prepare one explicit-time scene pose and the final camera used for both rendering and placement. */
+function frameAt(t: number, vfx: readonly VfxEvent[] = []): VignetteFrameContext { return session.frame(t, vfx); }
+function pose(t: number, vfx: readonly VfxEvent[] = []): CameraState { return frameAt(t, vfx).camera; }
 
 interface PlacementSegment { start: number; end: number; centerY: number; clearOfFaces: boolean; faceOverlapPx: number; warnings: string[] }
 interface FrameIn { t: number; vfx?: VfxEvent[]; graphics?: TextGraphicEvent[]; captions?: BoldCaption[]; placements?: Record<string, number | PlacementSegment[]>; showBoxes?: boolean }
@@ -114,27 +87,26 @@ function occupied(cam: CameraState): OccupiedRect[] {
 
 // ---------------------------------------------------------------- one full S7 frame into `out`
 function drawFrame(f: FrameIn): OccupiedRect[] {
-  currentT = f.t;
-  const posed = scene.pose(f.t);
-  const cam = pose(f.t, f.vfx);
-  const vf = evalVfxEvents(f.vfx ?? [], f.t, (id) => anchorPoint(id), plan.seed);
-  emotes.update(vf.emotes, (id) => scene.rigs.get(id)?.headTop.worldPos(), cam);
-  worldText.update(f.graphics ?? [], f.t, (id) => { const p = anchorPoint(id); return p ? [p[0], p[1] + 0.08, p[2]] : undefined; });
-  // the scene owns its lighting (+ button glow); add any S7 vfx point lights on top, as stills-page does.
-  const light = scene.lighting(posed);
-  for (const l of vf.lights) { const p = anchorPoint(l.target); if (p) light.points.push({ pos: p, color: l.color, intensity: l.intensity, range: 0.9 }); }
-  const sceneFx = scene.vfx(posed);
-  const particles = [...sceneFx.particles, ...vf.particles];
-  const post = { ...sceneFx.post, flash: Math.max(sceneFx.post.flash, vf.post.flash), darken: Math.max(sceneFx.post.darken ?? 0, vf.post.darken ?? 0), vignette: Math.max(sceneFx.post.vignette, vf.post.vignette), ...(vf.post.tint ? { tint: vf.post.tint } : sceneFx.post.tint ? { tint: sceneFx.post.tint } : {}) };
-  // first draw after init compiles programs / uploads geometry: draw twice so the very first frame is complete.
-  const n = warm ? 1 : 2;
-  for (let i = 0; i < n; i++) renderer.render(scene.root, cam, light, post, particles);
-  warm = true;
+  const frame = frameAt(f.t, f.vfx ?? []);
+  const cam = frame.camera;
+  emotes.update(frame.s7Effects.emotes, (id) => scene.rigs.get(id)?.headTop.worldPos(), cam);
+  worldText.update(f.graphics ?? [], f.t, (id) => { const p = frame.anchor(id); return p ? [p[0], p[1] + 0.08, p[2]] : undefined; });
+  session.render(frame);
   const g = out.getContext('2d', { willReadFrequently: true })!;
+  g.clearRect(0, 0, W, H);
   g.drawImage(canvas, 0, 0);
   const faces = occupied(cam).filter((o) => o.kind === 'face');
   const placements = new Map(Object.entries(f.placements ?? {}));
-  drawOverlay(g, W, H, f.t, { captions: f.captions ?? [], placements, graphics: f.graphics ?? [], anchor: (id) => { const p = anchorPoint(id); const r = p ? project(cam, [p]) : null; return r ? { x: r.x, y: r.y } : undefined; } });
+  drawOverlay(g, W, H, f.t, {
+    captions: f.captions ?? [], placements, graphics: f.graphics ?? [],
+    anchor: (id, anchorTime) => {
+      // drawOverlay requests the current frame time. Keep the contract explicit so a future caller cannot silently
+      // project a moving target through a camera from another time.
+      if (Math.abs(anchorTime - frame.t) > 1e-9) throw new Error(`overlay anchor time ${anchorTime} differs from frame ${frame.t}`);
+      const p = frame.anchor(id), r = p ? project(frame.camera, [p]) : null;
+      return r ? { x: r.x, y: r.y } : undefined;
+    },
+  });
   if (f.showBoxes) { g.lineWidth = 3; g.setLineDash([12, 8]); g.strokeStyle = '#00e5ff'; for (const o of faces) g.strokeRect(o.rect.x, o.rect.y, o.rect.w, o.rect.h); g.setLineDash([]); }
   return faces;
 }
@@ -149,23 +121,15 @@ function shotCuts(): number[] {
 const api = {
   ready: true,
   /**
-   * Re-stage the sheet in-page (validate -> stage -> VignetteScene) exactly like web-entry, so the plan is
-   * byte-identical to the node-solved plan (same sheet + seed => deterministic). `shots` are the runVignette-solved
-   * ShotChoice cameras from the node side. registerRuntimeLibrary(lib) is called here because the browser page is a
-   * separate JS context from the node solver. `comps` (optional) is the node-solved composition timeline: intra-beat
-   * sub-shot cuts, each a hard camera cut with its own solved shot; when empty the beat's single shot is used.
+   * Build the neutral VignetteRenderSession from the exact sheet/library/solved cameras supplied by Node. The session
+   * owns validation, runtime registration, staging, interval lookup, posing, final camera effects, and scene rendering;
+   * this adapter owns only S7 overlays, placement/capture, and evidence diagnostics.
    */
-  init(sheet: unknown, lib: ManifestLibrary, s: Record<string, ShotChoice>, w: number, h: number, comps: Composition[] = []) {
-    W = w; H = h;
-    registerRuntimeLibrary(lib);
-    const v = validateBeatSheet(sheet);
-    if (!v.value) throw new Error('beat sheet invalid');
-    plan = stageBeatSheet(v.value, lib);
-    scene = new VignetteScene(plan, lib);
-    shots = s; compositions = [...comps].sort((a, b) => a.start - b.start); warm = false;
-    canvas = document.createElement('canvas'); document.body.appendChild(canvas);
+  init(sheet: unknown, lib: ManifestLibrary, s: Record<string, ShotChoice>, w: number, h: number, comps: VignetteComposition[] = []) {
+    W = w; H = h; compositions = [...comps];
+    session = new VignetteRenderSession({ sheet, library: lib, shots: s, compositions, width: W, height: H });
+    scene = session.scene; plan = session.plan; canvas = session.canvas; renderer = session.renderer;
     out = Object.assign(document.createElement('canvas'), { width: W, height: H });
-    renderer = new Renderer(canvas, W, H);
     scene.root.add(emotes.root, worldText.root);
     return { renderer: renderer.gl.getParameter(renderer.gl.RENDERER) as string, beats: plan.beats.length, sets: plan.sets.map((x) => x.id) };
   },
@@ -175,7 +139,9 @@ const api = {
    * rig's face+body (Zapp, Kira, AND the teacher), every visible prop, and active ui_popup graphics. Same shape as
    * stills-page.place so render-full's conflict check runs unchanged.
    */
-  place(captions: BoldCaption[], graphics: TextGraphicEvent[] = []): Record<string, { segments: PlacementSegment[]; centerY: number; clearOfFaces: boolean; faceOverlapPx: number; warnings: string[] }> {
+  place(captions: BoldCaption[], graphics: TextGraphicEvent[] = [], vfx: VfxEvent[] = [], fps = 30): Record<string, { segments: PlacementSegment[]; centerY: number; clearOfFaces: boolean; faceOverlapPx: number; warnings: string[] }> {
+    if (!Number.isInteger(fps) || fps < 1 || fps > 60) throw new Error(`invalid placement fps ${fps}`);
+    captureFps = fps;
     const g = out.getContext('2d')!, res: Record<string, { segments: PlacementSegment[]; centerY: number; clearOfFaces: boolean; faceOverlapPx: number; warnings: string[] }> = {};
     const cuts = shotCuts();
     for (const c of captions) {
@@ -185,9 +151,15 @@ const api = {
         const start = bounds[k], end = bounds[k + 1], occ: OccupiedRect[] = [];
         const firstFrame = Math.ceil(start * captureFps - 1e-9), lastFrame = Math.ceil(end * captureFps - 1e-9);
         for (let i = firstFrame; i < lastFrame; i++) {
-          const t = Math.min(end - 1e-6, Math.max(start, i / captureFps)), cam = pose(t);
-          occ.push(...occupied(cam));
-          occ.push(...graphicOccupancy(g, W, H, graphics, start, end, (id) => { const p = anchorPoint(id); const r = p ? project(cam, [p]) : null; return r ? { x: r.x, y: r.y } : undefined; }));
+          const t = Math.min(end - 1e-6, Math.max(start, i / captureFps));
+          const frame = frameAt(t, vfx);
+          occ.push(...occupied(frame.camera));
+          const nextT = Math.min(end, (i + 1) / captureFps);
+          occ.push(...graphicOccupancy(g, W, H, graphics, t, Math.max(t + 1e-9, nextT), (id, anchorTime) => {
+            const anchorFrame = frameAt(anchorTime, vfx);
+            const point = anchorFrame.anchor(id), rect = point ? project(anchorFrame.camera, [point]) : null;
+            return rect ? { x: rect.x, y: rect.y } : undefined;
+          }));
         }
         const p = placeBoldCaption(g, W, H, c, occ);
         segments.push({ start, end, centerY: p.centerY, clearOfFaces: p.clearOfFaces, faceOverlapPx: p.faceOverlapPx, warnings: p.warnings });
@@ -207,11 +179,11 @@ const api = {
     return { url: out.toDataURL('image/png'), faces };
   },
   /** Configure deterministic chronological H.264 capture of fully composited S7 frames (same as stills-page). */
-  initCapture(cfg: { fps: number; bitrate: number; hashEvery?: number; keyframeInterval?: number; vfx?: VfxEvent[]; graphics?: TextGraphicEvent[]; captions?: BoldCaption[]; placements?: Record<string, number | PlacementSegment[]> }): true {
+  initCapture(cfg: { fps: number; bitrate: number; codec?: string; hashEvery?: number; keyframeInterval?: number; vfx?: VfxEvent[]; graphics?: TextGraphicEvent[]; captions?: BoldCaption[]; placements?: Record<string, number | PlacementSegment[]> }): true {
     captureFps = cfg.fps;
     capturePlan = { vfx: cfg.vfx ?? [], graphics: cfg.graphics ?? [], captions: cfg.captions ?? [], placements: cfg.placements ?? {} };
     const g = out.getContext('2d', { willReadFrequently: true })!;
-    capture = new FrameCapture({ width: W, height: H, fps: cfg.fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? cfg.fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery ?? cfg.fps }, out, () => new Uint8Array(g.getImageData(0, 0, W, H).data.buffer));
+    capture = new FrameCapture({ width: W, height: H, fps: cfg.fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? cfg.fps * 2, codec: cfg.codec ?? 'avc1.640028', hashEvery: cfg.hashEvery ?? cfg.fps }, out, () => new Uint8Array(g.getImageData(0, 0, W, H).data.buffer));
     return true;
   },
   encodeRange(from: number, to: number, final: boolean): Promise<EncodedBatch> {

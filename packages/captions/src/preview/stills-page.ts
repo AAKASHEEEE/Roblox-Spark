@@ -139,11 +139,11 @@ const api = {
     return { url: out.toDataURL('image/jpeg', quality), faces };
   },
   /** Configure deterministic chronological H.264 capture of fully composited S7 frames. */
-  initCapture(cfg: { fps: number; bitrate: number; hashEvery?: number; keyframeInterval?: number; vfx?: VfxEvent[]; graphics?: TextGraphicEvent[]; captions?: BoldCaption[]; placements?: Record<string, number | PlacementSegment[]> }): true {
+  initCapture(cfg: { fps: number; bitrate: number; codec?: string; hashEvery?: number; keyframeInterval?: number; vfx?: VfxEvent[]; graphics?: TextGraphicEvent[]; captions?: BoldCaption[]; placements?: Record<string, number | PlacementSegment[]> }): true {
     captureFps = cfg.fps;
     capturePlan = { vfx: cfg.vfx ?? [], graphics: cfg.graphics ?? [], captions: cfg.captions ?? [], placements: cfg.placements ?? {} };
     const g = out.getContext('2d', { willReadFrequently: true })!;
-    capture = new FrameCapture({ width: W, height: H, fps: cfg.fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? cfg.fps * 2, codec: 'avc1.640028', hashEvery: cfg.hashEvery ?? cfg.fps }, out, () => new Uint8Array(g.getImageData(0, 0, W, H).data.buffer));
+    capture = new FrameCapture({ width: W, height: H, fps: cfg.fps, bitrate: cfg.bitrate, keyframeInterval: cfg.keyframeInterval ?? cfg.fps * 2, codec: cfg.codec ?? 'avc1.640028', hashEvery: cfg.hashEvery ?? cfg.fps }, out, () => new Uint8Array(g.getImageData(0, 0, W, H).data.buffer));
     return true;
   },
   encodeRange(from: number, to: number, final: boolean): Promise<EncodedBatch> {
