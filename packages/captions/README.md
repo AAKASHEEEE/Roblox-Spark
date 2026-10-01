@@ -6,6 +6,7 @@ This branch implements the S7-owned surface of the vignette pipeline:
 - `packages/engine/src/vfx/**` — registry/runtime for every existing and planned VFX, deterministic particles/post/camera effects, and seven original emote icons.
 - `packages/audio-mix/**` — voice-over plus event SFX mixer, all planned procedural SFX, no-music policy, 10-second WAV fixture, loudness/true-peak reporting.
 - `packages/captions/showcase/**` — three verified H.264/AAC MP4 visual feature showcases.
+- `packages/captions/full-render/**` — the complete 69.17 s real-voice S7 render plus review frames and digest-bound verification.
 
 The code is deterministic and random-access safe: seeking to a frame or rendering frames in another order produces the same visual/audio result for the same inputs and seed.
 
@@ -39,6 +40,29 @@ The icon set is original Canvas2D vector art: exclamation, question, sweat, ange
 - SFX are loudness-matched, ducked under speech, and guarded to remain at least 6 dB below voice in measured speech windows.
 - Output target: approximately **−14 LUFS integrated** and no higher than **−1 dBTP**.
 - Included result: 10.000 s, 48 kHz, stereo, 24-bit WAV measured at **−14.01 LUFS / −1.20 dBTP** by the project meter. A digest-bound independent `pyloudnorm`/SciPy check measured **−14.05 LUFS / −1.20 dBTP** (4× and 8×).
+
+### Full real-voice render
+
+The approved `e;leven 1.mp3` from the shared Drive folder matches the storyboard's recorded SHA-256 exactly and reproduces all 14 approved phrase spans. The complete output is:
+
+- `packages/captions/full-render/zapp-vs-kira-full-s7.mp4`
+- 69.167 s, 540×960, 30 fps, 2,075 frames
+- H.264 High/yuv420p + AAC-LC 48 kHz stereo, fast-start
+- 61 captions, 90 placement segments, zero face conflicts
+- 14 VFX events, one approved text graphic, 19 explicit event SFX, no music
+- −14.01 LUFS integrated, −1.20 dBTP, SFX at least 6.3 dB below voice
+- 47/47 integration gates; production profile and Chromium playback pass; zero dropped frames; 0.3 ms A/V duration drift and zero audio lag
+
+Review frames and the digest-bound media report are in `packages/captions/full-render/`. To reproduce it with the approved MP3:
+
+```bash
+FFPROBE_PATH=/path/to/ffprobe node packages/captions/tools/render-full.ts \
+  --voice /path/to/e_leven-1.mp3 \
+  --ffmpeg /path/to/ffmpeg \
+  --out out/s7-full
+```
+
+The command refuses a voice file whose SHA-256 differs from the approved storyboard, refuses to cut speech, fails on unresolved SFX or face-overlapping captions, and independently probes/decodes the completed MP4.
 
 ## Quick start (step by step)
 
@@ -213,10 +237,11 @@ const wav = encodeWavStereo(result.left, result.right, 48_000, 24, sheet.seed);
 | True peak | At or below −1 dBTP |
 | Existing narrated pipeline | 47/47 analysis gates pass |
 | MP4 showcases | 3/3 H.264/AAC files pass Chromium playback with zero drops |
+| Full real-voice MP4 | 69.167 s, 540×960@30, 47/47 gates, production/decode/AV-sync checks pass |
 
 ## Integration note
 
-This branch intentionally does not edit S0-owned `packages/library/**` or the S0 beat-sheet contract. After merging, S0 should flip the implemented S7 IDs from `planned` to `available` and set their `source` fields to:
+The S7-owned `render-full.ts` command now produces and verifies the complete approved narrated video. The broader reusable Vignette worker/Studio path still needs to call the same S7 registries after the S2–S7 integration merge. S0 should flip the implemented S7 IDs from `planned` to `available` with these sources:
 
 - text styles: `packages/captions/src/styles.ts`
 - VFX: `packages/engine/src/vfx/defs.ts`

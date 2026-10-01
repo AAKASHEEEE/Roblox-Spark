@@ -3,3 +3,11 @@ dist/
 out/
 .scratch/
 *.log
+
+# v2 render intermediates (derived; keep locally, do not track).
+# The committed v2 deliverables (mp4, verification.json, frame PNGs,
+# comparison-sheet.jpg) mirror v1 and are intentionally NOT ignored.
+packages/captions/full-render-v2/audio-report.json
+packages/captions/full-render-v2/caption-placements.json
+packages/captions/full-render-v2/mix.wav
+packages/captions/full-render-v2/probe.json
