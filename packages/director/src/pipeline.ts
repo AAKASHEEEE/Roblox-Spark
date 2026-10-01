@@ -1,7 +1,7 @@
 // Provider orchestration. Offline generation is always authoritative; OpenRouter can only add validated intent.
-import { generateOfflineBeatSheet, normalizeDirectorRequest, type DirectorMode, type DirectorProviderReport, type DirectorRequest, type DirectorResult, type ProviderAttempt } from './offline.ts';
+import { generateOfflineBeatSheet, normalizeDirectorRequest, splitDirectorClauses, type DirectorMode, type DirectorProviderReport, type DirectorRequest, type DirectorResult, type ProviderAttempt } from './offline.ts';
 import { OpenRouterIntentProvider, OpenRouterProviderError, type OpenRouterIntentOptions } from './openrouter.ts';
-import type { DirectorIntent } from './intent.ts';
+import { validateDirectorIntent, type DirectorIntent } from './intent.ts';
 
 export interface DirectorIntentClient {
   readonly models: string[];
@@ -28,8 +28,19 @@ export async function directScript(input: DirectorRequest, options: DirectScript
   try {
     const client = options.intentClient ?? new OpenRouterIntentProvider({ ...options.openrouter, apiKey: key! });
     const inferred = await client.infer(request.lines);
+    const checked = validateDirectorIntent(
+      inferred.intent,
+      request.lines.length,
+      request.lines.map((line) => splitDirectorClauses(line, options.openrouter?.library).length),
+    );
+    if (!checked.ok) {
+      throw new OpenRouterProviderError('exhausted', 'intent client returned invalid compact intent', [
+        ...inferred.attempts,
+        { model: inferred.model, phase: 'initial', outcome: 'invalid', detail: `${checked.issues.length} compact-intent validation issue(s)` },
+      ]);
+    }
     const provider: DirectorProviderReport = { requested, used: 'openrouter', model: inferred.model, attempts: sanitizeAttempts(inferred.attempts, key) };
-    return generateOfflineBeatSheet(request, { intent: inferred.intent, provider, library: options.openrouter?.library });
+    return generateOfflineBeatSheet(request, { intent: checked.value, provider, library: options.openrouter?.library });
   } catch (error) {
     if (requested === 'openrouter') throw error;
     const attempts = sanitizeAttempts(error instanceof OpenRouterProviderError ? error.attempts : [], key);
