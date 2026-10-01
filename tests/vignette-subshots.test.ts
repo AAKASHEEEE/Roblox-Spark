@@ -222,16 +222,55 @@ test('blocked and fallback reporting counts every composition, not one shot per 
   assert.deepEqual(summary.blockedCompositions.map((c) => `${c.beat}[${c.index}]`), ['p01[2]', 'p02[3]']);
 });
 
-test('coverage uses the active composition camera and retains the 90% threshold', () => {
-  assert.equal(canonical.coverage.threshold, 0.9);
+test('coverage is clause/composition scoped, fail-closed, and retains the 90% full-video gate', () => {
+  const coverage = canonical.coverage;
+  assert.equal(coverage.threshold, 0.9);
   assert.equal(canonical.report.summary.coverageThreshold, 0.9);
-  assert.equal(canonical.coverage.blocking, false);
+  assert.equal(coverage.blocking, false);
+  assert.deepEqual(coverage.fullVideoCoverage, { required: 85, realized: 85, pct: 1 });
+  assert.deepEqual(coverage.literalCoverage, { required: 22, realized: 22, pct: 1 });
+  assert.deepEqual(coverage.actionRealization, { required: 13, realized: 6, pct: 0.4615 });
+  assert.deepEqual(coverage.propStateRealization, { required: 1, realized: 1, pct: 1 });
+  assert.equal(coverage.clauses.length, 31);
+  assert.equal(coverage.audioOnly, 19);
+
+  const subjects = coverage.items.filter((item) => item.basis === 'composition-subject');
+  assert.equal(subjects.length, canonical.compositions.length);
+  for (const item of subjects) {
+    const composition = canonical.compositions.find((candidate) => candidate.beat === item.beat && candidate.index === item.composition)!;
+    assert.deepEqual(item.window, [composition.start, composition.end]);
+    assert.equal(item.witness[0], composition.subject ?? composition.shot.subjects.active);
+  }
+  for (const item of coverage.items.filter((candidate) => candidate.basis === 'clause-literal')) {
+    const composition = canonical.compositions.find((candidate) => candidate.beat === item.beat && candidate.index === item.composition)!;
+    assert.ok(item.window[0] >= composition.start && item.window[1] <= composition.end);
+  }
+  assert.ok(coverage.items.filter((item) => item.basis === 'diagnostic').every((item) => !item.counted));
+
+  const emote = coverage.items.find((item) => item.label.startsWith('vfx emote_exclaim@6.2'))!;
+  const text = coverage.items.find((item) => item.label.startsWith('text ui_popup@36'))!;
+  const entrance = coverage.items.find((item) => item.label.startsWith('enter teacher classroom_door@60.6'))!;
+  assert.deepEqual(emote.window, [6.2, 7.3], 'VFX uses its exact runtime default duration and tail');
+  assert.deepEqual(text.window, [36, 37.6], 'text graphic uses its complete authored duration');
+  assert.deepEqual(entrance.window, [60.6, 62.0636], 'entrance uses the exact staged movement interval');
+
   const blindPose = { pos: [0, 100, 0] as [number, number, number], target: [0, 101, 0] as [number, number, number], fovDeg: 10 };
-  const blind = canonical.compositions.map((c) => ({ ...c, shot: { ...c.shot, keys: [{ lt: 0, pose: blindPose }] } }));
+  const first = canonical.compositions[0];
+  const oneBlind = canonical.compositions.map((composition) => composition === first
+    ? { ...composition, shot: { ...composition.shot, keys: [{ lt: 0, pose: blindPose }] } }
+    : composition);
+  const scoped = coverageCheck(canonical.scene, canonical.stage, oneBlind);
+  const firstSubject = scoped.items.find((item) => item.basis === 'composition-subject' && item.beat === first.beat && item.composition === first.index)!;
+  assert.equal(firstSubject.covered, false, 'visibility in later compositions cannot satisfy this sub-shot subject');
+  assert.equal(scoped.blocking, true, 'a hidden selected target fails closed even if the global ratio remains high');
+
+  const blind = canonical.compositions.map((composition) => ({ ...composition, shot: { ...composition.shot, keys: [{ lt: 0, pose: blindPose }] } }));
   const blindCoverage = coverageCheck(canonical.scene, canonical.stage, blind);
-  assert.ok(blindCoverage.covered < canonical.coverage.covered, `${blindCoverage.covered} should be below ${canonical.coverage.covered}`);
+  assert.equal(blindCoverage.items.filter((item) => item.basis === 'composition-subject' && item.covered).length, 0);
+  assert.ok(blindCoverage.fullVideoCoverage.pct < 0.9);
+  assert.equal(blindCoverage.blocking, true);
   assert.equal(blindCoverage.threshold, 0.9);
-  assert.equal(canonical.coverage.audioOnly, canonical.coverage.items.filter((i) => i.space === 'audio').length);
+  assert.equal(coverage.audioOnly, coverage.items.filter((item) => item.space === 'audio').length);
 });
 
 test('final composition direction, not composition zero, feeds the next persistent action axis', () => {
