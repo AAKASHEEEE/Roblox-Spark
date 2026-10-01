@@ -696,11 +696,10 @@
         }
       ],
       "camera": {
-        "recipeId": "final_loop",
-        "subject": "zapp",
-        "secondary": "spark_coin",
+        "recipeId": "insert_prop",
+        "subject": "suspicious_button",
         "subShots": [
-          { "from": 32.3, "recipeId": "reaction_punch_in", "subject": "zapp" },
+          { "from": 32.27, "recipeId": "prop_ecu", "subject": "suspicious_button" },
           { "from": 33.6, "recipeId": "insert_prop", "subject": "spark_coin" }
         ]
       },
@@ -1005,8 +1004,8 @@
         "recipeId": "final_loop",
         "subject": "spark_coin",
         "subShots": [
-          { "from": 46.0, "recipeId": "reaction_punch_in", "subject": "zapp" },
-          { "from": 48.0, "recipeId": "final_loop", "subject": "kira", "secondary": "spark_coin" }
+          { "from": 46.33, "recipeId": "final_loop", "subject": "spark_coin", "secondary": "zapp" },
+          { "from": 48.44, "recipeId": "wide_environment", "subject": "spark_coin", "secondary": "kira" }
         ]
       },
       "captions": [
@@ -1218,8 +1217,8 @@
         "subject": "spark_coin",
         "secondary": "zapp",
         "subShots": [
-          { "from": 57.0, "recipeId": "reaction_punch_in", "subject": "kira" },
-          { "from": 58.3, "recipeId": "final_loop", "subject": "spark_coin", "secondary": "kira" }
+          { "from": 58.01, "recipeId": "reaction_punch_in", "subject": "kira" },
+          { "from": 58.74, "recipeId": "final_loop", "subject": "spark_coin", "secondary": "zapp" }
         ]
       },
       "captions": [
@@ -1343,8 +1342,8 @@
         "subject": "teacher",
         "secondary": "kira",
         "subShots": [
-          { "from": 61.6, "recipeId": "chase_cam", "subject": "teacher" },
-          { "from": 63.2, "recipeId": "final_loop", "subject": "teacher", "secondary": "kira" }
+          { "from": 62.2, "recipeId": "final_loop", "subject": "teacher", "secondary": "kira" },
+          { "from": 63.38, "recipeId": "reaction_punch_in", "subject": "kira", "secondary": "teacher" }
         ]
       },
       "captions": [
@@ -1452,8 +1451,8 @@
         "subject": "teacher",
         "secondary": "kira",
         "subShots": [
-          { "from": 66.8, "recipeId": "reaction_punch_in", "subject": "kira" },
-          { "from": 68.0, "recipeId": "final_loop", "subject": "suspicious_button" }
+          { "from": 66.43, "recipeId": "insert_prop", "subject": "suspicious_button" },
+          { "from": 68.32, "recipeId": "prop_ecu", "subject": "suspicious_button" }
         ]
       },
       "captions": [

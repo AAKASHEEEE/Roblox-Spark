@@ -1,0 +1,967 @@
+{
+  "schema": "free-coins-classroom-composition-audit/1",
+  "baseCommit": "9b5e6c736ca1483b7486ea197e8c0a344ba0fb8c",
+  "fixture": "packages/director/fixtures/free-coins-classroom.beats.json",
+  "fixtureSha256": "e6dffe5240aa1f20cccf6837e15d452182f1962ddffbdfc8fcd72fb4b7b3aa70",
+  "summary": {
+    "compositions": 41,
+    "accepted": 41,
+    "recipe": 38,
+    "safeFallback": 3,
+    "blocked": 0,
+    "coveragePct": 96.5,
+    "averageDuration": 1.575,
+    "minDuration": 0.73,
+    "maxDuration": 2.95
+  },
+  "safeFallbacks": [
+    {
+      "beat": "p02",
+      "index": 3,
+      "recipeId": "medium_single",
+      "candidateId": "fallback:two_character_medium"
+    },
+    {
+      "beat": "p03",
+      "index": 2,
+      "recipeId": "reaction_punch_in",
+      "candidateId": "fallback:two_character_medium"
+    },
+    {
+      "beat": "p08",
+      "index": 2,
+      "recipeId": "reaction_punch_in",
+      "candidateId": "fallback:two_character_medium"
+    }
+  ],
+  "compositions": [
+    {
+      "beat": "p01",
+      "index": 1,
+      "start": 0.06,
+      "end": 1.6,
+      "duration": 1.54,
+      "recipeId": "establishing_wide",
+      "active": "teacher",
+      "required": [
+        "teacher"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "establishing_wide:y-30_s1_h24_f46",
+      "accepted": true,
+      "minScore": 0.6916,
+      "screenDirection": [
+        "established:right"
+      ]
+    },
+    {
+      "beat": "p01",
+      "index": 2,
+      "start": 1.6,
+      "end": 3,
+      "duration": 1.4,
+      "recipeId": "wide_environment",
+      "active": "teacher",
+      "required": [
+        "teacher"
+      ],
+      "optional": [
+        "kira",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "wide_environment:y-15_s1_h6_f44",
+      "accepted": true,
+      "minScore": 0.6872,
+      "screenDirection": [
+        "consistent:right"
+      ]
+    },
+    {
+      "beat": "p01",
+      "index": 3,
+      "start": 3,
+      "end": 4.3,
+      "duration": 1.3,
+      "recipeId": "wide_environment",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira",
+        "teacher"
+      ],
+      "source": "recipe",
+      "candidateId": "wide_environment:y-15_s1_h12_f52",
+      "accepted": true,
+      "minScore": 0.9947,
+      "screenDirection": [
+        "established:right",
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p02",
+      "index": 1,
+      "start": 4.6,
+      "end": 6.4,
+      "duration": 1.8,
+      "recipeId": "final_loop",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y-15_s1_h10_f46",
+      "accepted": true,
+      "minScore": 0.9107,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p02",
+      "index": 2,
+      "start": 6.4,
+      "end": 8,
+      "duration": 1.6,
+      "recipeId": "slow_push_in",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "slow_push_in:y-50_s0.2_h0.2_f38_w",
+      "accepted": true,
+      "minScore": 0.9667,
+      "screenDirection": [
+        "consistent:left"
+      ]
+    },
+    {
+      "beat": "p02",
+      "index": 3,
+      "start": 8,
+      "end": 9.32,
+      "duration": 1.32,
+      "recipeId": "medium_single",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "source": "fallback",
+      "candidateId": "fallback:two_character_medium",
+      "accepted": true,
+      "minScore": 0.9713,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p03",
+      "index": 1,
+      "start": 9.58,
+      "end": 11.4,
+      "duration": 1.82,
+      "recipeId": "establishing_wide",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "establishing_wide:y-15_s1_h16_f56",
+      "accepted": true,
+      "minScore": 0.8064,
+      "screenDirection": [
+        "consistent:left"
+      ]
+    },
+    {
+      "beat": "p03",
+      "index": 2,
+      "start": 11.4,
+      "end": 13.5,
+      "duration": 2.1,
+      "recipeId": "reaction_punch_in",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "fallback",
+      "candidateId": "fallback:two_character_medium",
+      "accepted": true,
+      "minScore": 0.9746,
+      "screenDirection": [
+        "consistent:left"
+      ]
+    },
+    {
+      "beat": "p03",
+      "index": 3,
+      "start": 13.5,
+      "end": 15.44,
+      "duration": 1.94,
+      "recipeId": "final_loop",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y-15_s1_h18_f46",
+      "accepted": true,
+      "minScore": 0.9959,
+      "screenDirection": [
+        "consistent:left"
+      ]
+    },
+    {
+      "beat": "p04",
+      "index": 1,
+      "start": 15.68,
+      "end": 17.4,
+      "duration": 1.72,
+      "recipeId": "final_loop",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y-15_s1_h18_f52",
+      "accepted": true,
+      "minScore": 0.9933,
+      "screenDirection": [
+        "consistent:left"
+      ]
+    },
+    {
+      "beat": "p04",
+      "index": 2,
+      "start": 17.4,
+      "end": 19,
+      "duration": 1.6,
+      "recipeId": "slow_push_in",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "slow_push_in:y-35_s0.2_h0.2_f38_n",
+      "accepted": true,
+      "minScore": 0.9755,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p04",
+      "index": 3,
+      "start": 19,
+      "end": 20.26,
+      "duration": 1.26,
+      "recipeId": "medium_single",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "medium_single:y50_s0.27_h-0.08_f38_w",
+      "accepted": true,
+      "minScore": 0.9937,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p05",
+      "index": 1,
+      "start": 20.96,
+      "end": 22.4,
+      "duration": 1.44,
+      "recipeId": "final_loop",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y-30_s1_h18_f52",
+      "accepted": true,
+      "minScore": 0.615,
+      "screenDirection": [
+        "consistent:left"
+      ]
+    },
+    {
+      "beat": "p05",
+      "index": 2,
+      "start": 22.4,
+      "end": 24,
+      "duration": 1.6,
+      "recipeId": "insert_prop",
+      "active": "suspicious_button",
+      "required": [
+        "suspicious_button"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "insert_prop:y-45_s0.44_h30_f38",
+      "accepted": true,
+      "minScore": 0.9922,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p05",
+      "index": 3,
+      "start": 24,
+      "end": 25.62,
+      "duration": 1.62,
+      "recipeId": "reaction_punch_in",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "reaction_punch_in:y-15_s0.29_h0.15_f38_w",
+      "accepted": true,
+      "minScore": 0.9448,
+      "screenDirection": [
+        "established:right"
+      ]
+    },
+    {
+      "beat": "p06",
+      "index": 1,
+      "start": 25.94,
+      "end": 27.6,
+      "duration": 1.66,
+      "recipeId": "final_loop",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y-15_s1_h10_f46",
+      "accepted": true,
+      "minScore": 0.8199,
+      "screenDirection": [
+        "consistent:left"
+      ]
+    },
+    {
+      "beat": "p06",
+      "index": 2,
+      "start": 27.6,
+      "end": 29.6,
+      "duration": 2,
+      "recipeId": "wide_environment",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "suspicious_button",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "wide_environment:y-15_s1_h6_f44",
+      "accepted": true,
+      "minScore": 0.6831,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p06",
+      "index": 3,
+      "start": 29.6,
+      "end": 31.3,
+      "duration": 1.7,
+      "recipeId": "insert_prop",
+      "active": "suspicious_button",
+      "required": [
+        "suspicious_button"
+      ],
+      "optional": [
+        "kira",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "insert_prop:y-45_s0.34_h30_f38",
+      "accepted": true,
+      "minScore": 0.9792,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p07",
+      "index": 1,
+      "start": 31.52,
+      "end": 32.27,
+      "duration": 0.75,
+      "recipeId": "insert_prop",
+      "active": "suspicious_button",
+      "required": [
+        "suspicious_button"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "insert_prop:y-45_s0.34_h30_f38",
+      "accepted": true,
+      "minScore": 0.9792,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p07",
+      "index": 2,
+      "start": 32.27,
+      "end": 33.6,
+      "duration": 1.33,
+      "recipeId": "prop_ecu",
+      "active": "suspicious_button",
+      "required": [
+        "suspicious_button"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "prop_ecu:y40_s0.55_h20_f36",
+      "accepted": true,
+      "minScore": 1,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p07",
+      "index": 3,
+      "start": 33.6,
+      "end": 34.9,
+      "duration": 1.3,
+      "recipeId": "insert_prop",
+      "active": "spark_coin",
+      "required": [
+        "spark_coin"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "insert_prop:y-25_s0.44_h30_f38",
+      "accepted": true,
+      "minScore": 1,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p08",
+      "index": 1,
+      "start": 35.2,
+      "end": 37,
+      "duration": 1.8,
+      "recipeId": "slow_push_in",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "slow_push_in:y20_s0.2_h-0.05_f38_w",
+      "accepted": true,
+      "minScore": 0.9255,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p08",
+      "index": 2,
+      "start": 37,
+      "end": 38.4,
+      "duration": 1.4,
+      "recipeId": "reaction_punch_in",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "source": "fallback",
+      "candidateId": "fallback:two_character_medium",
+      "accepted": true,
+      "minScore": 0.9926,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p08",
+      "index": 3,
+      "start": 38.4,
+      "end": 39.86,
+      "duration": 1.46,
+      "recipeId": "slow_push_in",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "slow_push_in:y-35_s0.2_h0.2_f38_w",
+      "accepted": true,
+      "minScore": 0.9365,
+      "screenDirection": [
+        "established:right"
+      ]
+    },
+    {
+      "beat": "p09",
+      "index": 1,
+      "start": 40.24,
+      "end": 42.077,
+      "duration": 1.837,
+      "recipeId": "wide_environment",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "spark_coin",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "wide_environment:y-30_s1_h12_f52",
+      "accepted": true,
+      "minScore": 0.6495,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p09",
+      "index": 2,
+      "start": 42.077,
+      "end": 43.96,
+      "duration": 1.883,
+      "recipeId": "final_loop",
+      "active": "spark_coin",
+      "required": [
+        "spark_coin"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y-15_s1_h10_f52",
+      "accepted": true,
+      "minScore": 0.85,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p10",
+      "index": 1,
+      "start": 44.22,
+      "end": 46.33,
+      "duration": 2.11,
+      "recipeId": "final_loop",
+      "active": "spark_coin",
+      "required": [
+        "spark_coin"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y-15_s1_h10_f46",
+      "accepted": true,
+      "minScore": 0.85,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p10",
+      "index": 2,
+      "start": 46.33,
+      "end": 48.44,
+      "duration": 2.11,
+      "recipeId": "final_loop",
+      "active": "spark_coin",
+      "required": [
+        "spark_coin"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y-15_s1_h10_f46",
+      "accepted": true,
+      "minScore": 0.85,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p10",
+      "index": 3,
+      "start": 48.44,
+      "end": 49.5,
+      "duration": 1.06,
+      "recipeId": "wide_environment",
+      "active": "spark_coin",
+      "required": [
+        "spark_coin"
+      ],
+      "optional": [
+        "kira",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "wide_environment:y-15_s1_h12_f44",
+      "accepted": true,
+      "minScore": 0.85,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p11",
+      "index": 1,
+      "start": 49.86,
+      "end": 51.5,
+      "duration": 1.64,
+      "recipeId": "final_loop",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y0_s1_h10_f46",
+      "accepted": true,
+      "minScore": 0.6319,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p11",
+      "index": 2,
+      "start": 51.5,
+      "end": 53.2,
+      "duration": 1.7,
+      "recipeId": "chase_cam",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "chase_cam:y30_s0.19_h0.1_f42_w",
+      "accepted": true,
+      "minScore": 0.8985,
+      "screenDirection": [
+        "established:left",
+        "established:right"
+      ]
+    },
+    {
+      "beat": "p11",
+      "index": 3,
+      "start": 53.2,
+      "end": 54.7,
+      "duration": 1.5,
+      "recipeId": "reaction_punch_in",
+      "active": "zapp",
+      "required": [
+        "zapp"
+      ],
+      "optional": [
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "reaction_punch_in:y-30_s0.29_h0_f38_w",
+      "accepted": true,
+      "minScore": 0.9465,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p12",
+      "index": 1,
+      "start": 55.06,
+      "end": 58.01,
+      "duration": 2.95,
+      "recipeId": "final_loop",
+      "active": "spark_coin",
+      "required": [
+        "spark_coin"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y15_s1_h10_f52",
+      "accepted": true,
+      "minScore": 0.81,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p12",
+      "index": 2,
+      "start": 58.01,
+      "end": 58.74,
+      "duration": 0.73,
+      "recipeId": "reaction_punch_in",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "reaction_punch_in:y45_s0.29_h0.15_f38_w",
+      "accepted": true,
+      "minScore": 0.8821,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p12",
+      "index": 3,
+      "start": 58.74,
+      "end": 59.48,
+      "duration": 0.74,
+      "recipeId": "final_loop",
+      "active": "spark_coin",
+      "required": [
+        "spark_coin"
+      ],
+      "optional": [
+        "zapp",
+        "kira"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y15_s1_h10_f52",
+      "accepted": true,
+      "minScore": 0.85,
+      "screenDirection": [
+        "established:left"
+      ]
+    },
+    {
+      "beat": "p13",
+      "index": 1,
+      "start": 59.86,
+      "end": 62.2,
+      "duration": 2.34,
+      "recipeId": "wide_environment",
+      "active": "teacher",
+      "required": [
+        "teacher"
+      ],
+      "optional": [
+        "kira",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "wide_environment:y15_s1_h12_f44",
+      "accepted": true,
+      "minScore": 0.9324,
+      "screenDirection": [
+        "established:right"
+      ]
+    },
+    {
+      "beat": "p13",
+      "index": 2,
+      "start": 62.2,
+      "end": 63.38,
+      "duration": 1.18,
+      "recipeId": "final_loop",
+      "active": "teacher",
+      "required": [
+        "teacher"
+      ],
+      "optional": [
+        "kira",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "final_loop:ctx_y15_s1_h10_f52",
+      "accepted": true,
+      "minScore": 0.9218,
+      "screenDirection": [
+        "consistent:right"
+      ]
+    },
+    {
+      "beat": "p13",
+      "index": 3,
+      "start": 63.38,
+      "end": 64.94,
+      "duration": 1.56,
+      "recipeId": "reaction_punch_in",
+      "active": "kira",
+      "required": [
+        "kira"
+      ],
+      "optional": [
+        "teacher",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "reaction_punch_in:y-30_s0.29_h0.15_f38_w",
+      "accepted": true,
+      "minScore": 0.9322,
+      "screenDirection": [
+        "consistent:right"
+      ]
+    },
+    {
+      "beat": "p14",
+      "index": 1,
+      "start": 65.3,
+      "end": 66.43,
+      "duration": 1.13,
+      "recipeId": "wide_environment",
+      "active": "teacher",
+      "required": [
+        "teacher"
+      ],
+      "optional": [
+        "kira",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "wide_environment:y0_s1_h12_f44",
+      "accepted": true,
+      "minScore": 0.9359,
+      "screenDirection": [
+        "consistent:right"
+      ]
+    },
+    {
+      "beat": "p14",
+      "index": 2,
+      "start": 66.43,
+      "end": 68.32,
+      "duration": 1.89,
+      "recipeId": "insert_prop",
+      "active": "suspicious_button",
+      "required": [
+        "suspicious_button"
+      ],
+      "optional": [
+        "teacher",
+        "kira",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "insert_prop:y-45_s0.26_h30_f38",
+      "accepted": true,
+      "minScore": 0.9484,
+      "screenDirection": [
+        "no_axis"
+      ]
+    },
+    {
+      "beat": "p14",
+      "index": 3,
+      "start": 68.32,
+      "end": 69.08,
+      "duration": 0.76,
+      "recipeId": "prop_ecu",
+      "active": "suspicious_button",
+      "required": [
+        "suspicious_button"
+      ],
+      "optional": [
+        "teacher",
+        "kira",
+        "zapp"
+      ],
+      "source": "recipe",
+      "candidateId": "prop_ecu:y-40_s0.55_h20_f36",
+      "accepted": true,
+      "minScore": 0.9583,
+      "screenDirection": [
+        "no_axis"
+      ]
+    }
+  ]
+}
