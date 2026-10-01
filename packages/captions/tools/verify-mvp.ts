@@ -6,8 +6,14 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { verifyRenderV2 } from './verify-render-v2.ts';
+import { parseJsonBytes, readBoundedFile, RENDER_BYTE_LIMITS } from './render-manifest.ts';
+import { isPathInside, policyRealpath } from './render-paths.ts';
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
-const { values: args } = parseArgs({ options: { v2Voice: { type: 'string' }, authorizedManifestSha256: { type: 'string' }, skipV2: { type: 'boolean', default: false } } });
+const { values: args } = parseArgs({ options: {
+  v2Voice: { type: 'string' }, v2Report: { type: 'string' }, authorizedManifestSha256: { type: 'string' },
+  postRenderAttestation: { type: 'string' }, attestationPublicKey: { type: 'string' }, attestationKeyId: { type: 'string' },
+  requireTrusted: { type: 'boolean', default: false }, skipV2: { type: 'boolean', default: false },
+} });
 import { LIBRARY } from '../../library/src/ids.ts';
 import { VFX_DEFS, S7_NEW_VFX_IDS } from '../../engine/src/vfx/index.ts';
 import { SFX_DEFS, S7_NEW_SFX_IDS } from '../../audio-mix/src/sfx.ts';
@@ -18,6 +24,9 @@ import { TEXT_STYLE_DEFS, S7_NEW_TEXT_STYLE_IDS } from '../src/styles.ts';
 import { checkBoldPlan, phrasesFromBeats, planBoldCaptions } from '../src/bold.ts';
 
 const issues: string[] = [];
+const attestationArgs = [args.postRenderAttestation, args.attestationPublicKey, args.attestationKeyId];
+if (attestationArgs.some(Boolean) && !attestationArgs.every(Boolean)) issues.push('post-render attestation requires --postRenderAttestation, --attestationPublicKey, and --attestationKeyId together');
+if (args.requireTrusted && args.skipV2) issues.push('--requireTrusted cannot be combined with --skipV2');
 const ok = (test: unknown, message: string) => { if (!test) issues.push(message); };
 const all = (xs: readonly string[], reg: Readonly<Record<string, unknown>>, kind: string) => xs.forEach((id) => ok(reg[id], `${kind}.${id}: no implementation`));
 
@@ -121,8 +130,29 @@ if (existsSync(fullPath)) {
 
 let v2: ReturnType<typeof verifyRenderV2> | 'skipped' = 'skipped';
 if (!args.skipV2) {
-  const reportPath = join(ROOT, 'packages/captions/full-render-v2/render-evidence.json');
-  v2 = verifyRenderV2({ root: ROOT, reportPath, ...(args.v2Voice ? { voicePath: resolve(ROOT, args.v2Voice) } : {}), ...(args.authorizedManifestSha256 ? { authorizedManifestSha256: args.authorizedManifestSha256 } : {}) });
+  const reportPath = policyRealpath(resolve(ROOT, args.v2Report ?? 'packages/captions/full-render-v2/render-evidence.json'));
+  const historicalReport = resolve(ROOT, 'packages/captions/full-render-v2/render-evidence.json');
+  if (reportPath !== historicalReport && !isPathInside(resolve(ROOT, 'out/render-jobs'), reportPath)) {
+    issues.push('--v2Report must select the historical report or a report under out/render-jobs');
+  }
+  let attestationOptions: Pick<Parameters<typeof verifyRenderV2>[0], 'postRenderAttestation' | 'attestationPublicKey' | 'attestationKeyId'> = {};
+  if (attestationArgs.every(Boolean)) {
+    try {
+      const attestationPath = resolve(ROOT, args.postRenderAttestation!);
+      const keyPath = resolve(ROOT, args.attestationPublicKey!);
+      attestationOptions = {
+        postRenderAttestation: parseJsonBytes(readBoundedFile(attestationPath, RENDER_BYTE_LIMITS.attestation, 'post-render attestation'), 'post-render attestation'),
+        attestationPublicKey: readBoundedFile(keyPath, RENDER_BYTE_LIMITS.attestationKey, 'attestation public key'),
+        attestationKeyId: args.attestationKeyId!,
+      };
+    } catch (error) { issues.push(`post-render attestation input: ${error instanceof Error ? error.message : String(error)}`); }
+  }
+  v2 = verifyRenderV2({
+    root: ROOT, reportPath,
+    ...(args.v2Voice ? { voicePath: resolve(ROOT, args.v2Voice) } : {}),
+    ...(args.authorizedManifestSha256 ? { authorizedManifestSha256: args.authorizedManifestSha256 } : {}),
+    ...attestationOptions,
+  });
   for (const issue of v2.issues) issues.push(`full render v2: ${issue}`);
 }
 
@@ -134,8 +164,9 @@ const summary = {
   audio: mix && measuredAudio ? { durationSec: mix.fileCheck.durationSec, integratedLufs: measuredAudio.integratedLufs, truePeakDbtp: measuredAudio.truePeakDbtp, music: mix.mix.music, eventSfx: mix.mix.cues.length } : 'missing',
   showcaseMp4s: showcaseCount,
   fullVideo,
-  fullVideoV2: v2 === 'skipped' ? 'skipped' : { integrityOk: v2.ok, trusted: v2.trusted, complete: v2.complete, provenance: v2.provenance, sourceExactRecompute: v2.sourceExactRecompute, authorizationVerified: v2.authorizationVerified, manifestSha256: v2.manifestSha256, outputSha256: v2.outputSha256, mediaSha256: v2.mediaSha256, evidenceVerified: v2.evidenceVerified, voiceBytesVerified: v2.voiceBytesVerified, warnings: v2.warnings, media: v2.media },
+  fullVideoV2: v2 === 'skipped' ? 'skipped' : { integrityOk: v2.ok, trusted: v2.trusted, complete: v2.complete, provenance: v2.provenance, sourceExactRecompute: v2.sourceExactRecompute, authorizationVerified: v2.authorizationVerified, postRenderAttestationVerified: v2.postRenderAttestationVerified, representativeFramesVerified: v2.representativeFramesVerified, comparisonSheetVerified: v2.comparisonSheetVerified, manifestSha256: v2.manifestSha256, outputSha256: v2.outputSha256, mediaSha256: v2.mediaSha256, evidenceVerified: v2.evidenceVerified, voiceBytesVerified: v2.voiceBytesVerified, warnings: v2.warnings, media: v2.media },
   issues,
 };
 console.log(JSON.stringify(summary, null, 2));
-if (issues.length) process.exit(1);
+if (issues.length) process.exitCode = 1;
+else if (args.requireTrusted && (v2 === 'skipped' || !v2.trusted)) process.exitCode = 2;

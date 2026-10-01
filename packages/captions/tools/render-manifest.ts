@@ -23,6 +23,12 @@ export const RENDER_BYTE_LIMITS = Object.freeze({
   output: 512 * 1024 * 1024,
   evidenceImage: 32 * 1024 * 1024,
   diagnostics: 32 * 1024 * 1024,
+  runtimeBinary: 512 * 1024 * 1024,
+  runtimeTreeFile: 128 * 1024 * 1024,
+  runtimeTreeTotal: 1024 * 1024 * 1024,
+  runtimeTreeFiles: 100_000,
+  attestation: 256 * 1024,
+  attestationKey: 64 * 1024,
 });
 
 export interface ToolPins {
@@ -47,7 +53,7 @@ export interface RuntimePins {
 export interface RenderInputManifest {
   schema: typeof INPUT_MANIFEST_SCHEMA;
   provenance: 'pre-render-authorized' | 'retroactive-integrity-seal';
-  job: { jobId: string; outputPath: string; visual: VisualMode; renderProfile: RenderProfileId; evidenceProfile: EvidenceProfileId };
+  job: { jobId: string; outputPath: string; visual: VisualMode; renderProfile: RenderProfileId; evidenceProfile: EvidenceProfileId; workerSafe?: true };
   source: { repository: string; commitSha: string; treeSha: string; baseSha: string };
   inputs: {
     storyboard: { path: string; sha256: string };
@@ -136,21 +142,27 @@ export function readTrustedRenderInputs(manifest: RenderInputManifest, paths: Tr
   return { storyboard, beatSheet, voice };
 }
 
-export function hashFile(path: string): { sha256: string; bytes: number } {
-  const bytes = readFileSync(path);
+export function hashFile(path: string, maxBytes = RENDER_BYTE_LIMITS.runtimeBinary, label = 'runtime binary'): { sha256: string; bytes: number } {
+  const bytes = readBoundedFile(path, maxBytes, label);
   return { sha256: sha256Bytes(bytes), bytes: bytes.length };
 }
 
-/** Content-address an emitted/module directory, including relative names and every file byte. Symlinks are rejected. */
+/** Content-address an emitted/module directory with bounded files/count/total bytes. Symlinks are rejected. */
 export function hashDirectoryTree(root: string): string {
   const files: Array<{ path: string; sha256: string; bytes: number }> = [];
+  let totalBytes = 0;
   const walk = (dir: string): void => {
     for (const name of readdirSync(dir).sort()) {
       const path = join(dir, name), stat = lstatSync(path);
       if (stat.isSymbolicLink()) throw new Error(`runtime tree contains symlink: ${relative(root, path)}`);
       if (stat.isDirectory()) walk(path);
-      else if (stat.isFile()) files.push({ path: relative(root, path).split('\\').join('/'), ...hashFile(path) });
-      else throw new Error(`runtime tree contains unsupported entry: ${relative(root, path)}`);
+      else if (stat.isFile()) {
+        if (files.length >= RENDER_BYTE_LIMITS.runtimeTreeFiles) throw new Error(`runtime tree exceeds ${RENDER_BYTE_LIMITS.runtimeTreeFiles} file limit`);
+        const pin = hashFile(path, RENDER_BYTE_LIMITS.runtimeTreeFile, `runtime tree file ${relative(root, path)}`);
+        totalBytes += pin.bytes;
+        if (totalBytes > RENDER_BYTE_LIMITS.runtimeTreeTotal) throw new Error(`runtime tree exceeds ${RENDER_BYTE_LIMITS.runtimeTreeTotal} byte limit`);
+        files.push({ path: relative(root, path).split('\\').join('/'), ...pin });
+      } else throw new Error(`runtime tree contains unsupported entry: ${relative(root, path)}`);
     }
   };
   if (!statSync(root).isDirectory()) throw new Error(`runtime tree is not a directory: ${root}`);
@@ -208,7 +220,11 @@ export function parseInputManifest(value: unknown): RenderInputManifest {
   const root = object(value, 'manifest', ['schema', 'provenance', 'job', 'source', 'inputs', 'tools', 'runtime']);
   if (root.schema !== INPUT_MANIFEST_SCHEMA) throw new Error(`unsupported input manifest schema '${String(root.schema)}'`);
   if (root.provenance !== 'pre-render-authorized' && root.provenance !== 'retroactive-integrity-seal') throw new Error('manifest.provenance is invalid');
-  const job = object(root.job, 'manifest.job', ['jobId', 'outputPath', 'visual', 'renderProfile', 'evidenceProfile']);
+  const workerAuthorized = root.provenance === 'pre-render-authorized';
+  const job = object(root.job, 'manifest.job', workerAuthorized
+    ? ['jobId', 'outputPath', 'visual', 'renderProfile', 'evidenceProfile', 'workerSafe']
+    : ['jobId', 'outputPath', 'visual', 'renderProfile', 'evidenceProfile']);
+  if (workerAuthorized && job.workerSafe !== true) throw new Error('pre-render-authorized manifest.job.workerSafe must be true');
   if (job.visual !== 'vignette' && job.visual !== 'narrated') throw new Error('manifest.job.visual is invalid');
   if (job.renderProfile !== 'review-vertical-540p' && job.renderProfile !== 'production-vertical-1080p') throw new Error('manifest.job.renderProfile is invalid');
   if (job.evidenceProfile !== 'none' && job.evidenceProfile !== 'competitor-v2') throw new Error('manifest.job.evidenceProfile is invalid');
@@ -231,7 +247,7 @@ export function parseInputManifest(value: unknown): RenderInputManifest {
   return {
     schema: INPUT_MANIFEST_SCHEMA,
     provenance: root.provenance,
-    job: { jobId, outputPath, visual: job.visual, renderProfile: job.renderProfile, evidenceProfile: job.evidenceProfile } as RenderInputManifest['job'],
+    job: { jobId, outputPath, visual: job.visual, renderProfile: job.renderProfile, evidenceProfile: job.evidenceProfile, ...(workerAuthorized ? { workerSafe: true as const } : {}) } as RenderInputManifest['job'],
     source: {
       repository: string(source.repository, 'manifest.source.repository'),
       commitSha: gitObject(source.commitSha, 'manifest.source.commitSha'),
