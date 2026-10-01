@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { directScript } from '../packages/director/src/pipeline.ts';
 import { DIRECTOR_ALGORITHM_VERSION, DIRECTOR_EDIT_PLAN_POLICY, DirectorInputError, normalizeDirectorRequest, splitDirectorClauses } from '../packages/director/src/offline.ts';
 import { LIBRARY, lookup } from '../packages/library/src/ids.ts';
+import { ENVIRONMENT_CATALOG } from '../packages/environments/src/index.ts';
 import { validateBeatSheet } from '../packages/director/src/beat-sheet.ts';
 import { NodeDirectorCache, type DirectorCacheDescriptor } from '../packages/director/node/cache.ts';
 
@@ -25,8 +26,8 @@ test('offline Director is deterministic, available-only, timed, and preserves ev
   assert.equal(a.sheet.beats[1].end, 8);
   assert.equal(a.sheet.beats[0].end, a.sheet.beats[1].start);
   assert.match(a.sheet.beats[0].setId, /^classroom@/);
-  assert.ok(a.sheet.beats[0].cast.some((c) => c.characterId.startsWith('zapp@')));
-  assert.ok(a.sheet.beats[0].cast.some((c) => c.characterId.startsWith('kira@')));
+  assert.deepEqual(a.sheet.beats[0].cast.map((c) => c.characterId.split('@')[0]), ['zapp']);
+  assert.deepEqual(a.sheet.beats[1].cast.map((c) => c.characterId.split('@')[0]), ['kira']);
   assert.ok(a.sheet.beats[0].props.some((p) => p.propId.startsWith('phone@')));
   assert.ok(a.sheet.beats[1].props.some((p) => p.propId.startsWith('student_desk@')));
   assert.equal(a.sheet.beats[1].cast[0].actionId, 'run');
@@ -158,7 +159,8 @@ test('literal people, objects, actions, and pronouns drive only valid local subj
   assert.ok(plan.clauses.some((clause) => clause.subjectBasis === 'object' && clause.cues.objects.includes('phone')));
   assert.ok(plan.clauses.some((clause) => clause.cues.people.includes('zapp') && clause.cues.actions.includes('jump')));
   assert.ok(plan.clauses.every((clause) => clause.text.length > 0));
-  assert.ok(result.report.editPlan.coverage.visualClauses >= 4);
+  assert.ok(result.report.editPlan.coverage.entityFramingCoverage.required >= 3);
+  assert.ok(result.report.editPlan.coverage.actionRealizationCoverage.required >= 4);
   assert.equal(validateBeatSheet(result.sheet, { requireAvailable: true }).ok, true);
 
   const mixed = await directScript({ script: 'Kira grabs the phone, then she drops it.', duration: 6, seed: 23 }, { provider: 'offline' });
@@ -189,4 +191,150 @@ test('a generated multi-shot BeatSheet validates and stages without fixture chan
   assert.deepEqual(staged.beats.map((beat) => beat.camera.subShots ?? []), result.sheet.beats.map((beat) => beat.camera.subShots ?? []));
   assert.deepEqual(staged.issues.filter((issue) => issue.severity === 'error'), []);
   assert.equal(LIBRARY.cameraRecipes.every((recipe) => recipe.status === 'available'), true);
+});
+
+test('beat-local cast includes only named, pronoun-resolved, or interaction-required actors', async () => {
+  const result = await directScript({
+    script: [
+      'Zapp waits in the classroom.',
+      'Kira runs past the desk.',
+      'She drops the phone while Zapp watches.',
+      'The teacher laughs.',
+    ],
+    duration: 12,
+    seed: 31,
+  }, { provider: 'offline' });
+  assert.deepEqual(result.sheet.beats.map((beat) => beat.cast.map((member) => member.characterId.split('@')[0])), [
+    ['zapp'], ['kira'], ['kira', 'zapp'], ['teacher'],
+  ]);
+  assert.equal(result.sheet.beats[2].cast[0].actionId, 'put_down');
+  assert.ok(result.sheet.beats[2].props.some((prop) => prop.propId.startsWith('phone@')), 'object pronoun retains only its local antecedent prop');
+});
+
+test('Director consumes environment metadata and never places actors on prop, waypoint, offscreen, or hazard marks', async () => {
+  for (const script of ['Zapp and Kira wait in the classroom.', 'Zapp waits in the hallway.', 'Kira waits at the playground.']) {
+    const result = await directScript({ script, duration: 4, seed: 19 }, { provider: 'offline' });
+    const beat = result.sheet.beats[0];
+    const [setId, version] = beat.setId.split('@');
+    const profile = ENVIRONMENT_CATALOG.profiles.find((item) => item.id === setId && item.version === version)!;
+    assert.ok(profile);
+    for (const member of beat.cast) {
+      const mark = profile.marks.find((item) => item.id === member.placement)!;
+      assert.equal(mark.kind, 'actor');
+      assert.equal(mark.hazard.kind, 'none');
+      assert.ok(mark.occupancy > 0 && mark.postures.includes('stand'));
+    }
+  }
+});
+
+test('broad deterministic corpus diagnoses at least 90% of unsupported visible concepts', async () => {
+  const expected = ['drone', 'microwave', 'skateboard', 'spaceship', 'robot', 'airplane', 'dragon', 'violin', 'warehouse', 'penguin'];
+  const script = [
+    'A drone hovers.',
+    'Kira opens a microwave.',
+    'Zapp rides a skateboard.',
+    'A spaceship appears.',
+    'The robot waves.',
+    'An airplane arrives.',
+    'A dragon dances.',
+    'Kira finds a violin.',
+    'Zapp waits inside a warehouse.',
+    'A penguin jumps.',
+  ];
+  const first = await directScript({ script, duration: 30, seed: 41 }, { provider: 'offline' });
+  const second = await directScript({ script, duration: 30, seed: 41 }, { provider: 'offline' });
+  assert.deepEqual(first, second);
+  const diagnosed = new Set(first.report.conceptDiagnostics.map((item) => item.term));
+  const diagnosedCount = expected.filter((term) => diagnosed.has(term)).length;
+  assert.ok(diagnosedCount / expected.length >= 0.9, `diagnosed ${diagnosedCount}/${expected.length}: ${[...diagnosed].join(', ')}`);
+  for (const required of ['drone', 'microwave', 'skateboard', 'spaceship', 'robot', 'airplane', 'dragon']) assert.ok(diagnosed.has(required));
+  assert.ok(first.report.conceptDiagnostics.every((item) => ['missing', 'approved_substitution', 'authorization_blocker'].includes(item.disposition)));
+  assert.equal(first.report.editPlan.coverage.unresolvedConceptCoverage.pct, 1);
+  assert.equal(first.report.editPlan.coverage.unresolvedConceptCoverage.diagnosed, first.report.conceptDiagnostics.length);
+});
+
+test('planned visible places record an approved substitution rather than disappearing', async () => {
+  const result = await directScript({ script: 'Kira cooks in the kitchen.', duration: 4, seed: 2 }, { provider: 'offline' });
+  assert.ok(result.report.conceptDiagnostics.some((item) => item.term === 'kitchen' && item.category === 'place'
+    && item.disposition === 'approved_substitution' && item.substitute === 'classroom'));
+});
+
+test('coverage separates framing, action realization, prop state, and unresolved diagnosis without false claims', async () => {
+  const result = await directScript({
+    script: 'Kira grabs the phone, then Zapp jumps beside a drone.',
+    duration: 7,
+    seed: 13,
+  }, { provider: 'offline' });
+  const coverage = result.report.editPlan.coverage;
+  assert.ok(coverage.entityFramingCoverage.required >= 2);
+  assert.ok(coverage.entityFramingCoverage.realized >= 1);
+  assert.ok(coverage.actionRealizationCoverage.required >= 2);
+  assert.ok(coverage.actionRealizationCoverage.realized < coverage.actionRealizationCoverage.required, 'one emitted lead action cannot realize both narrated actions');
+  assert.ok(coverage.propStateRealizationCoverage.required >= 1);
+  assert.equal(coverage.propStateRealizationCoverage.realized, 0, 'an idle prop state cannot claim a grab transition');
+  assert.equal(coverage.unresolvedConceptCoverage.unresolved, 1);
+  const grabClause = result.report.editPlan.beats[0].clauses.find((clause) => clause.cues.actions.includes('grab'))!;
+  assert.equal(grabClause.entityFramed, false, 'framing Kira without the phone cannot cover the grab clause');
+  assert.equal(grabClause.propStateRealized, false);
+});
+
+test('Director duration boundary is 300 seconds', async () => {
+  const accepted = await directScript({ script: 'Zapp waits.', duration: 300, seed: 0 }, { provider: 'offline' });
+  assert.equal(accepted.sheet.beats[0].end, 300);
+  await assert.rejects(directScript({ script: 'Zapp waits.', duration: 300.000001, seed: 0 }, { provider: 'offline' }),
+    (error: unknown) => error instanceof DirectorInputError && /at most 300 seconds/.test(error.message));
+});
+
+test('main recipe selection rejects prop-only framing without a local prop', async () => {
+  const noProp = await directScript({ script: 'Kira stands for a close shot.', duration: 4, seed: 6 }, { provider: 'offline' });
+  assert.ok(!['prop_ecu', 'insert_prop', 'top_down_insert'].includes(noProp.sheet.beats[0].camera.recipeId));
+  assert.equal(noProp.sheet.beats[0].camera.subject, 'kira');
+  const requested = noProp.report.substitutions.find((item) => item.kind === 'cameraRecipes');
+  assert.equal(requested?.reason, 'requested recipe is incompatible with local subject, cast, motion, set dimensions, or required prop');
+});
+
+test('per-beat recognition is not corrupted by global roster truncation', async () => {
+  const names = ['Crowd Kid', 'Dad', 'Friend Boy', 'Friend Girl', 'Kira', 'Mom', 'Noob', 'Pro', 'Teacher', 'Zapp'];
+  const result = await directScript({ script: names.map((name) => `${name} waits.`), duration: 30, seed: 5 }, { provider: 'offline' });
+  assert.deepEqual(result.sheet.beats.map((beat) => beat.cast[0].characterId.split('@')[0]),
+    ['crowd_kid', 'dad', 'friend_boy', 'friend_girl', 'kira', 'mom', 'noob', 'pro', 'teacher', 'zapp']);
+});
+
+test('local named antecedents beat later possessives and discourse tracks the last named person', async () => {
+  const local = await directScript({ script: ['Zapp waits.', 'Kira grabs her phone.'], duration: 8, seed: 4 }, { provider: 'offline' });
+  assert.deepEqual(local.sheet.beats[1].cast.map((member) => member.characterId.split('@')[0]), ['kira']);
+  const discourse = await directScript({ script: ['Zapp watches Kira.', 'She runs.'], duration: 8, seed: 4 }, { provider: 'offline' });
+  assert.equal(discourse.sheet.beats[1].cast[0].characterId.split('@')[0], 'kira');
+});
+
+test('actor allocation honors set capacity, aliases, and exclusions', async () => {
+  const result = await directScript({ script: 'Zapp, Kira, and the teacher wait in the classroom.', duration: 5, seed: 26 }, { provider: 'offline' });
+  const beat = result.sheet.beats[0];
+  const profile = ENVIRONMENT_CATALOG.profiles.find((item) => `${item.id}@${item.version}` === beat.setId)!;
+  assert.ok(beat.cast.length <= profile.cast.max);
+  const selected = beat.cast.map((member) => profile.marks.find((mark) => mark.id === member.placement)!);
+  const physical = selected.map((mark) => mark.aliasOf ?? mark.id);
+  assert.equal(new Set(physical).size, physical.length);
+  for (const mark of selected) for (const other of selected) if (mark !== other) {
+    assert.equal(mark.exclusiveWith.includes(other.id) || other.exclusiveWith.includes(mark.id), false);
+  }
+});
+
+test('concept diagnosis avoids known adjectives and catches bare objects and destinations', async () => {
+  const result = await directScript({ script: ['A happy Kira jumps.', 'Kira plays violin.', 'Kira enters warehouse.', 'A penguin jumps.'], duration: 12, seed: 9 }, { provider: 'offline' });
+  const diagnostics = new Map(result.report.conceptDiagnostics.map((item) => [item.term, item]));
+  assert.equal(diagnostics.has('happy'), false);
+  assert.equal(diagnostics.get('violin')?.category, 'prop');
+  assert.equal(diagnostics.get('warehouse')?.category, 'place');
+  assert.equal(diagnostics.get('penguin')?.category, 'entity');
+  assert.equal(result.report.editPlan.coverage.unresolvedConceptCoverage.required, 3);
+  assert.equal(result.report.editPlan.coverage.unresolvedConceptCoverage.diagnosed, 3);
+});
+
+test('entity framing requires every named clause entity, not any one subject', async () => {
+  const result = await directScript({ script: 'Zapp watches Kira beside the teacher.', duration: 5, seed: 3 }, { provider: 'offline' });
+  const clause = result.report.editPlan.beats[0].clauses[0];
+  assert.deepEqual(new Set(clause.cues.people), new Set(['zapp', 'kira', 'teacher']));
+  assert.equal(clause.entityFramed, false);
+  assert.equal(result.report.editPlan.coverage.entityFramingCoverage.realized, 0);
 });

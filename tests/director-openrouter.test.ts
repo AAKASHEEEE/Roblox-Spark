@@ -28,7 +28,9 @@ const fakeFetch = (fn: (body: any, init: RequestInit, call: number) => Promise<R
 test('OpenRouter enforces free-only model configuration', () => {
   assert.deepEqual(normalizeFreeModelList(undefined), ['openrouter/free']);
   assert.deepEqual(normalizeFreeModelList(['a/model:free', 'a/model:free']), ['a/model:free']);
-  assert.throws(() => normalizeFreeModelList(['paid/model']), (e: unknown) => e instanceof OpenRouterProviderError && e.code === 'config');
+  for (const paidOrAmbiguous of ['paid/model', 'vendor/model:free:paid', 'openrouter/free?fallback=paid', 'OPENROUTER/FREE']) {
+    assert.throws(() => normalizeFreeModelList([paidOrAmbiguous]), (e: unknown) => e instanceof OpenRouterProviderError && e.code === 'config');
+  }
 });
 
 test('strict invalid intent gets exactly one repair attempt without echoing reflected credentials', async () => {
