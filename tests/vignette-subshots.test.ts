@@ -7,6 +7,7 @@ import { loadLibrary } from '../apps/render-worker/lib/library.ts';
 import { MIN_SUB_SHOT_DURATION, validateBeatSheet, type BeatSheet } from '../packages/director/src/beat-sheet.ts';
 import { LIBRARY, type Library } from '../packages/library/src/ids.ts';
 import { CAMERA_RECIPES } from '../packages/vignette/src/camera-recipes.ts';
+import { vfxEventsFromBeats } from '../packages/engine/src/vfx/index.ts';
 import {
   auditFinalCameraSafety,
   beatSamples,
@@ -77,7 +78,8 @@ test('sub-shot validation rejects ordering, bounds, and every short leading/trai
 
 test('camera subjects and secondaries must overlap their authored temporal window', () => {
   const beforeEnter = fixture();
-  // Teacher enters p13 at 60.6; end the main teacher composition before that instant.
+  // Reintroduce an unsafe teacher-primary window and end it before the canonical 60.6 entrance.
+  beforeEnter.beats[12].camera.subject = 'teacher';
   beforeEnter.beats[12].camera.subShots![0].from = 60.4;
   assert.ok(issuesFor(beforeEnter).some((x) => x.includes('$.beats[12].camera.subject') && x.includes('not present during camera window')));
 
@@ -153,6 +155,59 @@ test('composition lookup is half-open at cuts and rejects gaps/out-of-range time
   assert.equal(canonical.compositionAt(-1), undefined);
   assert.equal(canonical.compositionAt(canonical.compositions.at(-1)!.end), canonical.compositions.at(-1));
   assert.equal(canonical.compositionAt(canonical.compositions.at(-1)!.end + 1e-6), undefined);
+});
+
+test('render ownership holds one deterministic camera through pads, gaps, and the final output frame', () => {
+  const first = canonical.compositions[0];
+  const p01Final = canonical.compositions.filter((c) => c.beat === 'p01').at(-1)!;
+  const p02First = canonical.compositions.find((c) => c.beat === 'p02' && c.index === 0)!;
+  const final = canonical.compositions.at(-1)!;
+
+  assert.deepEqual(canonical.renderCompositionAt(0), { composition: first, kind: 'leading-hold' });
+  assert.deepEqual(canonical.renderCompositionAt(4.4), { composition: p01Final, kind: 'gap-hold' });
+  assert.deepEqual(canonical.renderCompositionAt(p02First.start), { composition: p02First, kind: 'authored' });
+  assert.deepEqual(canonical.renderCompositionAt(2074 / 30), { composition: final, kind: 'tail-hold' });
+  assert.equal(canonical.renderCompositionAt(-1), undefined);
+  assert.equal(canonical.renderCompositionAt(Number.NaN), undefined);
+});
+
+test('canonical no-render audit evaluates exactly all 2,075 post-effect output frames and fails closed', () => {
+  const sheet = fixture();
+  const dense = auditFinalCameraSafety(canonical.scene, canonical.compositions, {
+    fps: 30,
+    frameCount: 2075,
+    supplementalVfx: vfxEventsFromBeats(sheet.beats),
+  });
+  assert.equal(dense.frames, 2075);
+  assert.equal(dense.samples.length, 2075);
+  assert.equal(new Set(dense.samples.map((sample) => sample.t)).size, 2075);
+  assert.deepEqual(
+    Object.fromEntries(['authored', 'leading-hold', 'gap-hold', 'tail-hold', 'unowned'].map((kind) =>
+      [kind, dense.samples.filter((sample) => sample.ownership === kind).length])),
+    { authored: 1937, 'leading-hold': 2, 'gap-hold': 134, 'tail-hold': 2, unowned: 0 },
+  );
+  assert.equal(dense.samples[2074].t, 2074 / 30);
+  assert.equal(dense.samples[2074].beat, 'p14');
+  assert.equal(dense.samples[2074].composition, 2);
+  assert.equal(dense.samples[2074].ownership, 'tail-hold');
+  assert.equal(dense.acceptedFrames, 2075, dense.samples.filter((sample) => !sample.accepted)
+    .map((sample) => `${sample.beat}[${sample.composition}]@${sample.t.toFixed(3)} ${sample.reasons.join(',')}`).slice(0, 12).join('; '));
+  assert.equal(dense.accepted, true);
+  assert.ok(dense.samples.every((sample) => sample.result !== undefined));
+
+  const p03 = dense.samples.filter((sample) => sample.beat === 'p03' && sample.t >= 10.9 && sample.t <= 11.2);
+  assert.ok(p03.length > 0 && p03.every((sample) => sample.accepted));
+  assert.ok(p03.every((sample) => (sample.result?.faceVisibility.zapp ?? 0) >= 0.8), 'Zapp face stays readable through the celebration/confetti beat');
+  const p07 = dense.samples.filter((sample) => sample.beat === 'p07');
+  assert.ok(p07.every((sample) => !sample.reasons.some((reason) => reason.startsWith('PROP_SHOT_UPSTAGED_BY_BODY'))));
+  const p13 = dense.samples.filter((sample) => sample.beat === 'p13');
+  assert.ok(p13.every((sample) => sample.accepted));
+
+  const unowned = auditFinalCameraSafety(canonical.scene, [], { fps: 30, frameCount: 3 });
+  assert.equal(unowned.frames, 3);
+  assert.equal(unowned.acceptedFrames, 0);
+  assert.equal(unowned.accepted, false);
+  assert.ok(unowned.samples.every((sample) => sample.ownership === 'unowned' && sample.reasons.includes('FINAL_CAMERA_FRAME_UNOWNED')));
 });
 
 test('blocked and fallback reporting counts every composition, not one shot per beat', () => {

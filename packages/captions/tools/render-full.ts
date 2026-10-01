@@ -38,12 +38,11 @@ import { SFX_DEFS } from '../../audio-mix/src/sfx.ts';
 // vignette pipeline (node-side solve; browser rendering delegates to the neutral VignetteRenderSession)
 import { ensureHeadlessCanvas } from '../../vignette/src/headless.ts';
 import { runVignette, type Composition, type VignetteRun } from '../../vignette/src/pipeline.ts';
-import { auditFinalCameraSafety, poseAt, type ShotChoice } from '../../vignette/src/camera.ts';
-import { beatAt } from '../../vignette/src/stage.ts';
+import { auditFinalCameraSafety, heldSceneTime, poseAt } from '../../vignette/src/camera.ts';
 import { applyShake } from '../../engine/src/camera.ts';
 import { evalVfxEvents, applyZoom, type VfxEvent } from '../../engine/src/vfx/index.ts';
 import type { CameraState } from '../../engine/src/gl/renderer.ts';
-import { assertCompositionTimeline, compositionAt } from '../src/preview/composition.ts';
+import { assertCompositionTimeline } from '../src/preview/composition.ts';
 import { COMPETITOR_EVIDENCE_FILES, resolveRenderSelection } from './render-config.ts';
 import { validateRenderPaths } from './render-paths.ts';
 import { assertManifestActuals, assertRuntimePins, gitSource, hashDirectoryTree, hashFile, manifestDigest, packageVersion, parseJsonBytes, readAuthenticatedFile, readBoundedFile, readInputManifest, readTrustedRenderInputs, RENDER_BYTE_LIMITS, sha256Bytes, solvedCompositionsDigest, type RenderInputManifest, type RuntimePins, type ToolPins } from './render-manifest.ts';
@@ -326,18 +325,19 @@ writeFileSync(join(outDir, 'mix.wav'), encodeWavStereo(mixed.left, mixed.right, 
 writeFileSync(join(outDir, 'audio-report.json'), JSON.stringify({ source: { file: relative(ROOT, voicePath), sha256: voiceSha, decodedDuration }, plan: audioPlan, report: mixed.report }, null, 2) + '\n');
 
 // ---------------------------------------------------------------- node-side camera fusion (mirrors VignetteRenderSession)
-function compAt(t: number): { shot: ShotChoice; start: number } {
-  if (!run) throw new Error('composition lookup requires a vignette run');
-  const beat = beatAt(run.stage, t);
-  const composition = compositionAt(compositions, t, beat.phraseId);
-  return composition ? { shot: composition.shot, start: composition.start } : { shot: run.shots[beat.phraseId], start: beat.start };
-}
 function metricCam(t: number): CameraState {
   if (!run) throw new Error('camera metrics require a vignette run');
-  const posed = run.scene.pose(t), beat = beatAt(run.stage, t), c = compAt(t), p = poseAt(c.shot, c.start, t);
+  const held = run.renderCompositionAt(t);
+  if (!held) throw new Error(`camera metric frame has no solved owner at ${t}`);
+  const sceneTime = heldSceneTime(held, t, run.stage.duration, run.stage.fps);
+  const posed = run.scene.pose(sceneTime);
+  const beat = posed.beat;
+  const composition = held.composition;
+  const cameraTime = Math.max(composition.start, Math.min(composition.end, sceneTime));
+  const p = poseAt(composition.shot, composition.start, cameraTime);
   const sceneEffects = run.scene.vfx(posed);
   let cam: CameraState = applyShake({ pos: p.pos, target: p.target, fovY: (p.fovDeg * Math.PI) / 180, ...(p.roll ? { roll: p.roll } : {}) }, sceneEffects.shake, t, run.stage.seed);
-  // Anchored S7 effects use the exact same frame pose and beat as the final rendered camera.
+  // Anchored S7 effects use the exact same held scene pose and beat as the final rendered camera.
   const vf = evalVfxEvents(vfx as VfxEvent[], t, (id) => run!.scene.entityPoint(id, beat), run.stage.seed);
   cam = applyZoom(applyShake(cam, vf.shake, t, run.stage.seed), vf.zoom);
   return cam;
@@ -393,7 +393,7 @@ try {
   // ============================================================ fixture-specific acceptance gates
   if (evidenceProfile === 'competitor-v2') {
     stage('dense final-camera safety audit: evaluate every output frame after scene and S7 zoom/shake effects');
-    const denseCamera = auditFinalCameraSafety(run!.scene, compositions, { fps, supplementalVfx: vfx as VfxEvent[] });
+    const denseCamera = auditFinalCameraSafety(run!.scene, compositions, { fps, frameCount: N, supplementalVfx: vfx as VfxEvent[] });
     if (!denseCamera.accepted) {
       const failed = denseCamera.samples.filter((sample) => !sample.accepted).slice(0, 8);
       throw new Error(`final-camera safety blocked ${denseCamera.frames - denseCamera.acceptedFrames}/${denseCamera.frames} frame(s): ${failed.map((sample) => `${sample.beat}[${sample.composition}]@${sample.t.toFixed(3)} ${sample.reasons.join(',')}`).join('; ')}`);

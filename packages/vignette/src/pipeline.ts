@@ -6,7 +6,7 @@ import type { ScreenDirectionState } from '../../engine/src/camera-safety.ts';
 import type { ManifestLibrary } from '../../engine/src/build-dispatch.ts';
 import type { Library } from '../../library/src/ids.ts';
 import { CAMERA_RECIPES, PLANNED_RECIPES } from './camera-recipes.ts';
-import { beatSamples, compositionAt, sampleBeat, solveBeatCamera, type CameraComposition, type ShotChoice } from './camera.ts';
+import { beatSamples, compositionAt, heldCompositionAt, sampleBeat, solveBeatCamera, type CameraComposition, type HeldCameraComposition, type ShotChoice } from './camera.ts';
 import { coverageCheck, type CoverageReport } from './coverage.ts';
 import { VignetteScene } from './scene.ts';
 import { registerRuntimeLibrary } from './runtime-library.ts';
@@ -32,6 +32,8 @@ export interface VignetteRun {
   compositions: Composition[];
   /** Canonical bounded lookup; returns undefined in inter-beat gaps and outside the timeline. */
   compositionAt(t: number): Composition | undefined;
+  /** Render lookup: first/previous/final composition deterministically owns leading pad, gaps, and output tail. */
+  renderCompositionAt(t: number): HeldCameraComposition | undefined;
   coverage: CoverageReport; report: VignetteReport;
 }
 
@@ -144,7 +146,12 @@ export function runVignette(input: unknown, lib: ManifestLibrary, opts: Vignette
   opts.onProgress?.('coverage', 0, 1);
   const coverage = coverageCheck(scene, stage, compositions);
   const report = buildReport(sheet, validation, stage, scene, compositions, coverage);
-  return { validation, stage, scene, shots, compositions, compositionAt: (t) => compositionAt(compositions, t), coverage, report };
+  return {
+    validation, stage, scene, shots, compositions,
+    compositionAt: (t) => compositionAt(compositions, t),
+    renderCompositionAt: (t) => heldCompositionAt(compositions, t),
+    coverage, report,
+  };
 }
 
 export interface CompositionCameraSummary {
