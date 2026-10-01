@@ -1,17 +1,18 @@
 // Deterministic, browser-safe script-to-BeatSheet Director.
 // Remote intent is advisory only: every final choice is resolved through the local capability library.
-import { LIBRARY, type Library, type LibraryEntry, type LibraryKind, type SetEntry } from '../../library/src/ids.ts';
+import { LIBRARY, type Library, type LibraryEntry, type SetEntry } from '../../library/src/ids.ts';
+import { ENVIRONMENT_CATALOG, type EnvironmentProfile } from '../../environments/src/index.ts';
 import { validateBeatSheet, type BeatSheet } from './beat-sheet.ts';
 import type { DirectorIntent } from './intent.ts';
 
 export const DIRECTOR_EDIT_PLAN_POLICY = {
-  version: 'clause-edit-v1',
-  coverageVersion: 'literal-visual-clauses-v1',
+  version: 'clause-edit-v2',
+  coverageVersion: 'realization-coverage-v2',
   minimumSegmentSeconds: 0.6,
   targetAverageSeconds: { min: 1.2, preferred: 1.7, max: 2.2 },
   maximumSubShots: 4,
 } as const;
-export const DIRECTOR_ALGORITHM_VERSION = 'director-v2-clause-edit-v1';
+export const DIRECTOR_ALGORITHM_VERSION = 'director-v3-generalized-v1';
 export type DirectorMode = 'offline' | 'openrouter' | 'auto';
 export type MatchKind = 'sets' | 'characters' | 'actions' | 'expressions' | 'props' | 'cameraRecipes';
 
@@ -65,11 +66,30 @@ export interface DirectorClause {
 export interface EditPlanClauseReport extends DirectorClause {
   cues: { people: string[]; objects: string[]; actions: string[]; pronouns: string[] };
   visual: boolean;
-  covered: boolean;
+  entityFramed: boolean;
+  actionRealized: boolean;
+  propStateRealized: boolean;
   subjectBasis?: 'person' | 'object' | 'pronoun' | 'action';
   composition: number;
   shot: { recipeId: string; subject: string; secondary?: string; source: 'main' | 'local' | 'provider' };
   providerHint: 'none' | 'accepted' | 'rebuilt' | 'not_selected';
+}
+export interface RealizationCoverage {
+  required: number;
+  realized: number;
+  pct: number;
+}
+export interface UnresolvedConceptCoverage extends RealizationCoverage {
+  unresolved: number;
+  diagnosed: number;
+}
+export interface ConceptDiagnostic {
+  term: string;
+  category: 'entity' | 'place' | 'prop';
+  disposition: 'missing' | 'approved_substitution' | 'authorization_blocker';
+  reason: string;
+  beat: string;
+  substitute?: string;
 }
 export interface EditPlanSegmentReport {
   index: number;
@@ -92,12 +112,22 @@ export interface EditPlanBeatReport {
   averageSegmentSeconds: number;
   shortestSegmentSeconds: number;
   targetAverageMet: boolean;
-  visualClauses: number;
-  coveredVisualClauses: number;
+  entityCueClauses: number;
+  framedEntityClauses: number;
+  actionCueClauses: number;
+  realizedActionClauses: number;
+  propStateCueClauses: number;
+  realizedPropStateClauses: number;
 }
 export interface DirectorEditPlanReport {
   policy: typeof DIRECTOR_EDIT_PLAN_POLICY;
-  coverage: { version: typeof DIRECTOR_EDIT_PLAN_POLICY.coverageVersion; visualClauses: number; coveredVisualClauses: number; pct: number };
+  coverage: {
+    version: typeof DIRECTOR_EDIT_PLAN_POLICY.coverageVersion;
+    entityFramingCoverage: RealizationCoverage;
+    actionRealizationCoverage: RealizationCoverage;
+    propStateRealizationCoverage: RealizationCoverage;
+    unresolvedConceptCoverage: UnresolvedConceptCoverage;
+  };
   beats: EditPlanBeatReport[];
 }
 export interface DirectorReport {
@@ -106,6 +136,7 @@ export interface DirectorReport {
   matches: MatchDecision[];
   substitutions: AssetSubstitution[];
   missingAssets: MissingAsset[];
+  conceptDiagnostics: ConceptDiagnostic[];
   editPlan: DirectorEditPlanReport;
   validation: { ok: boolean; issues: Array<{ path: string; message: string }> };
 }
@@ -127,7 +158,7 @@ const canonicalWords = (s: string): string[] => s.toLowerCase().normalize('NFKD'
 const canonical = (s: string): string => canonicalWords(s).join(' ');
 
 export function normalizeDirectorRequest(input: DirectorRequest): NormalizedDirectorRequest {
-  if (!Number.isFinite(input.duration) || input.duration <= 0 || input.duration > 600) throw new DirectorInputError('duration must be greater than 0 and at most 600 seconds');
+  if (!Number.isFinite(input.duration) || input.duration <= 0 || input.duration > 300) throw new DirectorInputError('duration must be greater than 0 and at most 300 seconds');
   if (!Number.isInteger(input.seed) || input.seed < 0) throw new DirectorInputError('seed must be a non-negative integer');
   const raw = Array.isArray(input.script) ? input.script.flatMap((line) => line.replace(/\r/g, '').split('\n')) : input.script.replace(/\r/g, '').split('\n');
   const lines = raw.map((line) => words(line).join(' ')).filter(Boolean);
@@ -172,6 +203,7 @@ function candidates(kind: MatchKind, queries: Query[], lib: Library, seed: numbe
     let best: Candidate | null = null;
     for (const q of queries) {
       for (const tag of [...entry.tags, entry.id.replace(/_/g, ' ')]) {
+        if (kind === 'actions' && q.source === 'script' && NON_VERBAL_ACTION_TAGS.has(canonical(tag))) continue;
         const raw = matchTag(q.text.toLowerCase(), tag.toLowerCase());
         if (!raw) continue;
         const c: Candidate = { entry, tag, source: q.source, score: raw + (q.source === 'provider' ? 100_000 : 0), tie: hash32(`${seed}:${scope}:${entry.id}`) };
@@ -193,10 +225,32 @@ function requiredDefault(kind: MatchKind, id: string, lib: Library): LibraryEntr
 }
 
 interface LiteralHit { id: string; tag: string; startWord: number; endWord: number }
-const CLAUSE_CONJUNCTIONS = new Set(['and', 'but', 'then', 'while', 'when', 'before', 'after', 'so', 'yet', 'until', 'meanwhile']);
+const CLAUSE_CONJUNCTIONS = new Set(['and', 'or', 'but', 'then', 'while', 'when', 'before', 'after', 'so', 'yet', 'until', 'meanwhile']);
 const NON_VERBAL_ACTION_TAGS = new Set(['phone', 'party', 'yay', 'no', 'hi', 'bye', 'confident', 'curious', 'regret', 'shocked', 'fast']);
 const PERSON_PRONOUNS = new Set(['he', 'she', 'they', 'him', 'her', 'them', 'who']);
 const OBJECT_PRONOUNS = new Set(['it', 'this', 'that', 'these', 'those']);
+const CAST_PRONOUNS = new Set([...PERSON_PRONOUNS, 'his', 'hers', 'himself', 'herself', 'themselves']);
+const INTERACTION_ACTIONS = new Set(['chase', 'push', 'grab', 'tug', 'point', 'look_at', 'turn_toward']);
+const PROP_STATE_ACTIONS = new Set(['pick_up', 'grab', 'hold', 'put_down', 'throw', 'drink', 'use_phone', 'eat', 'press_button', 'open_door', 'slam_door', 'type_laptop']);
+const REQUIRED_PROP_ACTIONS = new Set([...PROP_STATE_ACTIONS].filter((action) => action !== 'grab'));
+const MOTION_ACTIONS = new Set(['walk', 'run', 'chase', 'sneak', 'enter_frame', 'exit_frame', 'enter_door', 'exit_door']);
+const CONCEPT_DETERMINERS = new Set(['a', 'an', 'the', 'this', 'that', 'these', 'those', 'another', 'his', 'her', 'their', 'our', 'my', 'your']);
+const PLACE_PREPOSITIONS = new Set(['at', 'in', 'inside', 'into', 'outside', 'near']);
+const CONCEPT_FILLERS = new Set(['big', 'small', 'tiny', 'giant', 'new', 'old', 'red', 'blue', 'green', 'purple', 'orange', 'yellow', 'black', 'white', 'silver', 'gold', 'golden', 'pink', 'brown', 'gray', 'grey', 'flying', 'broken', 'shiny', 'wooden', 'metal', 'toy', 'huge']);
+const GRAMMAR_WORDS = new Set([
+  ...CONCEPT_DETERMINERS, ...PLACE_PREPOSITIONS, ...CAST_PRONOUNS, ...OBJECT_PRONOUNS, ...CLAUSE_CONJUNCTIONS,
+  'to', 'from', 'with', 'without', 'of', 'on', 'under', 'over', 'through', 'across', 'past', 'by', 'for', 'as', 'beside', 'behind', 'ahead', 'around', 'between', 'is', 'are', 'was', 'were',
+  'be', 'been', 'being', 'can', 'could', 'will', 'would', 'should', 'must', 'may', 'might', 'and', 'or', 'not', 'very', 'quietly', 'quickly', 'slowly', 'suddenly', 'later', 'finally', 'again',
+]);
+/** Broad, deterministic visibility vocabulary supplements syntax-based noun extraction; it is not asset authorization. */
+const VISIBLE_CONCEPTS: Readonly<Record<string, ConceptDiagnostic['category']>> = {
+  drone: 'prop', microwave: 'prop', skateboard: 'prop', spaceship: 'prop', robot: 'entity', airplane: 'prop', dragon: 'entity',
+  bicycle: 'prop', motorcycle: 'prop', scooter: 'prop', helicopter: 'prop', train: 'prop', boat: 'prop', rocket: 'prop',
+  dinosaur: 'entity', alien: 'entity', monster: 'entity', dog: 'entity', cat: 'entity', horse: 'entity', bird: 'entity',
+  sword: 'prop', shield: 'prop', camera: 'prop', guitar: 'prop', piano: 'prop', toaster: 'prop', blender: 'prop',
+  bathroom: 'place', kitchen: 'place', bedroom: 'place', office: 'place', airport: 'place', beach: 'place', forest: 'place',
+  castle: 'place', spaceship_interior: 'place', restaurant: 'place', hospital: 'place', garage: 'place', stadium: 'place',
+};
 
 function literalHits(entries: Array<LibraryEntry | SetEntry>, phraseWords: string[]): LiteralHit[] {
   const indexed = phraseWords.flatMap((raw, word) => canonicalWords(raw).map((value) => ({ value, word })));
@@ -287,17 +341,163 @@ interface PlannedCut { clause: ClauseAnalysis; from: number; shot: CameraSpec; s
 type ProviderShotHint = NonNullable<DirectorIntent['beats'][number]['shots']>[number];
 
 function uniqueIds(hits: LiteralHit[]): string[] { return [...new Set(hits.map((hit) => hit.id))]; }
+
+function selectedEnvironmentProfile(set: SetEntry): EnvironmentProfile {
+  const version = set.versions?.at(-1);
+  const profile = ENVIRONMENT_CATALOG.profiles.find((candidate) => candidate.id === set.id && candidate.version === version);
+  if (!profile) throw new DirectorInputError(`available set ${latestRef(set)} has no actor-safe placement metadata`);
+  return profile;
+}
+function actorSafeMarks(set: SetEntry, profile: EnvironmentProfile): string[] {
+  const authored = new Set(set.marks);
+  const safe = profile.marks
+    .filter((mark) => authored.has(mark.id) && mark.kind === 'actor' && mark.occupancy > 0 && mark.postures.includes('stand') && mark.hazard.kind === 'none')
+    .map((mark) => mark.id);
+  if (!safe.length) throw new DirectorInputError(`available set ${latestRef(set)} has no non-hazard actor placement marks`);
+  return safe;
+}
+function setDimensions(profile: EnvironmentProfile): { width: number; depth: number; maxCastFraming: number; topDown: boolean } {
+  return {
+    width: profile.bounds.max[0] - profile.bounds.min[0],
+    depth: profile.bounds.max[2] - profile.bounds.min[2],
+    maxCastFraming: Math.max(...profile.cameraZones.safeVolumes.map((zone) => zone.maxCastFraming)),
+    topDown: profile.cameraZones.safeVolumes.some((zone) => zone.topDownAllowed),
+  };
+}
+function mentionedCharacters(text: string, characters: LibraryEntry[]): LibraryEntry[] {
+  const hits = literalHits(characters, words(text));
+  const selected: LiteralHit[] = [];
+  let cursor = 0;
+  while (cursor < hits.length) {
+    const start = hits[cursor].startWord;
+    const sameStart: LiteralHit[] = [];
+    while (cursor < hits.length && hits[cursor].startWord === start) sameStart.push(hits[cursor++]);
+    const longest = Math.max(...sameStart.map((hit) => hit.endWord - hit.startWord));
+    const best = sameStart.filter((hit) => hit.endWord - hit.startWord === longest)
+      .sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0)[0];
+    if (!selected.some((hit) => hit.startWord < best.endWord && best.startWord < hit.endWord)) selected.push(best);
+  }
+  const ids = new Set<string>();
+  return selected.map((hit) => characters.find((character) => character.id === hit.id)!)
+    .filter((character) => Boolean(character) && !ids.has(character.id) && !!ids.add(character.id));
+}
+function beatCharacters(text: string, available: LibraryEntry[], previousPerson: LibraryEntry | undefined, actionId: string, maxCast: number): LibraryEntry[] {
+  const explicit = mentionedCharacters(text, available);
+  const tokens = canonicalWords(text);
+  const firstNamedWord = literalHits(available, words(text))[0]?.startWord ?? Number.POSITIVE_INFINITY;
+  const firstPronounWord = tokens.findIndex((word) => CAST_PRONOUNS.has(word));
+  const pronounLeads = firstPronounWord >= 0 && firstPronounWord < firstNamedWord;
+  const selected = pronounLeads && previousPerson ? [previousPerson, ...explicit.filter((character) => character.id !== previousPerson.id)] : [...explicit];
+  // A local named antecedent wins over a later possessive/object pronoun ("Kira grabs her phone").
+  if (firstPronounWord >= 0 && explicit.length === 0 && previousPerson && !selected.some((character) => character.id === previousPerson.id)) selected.push(previousPerson);
+  if (INTERACTION_ACTIONS.has(actionId) && !explicit.length && previousPerson && !selected.some((character) => character.id === previousPerson.id)) selected.push(previousPerson);
+  if (!selected.length) selected.push(previousPerson ?? available[0]);
+  return selected.slice(0, maxCast);
+}
+
+function allConceptEntries(lib: Library): Array<{ kind: 'sets' | 'characters' | 'props'; entry: LibraryEntry | SetEntry }> {
+  return (['sets', 'characters', 'props'] as const).flatMap((kind) => (lib[kind] as Array<LibraryEntry | SetEntry>).map((entry) => ({ kind, entry })));
+}
+function conceptMatch(term: string, lib: Library): { kind: 'sets' | 'characters' | 'props'; entry: LibraryEntry | SetEntry } | undefined {
+  return allConceptEntries(lib).find(({ entry }) => [entry.id.replace(/_/g, ' '), ...entry.tags].some((tag) => canonical(tag) === canonical(term)));
+}
+interface VisibleConceptCandidate { term: string; category: ConceptDiagnostic['category'] }
+const DESTINATION_VERBS = new Set(['enters', 'enter', 'visits', 'visit', 'reaches', 'reach', 'leaves', 'leave', 'arrives', 'arrive', 'travels', 'travel']);
+const MODAL_VERBS = new Set(['can', 'could', 'will', 'would', 'should', 'must', 'may', 'might']);
+const NON_NOUN_TAILS = new Set(['often', 'well', 'today', 'tomorrow', 'yesterday', 'now', 'here', 'there', 'away', 'together', 'apart', 'downstairs', 'upstairs', 'indoors', 'outdoors']);
+const looksVerbLike = (word: string) => /(?:s|ed|ing)$/.test(word) && word.length > 3;
+/**
+ * Build a conservative noun-phrase inventory independently from authorization. Complete available catalog spans are
+ * removed first. Within each clause, only phrase heads are requirements: the final unknown before a verb is an
+ * entity head, and the final unknown after a verb is an object/place head. This handles unseen modifiers without an
+ * adjective allowlist and handles base-form verbs after modals.
+ */
+function requiredVisibleConcepts(text: string, lib: Library): VisibleConceptCandidate[] {
+  const phraseWords = words(text), tokens = phraseWords.map(canonical);
+  const recognized = new Set<number>(), characterWords = new Set<number>(), actionWords = new Set<number>();
+  const found = new Map<string, ConceptDiagnostic['category']>();
+  const priority = (category: ConceptDiagnostic['category']) => category === 'place' ? 3 : category === 'entity' ? 2 : 1;
+  const add = (term: string, category: ConceptDiagnostic['category']) => {
+    const normalized = canonical(term), current = found.get(normalized);
+    if (normalized && !GRAMMAR_WORDS.has(normalized) && (!current || priority(category) > priority(current))) found.set(normalized, category);
+  };
+  const conceptHits = allConceptEntries(lib).flatMap(({ kind, entry }) => literalHits([entry], phraseWords).map((hit) => ({ kind, entry, hit })))
+    .sort((a, b) => a.hit.startWord - b.hit.startWord || (b.hit.endWord - b.hit.startWord) - (a.hit.endWord - a.hit.startWord)
+      || (a.entry.id < b.entry.id ? -1 : a.entry.id > b.entry.id ? 1 : 0));
+  const selectedConceptHits: typeof conceptHits = [];
+  for (const candidate of conceptHits) {
+    if (selectedConceptHits.some(({ hit }) => hit.startWord < candidate.hit.endWord && candidate.hit.startWord < hit.endWord)) continue;
+    selectedConceptHits.push(candidate);
+  }
+  for (const { kind, entry, hit } of selectedConceptHits) {
+    for (let word = hit.startWord; word < hit.endWord; word++) recognized.add(word);
+    if (kind === 'characters') for (let word = hit.startWord; word < hit.endWord; word++) characterWords.add(word);
+    if (entry.status === 'planned') add(phraseWords.slice(hit.startWord, hit.endWord).join(' '), kind === 'sets' ? 'place' : kind === 'characters' ? 'entity' : 'prop');
+  }
+  for (const kind of ['actions', 'expressions'] as const) for (const hit of literalHits(availableEntries(kind, lib), phraseWords)) {
+    for (let word = hit.startWord; word < hit.endWord; word++) { recognized.add(word); if (kind === 'actions') actionWords.add(word); }
+  }
+  const visibleWords = new Set<number>();
+  for (let i = 0; i < tokens.length; i++) if (!recognized.has(i) && VISIBLE_CONCEPTS[tokens[i]]) { add(tokens[i], VISIBLE_CONCEPTS[tokens[i]]); visibleWords.add(i); }
+  let inheritedAction = false;
+  for (const clause of splitDirectorClauses(text, lib)) {
+    const indexes = Array.from({ length: clause.words[1] - clause.words[0] }, (_, offset) => clause.words[0] + offset);
+    let content = indexes.filter((index) => !recognized.has(index) && !GRAMMAR_WORDS.has(tokens[index])
+      && !VISIBLE_CONCEPTS[tokens[index]] && !CONCEPT_FILLERS.has(tokens[index]) && !NON_NOUN_TAILS.has(tokens[index]) && !/ly$/.test(tokens[index]));
+    const visibleAt = indexes.find((index) => visibleWords.has(index));
+    if (visibleAt !== undefined) content = content.filter((index) => index > visibleAt); // preceding unknowns modify the recognized noun head
+    const knownAction = indexes.find((index) => actionWords.has(index));
+    const knownPerson = indexes.filter((index) => characterWords.has(index)).at(-1);
+    let verb = knownAction;
+    if (verb === undefined && knownPerson !== undefined) {
+      const modal = indexes.find((index) => index > knownPerson && MODAL_VERBS.has(tokens[index]));
+      verb = modal !== undefined ? indexes.find((index) => index > modal && content.includes(index)) : content.find((index) => index > knownPerson);
+    }
+    if (verb === undefined) {
+      const determinerLed = indexes.some((index) => CONCEPT_DETERMINERS.has(tokens[index]) && index < (content[0] ?? Infinity));
+      if (knownPerson === undefined && determinerLed && content.length >= 2 && looksVerbLike(tokens[content.at(-1)!])) verb = content.at(-1)!;
+      else {
+        const possible = content.find((index, position) => position > 0 && position < content.length - 1 && looksVerbLike(tokens[index]));
+        if (possible !== undefined) verb = possible;
+        else if (content.length === 2 && determinerLed) {
+          add(tokens[content[0]], 'entity');
+          verb = content[1];
+        }
+      }
+    }
+    if (verb !== undefined) {
+      const before = content.filter((index) => index < verb), after = content.filter((index) => index > verb);
+      if (before.length && knownPerson === undefined) add(tokens[before.at(-1)!], 'entity');
+      if (after.length) {
+        const determiner = after.find((index) => CONCEPT_DETERMINERS.has(tokens[index - 1]));
+        const head = determiner !== undefined ? after.at(-1)! : after[0];
+        const destination = DESTINATION_VERBS.has(tokens[verb]) || after.some((index) => PLACE_PREPOSITIONS.has(tokens[index - 1]));
+        add(tokens[head], destination ? 'place' : 'prop');
+      }
+      inheritedAction = true;
+    } else if (content.length) {
+      const head = content.at(-1)!;
+      if (indexes.some((index) => PLACE_PREPOSITIONS.has(tokens[index]))) add(tokens[head], 'place');
+      else if (inheritedAction) add(tokens[head], 'prop');
+      else if (!indexes.some((index) => characterWords.has(index))) add(tokens[head], 'entity');
+    }
+  }
+  return [...found].map(([term, category]) => ({ term, category }));
+}
+
 function analyzeClauses(text: string, characters: LibraryEntry[], props: LibraryEntry[], active: LibraryEntry, lib: Library): ClauseAnalysis[] {
   const rawWords = words(text);
   let lastPerson: string | undefined = active.id;
-  let lastObject: string | undefined;
+  let lastObject: string | undefined = props.length === 1 ? props[0].id : undefined;
   const clauses: ClauseAnalysis[] = splitDirectorClauses(text, lib).map((clause) => {
     const clauseWords = rawWords.slice(clause.words[0], clause.words[1]);
     const personHits = literalHits(characters, clauseWords);
     const objectHits = literalHits(props, clauseWords);
     const actionHits = literalHits(availableEntries('actions', lib), clauseWords);
-    const people = uniqueIds(personHits), objects = uniqueIds(objectHits), actions = uniqueIds(actionHits);
+    const people = uniqueIds(personHits), actions = uniqueIds(actionHits);
+    const objects = uniqueIds(objectHits);
     const pronounWords = clauseWords.flatMap(canonicalWords).filter((word) => PERSON_PRONOUNS.has(word) || OBJECT_PRONOUNS.has(word));
+    if (pronounWords.some((word) => OBJECT_PRONOUNS.has(word)) && lastObject && !objects.includes(lastObject)) objects.push(lastObject);
     const pronouns = [...new Set(pronounWords)];
     const entities = [
       ...personHits.map((hit) => ({ ...hit, kind: 'person' as const })),
@@ -339,8 +539,17 @@ function framingFamily(recipeId: string): string {
 function nearIdentical(a: CameraSpec, b: CameraSpec): boolean {
   return a.recipeId === b.recipeId || (a.subject === b.subject && framingFamily(a.recipeId) === framingFamily(b.recipeId));
 }
-function recipeCompatible(recipeId: string, subject: string, secondary: string | undefined, objectIds: Set<string>): boolean {
-  return (!PROP_ONLY_RECIPES.has(recipeId) || objectIds.has(subject)) && (!PAIR_REQUIRED_RECIPES.has(recipeId) || Boolean(secondary && secondary !== subject));
+interface RecipeConstraints { castCount: number; motion: boolean; width: number; depth: number; maxCastFraming: number; topDown: boolean }
+function recipeCompatible(recipeId: string, subject: string, secondary: string | undefined, objectIds: Set<string>, constraints?: RecipeConstraints): boolean {
+  if (PROP_ONLY_RECIPES.has(recipeId) && !objectIds.has(subject)) return false;
+  if (PAIR_REQUIRED_RECIPES.has(recipeId) && !(secondary && secondary !== subject)) return false;
+  if (!constraints) return true;
+  const span = Math.max(constraints.width, constraints.depth);
+  if (recipeId === 'chase_cam' && (!constraints.motion || span < 6)) return false;
+  if (recipeId === 'whip_pan' && (!(secondary && secondary !== subject) || span < 5)) return false;
+  if (['establishing_wide', 'wide_environment', 'two_shot'].includes(recipeId) && constraints.castCount > constraints.maxCastFraming) return false;
+  if (['top_down', 'top_down_insert'].includes(recipeId) && !constraints.topDown) return false;
+  return true;
 }
 function framedEntities(camera: CameraSpec): string[] {
   const usesSecondary = ['two_shot', 'over_shoulder', 'pov', 'whip_pan', 'establishing_wide', 'wide_environment', 'top_down', 'final_loop'].includes(camera.recipeId);
@@ -380,13 +589,14 @@ function chooseClauseShot(
   availableRecipes: Set<string>,
   seed: number,
   phraseId: string,
+  constraints: RecipeConstraints,
 ): { shot: CameraSpec; source: 'local' | 'provider'; providerHint: 'none' | 'accepted' | 'rebuilt' } | null {
   const objectIds = new Set(props.map((prop) => prop.id));
   if (hint) {
     const subject = providerEntity(hint.subject, clause, characters, props);
     const secondary = hint.secondary.trim() ? providerEntity(hint.secondary, clause, characters, props) : undefined;
     const secondaryValid = !hint.secondary.trim() || Boolean(secondary);
-    if (subject && secondaryValid && subject !== secondary && availableRecipes.has(hint.recipe) && recipeCompatible(hint.recipe, subject, secondary, objectIds)) {
+    if (subject && secondaryValid && subject !== secondary && availableRecipes.has(hint.recipe) && recipeCompatible(hint.recipe, subject, secondary, objectIds, constraints)) {
       const shot = { recipeId: hint.recipe, subject, ...(secondary ? { secondary } : {}) };
       if (!nearIdentical(previous, shot)) return { shot, source: 'provider', providerHint: 'accepted' };
     }
@@ -397,7 +607,7 @@ function chooseClauseShot(
     const secondary = clause.secondaryCandidates[0];
     const includeSecondary = Boolean(secondary && (PAIR_REQUIRED_RECIPES.has(recipeId) || ['pov', 'whip_pan', 'two_shot', 'over_shoulder'].includes(recipeId)));
     const shot = { recipeId, subject: clause.subject, ...(includeSecondary ? { secondary } : {}) };
-    if (!recipeCompatible(recipeId, shot.subject, shot.secondary, objectIds) || nearIdentical(previous, shot)) continue;
+    if (!recipeCompatible(recipeId, shot.subject, shot.secondary, objectIds, constraints) || nearIdentical(previous, shot)) continue;
     return { shot, source: 'local', providerHint: hint ? 'rebuilt' : 'none' };
   }
   return null;
@@ -443,7 +653,7 @@ const round6 = (value: number): number => Math.round(value * 1_000_000) / 1_000_
 
 function planBeatEdits(input: {
   text: string; phraseId: string; start: number; end: number; seed: number; lib: Library;
-  characters: LibraryEntry[]; props: LibraryEntry[]; active: LibraryEntry; main: CameraSpec; providerShots?: ProviderShotHint[];
+  characters: LibraryEntry[]; props: LibraryEntry[]; active: LibraryEntry; main: CameraSpec; emittedAction: string; constraints: RecipeConstraints; providerShots?: ProviderShotHint[];
 }): { subShots: Array<{ from: number; recipeId: string; subject: string; secondary?: string }>; report: EditPlanBeatReport } {
   const clauses = analyzeClauses(input.text, input.characters, input.props, input.active, input.lib);
   const duration = input.end - input.start, wordCount = words(input.text).length;
@@ -462,22 +672,31 @@ function planBeatEdits(input: {
   const cuts: PlannedCut[] = [];
   let previous = input.main;
   for (const candidate of selected) {
-    const choice = chooseClauseShot(candidate.clause, previous, hints.get(candidate.clause.index), input.characters, input.props, availableRecipes, input.seed, input.phraseId);
+    const choice = chooseClauseShot(candidate.clause, previous, hints.get(candidate.clause.index), input.characters, input.props, availableRecipes, input.seed, input.phraseId, input.constraints);
     if (!choice) continue;
     cuts.push({ ...candidate, ...choice }); previous = choice.shot;
   }
   const cutByClause = new Map(cuts.map((cut) => [cut.clause.index, cut]));
   let composition = 0, current = input.main, currentSource: 'main' | 'local' | 'provider' = 'main';
+  let emittedActionClaimed = false;
   const clauseReports: EditPlanClauseReport[] = clauses.map((clause) => {
     const cut = cutByClause.get(clause.index);
     if (cut) { composition++; current = cut.shot; currentSource = cut.source; }
     const cueEntities = new Set([...clause.people, ...clause.objects, ...(clause.subject ? [clause.subject] : [])]);
-    const covered = clause.visual && framedEntities(current).some((entity) => cueEntities.has(entity));
+    const hasEntityCue = clause.people.length > 0 || clause.objects.length > 0;
+    const framed = new Set(framedEntities(current));
+    const entityFramed = hasEntityCue && [...cueEntities].every((entity) => framed.has(entity));
+    const actionRealized = !emittedActionClaimed && clause.actions.includes(input.emittedAction) && clause.subject === input.active.id;
+    if (actionRealized) emittedActionClaimed = true;
+    // BeatSheet prop state is currently "idle"; merely framing a prop must never claim its narrated state change occurred.
+    const propStateRequired = clause.objects.length > 0 && clause.actions.some((action) => PROP_STATE_ACTIONS.has(action));
+    const propStateRealized = false;
     const providerHint = cut?.providerHint ?? (hints.has(clause.index) ? 'not_selected' : 'none');
     return {
       index: clause.index, text: clause.text, words: clause.words, boundary: clause.boundary,
       cues: { people: clause.people, objects: clause.objects, actions: clause.actions, pronouns: clause.pronouns },
-      visual: clause.visual, covered, ...(clause.subjectBasis ? { subjectBasis: clause.subjectBasis } : {}), composition,
+      visual: clause.visual, entityFramed, actionRealized, propStateRealized: propStateRequired && propStateRealized,
+      ...(clause.subjectBasis ? { subjectBasis: clause.subjectBasis } : {}), composition,
       shot: { ...current, source: currentSource }, providerHint,
     };
   });
@@ -492,15 +711,19 @@ function planBeatEdits(input: {
     ...segment.shot, source: segment.source,
   }));
   const averageSegmentSeconds = duration / (cuts.length + 1);
-  const visualClauses = clauseReports.filter((clause) => clause.visual).length;
-  const coveredVisualClauses = clauseReports.filter((clause) => clause.visual && clause.covered).length;
+  const entityCueClauses = clauseReports.filter((clause) => clause.cues.people.length || clause.cues.objects.length).length;
+  const framedEntityClauses = clauseReports.filter((clause) => clause.entityFramed).length;
+  const actionCueClauses = clauseReports.filter((clause) => clause.cues.actions.length).length;
+  const realizedActionClauses = clauseReports.filter((clause) => clause.actionRealized).length;
+  const propStateCueClauses = clauseReports.filter((clause) => clause.cues.objects.length && clause.cues.actions.some((action) => PROP_STATE_ACTIONS.has(action))).length;
+  const realizedPropStateClauses = clauseReports.filter((clause) => clause.propStateRealized).length;
   return {
     subShots: cuts.map((cut) => ({ from: cut.from, ...cut.shot })),
     report: {
       beat: input.phraseId, clauses: clauseReports, segments, candidateCuts: candidates.length, targetSegments,
       actualSegments: cuts.length + 1, averageSegmentSeconds: round6(averageSegmentSeconds), shortestSegmentSeconds: round6(Math.min(...segmentDurations)),
       targetAverageMet: averageSegmentSeconds >= DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.min - 1e-9 && averageSegmentSeconds <= DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.max + 1e-9,
-      visualClauses, coveredVisualClauses,
+      entityCueClauses, framedEntityClauses, actionCueClauses, realizedActionClauses, propStateCueClauses, realizedPropStateClauses,
     },
   };
 }
@@ -509,7 +732,10 @@ interface BuildState {
   matches: MatchDecision[];
   substitutions: AssetSubstitution[];
   missingAssets: MissingAsset[];
+  conceptDiagnostics: ConceptDiagnostic[];
+  conceptRequirements: Set<string>;
   missingKeys: Set<string>;
+  conceptKeys: Set<string>;
 }
 function missing(state: BuildState, item: MissingAsset): void {
   const key = `${item.kind}:${item.beat ?? ''}:${item.requested}`;
@@ -524,6 +750,28 @@ function noteUnknownProviderTerms(kind: MatchKind, terms: string[], beat: string
     // Provider text is intentionally never copied into diagnostics: a hostile endpoint could reflect the bearer key.
     if (!candidates(kind, [{ text: hints[i], source: 'provider' }], lib, 0, `hint:${beat ?? 'global'}`).length) {
       missing(state, { kind, requested: `[unmatched provider hint ${i + 1}]`, beat, reason: 'provider intent has no matching library id or tag; raw hint omitted' });
+    }
+  }
+}
+function diagnoseVisibleConcepts(concepts: readonly VisibleConceptCandidate[], beat: string, selectedSet: SetEntry, lib: Library, state: BuildState): void {
+  for (const concept of concepts.filter(({ term }) => conceptMatch(term, lib)?.entry.status !== 'available')) {
+    const key = `${beat}:${concept.term}`;
+    if (state.conceptKeys.has(key)) continue;
+    state.conceptKeys.add(key);
+    const matched = conceptMatch(concept.term, lib);
+    const kind: MatchKind = matched?.kind ?? (concept.category === 'place' ? 'sets' : concept.category === 'entity' ? 'characters' : 'props');
+    if (matched?.entry.status === 'planned') {
+      const substitute = matched.kind === 'sets' ? selectedSet.id : undefined;
+      const diagnostic: ConceptDiagnostic = {
+        term: concept.term, category: concept.category, disposition: substitute ? 'approved_substitution' : 'missing', beat,
+        reason: substitute ? 'matching catalog concept is planned; deterministic available set substitution recorded' : 'matching catalog concept is planned, not available',
+        ...(substitute ? { substitute } : {}),
+      };
+      state.conceptDiagnostics.push(diagnostic);
+      missing(state, { kind, requested: matched.entry.id, beat, reason: 'visible script concept matches a planned, unavailable asset' });
+    } else {
+      state.conceptDiagnostics.push({ term: concept.term, category: concept.category, disposition: 'missing', beat, reason: 'visible script concept has no authorized available library asset' });
+      missing(state, { kind, requested: concept.term, beat, reason: 'unsupported visible script concept; no authorized available library asset or approved substitution' });
     }
   }
 }
@@ -562,13 +810,57 @@ function chooseMany(kind: 'characters' | 'props', queries: Query[], max: number,
   return chosen.map((c) => c.entry as LibraryEntry);
 }
 
-function pickMark(set: SetEntry, entry: LibraryEntry, used: Set<string>, seed: number, scope: string): string {
-  if (!set.marks.length) throw new DirectorInputError(`available set ${set.id} has no placement marks`);
+function pickMark(set: SetEntry, entry: LibraryEntry, used: Set<string>, seed: number, scope: string, allowedMarks: readonly string[] = set.marks, profile?: EnvironmentProfile, requireFree = false): string {
+  if (!allowedMarks.length) throw new DirectorInputError(`available set ${set.id} has no eligible placement marks`);
+  const free = allowedMarks.filter((mark) => !used.has(mark));
+  if (requireFree && !free.length) throw new DirectorInputError(`available set ${set.id} has no conflict-free actor placement remaining for ${entry.id}`);
+  const pool = free.length ? free : allowedMarks;
   const qs = [entry.id.replace(/_/g, ' '), ...entry.tags];
-  const ranked = set.marks.map((mark) => ({ mark, score: Math.max(0, ...qs.map((q) => matchTag(mark.replace(/_/g, ' '), q))), tie: hash32(`${seed}:${scope}:${mark}`) }))
-    .sort((a, b) => Number(used.has(a.mark)) - Number(used.has(b.mark)) || b.score - a.score || a.tie - b.tie || a.mark.localeCompare(b.mark));
-  used.add(ranked[0].mark);
-  return ranked[0].mark;
+  const ranked = pool.map((mark) => ({ mark, score: Math.max(0, ...qs.map((q) => matchTag(mark.replace(/_/g, ' '), q))), tie: hash32(`${seed}:${scope}:${mark}`) }))
+    .sort((a, b) => b.score - a.score || a.tie - b.tie || (a.mark < b.mark ? -1 : a.mark > b.mark ? 1 : 0));
+  const selected = ranked[0].mark;
+  used.add(selected);
+  if (profile) {
+    const meta = profile.marks.find((mark) => mark.id === selected);
+    const canonicalMark = meta?.aliasOf ?? selected;
+    for (const mark of profile.marks) {
+      const samePhysicalMark = mark.id === canonicalMark || (mark.aliasOf ?? mark.id) === canonicalMark;
+      const exclusive = meta?.exclusiveWith.includes(mark.id) || mark.exclusiveWith.includes(selected);
+      if (samePhysicalMark || exclusive) used.add(mark.id);
+    }
+    for (const id of meta?.exclusiveWith ?? []) used.add(id);
+  }
+  return selected;
+}
+
+function chooseMainCamera(input: {
+  text: string; beat: string; active: LibraryEntry; characters: LibraryEntry[]; props: LibraryEntry[]; actionId: string;
+  dimensions: ReturnType<typeof setDimensions>; lib: Library; seed: number; state: BuildState;
+}): CameraSpec {
+  const constraints: RecipeConstraints = { castCount: input.characters.length, motion: MOTION_ACTIONS.has(input.actionId), ...input.dimensions };
+  const objectIds = new Set(input.props.map((prop) => prop.id));
+  const matched = candidates('cameraRecipes', [{ text: input.text, source: 'script' }], input.lib, input.seed, `${input.beat}:cameraRecipes`)
+    .filter((candidate) => candidate.entry.status === 'available');
+  const fallbacks = [constraints.motion ? 'chase_cam' : '', input.characters.length > 1 ? 'two_shot' : 'medium_single', 'medium_single', 'frontal_medium']
+    .filter(Boolean)
+    .map((id) => availableEntries('cameraRecipes', input.lib).find((entry) => entry.id === id))
+    .filter((entry): entry is LibraryEntry => Boolean(entry));
+  const ordered = [...matched.map((candidate) => candidate.entry as LibraryEntry), ...fallbacks]
+    .filter((entry, index, list) => list.findIndex((candidate) => candidate.id === entry.id) === index);
+  for (const recipe of ordered) {
+    const subject = PROP_ONLY_RECIPES.has(recipe.id) ? input.props[0]?.id : input.active.id;
+    if (!subject) continue;
+    const secondary = input.characters.find((character) => character.id !== subject)?.id;
+    if (!recipeCompatible(recipe.id, subject, secondary, objectIds, constraints)) continue;
+    const selectedMatch = matched.find((candidate) => candidate.entry.id === recipe.id);
+    input.state.matches.push({ kind: 'cameraRecipes', selected: recipe.id, source: selectedMatch?.source ?? 'default', ...(selectedMatch?.tag ? { matchedTag: selectedMatch.tag } : {}), beat: input.beat });
+    if (matched[0] && matched[0].entry.id !== recipe.id) input.state.substitutions.push({
+      kind: 'cameraRecipes', requested: matched[0].entry.id, used: recipe.id, beat: input.beat,
+      reason: 'requested recipe is incompatible with local subject, cast, motion, set dimensions, or required prop',
+    });
+    return { recipeId: recipe.id, subject, ...(secondary ? { secondary } : {}) };
+  }
+  throw new DirectorInputError(`no compatible available camera recipe for ${input.beat}`);
 }
 
 function titleFrom(line: string): string {
@@ -589,7 +881,7 @@ export interface OfflineBuildOptions {
 export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDirectorRequest, options: OfflineBuildOptions = {}): DirectorResult {
   const req = 'lines' in input ? input : normalizeDirectorRequest(input);
   const lib = options.library ?? LIBRARY;
-  const state: BuildState = { matches: [], substitutions: [], missingAssets: [], missingKeys: new Set() };
+  const state: BuildState = { matches: [], substitutions: [], missingAssets: [], conceptDiagnostics: [], conceptRequirements: new Set(), missingKeys: new Set(), conceptKeys: new Set() };
   const provider = options.provider ?? { requested: 'offline', used: 'offline', attempts: [] };
   const scriptQuery: Query[] = [{ text: req.lines.join(' '), source: 'script' }];
   if (options.intent?.set) scriptQuery.unshift({ text: options.intent.set, source: 'provider' });
@@ -598,22 +890,30 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
 
   const set = chooseOne('sets', scriptQuery, 'classroom', undefined, lib, req.seed, state) as SetEntry;
   if (!set.marks.length || !set.lighting.length) throw new DirectorInputError(`available set ${set.id} is missing authored marks or lighting`);
+  const environment = selectedEnvironmentProfile(set);
+  const safeActorMarks = actorSafeMarks(set, environment);
+  const dimensions = setDimensions(environment);
   const characterQueries: Query[] = [
     ...(options.intent?.characters ?? []).map((text): Query => ({ text, source: 'provider' })),
     { text: req.lines.join(' '), source: 'script' },
   ];
-  let characters = chooseMany('characters', characterQueries, 8, undefined, lib, req.seed, state);
-  if (!characters.length) {
+  let scriptCharacters = chooseMany('characters', characterQueries, 8, undefined, lib, req.seed, state);
+  if (!scriptCharacters.length) {
     const zapp = requiredDefault('characters', 'zapp', lib) as LibraryEntry;
-    characters = [zapp];
+    scriptCharacters = [zapp];
     state.matches.push({ kind: 'characters', selected: zapp.id, source: 'default' });
     state.substitutions.push({ kind: 'characters', requested: 'no matching library tag', used: zapp.id, reason: 'deterministic available fallback' });
   }
+  // Global matching may rank/truncate hints, but per-beat literal recognition must retain every available person.
+  const characters = [...scriptCharacters, ...availableEntries('characters', lib).filter((candidate) => !scriptCharacters.some((selected) => selected.id === candidate.id))];
+  const maxBeatCast = Math.max(1, Math.min(8, environment.cast.max, dimensions.maxCastFraming));
 
   const phraseWords = req.lines.map(words);
   const totalWords = phraseWords.reduce((n, line) => n + line.length, 0);
   let elapsedWords = 0;
   let previousEntities = new Set<string>();
+  let previousPerson: LibraryEntry | undefined;
+  let previousProps: LibraryEntry[] = [];
   const beats: BeatSheet['beats'] = [];
   const editBeats: EditPlanBeatReport[] = [];
 
@@ -631,17 +931,34 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
       ...providerAction.map((text): Query => ({ text, source: 'provider' })),
       { text: req.lines[i], source: 'script' },
     ];
+    const requiredConcepts = requiredVisibleConcepts(req.lines[i], lib);
+    for (const concept of requiredConcepts) state.conceptRequirements.add(`${phraseId}:${concept.term}`);
+    diagnoseVisibleConcepts(requiredConcepts, phraseId, set, lib, state);
     const action = chooseOne('actions', lineQueries, 'idle', phraseId, lib, req.seed, state) as LibraryEntry;
     const expression = chooseOne('expressions', [{ text: req.lines[i], source: 'script' }], 'neutral', phraseId, lib, req.seed, state) as LibraryEntry;
     const propQueries: Query[] = [
       ...providerProps.map((text): Query => ({ text, source: 'provider' })),
       { text: req.lines[i], source: 'script' },
     ];
-    const props = chooseMany('props', propQueries, 16, phraseId, lib, req.seed, state);
+    let props = chooseMany('props', propQueries, 16, phraseId, lib, req.seed, state);
+    const hasObjectPronoun = canonicalWords(req.lines[i]).some((word) => OBJECT_PRONOUNS.has(word));
+    if (!props.length && hasObjectPronoun) props = previousProps;
+    if (props.length) previousProps = props;
+    let realizedAction = action;
+    if (PROP_STATE_ACTIONS.has(action.id) && !props.length) {
+      realizedAction = requiredDefault('actions', 'idle', lib) as LibraryEntry;
+      state.substitutions.push({ kind: 'actions', requested: action.id, used: realizedAction.id, beat: phraseId, reason: 'action requires an available local prop; conservative idle substituted' });
+      missing(state, { kind: 'props', requested: `prop required by ${action.id}`, beat: phraseId, reason: 'action cannot be safely realized without an available local prop' });
+    }
 
-    const mentioned = characters.filter((c) => candidates('characters', [{ text: req.lines[i], source: 'script' }], { ...lib, characters: [c] }, req.seed, phraseId).length);
-    const active = mentioned[0] ?? characters[0];
-    const orderedCharacters = [active, ...characters.filter((c) => c.id !== active.id)];
+    const explicitCharacters = mentionedCharacters(req.lines[i], characters);
+    if (explicitCharacters.length > maxBeatCast) missing(state, {
+      kind: 'characters', requested: `${explicitCharacters.length} people in ${phraseId}`, beat: phraseId,
+      reason: `set ${set.id} safely supports at most ${maxBeatCast} framed actors; render authorization must remain blocked`,
+    });
+    const orderedCharacters = beatCharacters(req.lines[i], characters, previousPerson, realizedAction.id, maxBeatCast);
+    const active = orderedCharacters[0];
+    previousPerson = explicitCharacters.at(-1) ?? active;
     const usedMarks = new Set<string>();
     const cast = orderedCharacters.map((character, ci) => {
       const other = orderedCharacters.find((x) => x.id !== character.id);
@@ -649,22 +966,22 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
       return {
         characterId: latestRef(character),
         role: ci === 0 ? 'lead' as const : ci === 1 ? 'foil' as const : 'support' as const,
-        placement: pickMark(set, character, usedMarks, req.seed, `${phraseId}:character:${character.id}`),
-        actionId: ci === 0 ? action.id : 'idle',
+        placement: pickMark(set, character, usedMarks, req.seed, `${phraseId}:character:${character.id}`, safeActorMarks, environment, true),
+        actionId: ci === 0 ? realizedAction.id : 'idle',
         expressionId: ci === 0 ? expression.id : 'neutral',
         lookAt,
       };
     });
     const beatProps = props.map((prop) => ({
       propId: latestRef(prop),
-      placement: pickMark(set, prop, usedMarks, req.seed, `${phraseId}:prop:${prop.id}`),
+      placement: pickMark(set, prop, usedMarks, req.seed, `${phraseId}:prop:${prop.id}`, set.marks, environment),
       state: 'idle',
     }));
-    const cameraFallback = orderedCharacters.length > 1 ? 'two_shot' : 'medium_single';
-    const camera = chooseOne('cameraRecipes', [{ text: req.lines[i], source: 'script' }], cameraFallback, phraseId, lib, req.seed, state) as LibraryEntry;
-    const propSubject = props.length && /prop|insert|close/.test(camera.id) ? props[0].id : undefined;
-    const subject = propSubject ?? active.id;
-    const secondary = orderedCharacters.map((x) => x.id).find((id) => id !== subject);
+    const mainCamera = chooseMainCamera({
+      text: req.lines[i], beat: phraseId, active, characters: orderedCharacters, props, actionId: realizedAction.id,
+      dimensions, lib, seed: req.seed, state,
+    });
+    const { recipeId: cameraRecipeId, subject, secondary } = mainCamera;
 
     const groups = captionGroups(req.lines[i]);
     let captionWords = 0;
@@ -678,15 +995,16 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
     previousEntities = entities;
     const editPlan = planBeatEdits({
       text: req.lines[i], phraseId, start, end, seed: req.seed, lib,
-      characters: orderedCharacters, props, active,
-      main: { recipeId: camera.id, subject, ...(secondary ? { secondary } : {}) },
+      characters: orderedCharacters, props, active, emittedAction: realizedAction.id,
+      main: mainCamera,
+      constraints: { castCount: orderedCharacters.length, motion: MOTION_ACTIONS.has(realizedAction.id), ...dimensions },
       ...(intentBeat?.shots ? { providerShots: intentBeat.shots } : {}),
     });
     editBeats.push(editPlan.report);
     beats.push({
       phraseId, start, end, text: req.lines[i], setId: latestRef(set), lighting: set.lighting[req.seed % set.lighting.length],
       cast, props: beatProps, events: [],
-      camera: { recipeId: camera.id, subject, ...(secondary ? { secondary } : {}), ...(editPlan.subShots.length ? { subShots: editPlan.subShots } : {}) },
+      camera: { recipeId: cameraRecipeId, subject, ...(secondary ? { secondary } : {}), ...(editPlan.subShots.length ? { subShots: editPlan.subShots } : {}) },
       captions, carryOver,
     });
   }
@@ -698,21 +1016,35 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
     music: [], beats,
   };
   const validation = validateBeatSheet(sheet, { library: lib, requireAvailable: true });
-  const visualClauses = editBeats.reduce((sum, beat) => sum + beat.visualClauses, 0);
-  const coveredVisualClauses = editBeats.reduce((sum, beat) => sum + beat.coveredVisualClauses, 0);
+  const aggregateCoverage = (requiredKey: 'entityCueClauses' | 'actionCueClauses' | 'propStateCueClauses', realizedKey: 'framedEntityClauses' | 'realizedActionClauses' | 'realizedPropStateClauses'): RealizationCoverage => {
+    const required = editBeats.reduce((sum, beat) => sum + beat[requiredKey], 0);
+    const realized = editBeats.reduce((sum, beat) => sum + beat[realizedKey], 0);
+    return { required, realized, pct: required ? realized / required : 1 };
+  };
+  const requiredConceptCount = state.conceptRequirements.size;
+  const diagnosed = new Set(state.conceptDiagnostics.map((concept) => `${concept.beat}:${concept.term}`)).size;
+  const unresolved = state.conceptDiagnostics.filter((concept) => concept.disposition !== 'approved_substitution').length;
+  const realizedConcepts = Math.max(0, requiredConceptCount - unresolved);
+  const unresolvedConceptCoverage: UnresolvedConceptCoverage = {
+    required: requiredConceptCount, realized: realizedConcepts,
+    pct: requiredConceptCount ? realizedConcepts / requiredConceptCount : 1,
+    unresolved, diagnosed,
+  };
   const report: DirectorReport = {
     algorithmVersion: DIRECTOR_ALGORITHM_VERSION,
     provider,
     matches: state.matches,
     substitutions: state.substitutions,
     missingAssets: state.missingAssets,
+    conceptDiagnostics: state.conceptDiagnostics,
     editPlan: {
       policy: DIRECTOR_EDIT_PLAN_POLICY,
       coverage: {
         version: DIRECTOR_EDIT_PLAN_POLICY.coverageVersion,
-        visualClauses,
-        coveredVisualClauses,
-        pct: visualClauses ? coveredVisualClauses / visualClauses : 1,
+        entityFramingCoverage: aggregateCoverage('entityCueClauses', 'framedEntityClauses'),
+        actionRealizationCoverage: aggregateCoverage('actionCueClauses', 'realizedActionClauses'),
+        propStateRealizationCoverage: aggregateCoverage('propStateCueClauses', 'realizedPropStateClauses'),
+        unresolvedConceptCoverage,
       },
       beats: editBeats,
     },
