@@ -348,15 +348,15 @@ test('overlapping character tags never create phantom cast or displace named peo
 
 test('holdout bare nouns are diagnosed without leaking known multi-word name fragments', async () => {
   const result = await directScript({
-    script: ['A tall Kira jumps.', 'Friend Boy waits.', 'Crowd Kid waits.', 'Kira repairs violin.', 'Kira carries suitcase.', 'Kira admires telescope.'],
-    duration: 18, seed: 12,
+    script: ['A tall Kira jumps.', 'Friend Boy waits.', 'Crowd Kid waits.', 'Kira repairs violin.', 'Kira carries suitcase.', 'Kira admires telescope.', 'Kira can repair obelisk.', 'Kira sees purple umbrella.', 'The clever mechanic repairs violin.'],
+    duration: 27, seed: 12,
   }, { provider: 'offline' });
   const terms = new Set(result.report.conceptDiagnostics.map((item) => item.term));
-  for (const falsePositive of ['tall', 'boy', 'kid']) assert.equal(terms.has(falsePositive), false, falsePositive);
-  for (const expected of ['violin', 'suitcase', 'telescope']) assert.equal(terms.has(expected), true, expected);
+  for (const falsePositive of ['tall', 'boy', 'kid', 'purple', 'clever']) assert.equal(terms.has(falsePositive), false, falsePositive);
+  for (const expected of ['violin', 'suitcase', 'telescope', 'obelisk', 'umbrella', 'mechanic']) assert.equal(terms.has(expected), true, expected);
   const coverage = result.report.editPlan.coverage.unresolvedConceptCoverage;
-  assert.equal(coverage.required, 3);
-  assert.equal(coverage.diagnosed, 3);
+  assert.equal(coverage.required, 7);
+  assert.equal(coverage.diagnosed, 7);
 });
 
 test('resolved object pronouns remain framing and prop-state requirements', async () => {

@@ -240,7 +240,7 @@ const CONCEPT_FILLERS = new Set(['big', 'small', 'tiny', 'giant', 'new', 'old', 
 const GRAMMAR_WORDS = new Set([
   ...CONCEPT_DETERMINERS, ...PLACE_PREPOSITIONS, ...CAST_PRONOUNS, ...OBJECT_PRONOUNS, ...CLAUSE_CONJUNCTIONS,
   'to', 'from', 'with', 'without', 'of', 'on', 'under', 'over', 'through', 'across', 'past', 'by', 'for', 'as', 'beside', 'behind', 'ahead', 'around', 'between', 'is', 'are', 'was', 'were',
-  'be', 'been', 'being', 'and', 'or', 'not', 'very', 'quietly', 'quickly', 'slowly', 'suddenly', 'later', 'finally', 'again',
+  'be', 'been', 'being', 'can', 'could', 'will', 'would', 'should', 'must', 'may', 'might', 'and', 'or', 'not', 'very', 'quietly', 'quickly', 'slowly', 'suddenly', 'later', 'finally', 'again',
 ]);
 /** Broad, deterministic visibility vocabulary supplements syntax-based noun extraction; it is not asset authorization. */
 const VISIBLE_CONCEPTS: Readonly<Record<string, ConceptDiagnostic['category']>> = {
@@ -403,50 +403,57 @@ function conceptMatch(term: string, lib: Library): { kind: 'sets' | 'characters'
 }
 interface VisibleConceptCandidate { term: string; category: ConceptDiagnostic['category'] }
 const DESTINATION_VERBS = new Set(['enters', 'enter', 'visits', 'visit', 'reaches', 'reach', 'leaves', 'leave', 'arrives', 'arrive', 'travels', 'travel']);
-const NON_VISUAL_MODIFIERS = new Set([...CONCEPT_FILLERS, 'tall', 'short', 'happy', 'sad', 'angry', 'brave', 'scared', 'funny', 'strange', 'beautiful', 'ugly']);
+const MODAL_VERBS = new Set(['can', 'could', 'will', 'would', 'should', 'must', 'may', 'might']);
 const looksVerbLike = (word: string) => /(?:s|ed|ing)$/.test(word) && word.length > 3;
 /**
- * Build the required visible-noun inventory independently from authorization/diagnostic output. Complete spans for
- * every available catalog term are removed first, so shared tags and multi-word names cannot leak fragments.
+ * Build a conservative noun-phrase inventory independently from authorization. Complete available catalog spans are
+ * removed first. Within each clause, only phrase heads are requirements: the final unknown before a verb is an
+ * entity head, and the final unknown after a verb is an object/place head. This handles unseen modifiers without an
+ * adjective allowlist and handles base-form verbs after modals.
  */
 function requiredVisibleConcepts(text: string, lib: Library): VisibleConceptCandidate[] {
   const phraseWords = words(text), tokens = canonicalWords(text);
-  const recognized = new Set<number>();
+  const recognized = new Set<number>(), characterWords = new Set<number>(), verbWords = new Set<number>();
   const availableKinds = ['sets', 'characters', 'props', 'actions', 'expressions'] as const;
   for (const kind of availableKinds) for (const hit of literalHits(availableEntries(kind, lib), phraseWords)) {
-    for (let word = hit.startWord; word < hit.endWord; word++) recognized.add(word);
+    for (let word = hit.startWord; word < hit.endWord; word++) {
+      recognized.add(word);
+      if (kind === 'characters') characterWords.add(word);
+      if (kind === 'actions') verbWords.add(word);
+    }
   }
-  const actionStarts = new Set(literalHits(availableEntries('actions', lib), phraseWords).map((hit) => hit.startWord));
-  const actionEnds = new Set(literalHits(availableEntries('actions', lib), phraseWords).map((hit) => hit.endWord));
+  for (let i = 0; i < tokens.length; i++) {
+    if (!recognized.has(i) && (looksVerbLike(tokens[i]) || (i > 0 && MODAL_VERBS.has(tokens[i - 1])))) verbWords.add(i);
+  }
   const found = new Map<string, ConceptDiagnostic['category']>();
   const priority = (category: ConceptDiagnostic['category']) => category === 'place' ? 3 : category === 'entity' ? 2 : 1;
   const add = (term: string, category: ConceptDiagnostic['category']) => {
     const normalized = canonical(term), current = found.get(normalized);
-    if (normalized && !GRAMMAR_WORDS.has(normalized) && !NON_VISUAL_MODIFIERS.has(normalized)
+    if (normalized && !GRAMMAR_WORDS.has(normalized)
       && (!current || priority(category) > priority(current))) found.set(normalized, category);
   };
-  let lastVerb = -1;
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i];
-    if (recognized.has(i)) { if (actionEnds.has(i + 1)) lastVerb = i; continue; }
-    if (GRAMMAR_WORDS.has(token) || NON_VISUAL_MODIFIERS.has(token)) continue;
-    if (DESTINATION_VERBS.has(token) || looksVerbLike(token)) { lastVerb = i; continue; }
-    if (VISIBLE_CONCEPTS[token]) { add(token, VISIBLE_CONCEPTS[token]); continue; }
-    const previous = tokens[i - 1] ?? '';
-    const nextIsAction = actionStarts.has(i + 1) || looksVerbLike(tokens[i + 1] ?? '');
-    const precededByDeterminer = CONCEPT_DETERMINERS.has(previous);
-    const followedByRecognizedNoun = recognized.has(i + 1) && !actionStarts.has(i + 1);
-    if (PLACE_PREPOSITIONS.has(previous) || DESTINATION_VERBS.has(previous)) add(token, 'place');
-    else if (precededByDeterminer && followedByRecognizedNoun) continue; // adjective before an available multi-word/name span
-    else if (nextIsAction && (i === 0 || precededByDeterminer)) add(token, 'entity');
-    else if (lastVerb >= 0 || actionEnds.has(i)) add(token, DESTINATION_VERBS.has(tokens[lastVerb]) ? 'place' : 'prop');
-    else if (precededByDeterminer) add(token, 'prop');
+  for (let i = 0; i < tokens.length; i++) if (!recognized.has(i) && VISIBLE_CONCEPTS[tokens[i]]) add(tokens[i], VISIBLE_CONCEPTS[tokens[i]]);
+  const clauses = splitDirectorClauses(text, lib);
+  for (const clause of clauses) {
+    const indexes = Array.from({ length: clause.words[1] - clause.words[0] }, (_, offset) => clause.words[0] + offset);
+    const firstVerb = indexes.find((index) => verbWords.has(index));
+    const unknown = indexes.filter((index) => !recognized.has(index) && !verbWords.has(index) && !GRAMMAR_WORDS.has(tokens[index]) && !VISIBLE_CONCEPTS[tokens[index]]);
+    if (firstVerb === undefined) {
+      const afterPlace = unknown.find((index) => PLACE_PREPOSITIONS.has(tokens[index - 1]));
+      if (afterPlace !== undefined) add(tokens[unknown.at(-1) ?? afterPlace], 'place');
+      continue;
+    }
+    const before = unknown.filter((index) => index < firstVerb);
+    const after = unknown.filter((index) => index > firstVerb);
+    const knownPersonBefore = indexes.some((index) => index < firstVerb && characterWords.has(index));
+    if (before.length && !knownPersonBefore) add(tokens[before.at(-1)!], 'entity');
+    if (after.length) {
+      const head = after.at(-1)!;
+      const destination = DESTINATION_VERBS.has(tokens[firstVerb]) || after.some((index) => PLACE_PREPOSITIONS.has(tokens[index - 1]));
+      add(tokens[head], destination ? 'place' : 'prop');
+    }
   }
   return [...found].map(([term, category]) => ({ term, category }));
-}
-/** Authorization pass over the independently inventoried visible requirements. */
-function visibleConceptCandidates(text: string, lib: Library): VisibleConceptCandidate[] {
-  return requiredVisibleConcepts(text, lib).filter(({ term }) => conceptMatch(term, lib)?.entry.status !== 'available');
 }
 
 function analyzeClauses(text: string, characters: LibraryEntry[], props: LibraryEntry[], active: LibraryEntry, lib: Library): ClauseAnalysis[] {
@@ -717,8 +724,8 @@ function noteUnknownProviderTerms(kind: MatchKind, terms: string[], beat: string
     }
   }
 }
-function diagnoseVisibleConcepts(text: string, beat: string, selectedSet: SetEntry, lib: Library, state: BuildState): void {
-  for (const concept of visibleConceptCandidates(text, lib)) {
+function diagnoseVisibleConcepts(concepts: readonly VisibleConceptCandidate[], beat: string, selectedSet: SetEntry, lib: Library, state: BuildState): void {
+  for (const concept of concepts.filter(({ term }) => conceptMatch(term, lib)?.entry.status !== 'available')) {
     const key = `${beat}:${concept.term}`;
     if (state.conceptKeys.has(key)) continue;
     state.conceptKeys.add(key);
@@ -895,8 +902,9 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
       ...providerAction.map((text): Query => ({ text, source: 'provider' })),
       { text: req.lines[i], source: 'script' },
     ];
-    for (const concept of requiredVisibleConcepts(req.lines[i], lib)) state.conceptRequirements.add(`${phraseId}:${concept.term}`);
-    diagnoseVisibleConcepts(req.lines[i], phraseId, set, lib, state);
+    const requiredConcepts = requiredVisibleConcepts(req.lines[i], lib);
+    for (const concept of requiredConcepts) state.conceptRequirements.add(`${phraseId}:${concept.term}`);
+    diagnoseVisibleConcepts(requiredConcepts, phraseId, set, lib, state);
     const action = chooseOne('actions', lineQueries, 'idle', phraseId, lib, req.seed, state) as LibraryEntry;
     const expression = chooseOne('expressions', [{ text: req.lines[i], source: 'script' }], 'neutral', phraseId, lib, req.seed, state) as LibraryEntry;
     const propQueries: Query[] = [
