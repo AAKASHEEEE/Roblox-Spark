@@ -6,6 +6,8 @@ import { v, type Issue, type SchemaT } from '../../schema/src/v.ts';
 import { LIBRARY, REF_PATTERN, ID_PATTERN, lookup, type Library, type LibraryKind, type SetEntry } from '../../library/src/ids.ts';
 
 export const BEAT_SHEET_VERSION = '1.0';
+/** Smallest legal camera-composition window created by an intra-beat cut. */
+export const MIN_SUB_SHOT_DURATION = 0.15;
 
 const ref = () => v.string({ pattern: REF_PATTERN, max: 64 });
 const sid = () => v.string({ pattern: ID_PATTERN, max: 64 });
@@ -218,19 +220,61 @@ export function validateBeatSheet(input: unknown, opts: { library?: Library; req
       for (let k = 1; k < seq.length; k++) if (seq[k].type === seq[k - 1].type) err(`${P}.events`, `door ${d}: ${seq[k].type} twice in a row`);
     }
 
-    use('cameraRecipes', b.camera.recipeId, `${P}.camera.recipeId`);
-    if (!entities.has(b.camera.subject)) err(`${P}.camera.subject`, `subject "${b.camera.subject}" is not an entity in this beat`);
-    if (b.camera.secondary !== undefined && (!entities.has(b.camera.secondary) || b.camera.secondary === b.camera.subject)) err(`${P}.camera.secondary`, `secondary "${b.camera.secondary}" must be another entity in this beat`);
+    const cameraEntries = [b.camera, ...(b.camera.subShots ?? [])];
+    const cameraCuts = [b.start, ...(b.camera.subShots?.map((s) => s.from) ?? []), b.end];
+    for (const [cameraIndex, camera] of cameraEntries.entries()) {
+      const C = cameraIndex === 0 ? `${P}.camera` : `${P}.camera.subShots[${cameraIndex - 1}]`;
+      use('cameraRecipes', camera.recipeId, `${C}.recipeId`);
+      if (!entities.has(camera.subject)) err(`${C}.subject`, `subject "${camera.subject}" is not an entity in this beat`);
+      if (camera.secondary !== undefined && (!entities.has(camera.secondary) || camera.secondary === camera.subject)) err(`${C}.secondary`, `secondary "${camera.secondary}" must be another entity in this beat`);
+    }
     if (b.camera.subShots) {
       let prevFrom = b.start;
       for (const [si, ss] of b.camera.subShots.entries()) {
         const SS = `${P}.camera.subShots[${si}]`;
-        use('cameraRecipes', ss.recipeId, `${SS}.recipeId`);
-        if (!entities.has(ss.subject)) err(`${SS}.subject`, `subject "${ss.subject}" is not an entity in this beat`);
-        if (ss.secondary !== undefined && (!entities.has(ss.secondary) || ss.secondary === ss.subject)) err(`${SS}.secondary`, `secondary "${ss.secondary}" must be another entity in this beat`);
         if (ss.from <= prevFrom + 1e-6 || ss.from >= b.end - 1e-6) err(`${SS}.from`, `sub-shot cut ${ss.from} must be strictly inside the beat and after the previous cut (${prevFrom})`);
         prevFrom = ss.from;
       }
+      // Every window made by a sub-shot cut (including the leading and trailing windows) must be long enough for
+      // meaningful framing and safety evaluation. This also prevents empty/vacuously accepted sample sets.
+      for (let ci = 0; ci + 1 < cameraCuts.length; ci++) {
+        const duration = cameraCuts[ci + 1] - cameraCuts[ci];
+        if (duration + 1e-6 < MIN_SUB_SHOT_DURATION) {
+          const path = ci === 0 ? `${P}.camera.subShots[0].from` : `${P}.camera.subShots[${ci - 1}]`;
+          err(path, `sub-shot window [${cameraCuts[ci]}, ${cameraCuts[ci + 1]}) is ${Math.max(0, duration).toFixed(3)} s; minimum is ${MIN_SUB_SHOT_DURATION.toFixed(3)} s`);
+        }
+      }
+    }
+
+    // Camera subjects must exist during their own composition, not merely somewhere in the beat roster. Entering
+    // actors become present at their enter event; exiting actors cease to be present at their exit event. Props span
+    // the beat. Requiring interval overlap permits a motivated entrance/exit wide while rejecting entirely absent or
+    // post-exit subjects and secondaries before staging.
+    const castById = new Map(b.cast.map((c) => [bare(c.characterId), c] as const));
+    const cameraTargetPresent = (id: string, from: number, to: number): boolean => {
+      if (b.props.some((p) => (p.instanceId ?? bare(p.propId)) === id)) return true;
+      const c = castById.get(id);
+      if (!c) return false;
+      const [placementKind] = c.placement.includes(':') ? c.placement.split(':') : ['mark'];
+      let presentFrom = b.start, presentTo = b.end;
+      if (placementKind === 'enter') {
+        const enter = b.events.filter((e) => e.type === 'enter' && bare(e.characterId) === id).sort((a, z) => a.at - z.at)[0];
+        if (!enter) return false;
+        presentFrom = enter.at;
+      }
+      if (placementKind === 'exit') {
+        const exit = b.events.filter((e) => e.type === 'exit' && bare(e.characterId) === id).sort((a, z) => a.at - z.at)[0];
+        if (!exit) return false;
+        presentTo = exit.at;
+      }
+      return Math.min(to, presentTo) - Math.max(from, presentFrom) > 1e-6;
+    };
+    for (const [cameraIndex, camera] of cameraEntries.entries()) {
+      const from = cameraCuts[cameraIndex], to = cameraCuts[cameraIndex + 1];
+      if (!(to > from + 1e-6)) continue; // ordering diagnostics above are authoritative for malformed cuts
+      const C = cameraIndex === 0 ? `${P}.camera` : `${P}.camera.subShots[${cameraIndex - 1}]`;
+      if (entities.has(camera.subject) && !cameraTargetPresent(camera.subject, from, to)) err(`${C}.subject`, `subject "${camera.subject}" is not present during camera window [${from}, ${to})`);
+      if (camera.secondary !== undefined && entities.has(camera.secondary) && !cameraTargetPresent(camera.secondary, from, to)) err(`${C}.secondary`, `secondary "${camera.secondary}" is not present during camera window [${from}, ${to})`);
     }
 
     for (const [ki, c] of b.captions.entries()) {
