@@ -58,6 +58,38 @@ export function compositionAt(compositions: readonly CameraComposition[], t: num
   return t >= c.start && (t < c.end || finalEnd) ? c : undefined;
 }
 
+export type CameraHoldKind = 'authored' | 'leading-hold' | 'gap-hold' | 'tail-hold';
+export interface HeldCameraComposition<T extends CameraComposition = CameraComposition> {
+  composition: T;
+  kind: CameraHoldKind;
+}
+
+/**
+ * Deterministic render ownership: the first composition holds through leading pad, an authored composition owns its
+ * half-open window, the preceding composition holds every inter-beat gap, and the final composition holds the output
+ * tail. A finite time is therefore either owned explicitly or fails closed because there is no solved composition.
+ */
+export function heldCompositionAt<T extends CameraComposition>(compositions: readonly T[], t: number): HeldCameraComposition<T> | undefined {
+  if (!Number.isFinite(t) || t < 0 || !compositions.length) return undefined;
+  if (t < compositions[0].start) return { composition: compositions[0], kind: 'leading-hold' };
+  let lo = 0, hi = compositions.length - 1, found = 0;
+  while (lo <= hi) {
+    const mid = (lo + hi) >>> 1;
+    if (compositions[mid].start <= t) { found = mid; lo = mid + 1; } else hi = mid - 1;
+  }
+  const composition = compositions[found];
+  if (t < composition.end) return { composition, kind: 'authored' };
+  return { composition, kind: found === compositions.length - 1 ? 'tail-hold' : 'gap-hold' };
+}
+
+/** Stage sample paired with a held output camera; tail holds freeze the final stage-aligned frame, never an end sentinel. */
+export function heldSceneTime(held: HeldCameraComposition, outputTime: number, stageEnd: number, fps = 30): number {
+  if (held.kind === 'leading-hold') return held.composition.start;
+  if (held.kind !== 'tail-hold') return outputTime;
+  const finalStageFrame = (Math.ceil(stageEnd * fps - 1e-9) - 1) / fps;
+  return Math.max(held.composition.start, finalStageFrame);
+}
+
 const r4 = (x: number) => Math.round(x * 1e4) / 1e4;
 const lerp3 = (a: Vec3, b: Vec3, u: number): Vec3 => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
 
@@ -74,11 +106,15 @@ export interface FinalCameraSafetyOptions {
   supplementalVfx?: readonly VfxEvent[];
   /** The vignette scene's built-in VFX/operator shake is part of the rendered camera by default. */
   includeSceneShake?: boolean;
-  /** Previous final camera in the same composition; its lens segment is collision checked. */
+  /** Posed scene time for a held camera. Omit for authored in-window evaluation. */
+  sceneTime?: number;
+  /** Ownership classification supplied by the shared hold resolver. */
+  ownership?: CameraHoldKind;
+  /** Previous final camera in the same held composition; its lens segment is collision checked. */
   previousCamera?: CameraState;
 }
 export interface FinalCameraSafetyFrame {
-  t: number; beat: string; composition: number; accepted: boolean; score: number; reasons: string[];
+  t: number; sceneTime: number; beat: string; composition: number; ownership: CameraHoldKind | 'unowned'; accepted: boolean; score: number; reasons: string[];
   camera?: CameraState; result?: CameraSafetyResult;
   effects: { sceneShake: number; supplementalShake: number; zoom: number };
 }
@@ -89,16 +125,22 @@ export interface DenseCameraSafetyReport {
 }
 
 /**
- * Evaluate the actual rendered camera at one time: solved lens, scene shake, then optional render-layer shake/zoom.
- * Unlike `ShotChoice.samples`, this reconstructs posed geometry and runs camera safety at the requested output time.
+ * Evaluate the actual rendered camera at one output time: solved/held lens, scene shake, then render-layer shake/zoom.
+ * Held frames pose the scene at `sceneTime` while all deterministic camera effects retain the true output timestamp.
  */
 export function evaluateFinalCameraAt(scene: VignetteScene, composition: CameraComposition, t: number, opts: FinalCameraSafetyOptions = {}): FinalCameraSafetyFrame {
-  const base = { t, beat: composition.beat, composition: composition.index, effects: { sceneShake: 0, supplementalShake: 0, zoom: 1 } };
-  if (!Number.isFinite(t) || t < composition.start || t >= composition.end) return { ...base, accepted: false, score: 0, reasons: ['FINAL_CAMERA_TIME_OUTSIDE_COMPOSITION'] };
+  const sceneTime = opts.sceneTime ?? t;
+  const ownership = opts.ownership ?? 'authored';
+  const base = { t, sceneTime, beat: composition.beat, composition: composition.index, ownership, effects: { sceneShake: 0, supplementalShake: 0, zoom: 1 } };
+  const held = opts.sceneTime !== undefined;
+  if (!Number.isFinite(t) || !Number.isFinite(sceneTime) || sceneTime < 0 || sceneTime > scene.plan.duration + 1e-6 || (!held && (t < composition.start || t >= composition.end))) {
+    return { ...base, accepted: false, score: 0, reasons: ['FINAL_CAMERA_TIME_OUTSIDE_COMPOSITION'] };
+  }
   try {
     const shot = composition.shot;
-    const posed = scene.pose(t);
-    const p = poseAt(shot, composition.start, t);
+    const posed = scene.pose(sceneTime);
+    const cameraTime = held ? Math.max(composition.start, Math.min(composition.end, sceneTime)) : t;
+    const p = poseAt(shot, composition.start, cameraTime);
     let camera: CameraState = { pos: p.pos, target: p.target, fovY: (p.fovDeg * Math.PI) / 180, ...(p.roll !== undefined ? { roll: p.roll } : {}) };
     let sceneShake = 0, supplementalShake = 0, zoom = 1;
     if (opts.includeSceneShake !== false) {
@@ -138,37 +180,59 @@ export function evaluateFinalCameraAt(scene: VignetteScene, composition: CameraC
   }
 }
 
-/** Run genuine camera safety at every output-frame time of every composition (hard cuts reset lens-path continuity). */
-export function auditFinalCameraSafety(scene: VignetteScene, compositions: readonly CameraComposition[], opts: Omit<FinalCameraSafetyOptions, 'previousCamera'> & { fps?: number } = {}): DenseCameraSafetyReport {
+export interface DenseCameraSafetyOptions extends Omit<FinalCameraSafetyOptions, 'previousCamera' | 'sceneTime' | 'ownership'> {
+  fps?: number;
+  /** Exact encoded output-frame count. Defaults only to the frame-ceiled staged domain when a caller has no output plan. */
+  frameCount?: number;
+}
+
+/** Audit each output frame exactly once under the same deterministic hold/effect policy used by rendering. */
+export function auditFinalCameraSafety(scene: VignetteScene, compositions: readonly CameraComposition[], opts: DenseCameraSafetyOptions = {}): DenseCameraSafetyReport {
   const fps = opts.fps ?? 30;
-  if (!(Number.isFinite(fps) && fps > 0)) return { fps, frames: 0, acceptedFrames: 0, accepted: false, minScore: 0, compositions: [], samples: [] };
-  const samples: FinalCameraSafetyFrame[] = [];
-  const summaries: DenseCameraSafetyReport['compositions'] = [];
-  for (const c of compositions) {
-    const times: number[] = [];
-    const firstFrame = Math.ceil(c.start * fps - 1e-9);
-    for (let frame = firstFrame; frame / fps < c.end - 1e-12; frame++) {
-      const t = frame / fps;
-      if (t >= c.start - 1e-12) times.push(t);
-    }
-    // A caller can request a very low frame rate. Never vacuously pass a composition that has no aligned frame.
-    if (!times.length && c.end > c.start) times.push((c.start + c.end) / 2);
-    let previousCamera: CameraState | undefined;
-    const local: FinalCameraSafetyFrame[] = [];
-    for (const t of times) {
-      const active = compositionAt(compositions, t);
-      const sample = active === c
-        ? evaluateFinalCameraAt(scene, c, t, { ...opts, ...(previousCamera ? { previousCamera } : {}) })
-        : { t, beat: c.beat, composition: c.index, accepted: false, score: 0, reasons: ['COMPOSITION_TIMELINE_INVALID'], effects: { sceneShake: 0, supplementalShake: 0, zoom: 1 } } satisfies FinalCameraSafetyFrame;
-      local.push(sample); samples.push(sample);
-      previousCamera = sample.camera;
-    }
-    const acceptedFrames = local.filter((s) => s.accepted).length;
-    summaries.push({ beat: c.beat, index: c.index, frames: local.length, acceptedFrames, minScore: local.length ? Math.min(...local.map((s) => s.score)) : 0 });
+  const frameCount = opts.frameCount ?? (Number.isFinite(fps) && fps > 0 ? Math.ceil(scene.plan.duration * fps - 1e-9) : 0);
+  if (!(Number.isFinite(fps) && fps > 0 && Number.isInteger(frameCount) && frameCount > 0)) {
+    return { fps, frames: 0, acceptedFrames: 0, accepted: false, minScore: 0, compositions: [], samples: [] };
   }
+  const timelineValid = compositions.every((c, index) => Number.isFinite(c.start) && Number.isFinite(c.end) && c.start >= 0 && c.end > c.start
+    && (index === 0 || c.start >= compositions[index - 1].end - 1e-9));
+  const samples: FinalCameraSafetyFrame[] = [];
+  let previousOwner: CameraComposition | undefined;
+  let previousCamera: CameraState | undefined;
+  for (let frame = 0; frame < frameCount; frame++) {
+    const t = frame / fps;
+    const held = heldCompositionAt(compositions, t);
+    if (!held || !timelineValid) {
+      samples.push({
+        t, sceneTime: Math.min(t, scene.plan.duration), beat: held?.composition.beat ?? 'unowned', composition: held?.composition.index ?? -1,
+        ownership: held?.kind ?? 'unowned', accepted: false, score: 0,
+        reasons: [timelineValid ? 'FINAL_CAMERA_FRAME_UNOWNED' : 'COMPOSITION_TIMELINE_INVALID'],
+        effects: { sceneShake: 0, supplementalShake: 0, zoom: 1 },
+      });
+      previousOwner = undefined; previousCamera = undefined;
+      continue;
+    }
+    const composition = held.composition;
+    if (composition !== previousOwner) previousCamera = undefined;
+    const sceneTime = heldSceneTime(held, t, scene.plan.duration, fps);
+    const sample = evaluateFinalCameraAt(scene, composition, t, {
+      supplementalVfx: opts.supplementalVfx,
+      includeSceneShake: opts.includeSceneShake,
+      sceneTime,
+      ownership: held.kind,
+      ...(previousCamera ? { previousCamera } : {}),
+    });
+    samples.push(sample);
+    previousOwner = composition;
+    previousCamera = sample.camera;
+  }
+  const summaries = compositions.map((c) => {
+    const local = samples.filter((s) => s.beat === c.beat && s.composition === c.index);
+    const acceptedFrames = local.filter((s) => s.accepted).length;
+    return { beat: c.beat, index: c.index, frames: local.length, acceptedFrames, minScore: local.length ? Math.min(...local.map((s) => s.score)) : 0 };
+  });
   const acceptedFrames = samples.filter((s) => s.accepted).length;
   return {
-    fps, frames: samples.length, acceptedFrames, accepted: samples.length > 0 && acceptedFrames === samples.length,
+    fps, frames: samples.length, acceptedFrames, accepted: samples.length === frameCount && acceptedFrames === frameCount,
     minScore: samples.length ? Math.min(...samples.map((s) => s.score)) : 0, compositions: summaries, samples,
   };
 }

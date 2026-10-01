@@ -6,11 +6,11 @@ import type { ManifestLibrary } from '../../../engine/src/build-dispatch.ts';
 import type { Vec3 } from '../../../engine/src/math.ts';
 import { applyZoom, evalVfxEvents, type VfxEvent } from '../../../engine/src/vfx/index.ts';
 import { validateBeatSheet } from '../../../director/src/beat-sheet.ts';
-import { poseAt, type ShotChoice } from '../../../vignette/src/camera.ts';
+import { heldCompositionAt, heldSceneTime, poseAt, type ShotChoice } from '../../../vignette/src/camera.ts';
 import { registerRuntimeLibrary } from '../../../vignette/src/runtime-library.ts';
 import { VignetteScene } from '../../../vignette/src/scene.ts';
 import { beatAt, stageBeatSheet, type StagePlan, type StagedBeat } from '../../../vignette/src/stage.ts';
-import { assertCompositionTimeline, compositionAt, type TimedComposition } from './composition.ts';
+import { assertCompositionTimeline, type TimedComposition } from './composition.ts';
 import { ExactFrameLease, type FrameLease } from './frame-lease.ts';
 
 export type VignetteComposition = TimedComposition<ShotChoice>;
@@ -20,11 +20,13 @@ type S7Effects = ReturnType<typeof evalVfxEvents>;
 
 export interface VignetteFrameContext {
   readonly t: number;
+  /** Stage time used to pose leading/tail holds; camera effects still use t. */
+  readonly sceneTime: number;
   /** Internal freshness token; consumers must not retain frame contexts across another frame() call. */
   readonly lease: FrameLease;
   readonly posed: PosedFrame;
   readonly beat: StagedBeat;
-  readonly composition?: VignetteComposition;
+  readonly composition: VignetteComposition;
   /** Camera after the solved lens, scene shake, and all S7 shake/zoom effects. */
   readonly camera: CameraState;
   readonly sceneEffects: SceneEffects;
@@ -74,19 +76,20 @@ export class VignetteRenderSession {
 
   /** Prepare one exact-time scene pose and the final camera used by both rendering and placement. */
   frame(t: number, vfx: readonly VfxEvent[] = []): VignetteFrameContext {
-    if (!Number.isFinite(t) || t < 0 || t > this.plan.duration + 1e-6) throw new Error(`frame time outside stage: ${t}`);
+    if (!Number.isFinite(t) || t < 0) throw new Error(`invalid output-frame time: ${t}`);
     const lease = this.frameLease.issue(t);
-    const posed = this.scene.pose(t);
-    const beat = beatAt(this.plan, t);
-    const composition = compositionAt(this.compositions, t, beat.phraseId);
-    const shot = composition?.shot ?? this.shots[beat.phraseId];
-    if (!shot) throw new Error(`no solved shot for beat ${beat.phraseId} at ${t}`);
-    const shotStart = composition?.start ?? beat.start;
-    const pose = poseAt(shot, shotStart, t);
+    const held = heldCompositionAt(this.compositions, t);
+    if (!held) throw new Error(`output frame has no solved camera owner at ${t}`);
+    const composition = held.composition;
+    const sceneTime = heldSceneTime(held, t, this.plan.duration, this.plan.fps);
+    const posed = this.scene.pose(sceneTime);
+    const beat = beatAt(this.plan, sceneTime);
+    const cameraTime = Math.max(composition.start, Math.min(composition.end, sceneTime));
+    const pose = poseAt(composition.shot, composition.start, cameraTime);
     const sceneEffects = this.scene.vfx(posed);
     const anchor = (id: string): Vec3 | undefined => {
       this.frameLease.assertCurrent(lease);
-      this.scene.pose(t);
+      this.scene.pose(sceneTime);
       return this.scene.entityPoint(id, beat);
     };
     let camera: CameraState = applyShake({
@@ -97,14 +100,14 @@ export class VignetteRenderSession {
     }, sceneEffects.shake, t, this.plan.seed);
     const s7Effects = evalVfxEvents(vfx as VfxEvent[], t, anchor, this.plan.seed);
     camera = applyZoom(applyShake(camera, s7Effects.shake, t, this.plan.seed), s7Effects.zoom);
-    return { t, lease, posed, beat, composition, camera, sceneEffects, s7Effects, anchor };
+    return { t, sceneTime, lease, posed, beat, composition, camera, sceneEffects, s7Effects, anchor };
   }
 
   /** Draw the exact prepared frame. Callers may update extra scene nodes (emotes/world text) before invoking this. */
   render(frame: VignetteFrameContext): void {
     this.frameLease.assertCurrent(frame.lease);
-    // Restore the shared scene to the leased time in case a diagnostic posed it directly between frame() and render().
-    this.scene.pose(frame.t);
+    // Restore the shared scene to the leased stage time in case diagnostics posed it between frame() and render().
+    this.scene.pose(frame.sceneTime);
     const lighting = this.scene.lighting(frame.posed);
     for (const light of frame.s7Effects.lights) {
       const point = frame.anchor(light.target);

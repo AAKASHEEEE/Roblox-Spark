@@ -302,7 +302,7 @@
         "recipeId": "establishing_wide",
         "subject": "zapp",
         "subShots": [
-          { "from": 11.4, "recipeId": "reaction_punch_in", "subject": "zapp" },
+          { "from": 11.4, "recipeId": "final_loop", "subject": "zapp" },
           { "from": 13.5, "recipeId": "final_loop", "subject": "kira", "secondary": "zapp" }
         ]
       },
@@ -696,7 +696,7 @@
         }
       ],
       "camera": {
-        "recipeId": "insert_prop",
+        "recipeId": "prop_ecu",
         "subject": "suspicious_button",
         "subShots": [
           { "from": 32.27, "recipeId": "prop_ecu", "subject": "suspicious_button" },
@@ -1339,8 +1339,7 @@
       ],
       "camera": {
         "recipeId": "wide_environment",
-        "subject": "teacher",
-        "secondary": "kira",
+        "subject": "kira",
         "subShots": [
           { "from": 62.2, "recipeId": "final_loop", "subject": "teacher", "secondary": "kira" },
           { "from": 63.38, "recipeId": "reaction_punch_in", "subject": "kira", "secondary": "teacher" }

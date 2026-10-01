@@ -16,6 +16,8 @@ test('S7 vignette adapter consumes the neutral shared render session', () => {
   assert.doesNotMatch(adapter, /import .*\b(?:stageBeatSheet|registerRuntimeLibrary|poseAt)\b/);
   assert.doesNotMatch(adapter, /new VignetteScene\(/);
   assert.match(session, /validateBeatSheet\(|stageBeatSheet\(|poseAt\(/);
+  assert.match(session, /heldCompositionAt\(/, 'browser rendering must use the shared deterministic hold policy');
+  assert.doesNotMatch(session, /composition\?\.shot \?\? this\.shots/, 'gaps must not reset to a beat primary camera');
 });
 
 test('graphic anchors are explicit-time and placement uses the final VFX frame camera', () => {
