@@ -338,3 +338,38 @@ test('entity framing requires every named clause entity, not any one subject', a
   assert.equal(clause.entityFramed, false);
   assert.equal(result.report.editPlan.coverage.entityFramingCoverage.realized, 0);
 });
+
+test('overlapping character tags never create phantom cast or displace named people', async () => {
+  const one = await directScript({ script: 'Friend Boy waits.', duration: 4, seed: 2 }, { provider: 'offline' });
+  assert.deepEqual(one.sheet.beats[0].cast.map((member) => member.characterId.split('@')[0]), ['friend_boy']);
+  const three = await directScript({ script: 'Friend Boy, Zapp, and Kira wait in the classroom.', duration: 5, seed: 2 }, { provider: 'offline' });
+  assert.deepEqual(new Set(three.sheet.beats[0].cast.map((member) => member.characterId.split('@')[0])), new Set(['friend_boy', 'zapp', 'kira']));
+});
+
+test('holdout bare nouns are diagnosed without leaking known multi-word name fragments', async () => {
+  const result = await directScript({
+    script: ['A tall Kira jumps.', 'Friend Boy waits.', 'Crowd Kid waits.', 'Kira repairs violin.', 'Kira carries suitcase.', 'Kira admires telescope.'],
+    duration: 18, seed: 12,
+  }, { provider: 'offline' });
+  const terms = new Set(result.report.conceptDiagnostics.map((item) => item.term));
+  for (const falsePositive of ['tall', 'boy', 'kid']) assert.equal(terms.has(falsePositive), false, falsePositive);
+  for (const expected of ['violin', 'suitcase', 'telescope']) assert.equal(terms.has(expected), true, expected);
+  const coverage = result.report.editPlan.coverage.unresolvedConceptCoverage;
+  assert.equal(coverage.required, 3);
+  assert.equal(coverage.diagnosed, 3);
+});
+
+test('resolved object pronouns remain framing and prop-state requirements', async () => {
+  const result = await directScript({ script: 'Kira grabs the phone, then she drops it.', duration: 7, seed: 8 }, { provider: 'offline' });
+  const drop = result.report.editPlan.beats[0].clauses.find((clause) => clause.cues.pronouns.includes('it'))!;
+  assert.ok(drop.cues.objects.includes('phone'));
+  assert.equal(drop.propStateRealized, false);
+  if (drop.entityFramed) assert.ok([drop.shot.subject, drop.shot.secondary].includes('phone'), 'framing credit must explicitly include the resolved phone');
+});
+
+test('one emitted beat action cannot realize repeated narrated occurrences', async () => {
+  const result = await directScript({ script: 'Kira jumps, then Kira jumps.', duration: 6, seed: 14 }, { provider: 'offline' });
+  const coverage = result.report.editPlan.coverage.actionRealizationCoverage;
+  assert.equal(coverage.required, 2);
+  assert.equal(coverage.realized, 1);
+});

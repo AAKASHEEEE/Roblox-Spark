@@ -239,7 +239,7 @@ const PLACE_PREPOSITIONS = new Set(['at', 'in', 'inside', 'into', 'outside', 'ne
 const CONCEPT_FILLERS = new Set(['big', 'small', 'tiny', 'giant', 'new', 'old', 'red', 'blue', 'green', 'flying', 'broken', 'shiny', 'wooden', 'metal', 'toy', 'huge']);
 const GRAMMAR_WORDS = new Set([
   ...CONCEPT_DETERMINERS, ...PLACE_PREPOSITIONS, ...CAST_PRONOUNS, ...OBJECT_PRONOUNS, ...CLAUSE_CONJUNCTIONS,
-  'to', 'from', 'with', 'without', 'of', 'on', 'under', 'over', 'through', 'across', 'past', 'by', 'for', 'as', 'is', 'are', 'was', 'were',
+  'to', 'from', 'with', 'without', 'of', 'on', 'under', 'over', 'through', 'across', 'past', 'by', 'for', 'as', 'beside', 'behind', 'ahead', 'around', 'between', 'is', 'are', 'was', 'were',
   'be', 'been', 'being', 'and', 'or', 'not', 'very', 'quietly', 'quickly', 'slowly', 'suddenly', 'later', 'finally', 'again',
 ]);
 /** Broad, deterministic visibility vocabulary supplements syntax-based noun extraction; it is not asset authorization. */
@@ -366,7 +366,20 @@ function setDimensions(profile: EnvironmentProfile): { width: number; depth: num
 }
 function mentionedCharacters(text: string, characters: LibraryEntry[]): LibraryEntry[] {
   const hits = literalHits(characters, words(text));
-  return uniqueIds(hits).map((id) => characters.find((character) => character.id === id)!).filter(Boolean);
+  const selected: LiteralHit[] = [];
+  let cursor = 0;
+  while (cursor < hits.length) {
+    const start = hits[cursor].startWord;
+    const sameStart: LiteralHit[] = [];
+    while (cursor < hits.length && hits[cursor].startWord === start) sameStart.push(hits[cursor++]);
+    const longest = Math.max(...sameStart.map((hit) => hit.endWord - hit.startWord));
+    const best = sameStart.filter((hit) => hit.endWord - hit.startWord === longest)
+      .sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0)[0];
+    if (!selected.some((hit) => hit.startWord < best.endWord && best.startWord < hit.endWord)) selected.push(best);
+  }
+  const ids = new Set<string>();
+  return selected.map((hit) => characters.find((character) => character.id === hit.id)!)
+    .filter((character) => Boolean(character) && !ids.has(character.id) && !!ids.add(character.id));
 }
 function beatCharacters(text: string, available: LibraryEntry[], previousPerson: LibraryEntry | undefined, actionId: string, maxCast: number): LibraryEntry[] {
   const explicit = mentionedCharacters(text, available);
@@ -388,61 +401,67 @@ function allConceptEntries(lib: Library): Array<{ kind: 'sets' | 'characters' | 
 function conceptMatch(term: string, lib: Library): { kind: 'sets' | 'characters' | 'props'; entry: LibraryEntry | SetEntry } | undefined {
   return allConceptEntries(lib).find(({ entry }) => [entry.id.replace(/_/g, ' '), ...entry.tags].some((tag) => canonical(tag) === canonical(term)));
 }
-const DIRECT_OBJECT_VERBS = new Set(['plays', 'play', 'finds', 'find', 'uses', 'use', 'holds', 'hold', 'grabs', 'grab', 'carries', 'carry', 'rides', 'ride', 'opens', 'open']);
-const DESTINATION_VERBS = new Set(['enters', 'enter', 'visits', 'visit', 'reaches', 'reach', 'leaves', 'leave']);
-function visibleConceptCandidates(text: string, lib: Library): Array<{ term: string; category: ConceptDiagnostic['category'] }> {
-  const tokens = canonicalWords(text);
+interface VisibleConceptCandidate { term: string; category: ConceptDiagnostic['category'] }
+const DESTINATION_VERBS = new Set(['enters', 'enter', 'visits', 'visit', 'reaches', 'reach', 'leaves', 'leave', 'arrives', 'arrive', 'travels', 'travel']);
+const NON_VISUAL_MODIFIERS = new Set([...CONCEPT_FILLERS, 'tall', 'short', 'happy', 'sad', 'angry', 'brave', 'scared', 'funny', 'strange', 'beautiful', 'ugly']);
+const looksVerbLike = (word: string) => /(?:s|ed|ing)$/.test(word) && word.length > 3;
+/**
+ * Build the required visible-noun inventory independently from authorization/diagnostic output. Complete spans for
+ * every available catalog term are removed first, so shared tags and multi-word names cannot leak fragments.
+ */
+function requiredVisibleConcepts(text: string, lib: Library): VisibleConceptCandidate[] {
+  const phraseWords = words(text), tokens = canonicalWords(text);
+  const recognized = new Set<number>();
+  const availableKinds = ['sets', 'characters', 'props', 'actions', 'expressions'] as const;
+  for (const kind of availableKinds) for (const hit of literalHits(availableEntries(kind, lib), phraseWords)) {
+    for (let word = hit.startWord; word < hit.endWord; word++) recognized.add(word);
+  }
+  const actionStarts = new Set(literalHits(availableEntries('actions', lib), phraseWords).map((hit) => hit.startWord));
+  const actionEnds = new Set(literalHits(availableEntries('actions', lib), phraseWords).map((hit) => hit.endWord));
   const found = new Map<string, ConceptDiagnostic['category']>();
   const priority = (category: ConceptDiagnostic['category']) => category === 'place' ? 3 : category === 'entity' ? 2 : 1;
-  const availableMeaning = (term: string) => (['sets', 'characters', 'props', 'actions', 'expressions'] as const)
-    .some((kind) => availableEntries(kind, lib).some((entry) => [entry.id.replace(/_/g, ' '), ...entry.tags].some((tag) => canonical(tag) === term)));
   const add = (term: string, category: ConceptDiagnostic['category']) => {
-    const normalized = canonical(term);
-    const matched = conceptMatch(normalized, lib);
-    const current = found.get(normalized);
-    if (normalized && !GRAMMAR_WORDS.has(normalized) && !CONCEPT_FILLERS.has(normalized) && !availableMeaning(normalized)
-      && matched?.entry.status !== 'available' && (!current || priority(category) > priority(current))) found.set(normalized, category);
+    const normalized = canonical(term), current = found.get(normalized);
+    if (normalized && !GRAMMAR_WORDS.has(normalized) && !NON_VISUAL_MODIFIERS.has(normalized)
+      && (!current || priority(category) > priority(current))) found.set(normalized, category);
   };
-  for (const token of tokens) if (VISIBLE_CONCEPTS[token]) add(token, VISIBLE_CONCEPTS[token]);
+  let lastVerb = -1;
   for (let i = 0; i < tokens.length; i++) {
-    if (i < tokens.length - 1 && CONCEPT_DETERMINERS.has(tokens[i])) {
-      let at = i + 1;
-      while (at < tokens.length - 1 && (CONCEPT_FILLERS.has(tokens[at]) || availableMeaning(tokens[at]))) at++;
-      add(tokens[at], PLACE_PREPOSITIONS.has(tokens[Math.max(0, i - 1)]) ? 'place' : 'prop');
-    }
-    if (PLACE_PREPOSITIONS.has(tokens[i])) {
-      let at = i + 1;
-      if (CONCEPT_DETERMINERS.has(tokens[at])) at++;
-      while (at < tokens.length - 1 && (CONCEPT_FILLERS.has(tokens[at]) || availableMeaning(tokens[at]))) at++;
-      if (tokens[at]) add(tokens[at], 'place');
-    }
-    if ((DIRECT_OBJECT_VERBS.has(tokens[i]) || DESTINATION_VERBS.has(tokens[i])) && tokens[i + 1]) {
-      let at = i + 1;
-      if (CONCEPT_DETERMINERS.has(tokens[at])) at++;
-      while (at < tokens.length - 1 && (CONCEPT_FILLERS.has(tokens[at]) || availableMeaning(tokens[at]))) at++;
-      add(tokens[at], DESTINATION_VERBS.has(tokens[i]) ? 'place' : 'prop');
-    }
-  }
-  const actionHits = literalHits(availableEntries('actions', lib), words(text)).sort((a, b) => a.startWord - b.startWord);
-  const firstAction = actionHits[0];
-  if (firstAction?.startWord) {
-    const subject = tokens.slice(0, firstAction.startWord).filter((token) => !GRAMMAR_WORDS.has(token) && !CONCEPT_FILLERS.has(token)).at(-1);
-    if (subject) add(subject, 'entity');
+    const token = tokens[i];
+    if (recognized.has(i)) { if (actionEnds.has(i + 1)) lastVerb = i; continue; }
+    if (GRAMMAR_WORDS.has(token) || NON_VISUAL_MODIFIERS.has(token)) continue;
+    if (DESTINATION_VERBS.has(token) || looksVerbLike(token)) { lastVerb = i; continue; }
+    if (VISIBLE_CONCEPTS[token]) { add(token, VISIBLE_CONCEPTS[token]); continue; }
+    const previous = tokens[i - 1] ?? '';
+    const nextIsAction = actionStarts.has(i + 1) || looksVerbLike(tokens[i + 1] ?? '');
+    const precededByDeterminer = CONCEPT_DETERMINERS.has(previous);
+    const followedByRecognizedNoun = recognized.has(i + 1) && !actionStarts.has(i + 1);
+    if (PLACE_PREPOSITIONS.has(previous) || DESTINATION_VERBS.has(previous)) add(token, 'place');
+    else if (precededByDeterminer && followedByRecognizedNoun) continue; // adjective before an available multi-word/name span
+    else if (nextIsAction && (i === 0 || precededByDeterminer)) add(token, 'entity');
+    else if (lastVerb >= 0 || actionEnds.has(i)) add(token, DESTINATION_VERBS.has(tokens[lastVerb]) ? 'place' : 'prop');
+    else if (precededByDeterminer) add(token, 'prop');
   }
   return [...found].map(([term, category]) => ({ term, category }));
+}
+/** Authorization pass over the independently inventoried visible requirements. */
+function visibleConceptCandidates(text: string, lib: Library): VisibleConceptCandidate[] {
+  return requiredVisibleConcepts(text, lib).filter(({ term }) => conceptMatch(term, lib)?.entry.status !== 'available');
 }
 
 function analyzeClauses(text: string, characters: LibraryEntry[], props: LibraryEntry[], active: LibraryEntry, lib: Library): ClauseAnalysis[] {
   const rawWords = words(text);
   let lastPerson: string | undefined = active.id;
-  let lastObject: string | undefined;
+  let lastObject: string | undefined = props.length === 1 ? props[0].id : undefined;
   const clauses: ClauseAnalysis[] = splitDirectorClauses(text, lib).map((clause) => {
     const clauseWords = rawWords.slice(clause.words[0], clause.words[1]);
     const personHits = literalHits(characters, clauseWords);
     const objectHits = literalHits(props, clauseWords);
     const actionHits = literalHits(availableEntries('actions', lib), clauseWords);
-    const people = uniqueIds(personHits), objects = uniqueIds(objectHits), actions = uniqueIds(actionHits);
+    const people = uniqueIds(personHits), actions = uniqueIds(actionHits);
+    const objects = uniqueIds(objectHits);
     const pronounWords = clauseWords.flatMap(canonicalWords).filter((word) => PERSON_PRONOUNS.has(word) || OBJECT_PRONOUNS.has(word));
+    if (pronounWords.some((word) => OBJECT_PRONOUNS.has(word)) && lastObject && !objects.includes(lastObject)) objects.push(lastObject);
     const pronouns = [...new Set(pronounWords)];
     const entities = [
       ...personHits.map((hit) => ({ ...hit, kind: 'person' as const })),
@@ -623,6 +642,7 @@ function planBeatEdits(input: {
   }
   const cutByClause = new Map(cuts.map((cut) => [cut.clause.index, cut]));
   let composition = 0, current = input.main, currentSource: 'main' | 'local' | 'provider' = 'main';
+  let emittedActionClaimed = false;
   const clauseReports: EditPlanClauseReport[] = clauses.map((clause) => {
     const cut = cutByClause.get(clause.index);
     if (cut) { composition++; current = cut.shot; currentSource = cut.source; }
@@ -630,7 +650,8 @@ function planBeatEdits(input: {
     const hasEntityCue = clause.people.length > 0 || clause.objects.length > 0;
     const framed = new Set(framedEntities(current));
     const entityFramed = hasEntityCue && [...cueEntities].every((entity) => framed.has(entity));
-    const actionRealized = clause.actions.includes(input.emittedAction) && clause.subject === input.active.id;
+    const actionRealized = !emittedActionClaimed && clause.actions.includes(input.emittedAction) && clause.subject === input.active.id;
+    if (actionRealized) emittedActionClaimed = true;
     // BeatSheet prop state is currently "idle"; merely framing a prop must never claim its narrated state change occurred.
     const propStateRequired = clause.objects.length > 0 && clause.actions.some((action) => PROP_STATE_ACTIONS.has(action));
     const propStateRealized = false;
@@ -699,7 +720,6 @@ function noteUnknownProviderTerms(kind: MatchKind, terms: string[], beat: string
 function diagnoseVisibleConcepts(text: string, beat: string, selectedSet: SetEntry, lib: Library, state: BuildState): void {
   for (const concept of visibleConceptCandidates(text, lib)) {
     const key = `${beat}:${concept.term}`;
-    state.conceptRequirements.add(key);
     if (state.conceptKeys.has(key)) continue;
     state.conceptKeys.add(key);
     const matched = conceptMatch(concept.term, lib);
@@ -875,6 +895,7 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
       ...providerAction.map((text): Query => ({ text, source: 'provider' })),
       { text: req.lines[i], source: 'script' },
     ];
+    for (const concept of requiredVisibleConcepts(req.lines[i], lib)) state.conceptRequirements.add(`${phraseId}:${concept.term}`);
     diagnoseVisibleConcepts(req.lines[i], phraseId, set, lib, state);
     const action = chooseOne('actions', lineQueries, 'idle', phraseId, lib, req.seed, state) as LibraryEntry;
     const expression = chooseOne('expressions', [{ text: req.lines[i], source: 'script' }], 'neutral', phraseId, lib, req.seed, state) as LibraryEntry;
