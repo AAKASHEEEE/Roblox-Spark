@@ -25,7 +25,6 @@ export interface StageMark {
   capabilities: PlacementCapability[];
   postures: string[];
   occupancy: number;
-  reachable: string[];
   exclusiveWith: string[];
   hazard: string;
   aliasOf?: string;
@@ -85,7 +84,7 @@ const bare = (r: string) => r.split('@')[0];
 
 const generatedMark = (id: string, pos: Vec3, facingDeg: number, source: StageMark['source'] = 'generated'): StageMark => ({
   id, pos, facingDeg, source, surfaceY: 0, capabilities: ['actor-standing'], postures: ['stand'], occupancy: 1,
-  reachable: [], exclusiveWith: [], hazard: 'none',
+  exclusiveWith: [], hazard: 'none',
 });
 const capabilitiesForMark = (m: EnvironmentMark): PlacementCapability[] => {
   const out: PlacementCapability[] = [];
@@ -101,13 +100,13 @@ const capabilitiesForMark = (m: EnvironmentMark): PlacementCapability[] => {
 const profiledMark = (m: EnvironmentMark, origin: Vec3, source: StageMark['source'] = 'catalog'): StageMark => ({
   id: m.id, pos: add(m.position, origin), facingDeg: m.facingDeg, source, surfaceY: 0,
   capabilities: capabilitiesForMark(m), postures: [...m.postures], occupancy: m.occupancy,
-  reachable: [...m.reachable], exclusiveWith: [...m.exclusiveWith], hazard: m.hazard.kind,
+  exclusiveWith: [...m.exclusiveWith], hazard: m.hazard.kind,
   ...(m.aliasOf ? { aliasOf: m.aliasOf } : {}),
 });
 const anchorMark = (a: PropAnchor, origin: Vec3): StageMark => ({
   id: a.id, pos: add(a.position, origin), facingDeg: a.rotationDeg[1], source: 'catalog', surfaceY: a.position[1],
   capabilities: a.role === 'look_target' ? ['camera-look-only'] : a.categories.includes('device') ? ['interaction'] : ['prop'],
-  postures: [], occupancy: 0, reachable: [], exclusiveWith: [], hazard: a.hazard.kind,
+  postures: [], occupancy: 0, exclusiveWith: [], hazard: a.hazard.kind,
 });
 
 /** names the beats use in a set: marks (cast/prop placements, lookAt/vfx targets that are not entities) and doors */
