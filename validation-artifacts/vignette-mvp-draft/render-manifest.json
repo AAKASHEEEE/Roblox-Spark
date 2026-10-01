@@ -1,0 +1,26 @@
+{
+  "sourceCommit": "4e04ccf5e61f716587f067b333b69940d41dbe52",
+  "sheet": "free-coins-classroom.beats.json",
+  "stage": {
+    "blocking": false,
+    "reasons": [],
+    "coveragePct": 0.9818,
+    "coverageThreshold": 0.9,
+    "camerasAccepted": 14,
+    "camerasFallback": 0,
+    "camerasBlocked": 0,
+    "stagingErrors": 0,
+    "stagingWarnings": 0,
+    "placeholders": 4
+  },
+  "width": 540,
+  "height": 960,
+  "fps": 30,
+  "frames": 2073,
+  "durationSec": 69.1,
+  "video": "H.264 Annex B remux",
+  "audio": "approved S7 voice+SFX AAC track reused from historical proof; no music",
+  "file": "blockspark-vignette-draft.mp4",
+  "bytes": 18791414,
+  "sha256": "cc92aead238485d327490a171e922be5feb6c04c85b5fa9681fc104e5fc6ef8d"
+}
