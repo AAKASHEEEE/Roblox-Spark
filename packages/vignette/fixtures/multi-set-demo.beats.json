@@ -28,7 +28,7 @@
       ],
       "props": [{ "propId": "backpack", "placement": "held:kira", "state": "closed" }],
       "events": [{ "type": "door_open", "at": 5.0, "doorId": "hall_door" }, { "type": "exit", "at": 7.0, "characterId": "zapp", "doorId": "hall_door" }, { "type": "sfx", "at": 5.0, "sfxId": "door_open" }],
-      "camera": { "recipeId": "medium_single", "subject": "kira" },
+      "camera": { "recipeId": "establishing_wide", "subject": "zapp" },
       "captions": [{ "start": 4, "end": 6, "text": "Zapp bursts in" }, { "start": 6, "end": 8, "text": "first" }],
       "carryOver": ["zapp", "kira", "backpack"]
     },
@@ -57,7 +57,7 @@
       ],
       "props": [{ "propId": "ball", "placement": "sandpit", "state": "idle" }],
       "events": [{ "type": "vfx", "at": 12.8, "vfxId": "confetti", "target": "zapp" }, { "type": "sfx", "at": 12.8, "sfxId": "sfx_tada" }],
-      "camera": { "recipeId": "two_shot", "subject": "zapp", "secondary": "kira" },
+      "camera": { "recipeId": "wide_environment", "subject": "zapp", "secondary": "kira" },
       "captions": [{ "start": 12, "end": 14, "text": "Later on" }, { "start": 14, "end": 16, "text": "still celebrating" }],
       "carryOver": []
     }

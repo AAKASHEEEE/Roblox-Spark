@@ -29,7 +29,8 @@
     "bench:holdout": "node scripts/bench-generate.ts --set bench/holdout-ideas.json --provider rules --out out/bench/holdout",
     "bench:render": "node scripts/bench-render.ts",
     "action-reel": "node scripts/action-reel.ts --scale 0.5",
-    "vignette:stage": "node scripts/vignette-stage.ts"
+    "vignette:stage": "node scripts/vignette-stage.ts",
+    "director": "node scripts/director.ts"
   },
   "devDependencies": {
     "typescript": "7.0.2",

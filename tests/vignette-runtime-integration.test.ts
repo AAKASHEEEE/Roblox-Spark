@@ -163,3 +163,11 @@ test('merged S3-S6 fixture resolves builders and real actions/faces without plac
   visit(scene.root);
   assert.ok(!names.some((n) => n.includes('doorway:classroom_door:fallback')), 'no duplicate fallback frame for real door');
 });
+
+test('fresh browser entry registers the same runtime builders before rebuilding the scene', () => {
+  const source = readFileSync(join(ROOT, 'packages/vignette/src/web-entry.ts'), 'utf8');
+  const register = source.indexOf('registerRuntimeLibrary(lib);');
+  const stage = source.indexOf('plan = stageBeatSheet(v.value, lib);');
+  const scene = source.indexOf('scene = new VignetteScene(plan, lib);');
+  assert.ok(register >= 0 && register < stage && stage < scene, 'browser must register builders before staging/rendering');
+});

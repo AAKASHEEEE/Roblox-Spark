@@ -1,4 +1,6 @@
-# BlockSpark Vignette MVP — product status
+# BlockSpark Vignette MVP — historical product status
+
+> **Superseded:** This file records the earlier `617e8fa` snapshot. Use [`FINAL_STATUS.md`](FINAL_STATUS.md) for the current integrated Director/S7/dual-fixture result.
 
 > **Snapshot:** `integration/vignette-v1` / `chore/vignette-handoff` at `617e8fa` (`feat: ship passing script-relevant vignette MVP`). This document describes that commit, not `main`. Re-run the checks below after every integration.
 
