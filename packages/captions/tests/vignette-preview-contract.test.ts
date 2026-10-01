@@ -8,6 +8,7 @@ const root = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 const adapter = readFileSync(resolve(root, 'packages/captions/src/preview/vignette-full-page.ts'), 'utf8');
 const session = readFileSync(resolve(root, 'packages/captions/src/preview/vignette-render-session.ts'), 'utf8');
 const renderFull = readFileSync(resolve(root, 'packages/captions/tools/render-full.ts'), 'utf8');
+const sealEvidence = readFileSync(resolve(root, 'packages/captions/tools/seal-render-evidence.ts'), 'utf8');
 const webEntry = readFileSync(resolve(root, 'packages/vignette/src/web-entry.ts'), 'utf8');
 
 test('S7 vignette adapter consumes the neutral shared render session', () => {
@@ -38,4 +39,29 @@ test('review stills and S7 video share the same exact-time Vignette render sessi
   assert.doesNotMatch(webEntry, /new VignetteScene|stageBeatSheet\(|poseAt\(|registerRuntimeLibrary\(/);
   assert.match(webEntry, /session\.frame\(t\)/);
   assert.match(webEntry, /session\.render\(frame\)/);
+});
+
+
+test('trusted raw inputs are batch-authenticated before parsing or native decode', () => {
+  const authenticate = renderFull.indexOf('readTrustedRenderInputs(trustedManifest');
+  const storyboardParse = renderFull.indexOf("parseJsonBytes(inputBytes.storyboard, 'storyboard')");
+  const containerParse = renderFull.indexOf("checkContainer(voiceBytes, 'mp3')");
+  const ffmpegLaunch = renderFull.indexOf('const raw = execFileSync(ffmpeg');
+  assert.ok(authenticate >= 0 && authenticate < storyboardParse, 'scheduler pins must authenticate inputs before storyboard JSON parsing');
+  assert.ok(authenticate < containerParse, 'scheduler pins must authenticate voice before container parsing');
+  assert.ok(authenticate < ffmpegLaunch, 'scheduler pins must authenticate all inputs before FFmpeg');
+  assert.match(renderFull, /input: Buffer\.from\(voiceBytes\)/, 'trusted FFmpeg must consume the authenticated bytes, not reopen the upload path');
+});
+
+test('trusted media tools use exact authenticated paths and evidence comes from decoded output', () => {
+  assert.match(renderFull, /requireFromHere\(playwrightCore\)/);
+  assert.match(renderFull, /executablePath: chromium/);
+  assert.match(renderFull, /execFileSync\(ffprobe/);
+  assert.doesNotMatch(renderFull, /__s7v\.framePng/);
+  const muxed = renderFull.indexOf('writeFileSync(mp4Path, mp4)');
+  const committedDecodedFrame = renderFull.indexOf('writeFileSync(join(outDir, claim.file), decodedBytes)');
+  const receipt = renderFull.indexOf('createDecodedFrameReceipt(mp4Sha, decodedFrameClaims)');
+  assert.ok(muxed >= 0 && muxed < committedDecodedFrame, 'representative evidence must be copied from post-mux decoded frames');
+  assert.ok(committedDecodedFrame < receipt, 'decode-time output and frame hashes must be persisted after committed frame bytes');
+  assert.match(sealEvidence, /decodedFrameReceiptPath: receiptPath/, 'delayed sealing must consume the worker-owned decoded-frame receipt');
 });

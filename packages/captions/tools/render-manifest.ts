@@ -1,14 +1,29 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { lstatSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { closeSync, constants, fstatSync, lstatSync, openSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { isAbsolute, join, posix, relative } from 'node:path';
 import type { TimedComposition } from '../src/preview/composition.ts';
 import type { EvidenceProfileId, RenderProfileId, VisualMode } from './render-config.ts';
 
 export const INPUT_MANIFEST_SCHEMA = 'blockspark.render-input-manifest/2' as const;
-export const EVIDENCE_REPORT_SCHEMA = 'blockspark.render-evidence/2' as const;
+export const LEGACY_EVIDENCE_REPORT_SCHEMA = 'blockspark.render-evidence/2' as const;
+export const EVIDENCE_REPORT_SCHEMA = 'blockspark.render-evidence/3' as const;
 const SHA256 = /^[a-f0-9]{64}$/;
 const GIT_OBJECT = /^[a-f0-9]{40,64}$/;
+
+/** Hard parser-entry limits. Scheduler pins authenticate content; these independent caps bound allocation first. */
+export const RENDER_BYTE_LIMITS = Object.freeze({
+  inputManifest: 1024 * 1024,
+  storyboard: 4 * 1024 * 1024,
+  beatSheet: 8 * 1024 * 1024,
+  voice: 64 * 1024 * 1024,
+  assetLock: 16 * 1024 * 1024,
+  packageLock: 32 * 1024 * 1024,
+  evidenceReport: 2 * 1024 * 1024,
+  output: 512 * 1024 * 1024,
+  evidenceImage: 32 * 1024 * 1024,
+  diagnostics: 32 * 1024 * 1024,
+});
 
 export interface ToolPins {
   node: string;
@@ -70,6 +85,55 @@ export function canonicalJson(value: unknown): string {
 
 export function sha256Bytes(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex');
+}
+
+/**
+ * Read a regular file once through a no-follow descriptor, rejecting its stat size before allocation. The returned
+ * bytes are the only bytes callers may parse or pass to native code, avoiding a hash-then-reopen race.
+ */
+export function readBoundedFile(path: string, maxBytes: number, label: string): Uint8Array {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new Error(`${label} byte limit is invalid`);
+  let fd: number;
+  try { fd = openSync(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0)); }
+  catch (error) { throw new Error(`cannot open ${label}: ${error instanceof Error ? error.message : String(error)}`); }
+  try {
+    const before = fstatSync(fd);
+    if (!before.isFile()) throw new Error(`${label} is not a regular file`);
+    if (before.size > maxBytes) throw new Error(`${label} exceeds ${maxBytes} byte limit (${before.size})`);
+    const bytes = readFileSync(fd);
+    const after = fstatSync(fd);
+    if (after.size !== before.size || after.mtimeMs !== before.mtimeMs || bytes.length !== before.size) throw new Error(`${label} changed while it was being read`);
+    if (bytes.length > maxBytes) throw new Error(`${label} exceeds ${maxBytes} byte limit (${bytes.length})`);
+    return new Uint8Array(bytes);
+  } finally { closeSync(fd); }
+}
+
+/** Authenticate exactly the bounded bytes that the caller will consume. No parser runs in this function. */
+export function readAuthenticatedFile(path: string, expected: { sha256: string; bytes?: number }, maxBytes: number, label: string): Uint8Array {
+  const bytes = readBoundedFile(path, maxBytes, label);
+  if (expected.bytes !== undefined && bytes.length !== expected.bytes) throw new Error(`${label} byte count ${bytes.length} does not match authorized ${expected.bytes}`);
+  const actual = sha256Bytes(bytes);
+  if (actual !== expected.sha256) throw new Error(`${label} SHA-256 ${actual} does not match authorized ${expected.sha256}`);
+  return bytes;
+}
+
+export function parseJsonBytes(bytes: Uint8Array, label: string): unknown {
+  let source: string;
+  try { source = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+  catch (error) { throw new Error(`cannot decode ${label} as UTF-8: ${error instanceof Error ? error.message : String(error)}`); }
+  try { return JSON.parse(source); }
+  catch (error) { throw new Error(`cannot parse ${label}: ${error instanceof Error ? error.message : String(error)}`); }
+}
+
+export interface TrustedRenderInputPaths { storyboard: string; beatSheet: string; voice: string }
+export interface TrustedRenderInputBytes { storyboard: Uint8Array; beatSheet: Uint8Array; voice: Uint8Array }
+
+/** Authenticate the complete parser/native-input set before the caller parses even the first JSON document. */
+export function readTrustedRenderInputs(manifest: RenderInputManifest, paths: TrustedRenderInputPaths): TrustedRenderInputBytes {
+  const storyboard = readAuthenticatedFile(paths.storyboard, manifest.inputs.storyboard, RENDER_BYTE_LIMITS.storyboard, 'storyboard');
+  const beatSheet = readAuthenticatedFile(paths.beatSheet, manifest.inputs.beatSheet, RENDER_BYTE_LIMITS.beatSheet, 'BeatSheet');
+  const voice = readAuthenticatedFile(paths.voice, manifest.inputs.voice, RENDER_BYTE_LIMITS.voice, 'voice');
+  return { storyboard, beatSheet, voice };
 }
 
 export function hashFile(path: string): { sha256: string; bytes: number } {
@@ -198,10 +262,7 @@ export function parseInputManifest(value: unknown): RenderInputManifest {
 }
 
 export function readInputManifest(path: string): RenderInputManifest {
-  let value: unknown;
-  try { value = JSON.parse(readFileSync(path, 'utf8')); }
-  catch (error) { throw new Error(`cannot parse input manifest: ${error instanceof Error ? error.message : String(error)}`); }
-  return parseInputManifest(value);
+  return parseInputManifest(parseJsonBytes(readBoundedFile(path, RENDER_BYTE_LIMITS.inputManifest, 'input manifest'), 'input manifest'));
 }
 
 export function assertRuntimePins(manifest: RenderInputManifest, actual: RuntimePins): void {

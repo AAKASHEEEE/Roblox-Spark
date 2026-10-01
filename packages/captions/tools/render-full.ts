@@ -12,21 +12,22 @@
 // storyboard.audio.contentHash; approved narration is never cut, stretched, or sped up.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { findChromium, launchBrowser } from '../../../apps/render-worker/lib/browser.ts';
 import { aacRoundTrip } from '../../../apps/render-worker/lib/aac-check.ts';
-import { verifyPlayback, mp4AudioAlignment } from '../../../apps/render-worker/lib/verify.ts';
-import { loadLibrary, sha256 } from '../../../apps/render-worker/lib/library.ts';
+import { mp4AudioAlignment } from '../../../apps/render-worker/lib/verify.ts';
+import { loadLibrary } from '../../../apps/render-worker/lib/library.ts';
 import { startServer } from '../../../apps/render-worker/lib/server.ts';
 import { draftEpisodeFor, prepareIntegration } from '../../../apps/studio/narrated-draft.ts';
 import { checkContainer } from '../../narrated/src/audio.ts';
 import { compileNarratedTimeline } from '../../narrated/src/timeline.ts';
 import { encodeAacLc } from '../../audio/src/aac/encoder.ts';
 import { muxMp4 } from '../../mp4/src/mux.ts';
-import { probeFile } from '../../../apps/render-worker/lib/probe-node.ts';
+import { fromFfprobeJson, probeFile } from '../../../apps/render-worker/lib/probe-node.ts';
 import { checkProductionProfile, PRODUCTION_SPEC } from '../../mp4/src/probe.ts';
 import { mixPlanFromBeatSheet, mixVoiceSfx, encodeWavStereo } from '../../audio-mix/src/index.ts';
 import { planBoldCaptions, phrasesFromBeats, checkBoldPlan } from '../src/bold.ts';
@@ -45,10 +46,69 @@ import type { CameraState } from '../../engine/src/gl/renderer.ts';
 import { assertCompositionTimeline, compositionAt } from '../src/preview/composition.ts';
 import { COMPETITOR_EVIDENCE_FILES, resolveRenderSelection } from './render-config.ts';
 import { validateRenderPaths } from './render-paths.ts';
-import { assertManifestActuals, assertRuntimePins, gitSource, hashDirectoryTree, hashFile, manifestDigest, packageVersion, readInputManifest, solvedCompositionsDigest, type RenderInputManifest, type RuntimePins, type ToolPins } from './render-manifest.ts';
-import { buildEvidenceReport, codecPinIssues } from './verify-render-v2.ts';
+import { assertManifestActuals, assertRuntimePins, gitSource, hashDirectoryTree, hashFile, manifestDigest, packageVersion, parseJsonBytes, readAuthenticatedFile, readBoundedFile, readInputManifest, readTrustedRenderInputs, RENDER_BYTE_LIMITS, sha256Bytes, solvedCompositionsDigest, type RenderInputManifest, type RuntimePins, type ToolPins } from './render-manifest.ts';
+import { buildEvidenceReport, codecPinIssues, COMPETITOR_DECODED_FRAMES, createDecodedFrameReceipt, DECODED_FRAME_RECEIPT_FILE, type DecodedFrameClaim } from './verify-render-v2.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
+const requireFromHere = createRequire(import.meta.url);
+
+function assertPinnedRuntimeFile(path: string, expected: string | null, label: string): void {
+  if (!expected) throw new Error(`trusted render is missing the ${label} runtime pin`);
+  const actual = hashFile(path).sha256;
+  if (actual !== expected) throw new Error(`${label} bytes changed after authorization`);
+}
+
+async function launchAuthenticatedBrowser(manifest: RenderInputManifest, playwrightCore: string, chromium: string, gpu: boolean): Promise<any> {
+  if (!manifest.runtime.playwrightTreeSha256) throw new Error('trusted render is missing the Playwright runtime pin');
+  if (hashDirectoryTree(playwrightCore) !== manifest.runtime.playwrightTreeSha256) throw new Error('Playwright bytes changed after authorization');
+  const playwright = requireFromHere(playwrightCore);
+  if (!playwright?.chromium?.launch) throw new Error('authorized Playwright runtime does not expose chromium.launch');
+  assertPinnedRuntimeFile(chromium, manifest.runtime.chromiumSha256, 'Chromium');
+  const args = gpu
+    ? ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan']
+    : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
+  args.push('--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-color-profile=srgb', '--js-flags=--max-old-space-size=4096');
+  return playwright.chromium.launch({ executablePath: chromium, headless: true, args });
+}
+
+/** Decode with the already authenticated browser so playback cannot silently select a fallback runtime. */
+async function verifyPlaybackWithBrowser(browser: any, baseUrl: string, relPath: string, times: number[], outDir: string, playSeconds = 2): Promise<any> {
+  mkdirSync(outDir, { recursive: true });
+  const page = await browser.newPage();
+  try {
+    await page.goto(`${baseUrl}/apps/studio/blank.html`);
+    const res = await page.evaluate(async ([src, seekTimes, seconds]: [string, number[], number]) => {
+      const errors: string[] = [];
+      const video = document.createElement('video');
+      video.muted = true; video.preload = 'auto'; video.src = src; video.crossOrigin = 'anonymous';
+      document.body.appendChild(video);
+      await new Promise<void>((ok) => { video.onloadeddata = () => ok(); video.onerror = () => { errors.push(`media error ${video.error?.code ?? '?'} ${video.error?.message ?? ''}`); ok(); }; });
+      const frames: string[] = [];
+      if (!errors.length) {
+        const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d')!;
+        for (const time of seekTimes) {
+          await new Promise<void>((ok) => { video.onseeked = () => ok(); video.currentTime = time; });
+          context.drawImage(video, 0, 0); frames.push(canvas.toDataURL('image/png'));
+        }
+        video.currentTime = 0; await new Promise((done) => setTimeout(done, 100));
+        const before = video.getVideoPlaybackQuality();
+        await video.play().catch((error) => errors.push(`play: ${error}`));
+        const started = performance.now(); await new Promise((done) => setTimeout(done, seconds * 1000)); video.pause();
+        const after = video.getVideoPlaybackQuality(), anyVideo = video as any;
+        return { ok: true, videoWidth: video.videoWidth, videoHeight: video.videoHeight, duration: video.duration, audioDecodedBytes: anyVideo.webkitAudioDecodedByteCount ?? -1, videoDecodedBytes: anyVideo.webkitVideoDecodedByteCount ?? -1, framesDecodedDuringPlay: after.totalVideoFrames - before.totalVideoFrames, droppedFrames: after.droppedVideoFrames, playedSeconds: video.currentTime, playWallSeconds: (performance.now() - started) / 1000, errors, frames };
+      }
+      return { ok: false, videoWidth: 0, videoHeight: 0, duration: 0, audioDecodedBytes: 0, videoDecodedBytes: 0, framesDecodedDuringPlay: 0, droppedFrames: 0, playedSeconds: 0, errors, frames };
+    }, [`${baseUrl}/${relPath}`, times, playSeconds]);
+    const frameFiles: string[] = [];
+    res.frames.forEach((dataUrl: string, index: number) => {
+      const file = join(outDir, `decoded_t${times[index].toFixed(2)}.png`);
+      writeFileSync(file, Buffer.from(dataUrl.split(',')[1], 'base64')); frameFiles.push(file);
+    });
+    delete res.frames;
+    return { ...res, ok: res.ok && res.errors.length === 0, frameFiles };
+  } finally { await page.close().catch(() => undefined); }
+}
 
 const { values: arg } = parseArgs({ options: {
   voice: { type: 'string' }, ffmpeg: { type: 'string' }, out: { type: 'string' },
@@ -115,15 +175,36 @@ if (trustedManifest) {
 }
 
 stage(`authenticate approved inputs (visual=${visual}, profile=${profile.id}, evidence=${evidenceProfile})`);
-const sbText = readFileSync(sbPath, 'utf8'), sb = JSON.parse(sbText), sbSha = sha256(sbText);
-const beatsText = readFileSync(beatsPath, 'utf8'), sheet = JSON.parse(beatsText), beatsSha = sha256(beatsText);
-const voiceBytes = new Uint8Array(readFileSync(voicePath));
+if (trustedManifest) {
+  const storyboardPath = relative(ROOT, sbPath).split('\\').join('/');
+  const beatSheetPath = relative(ROOT, beatsPath).split('\\').join('/');
+  if (storyboardPath !== trustedManifest.inputs.storyboard.path) throw new Error(`storyboard path ${storyboardPath} does not match scheduler manifest`);
+  if (beatSheetPath !== trustedManifest.inputs.beatSheet.path) throw new Error(`BeatSheet path ${beatSheetPath} does not match scheduler manifest`);
+}
+// Authenticate the entire parser/native-input set as raw bytes before parsing even the first JSON document.
+const inputBytes = trustedManifest
+  ? readTrustedRenderInputs(trustedManifest, { storyboard: sbPath, beatSheet: beatsPath, voice: voicePath })
+  : {
+      storyboard: readBoundedFile(sbPath, RENDER_BYTE_LIMITS.storyboard, 'storyboard'),
+      beatSheet: readBoundedFile(beatsPath, RENDER_BYTE_LIMITS.beatSheet, 'BeatSheet'),
+      voice: readBoundedFile(voicePath, RENDER_BYTE_LIMITS.voice, 'voice'),
+    };
+const sbSha = sha256Bytes(inputBytes.storyboard), beatsSha = sha256Bytes(inputBytes.beatSheet), voiceSha = sha256Bytes(inputBytes.voice);
+const sb: any = parseJsonBytes(inputBytes.storyboard, 'storyboard');
+const sheet: any = parseJsonBytes(inputBytes.beatSheet, 'BeatSheet');
+const voiceBytes = inputBytes.voice;
 checkContainer(voiceBytes, 'mp3');
-const voiceSha = hex(voiceBytes);
 if (voiceSha !== sb.audio.contentHash) throw new Error(`voice hash ${voiceSha} does not match approved ${sb.audio.contentHash}`);
 
 stage('decode approved MP3 to mono 48 kHz float PCM (never cut/stretch/speed the approved VO)');
-const raw = execFileSync(ffmpeg, ['-hide_banner', '-nostdin', '-protocol_whitelist', 'file', '-f', 'mp3', '-i', voicePath, '-map', '0:a:0', '-vn', '-sn', '-dn', '-ac', '1', '-ar', '48000', '-f', 'f32le', '-acodec', 'pcm_f32le', 'pipe:1'], { encoding: 'buffer', maxBuffer: 48000 * 4 * 310, timeout: 120000, stdio: ['ignore', 'pipe', 'pipe'] }) as Buffer;
+if (trustedManifest) assertPinnedRuntimeFile(ffmpeg, trustedManifest.runtime.ffmpegSha256, 'FFmpeg');
+const ffmpegInputArgs = trustedManifest
+  ? ['-hide_banner', '-nostdin', '-protocol_whitelist', 'pipe', '-f', 'mp3', '-i', 'pipe:0']
+  : ['-hide_banner', '-nostdin', '-protocol_whitelist', 'file', '-f', 'mp3', '-i', voicePath];
+const raw = execFileSync(ffmpeg, [...ffmpegInputArgs, '-map', '0:a:0', '-vn', '-sn', '-dn', '-ac', '1', '-ar', '48000', '-f', 'f32le', '-acodec', 'pcm_f32le', 'pipe:1'], {
+  ...(trustedManifest ? { input: Buffer.from(voiceBytes) } : {}), encoding: 'buffer', maxBuffer: 48000 * 4 * 310,
+  timeout: 120000, stdio: [trustedManifest ? 'pipe' : 'ignore', 'pipe', 'pipe'],
+}) as Buffer;
 const voice = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.length - (raw.length % 4)));
 const decodedDuration = voice.length / 48000;
 if (Math.abs(decodedDuration - sb.audio.durationSeconds) > 0.05) throw new Error(`decoded voice ${decodedDuration.toFixed(3)}s differs from approved ${sb.audio.durationSeconds}s`);
@@ -180,8 +261,11 @@ if (visual === 'narrated') {
 if (trustedManifest) {
   stage('verify trusted pre-render manifest against source, inputs, solve, asset lock, and exact tools');
   const packageLockPath = resolve(ROOT, 'package-lock.json'), assetLockPath = resolve(ROOT, 'assets/asset-lock.json');
-  const packageLock = JSON.parse(readFileSync(packageLockPath, 'utf8'));
+  const packageLockBytes = readAuthenticatedFile(packageLockPath, trustedManifest.inputs.packageLock, RENDER_BYTE_LIMITS.packageLock, 'package lock');
+  const assetLockBytes = readAuthenticatedFile(assetLockPath, trustedManifest.inputs.assetLock, RENDER_BYTE_LIMITS.assetLock, 'asset lock');
+  const packageLock = parseJsonBytes(packageLockBytes, 'package lock');
   if (!checkedPaths.chromium) throw new Error('trusted render requires an explicitly discovered Chromium executable');
+  assertPinnedRuntimeFile(checkedPaths.chromium, trustedManifest.runtime.chromiumSha256, 'Chromium');
   const chromiumBanner = execFileSync(checkedPaths.chromium, ['--version'], { encoding: 'utf8', timeout: 10_000 }).trim();
   const chromiumVersion = /\d+\.\d+\.\d+\.\d+/.exec(chromiumBanner)?.[0];
   if (!chromiumVersion) throw new Error(`could not identify Chromium version from '${chromiumBanner}'`);
@@ -199,8 +283,8 @@ if (trustedManifest) {
       beatSheet: { path: relative(ROOT, beatsPath), sha256: beatsSha },
       voice: { sha256: voiceSha },
       solvedCompositions: { sha256: solvedCompositionsDigest(compositions), count: compositions.length },
-      assetLock: { path: relative(ROOT, assetLockPath), sha256: hashFile(assetLockPath).sha256 },
-      packageLock: { path: relative(ROOT, packageLockPath), sha256: hashFile(packageLockPath).sha256 },
+      assetLock: { path: relative(ROOT, assetLockPath), sha256: sha256Bytes(assetLockBytes) },
+      packageLock: { path: relative(ROOT, packageLockPath), sha256: sha256Bytes(packageLockBytes) },
     },
     tools,
     runtime: authorizedRuntime!,
@@ -210,7 +294,10 @@ if (arg.workerSafe) {
   mkdirSync(dirname(outDir), { recursive: true });
   mkdirSync(outDir); // non-recursive final create is the cross-worker collision guard
 } else mkdirSync(outDir, { recursive: true });
-if (evidenceProfile === 'competitor-v2') rmSync(join(outDir, 'render-evidence.json'), { force: true });
+if (evidenceProfile === 'competitor-v2') {
+  rmSync(join(outDir, 'render-evidence.json'), { force: true });
+  rmSync(join(outDir, DECODED_FRAME_RECEIPT_FILE), { force: true });
+}
 
 const audioSamples = N * (48000 / fps);
 if (voice.length > audioSamples) throw new Error(`approved voice has ${voice.length} samples but ${N} frames hold ${audioSamples}; refusing to cut voice`);
@@ -261,7 +348,9 @@ if (arg.prebuilt) {
   execFileSync(join(ROOT, 'node_modules/.bin/tsc'), ['-p', 'tsconfig.web.json'], { cwd: ROOT, stdio: 'inherit' });
 }
 const { server, url } = await startServer(0);
-const browser = await launchBrowser({ gpu: arg.gpu });
+const browser = trustedManifest
+  ? await launchAuthenticatedBrowser(trustedManifest, checkedPaths.playwrightCore!, checkedPaths.chromium!, !!arg.gpu)
+  : await launchBrowser({ gpu: arg.gpu });
 const mp4Path = join(outDir, mp4Name);
 const gates: Record<string, unknown> = {};
 try {
@@ -447,25 +536,8 @@ try {
   const meta = await page.evaluate(([g]: any) => (window as any)[g].meta(), [initCapture]);
   if (!meta.avcCb64) throw new Error('VideoEncoder did not return avcC');
 
-  // ---- capture the 7 named evidence PNGs (vignette mode) from the adapter's frame path ----
-  if (evidenceProfile === 'competitor-v2') {
-    stage('capture the 7 named evidence PNGs from the adapter frame path');
-    const frameShots: Array<[string, number]> = [
-      ['frame-teacher-exit.png', 3.0], ['frame-zapp-celebrate.png', 11.0], ['frame-button-press.png', 32.2],
-      ['frame-coin-growth.png', 45.0], ['frame-impact.png', 57.0], ['frame-teacher-return.png', 61.0], ['frame-final-payoff.png', 67.0],
-    ];
-    // Capture as real PNG via the adapter's PNG path. The .png bytes MUST be PNG (the JPEG frame() path is only for
-    // internal capture). Assert the PNG magic bytes so a .png can never silently hold JPEG data again.
-    const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-    for (const [name, t] of frameShots) {
-      const res = await page.evaluate(([tt, plan]: [number, any]) => (window as any).__s7v.framePng({ t: tt, vfx: plan.vfx, graphics: plan.graphics, captions: plan.captions, placements: plan.placements }), [t, { vfx, graphics, captions: captionPlan.captions, placements: placementSegments }]);
-      if (!String(res.url).startsWith('data:image/png;base64,')) throw new Error(`frame ${name} was not a PNG data URL`);
-      const png = Buffer.from(res.url.split(',')[1], 'base64');
-      if (!png.subarray(0, 8).equals(PNG_MAGIC)) throw new Error(`frame ${name} bytes are not PNG (bad magic)`);
-      writeFileSync(join(outDir, name), png);
-    }
-    if (pageErrors.length) throw new Error(`pageerror during frame capture: ${pageErrors.join('; ')}`);
-  }
+  // Representative evidence is intentionally not captured from the pre-mux renderer path. Trusted frame files are
+  // copied from the independent decoded-MP4 playback below, after the final output bytes exist.
 
   stage('encode AAC-LC and mux fast-start MP4');
   const aac = encodeAacLc([mixed.left, mixed.right], audioBitrate);
@@ -477,7 +549,17 @@ try {
   });
   writeFileSync(mp4Path, mp4);
   const expectedDuration: [number, number] = evidenceProfile === 'competitor-v2' ? [69, 69.2] : [Math.max(0, videoDuration - 0.05), videoDuration + 0.05];
-  const mp4Sha = hex(mp4), probe = probeFile(mp4Path), production = checkProductionProfile(probe, { ...PRODUCTION_SPEC, width: W, height: H, fps: `${fps}/1`, maxAvDriftSec: 1 / fps, durationRange: expectedDuration });
+  const mp4Sha = hex(mp4);
+  let probe;
+  if (trustedManifest) {
+    const ffprobe = checkedPaths.ffprobe!;
+    assertPinnedRuntimeFile(ffprobe, trustedManifest.runtime.ffprobeSha256, 'FFprobe');
+    const ffprobeJson = execFileSync(ffprobe, ['-v', 'error', '-print_format', 'json', '-show_format', '-show_streams', '-i', 'pipe:0'], {
+      input: Buffer.from(mp4), encoding: 'utf8', timeout: 30_000, maxBuffer: 4 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    probe = fromFfprobeJson(JSON.parse(ffprobeJson), mp4);
+  } else probe = probeFile(mp4Path);
+  const production = checkProductionProfile(probe, { ...PRODUCTION_SPEC, width: W, height: H, fps: `${fps}/1`, maxAvDriftSec: 1 / fps, durationRange: expectedDuration });
   writeFileSync(join(outDir, 'probe.json'), JSON.stringify({ probe, production }, null, 2) + '\n');
   const codecProblems = codecPinIssues(probe, profile.codec);
   if (!production.ok || codecProblems.length) throw new Error(`production profile: ${[...production.errors, ...codecProblems].join('; ')}`);
@@ -489,12 +571,23 @@ try {
   const publicDir = mkdtempSync(join(publicRoot, 'render-verify-'));
   const publicMp4 = join(publicDir, mp4Name);
   const seekTimes = evidenceProfile === 'competitor-v2'
-    ? [0.5, 3.0, 11.0, 32.2, 45.0, 57.0, 61.0, 67.0]
+    ? [0.5, ...COMPETITOR_DECODED_FRAMES.map((frame) => frame.timestampSec)]
     : [0.5, videoDuration * 0.25, videoDuration * 0.5, Math.max(0.5, videoDuration - 0.5)].filter((t, i, xs) => t < videoDuration && xs.indexOf(t) === i);
+  const decodedFrameClaims: DecodedFrameClaim[] = [];
   let playback: any, roundTrip: any, alignment: any, verifyPage: any = null;
   try {
     writeFileSync(publicMp4, mp4);
-    playback = await verifyPlayback(url, relative(ROOT, publicMp4), seekTimes, join(publicDir, 'decoded'), 3);
+    playback = await verifyPlaybackWithBrowser(browser, url, relative(ROOT, publicMp4), seekTimes, join(publicDir, 'decoded'), 3);
+    if (evidenceProfile === 'competitor-v2') {
+      if (playback.frameFiles.length !== seekTimes.length) throw new Error(`decoded representative frame count ${playback.frameFiles.length} != ${seekTimes.length}`);
+      for (let index = 0; index < COMPETITOR_DECODED_FRAMES.length; index++) {
+        // index zero is the general 0.5 s playback sample; the seven following files are the committed evidence.
+        const claim = COMPETITOR_DECODED_FRAMES[index];
+        const decodedBytes = readBoundedFile(playback.frameFiles[index + 1], RENDER_BYTE_LIMITS.evidenceImage, `decoded frame ${claim.file}`);
+        writeFileSync(join(outDir, claim.file), decodedBytes);
+        decodedFrameClaims.push({ ...claim, sha256: sha256Bytes(decodedBytes), bytes: decodedBytes.length, outputSha256: mp4Sha });
+      }
+    }
     verifyPage = await browser.newPage(); await verifyPage.goto(`${url}/apps/studio/blank.html`);
     roundTrip = await aacRoundTrip(aac.frames, aac.asc, [mixed.left, mixed.right], aac.priming, verifyPage);
     alignment = await mp4AudioAlignment(verifyPage, `${url}/${relative(ROOT, publicMp4)}`, mixed.left);
@@ -505,6 +598,10 @@ try {
   const avDrift = Math.abs((alignment.decodedSamples / 48000) - videoDuration);
   const mediaOk = playback.ok && playback.droppedFrames === 0 && roundTrip.ok && roundTrip.snrDb.every((x: number) => x >= 15) && Math.abs(alignment.lagSamples) <= 48 && Math.abs(alignment.decodedSamples - mixed.left.length) <= 1024 && avDrift <= 1 / fps + 1e-6;
   if (!mediaOk) throw new Error(`independent decode/playback/audio alignment verification failed: dropped=${playback.droppedFrames} snr=${JSON.stringify(roundTrip.snrDb)} lag=${alignment.lagSamples} decErr=${alignment.decodedSamples - mixed.left.length} drift=${avDrift.toFixed(4)}`);
+  if (evidenceProfile === 'competitor-v2') {
+    const receipt = createDecodedFrameReceipt(mp4Sha, decodedFrameClaims);
+    writeFileSync(join(outDir, DECODED_FRAME_RECEIPT_FILE), JSON.stringify(receipt, null, 2) + '\n');
+  }
   gates.mediaVerification = { playback: { ok: playback.ok, droppedFrames: playback.droppedFrames, videoWidth: playback.videoWidth, videoHeight: playback.videoHeight, duration: playback.duration, seekTimes }, roundTrip, alignment, avDriftSec: +avDrift.toFixed(5) };
 
   // ---------------------------------------------------------------- write diagnostics; cryptographic evidence is a separate independently verified report
@@ -528,7 +625,7 @@ try {
     const evidenceReady = COMPETITOR_EVIDENCE_FILES.every((name) => existsSync(join(outDir, name)))
       && statSync(comparisonPath).mtimeMs >= statSync(mp4Path).mtimeMs;
     if (evidenceReady) {
-      const report = buildEvidenceReport({ root: ROOT, inputManifestPath: checkedPaths.inputManifest!, outputPath: mp4Path, evidenceDir: outDir });
+      const report = buildEvidenceReport({ root: ROOT, inputManifestPath: checkedPaths.inputManifest!, outputPath: mp4Path, evidenceDir: outDir, decodedFrames: decodedFrameClaims });
       writeFileSync(join(outDir, 'render-evidence.json'), JSON.stringify(report, null, 2) + '\n');
     } else {
       console.warn('  render-evidence.json not sealed: regenerate comparison-sheet.jpg, then run packages/captions/tools/seal-render-evidence.ts');
