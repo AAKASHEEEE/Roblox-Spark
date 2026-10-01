@@ -12,8 +12,8 @@ import type { BeatSheet, BeatT } from '../../director/src/beat-sheet.ts';
 import { LIBRARY, type Library } from '../../library/src/ids.ts';
 import { resolveManifestKey, type ManifestLibrary } from '../../engine/src/build-dispatch.ts';
 import type { CharacterManifest } from '../../schema/src/assets.ts';
-import { layoutSets, type SetLayout, type Vec3, type Box2 } from './sets.ts';
-import { planPath, BODY_RADIUS } from './path.ts';
+import { layoutSets, type SetLayout, type StageMark, type Vec3, type Box2 } from './sets.ts';
+import { planPath, BODY_RADIUS, type PathResult } from './path.ts';
 import { placeholderCharacter } from './placeholders.ts';
 import { resolveAction, resolveAsset, resolveCue, resolveExpression, type ActionPlay, type FaceResolution, type ResolvedItem } from './resolve.ts';
 
@@ -123,8 +123,10 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
   const coinM = propInstances.coin ? lib.props[propRef(propInstances.coin)!] : lib.props['spark_coin@1.0.0'];
   const btnM = propInstances.button ? lib.props[propRef(propInstances.button)!] : lib.props['suspicious_button@1.0.0'];
   const btnSet = propInstances.button ? firstSetOf(propInstances.button) : sets[0];
-  const btnMark = propInstances.button ? beats.flatMap((b) => b.props).find((p) => (p.instanceId ?? bare(p.propId)) === propInstances.button)!.placement : null;
-  const btnBase: Vec3 = btnMark && btnSet.marks[btnMark] ? [btnSet.marks[btnMark].pos[0], btnSet.marks[btnMark].surfaceY, btnSet.marks[btnMark].pos[2]] : add(btnSet.origin, [0, -50, 0]);
+  const btnPlacement = propInstances.button ? beats.flatMap((b) => b.props).find((p) => (p.instanceId ?? bare(p.propId)) === propInstances.button)!.placement : null;
+  const [btnPlacementKind, btnMark] = btnPlacement ? parsePlacement(btnPlacement) : ['mark', ''];
+  const resolvedBtnMark = btnPlacementKind === 'mark' ? btnSet.marks[btnMark] : undefined;
+  const btnBase: Vec3 = resolvedBtnMark ? [resolvedBtnMark.pos[0], resolvedBtnMark.surfaceY, resolvedBtnMark.pos[2]] : add(btnSet.origin, [0, -50, 0]);
   const hero = btnSet.dressing[0];
   const deskM = hero ? lib.props[hero.propRef] : undefined;
   const firstDoor = sets.flatMap((s) => Object.values(s.doors))[0];
@@ -188,7 +190,31 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
   const look = (id: string, t: number, v: string | null) => plan.actors[id].looks.push({ t: r4(t), v });
   const expr = (id: string, t: number, v: string) => plan.actors[id].exprs.push({ t: r4(t), v });
   const bridge = (contract: ContractId, actor: string, reason: string, forContract: string, s: { t0: number; t1: number; p0: Vec3; p1: Vec3 }) => plan.bridges.push({ id: `b${String(++nBr).padStart(2, '0')}`, contract, actor, reason, forContract, t0: r4(s.t0), t1: r4(s.t1), from: s.p0.map(r4) as Vec3, to: s.p1.map(r4) as Vec3 });
-  const walkTime = (from: Vec3, yaw: number, pts: Vec3[], speed: number, yawOut: number) => { const all = [from, ...pts]; let L = 0; for (let k = 1; k < all.length; k++) L += d2(all[k - 1], all[k]); const h0 = yawTo(all[0], all[1]), hl = yawTo(all[all.length - 2], all[all.length - 1]); return turnSec(angDiff(yaw, h0)) + L / speed + turnSec(angDiff(hl, yawOut)); };
+  const mobilityBlocked = new Set<string>();
+  const postureTransition = (id: string, t: number, to: 'standing', phraseId: string, reason: string): Seg | null => {
+    const e = end(id);
+    if (e.posture === 'prone') {
+      const pinned = plan.actors[id].contacts.some((c) => c.with === 'coin' && t >= c.t0 - 1e-9 && t < c.t1 - 1e-9);
+      err('GET_UP_UNAVAILABLE', 'remain_still', phraseId, t, `${id}: no authored prone-to-standing transition is available${pinned ? ' while the coin contact remains active' : ''}; movement before ${reason} is blocked`);
+      mobilityBlocked.add(id);
+      return null;
+    }
+    if (e.posture !== 'implied_seated') return null;
+    // The existing engine body-action library owns stand_up. Mark this as an action segment (standing world root)
+    // so the adapter dispatches the authored transition instead of its static implied-seated fallback.
+    const seconds = 0.9, start = Math.max(t, e.t);
+    const c = inst('remain_still', id, null, start, start + seconds, phraseId, { transition: `${e.posture}->${to}`, reason });
+    const s = push(id, { t0: start, t1: start + seconds, kind: 'hold', contract: c.id, action: 'stand_up', posture: 'standing', endPosture: to, heldPose: 'stand_up', endMark: e.mark, p1: e.pos, yaw1: e.yaw });
+    issue('info', 'POSTURE_TRANSITION', phraseId, `${id}: authored stand_up transition before ${reason}`, { entity: id, t: s.t0 });
+    return s;
+  };
+  const walkTime = (from: Vec3, yaw: number, pts: Vec3[], speed: number, yawOut: number) => {
+    if (!pts.length) return 0;
+    const all = [from, ...pts]; let L = 0;
+    for (let k = 1; k < all.length; k++) L += d2(all[k - 1], all[k]);
+    const h0 = yawTo(all[0], all[1]), hl = yawTo(all[all.length - 2], all[all.length - 1]);
+    return turnSec(angDiff(yaw, h0)) + L / speed + turnSec(angDiff(hl, yawOut));
+  };
 
   // ---------------------------------------------------------------- dynamic walk obstacles (the coin as it grows / lies)
   const coinBox = (t: number): Box2 | null => {
@@ -199,12 +225,29 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
     if (tip && t >= tip.t0) return { id: 'prop:coin', x0: b[0] - R, x1: b[0] + R, z0: tip.pivot[2] - 2 * th, z1: tip.pivot[2] + 2 * R };
     return { id: 'prop:coin', x0: b[0] - R, x1: b[0] + R, z0: b[2] - th, z1: b[2] + th };
   };
-  const route = (set: SetLayout, from: Vec3, to: Vec3, t: number, beat: string, who: string) => {
+  const route = (set: SetLayout, from: Vec3, to: Vec3, t: number, beat: string, who: string): PathResult => {
     const cb = coinBox(t);
     const res = planPath(from, to, [...set.obstacles, ...(cb ? [cb] : [])], set.walk);
     if (res.blockedBy) err('PATH_BLOCKED', 'move_to', beat, t, `${who}: no clear path to [${to.map((x) => x.toFixed(2)).join(', ')}] (blocked by ${res.blockedBy})`);
     if (res.pts.length > 2) issue('info', 'PATH_ROUTED', beat, `${who} is routed around obstacles (${res.pts.length - 2} waypoint(s), ${res.length.toFixed(2)} m)`, { entity: who, t });
-    return res.pts.slice(1);
+    return res;
+  };
+  const actorCap = (m: StageMark, posture: Posture) => posture === 'implied_seated'
+    ? m.capabilities.includes('actor-seated') || m.capabilities.includes('actor-standing')
+    : m.capabilities.includes('actor-standing') && (posture !== 'prone' || m.postures.includes('prone'));
+  const markConflict = (m: StageMark, used: StageMark[]) => used.some((x) => {
+    const a = m.aliasOf ?? m.id, b = x.aliasOf ?? x.id;
+    return a === b || m.exclusiveWith.includes(x.id) || x.exclusiveWith.includes(m.id);
+  });
+  const actorMark = (set: SetLayout, requested: string, posture: Posture, from: Vec3 | null, at: number, used: StageMark[]): { mark: StageMark | null; fallback: boolean } => {
+    const wanted = set.marks[requested], cb = coinBox(at), obstacles = [...set.obstacles, ...(cb ? [cb] : [])];
+    const routable = (m: StageMark) => !from || d2(from, m.pos) <= 0.05 || !planPath(from, m.pos, obstacles, set.walk).blockedBy;
+    if (wanted && actorCap(wanted, posture) && !markConflict(wanted, used) && routable(wanted)) return { mark: wanted, fallback: false };
+    const p = wanted?.pos ?? from ?? set.origin;
+    const candidates = Object.values(set.marks).filter((m) => actorCap(m, posture) && !markConflict(m, used) && routable(m));
+    candidates.sort((a, b) => (posture === 'implied_seated' ? Number(!a.capabilities.includes('actor-seated')) - Number(!b.capabilities.includes('actor-seated')) : 0)
+      || Number(a.capabilities.includes('hazard')) - Number(b.capabilities.includes('hazard')) || d2(a.pos, p) - d2(b.pos, p) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    return { mark: candidates[0] ?? null, fallback: true };
   };
 
   // ---------------------------------------------------------------- doors
@@ -235,6 +278,9 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       if (!t || t === 'camera') return null;
       const pr = props[t];
       if (pr?.world) return pr.world;
+      // Generic props are aimed by the S5 LibraryTrack against their posed centre/anchor each frame.
+      // Do not feed their instance id to the narrated adapter, which has no generic-prop lookup.
+      if (pr) return null;
       if (set.doors[t]) return 'classroom_door';
       return t;
     };
@@ -249,11 +295,23 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       return null;
     };
     const cast: StagedCast[] = [];
+    const occupiedMarks: StageMark[] = [];
+    const compatibleButton = b.props.find((p) => {
+      const instance = p.instanceId ?? bare(p.propId);
+      const pr = props[instance], [pk, pm] = parsePlacement(p.placement), mark = pk === 'mark' ? set.marks[pm] : undefined;
+      const boundHere = instance === propInstances.button && set.id === btnSet.id && !!mark
+        && d2(mark.pos, assets.button.base) <= 1e-6 && Math.abs(mark.surfaceY - assets.button.base[1]) <= 1e-6;
+      return pr?.world === 'button' && pr.resolution.resolution === 'available' && boundHere && mark.capabilities.includes('interaction');
+    });
+    for (const c of b.cast) if (resolveAction(c.actionId, library).contract === 'press_button' && !compatibleButton) {
+      issue('error', 'PRESS_NO_BUTTON', B, `${bare(c.characterId)} presses a button but the beat has no available control on a compatible interaction mark`, { entity: bare(c.characterId) });
+    }
 
     // ---- 1. placement + presence + movement
     for (const c of b.cast) {
       const id = bare(c.characterId), ch = characters[id];
-      const [kind, target] = parsePlacement(c.placement);
+      const [kind, authoredTarget] = parsePlacement(c.placement);
+      let target = authoredTarget;
       const play = resolveAction(c.actionId, library);
       const face = resolveExpression(c.expressionId, ch.manifest, library);
       const labels: string[] = [];
@@ -263,12 +321,24 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       const enterE = kind === 'enter' ? firstEvent(b, (e) => e.type === 'enter' && bare(e.characterId) === id && e.doorId === target) : undefined;
       const exitE = kind === 'exit' ? firstEvent(b, (e) => e.type === 'exit' && bare(e.characterId) === id && e.doorId === target) : undefined;
       const door = kind !== 'mark' ? set.doors[target] : undefined;
-      const markPos = kind === 'mark' ? set.marks[target] : undefined;
-      if (kind === 'mark' && !markPos) issue('error', 'MARK_UNKNOWN', B, `${id}: mark ${target} does not exist in ${set.id}`, { entity: id });
+      let markPos = kind === 'mark' ? set.marks[target] : undefined;
+      if (kind === 'mark' && !markPos) issue('error', 'MARK_UNKNOWN', B, `${id}: mark ${authoredTarget} does not exist in ${set.id}`, { entity: id });
       if (kind !== 'mark' && !door) issue('error', 'DOOR_UNKNOWN', B, `${id}: door ${target} does not exist in ${set.id}`, { entity: id });
       const speed = play.locomotion === 'run' ? RUN_SPEED : WALK_SPEED;
       const carried = b.carryOver.includes(id);
       const continuing = !!plan.actors[id] && lastBeatOf[id] === bi - 1 && lastSetOf[id] === set.id && !gone.has(id);
+      const priorPosture: Posture = plan.actors[id] ? end(id).posture : 'standing';
+      const placementPosture: Posture = play.posture === 'implied_seated' ? 'implied_seated' : priorPosture === 'prone' && c.actionId === 'flattened' ? 'prone' : 'standing';
+      if (kind === 'mark' && markPos) {
+        const selected = actorMark(set, target, placementPosture, continuing ? end(id).pos : null, Math.max(S + 0.05, plan.actors[id] ? end(id).t : S), occupiedMarks);
+        if (!selected.mark) {
+          issue('error', 'ACTOR_MARK_UNAVAILABLE', B, `${id}: ${authoredTarget} is not an occupiable ${placementPosture} actor mark and no safe fallback exists`, { entity: id });
+          markPos = undefined;
+        } else {
+          markPos = selected.mark; target = selected.mark.id; occupiedMarks.push(selected.mark);
+          if (selected.fallback) issue('warning', 'ACTOR_MARK_FALLBACK', B, `${id}: ${authoredTarget} is unavailable for ${placementPosture}; using nearby actor mark ${target}`, { entity: id });
+        }
+      }
       if (!plan.actors[id]) {
         const p0 = door ? (kind === 'enter' ? door.threshold : door.inside) : markPos?.pos ?? set.origin;
         plan.actors[id] = { id, start: { pos: [...p0] as Vec3, yaw: markPos?.facingDeg ?? door?.facingDeg ?? 0, mark: target }, segs: [], looks: [], exprs: [{ t: 0, v: face.applied }], contacts: [] };
@@ -277,8 +347,11 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       if (!continuing && carried) issue('warning', 'CARRYOVER_BROKEN', B, `${id} is carried over but was not staged in ${set.id} in the previous beat: re-placed at the cut`, { entity: id });
       let from: Vec3 = end(id).pos, moveT0: number | null = null, moveT1: number | null = null, enterAt: number | null = null, exitAt: number | null = null;
       let visibleFrom = S, visibleTo = nextS;
-      const prone = end(id).posture === 'prone';
-      if (!continuing) {
+      if (!continuing && priorPosture === 'prone' && c.actionId !== 'flattened') {
+        // A cut or intervening absence does not release physical contact. Preserve the prior root and fail before place().
+        postureTransition(id, S, 'standing', B, c.actionId);
+        from = end(id).pos;
+      } else if (!continuing) {
         // cut placement: where the beat needs the actor at its start
         let p0: Vec3, yaw: number;
         if (kind === 'enter' && door) { p0 = door.threshold; yaw = door.facingDeg; }
@@ -287,50 +360,79 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
           const a = door.facingDeg * DEG, dist = clamp((exitE.at - S) * 0.6 * WALK_SPEED, 0.8, 3.0);
           p0 = add(door.inside, [Math.sin(a) * dist, 0, Math.cos(a) * dist]); yaw = door.facingDeg + 180;
         } else { p0 = markPos?.pos ?? set.origin; yaw = markPos?.facingDeg ?? 0; }
-        const posture: Posture = play.posture === 'implied_seated' ? 'implied_seated' : prone && c.actionId === 'flattened' ? 'prone' : 'standing';
+        const posture: Posture = priorPosture === 'prone' ? 'prone' : play.posture === 'implied_seated' ? 'implied_seated' : 'standing';
         place(id, S, p0, yaw, kind === 'mark' ? target : null, posture);
         from = p0;
-        if (prone && c.actionId !== 'flattened') issue('warning', 'PRONE_RESET_AT_CUT', B, `${id} was prone; the cut re-places ${id} standing (no get_up exists)`, { entity: id });
+        if (posture === 'prone' && c.actionId !== 'flattened') postureTransition(id, S + 1e-3, 'standing', B, c.actionId);
       } else if (end(id).posture === 'implied_seated' && play.posture !== 'implied_seated' && kind === 'mark' && markPos && d2(end(id).pos, markPos.pos) > 0.05) {
-        issue('info', 'IMPLIED_STAND', B, `${id} leaves an implied seat to move (no authored stand_up)`, { entity: id });
+        postureTransition(id, S + 0.05, 'standing', B, `move to ${target}`);
       }
       const t0 = Math.max(S + 0.05, end(id).t);
-      if (kind === 'enter' && door) {
+      if (mobilityBlocked.has(id)) {
+        hold(id, t0, nextS - 0.02, null, 'prone_mobility_blocked', 'prone');
+      } else if (kind === 'enter' && door) {
         const at = enterE?.at ?? S + 0.1;
         enterAt = at; visibleFrom = at;
         if (!doorOpen(set.id, target, at)) issue('warning', 'DOOR_CLOSED_AT_ENTER', B, `${id} enters through ${target} at ${at} s but the door is closed`, { entity: id, t: at });
-        if (continuing) { const s = walk(id, t0, [door.threshold], null, 'move_to', speed, door.facingDeg + 180); if (s.t1 > at) issue('warning', 'ENTER_LATE', B, `${id} reaches ${target} at ${r4(s.t1)} s, after the enter event (${at})`, { entity: id }); }
-        hold(id, t0, at, null, 'hold');
-        const c1 = inst('move_to', id, null, at, at, B, { to: `${target}:inside`, kind: 'enter' });
-        const pts = route(set, door.threshold, door.inside, at, B, id);
-        const s = walk(id, at, pts, null, c1.id, speed, door.facingDeg);
-        c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
-        ev('enter', at, id, target, door.threshold, c1.id);
-        gone.delete(id);
+        let approachBlocked = false;
+        if (continuing) {
+          const approach = route(set, end(id).pos, door.threshold, t0, B, id);
+          if (approach.blockedBy) approachBlocked = true;
+          else {
+            const s = walk(id, t0, approach.pts.slice(1), null, 'move_to', speed, door.facingDeg + 180);
+            if (s.t1 > at) issue('warning', 'ENTER_LATE', B, `${id} reaches ${target} at ${r4(s.t1)} s, after the enter event (${at})`, { entity: id });
+          }
+        }
+        if (!approachBlocked) {
+          hold(id, Math.max(t0, end(id).t), Math.max(at, end(id).t + 0.05), null, 'hold');
+          const rr = route(set, door.threshold, door.inside, Math.max(at, end(id).t), B, id);
+          if (rr.blockedBy) {
+            visibleFrom = nextS;
+            hold(id, end(id).t, nextS - 0.02, null, 'blocked_enter');
+          } else {
+            const c1 = inst('move_to', id, null, at, at, B, { to: `${target}:inside`, kind: 'enter' });
+            const s = walk(id, Math.max(at, end(id).t), rr.pts.slice(1), null, c1.id, speed, door.facingDeg);
+            c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
+            ev('enter', at, id, target, door.threshold, c1.id);
+            gone.delete(id);
+          }
+        } else {
+          visibleFrom = nextS;
+          hold(id, end(id).t, nextS - 0.02, null, 'blocked_enter');
+        }
       } else if (kind === 'exit' && door) {
         const at = exitE?.at ?? E - 0.1;
-        exitAt = at; visibleTo = at + 0.05;
+        exitAt = at;
         const e0 = end(id);
-        const pts = route(set, e0.pos, door.inside, t0, B, id).concat([door.threshold]);
-        const need = walkTime(e0.pos, e0.yaw, pts, speed, door.facingDeg + 180);
-        const c1 = inst('move_to', id, null, 0, 0, B, { to: `${target}:threshold`, kind: 'exit' });
-        const s = walk(id, Math.max(t0, at - need), pts, null, c1.id, speed, door.facingDeg + 180);
-        c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
-        if (s.t1 > at + 1 / FPS) issue('warning', 'EXIT_LATE', B, `${id} reaches ${target} at ${r4(s.t1)} s, after the exit event (${at})`, { entity: id, t: s.t1 });
-        if (!doorOpen(set.id, target, at)) issue('warning', 'DOOR_CLOSED_AT_EXIT', B, `${id} exits through ${target} at ${at} s but the door is closed`, { entity: id, t: at });
-        ev('exit', at, id, target, door.threshold, c1.id);
-        gone.add(id);
+        const rr = route(set, e0.pos, door.inside, t0, B, id);
+        if (rr.blockedBy) {
+          visibleTo = nextS;
+          hold(id, end(id).t, nextS - 0.02, null, 'blocked_exit');
+        } else {
+          const pts = rr.pts.slice(1).concat([door.threshold]);
+          const need = walkTime(e0.pos, e0.yaw, pts, speed, door.facingDeg + 180);
+          const c1 = inst('move_to', id, null, 0, 0, B, { to: `${target}:threshold`, kind: 'exit' });
+          const s = walk(id, Math.max(t0, at - need), pts, null, c1.id, speed, door.facingDeg + 180);
+          c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
+          if (s.t1 > at + 1 / FPS) issue('warning', 'EXIT_LATE', B, `${id} reaches ${target} at ${r4(s.t1)} s, after the exit event (${at})`, { entity: id, t: s.t1 });
+          if (!doorOpen(set.id, target, at)) issue('warning', 'DOOR_CLOSED_AT_EXIT', B, `${id} exits through ${target} at ${at} s but the door is closed`, { entity: id, t: at });
+          visibleTo = at + 0.05;
+          ev('exit', at, id, target, door.threshold, c1.id);
+          gone.add(id);
+        }
       } else if (markPos && d2(end(id).pos, markPos.pos) > 0.05) {
-        if (end(id).posture === 'prone') issue('error', 'GET_UP_UNAVAILABLE', B, `${id} is prone and cannot walk to ${target} (no get_up)`, { entity: id });
-        else {
+        const mayMove = end(id).posture !== 'prone' || !!postureTransition(id, t0, 'standing', B, `move to ${target}`);
+        if (!mayMove) {
+          hold(id, Math.max(t0, end(id).t), nextS - 0.02, null, 'prone_mobility_blocked', 'prone');
+        } else {
+          const moveStart = Math.max(t0, end(id).t);
           const isMove = play.contract === 'move_to';
           const c1 = inst('move_to', id, null, 0, 0, B, { to: target }, isMove ? null : c.actionId);
-          const pts = route(set, end(id).pos, markPos.pos, t0, B, id);
-          const s = walk(id, t0, pts, target, c1.id, speed, markPos.facingDeg);
+          const rr = route(set, end(id).pos, markPos.pos, moveStart, B, id);
+          const s = walk(id, moveStart, rr.pts.slice(1), rr.blockedBy ? null : target, c1.id, speed, markPos.facingDeg);
           c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
           if (!isMove) bridge('move_to', id, `${c.actionId} happens at ${target}: ${id} walks there first`, c1.id, s);
-          ev('reached_mark', s.t1, id, target, markPos.pos, c1.id);
-          keyTimes.add(s.t1);
+          if (!rr.blockedBy) { ev('reached_mark', s.t1, id, target, markPos.pos, c1.id); keyTimes.add(s.t1); }
           if (s.t1 > E) issue('warning', 'MOVE_OVERRUNS_BEAT', B, `${id} reaches ${target} at ${r4(s.t1)} s, ${r4(s.t1 - E)} s after the beat ends (${E})`, { entity: id, t: s.t1 });
         }
       }
@@ -352,25 +454,44 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       else issue('error', 'MARK_UNKNOWN', B, `prop ${id}: placement ${p.placement} does not exist in ${set.id}`);
       if (pr.world) k = 'world';
       const prev = pr.spans[pr.spans.length - 1];
-      if (prev && prev.setId === set.id && b.carryOver.includes(id) && prev.target !== target && !pr.world) issue('warning', 'PROP_JUMP_CUT', B, `${id} moves from ${prev.target} to ${target} with no action moving it (placed at the beat start)`, { entity: id });
+      if (prev && !pr.world && (prev.setId !== set.id || prev.target !== target || d2(prev.pos, pos) > 0.05)) {
+        const move = `${prev.setId}:${prev.target} to ${set.id}:${target}`;
+        if (b.carryOver.includes(id)) issue('warning', 'PROP_JUMP_CUT', B, `${id} moves from ${move} with no action moving it (placed at the beat start)`, { entity: id });
+        else issue('info', 'PROP_CUT_PLACEMENT', B, `${id} is explicitly re-placed from ${move} at the cut (not carried over)`, { entity: id, t: S });
+      }
       pr.spans.push({ beat: B, setId: set.id, t0: S, t1: nextS, kind: k, target, pos, yawDeg, state: p.state });
       if (pr.resolution.resolution === 'placeholder' && p.state && k !== 'door') issue('info', 'PROP_STATE_PLACEHOLDER', B, `${id} (placeholder block) state "${p.state}" is shown on its label only`, { entity: id });
     }
 
     // ---- 3. main actions
-    const btnInBeat = b.props.find((p) => props[p.instanceId ?? bare(p.propId)]?.world === 'button');
+    const btnInBeat = compatibleButton;
     const coinInBeat = b.props.find((p) => props[p.instanceId ?? bare(p.propId)]?.world === 'coin');
     let pressContact: number | null = null;
     for (const sc of cast) {
-      const id = sc.id, play = sc.play, e0 = end(id);
+      const id = sc.id, play = sc.play;
+      let e0 = end(id);
       let t0 = Math.max(S + 0.05, e0.t);
       const holdEnd = nextS - 0.02;
       expr(id, Math.max(S + 0.05, sc.enterAt ?? S + 0.05), sc.face.applied);
+      if (mobilityBlocked.has(id)) {
+        look(id, S + 0.05, sc.lookTarget);
+        sc.actionT0 = t0; sc.actionT1 = end(id).t;
+        continue;
+      }
       if (sc.placementKind === 'exit' || sc.placementKind === 'enter') {
         look(id, S + 0.05, sc.lookTarget);
         if (sc.placementKind === 'enter') hold(id, t0, holdEnd, 'look_at', 'look_at');
         sc.actionT0 = t0; sc.actionT1 = end(id).t;
         continue;
+      }
+      const needsStanding = e0.posture === 'prone' && play.contract !== 'fall_prone' && play.contract !== 'look_at' && play.contract !== 'remain_still';
+      if (needsStanding) {
+        if (!postureTransition(id, t0, 'standing', B, sc.actionId)) {
+          hold(id, Math.max(t0, end(id).t), holdEnd, null, 'prone_mobility_blocked', 'prone');
+          sc.actionT0 = t0; sc.actionT1 = end(id).t;
+          continue;
+        }
+        e0 = end(id); t0 = e0.t;
       }
       // turn toward the look target when it is far outside the head's range (seated / prone actors only turn the head)
       const tp = targetPos(sc.lookAt ?? undefined, t0);
@@ -380,9 +501,9 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       }
       look(id, t0, sc.lookTarget);
       if (sc.lookAt === 'camera') issue('info', 'LOOK_AT_CAMERA', B, `${id} looks at the camera: body turned to the audience side (the engine has no camera look target)`, { entity: id });
-      else if (sc.lookAt && sc.lookTarget && !plan.actors[sc.lookTarget] && sc.lookTarget !== 'coin' && sc.lookTarget !== 'button' && sc.lookTarget !== 'classroom_door') issue('warning', 'LOOK_TARGET_BODY_ONLY', B, `${id} looks at ${sc.lookAt}: the pose adapter resolves only actors, the coin, the button and the first door; body turned, head neutral`, { entity: id });
+      else if (sc.lookAt && props[sc.lookAt] && !props[sc.lookAt].world) issue('info', 'DYNAMIC_PROP_LOOK_TARGET', B, `${id} tracks ${sc.lookAt} through its posed prop centre/anchor`, { entity: id });
+      else if (sc.lookAt && sc.lookTarget && !plan.actors[sc.lookTarget] && sc.lookTarget !== 'coin' && sc.lookTarget !== 'button' && sc.lookTarget !== 'classroom_door') issue('warning', 'LOOK_TARGET_BODY_ONLY', B, `${id} looks at ${sc.lookAt}: no dynamic head/eye target is available; body turned`, { entity: id });
       const posture: Posture = e0.posture === 'prone' ? 'prone' : play.posture === 'implied_seated' ? 'implied_seated' : 'standing';
-      if (e0.posture === 'prone' && play.contract !== 'fall_prone' && play.contract !== 'look_at' && play.contract !== 'remain_still') issue('error', 'GET_UP_UNAVAILABLE', B, `${id} is prone; ${sc.actionId} needs standing (no get_up)`, { entity: id });
       switch (play.contract) {
         case 'move_to': { const c1 = inst('remain_still', id, null, t0, holdEnd, B, { after: 'move_to' }); hold(id, t0, holdEnd, null, c1.id, posture); break; }
         case 'remain_still': {
@@ -403,7 +524,7 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
         }
         case 'jump': { const c1 = inst('jump', id, null, t0, t0 + 0.9, B, { height: 0.49 }); push(id, { t0, t1: t0 + 0.9, kind: 'jump', contract: c1.id, action: 'jump', posture: 'jumping', endPosture: 'standing', heldPose: 'idle', endMark: e0.mark, p1: e0.pos, yaw1: e0.yaw, jumpH: 0.49 }); keyTimes.add(t0 + 0.45); break; }
         case 'press_button': {
-          if (!btnInBeat) { issue('error', 'PRESS_NO_BUTTON', B, `${id} presses a button but no button prop is in the beat`, { entity: id }); break; }
+          if (!btnInBeat) break;
           const pc = inst('press_button', id, 'button', 0, 0, B, {});
           const target = assets.button.pressSurface, reach = 0.55, tol = 25;
           let s0 = t0;
@@ -412,7 +533,9 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
             const dir = [target[0] - e1.pos[0], target[2] - e1.pos[2]], l = Math.hypot(dir[0], dir[1]);
             const ap: Vec3 = [target[0] - (dir[0] / l) * (reach - 0.1), 0, target[2] - (dir[1] / l) * (reach - 0.1)];
             const bc = inst('move_to', id, null, s0, s0, B, { to: 'press_reach' }, pc.id);
-            const w = walk(id, s0, route(set, e1.pos, ap, s0, B, id), null, bc.id, WALK_SPEED, yawTo(ap, target));
+            const rr = route(set, e1.pos, ap, s0, B, id);
+            if (rr.blockedBy) { pc.t0 = r4(s0); pc.t1 = r4(s0); break; }
+            const w = walk(id, s0, rr.pts.slice(1), null, bc.id, WALK_SPEED, yawTo(ap, target));
             bc.t0 = r4(w.t0); bc.t1 = r4(w.t1); bridge('move_to', id, `press_button requires ${id} within ${reach} m of the button`, pc.id, w); s0 = w.t1;
           }
           const e2 = end(id), need = yawTo(e2.pos, target);

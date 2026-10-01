@@ -14,6 +14,7 @@ import {
   smoothstep, transitionWeight, MIN_BLEND_SEC, RELEASE_BLEND_SEC, fallHeadDrive, filterHeadDrive, lookAnglesInRoot, type HeadDrive,
 } from '../../packages/engine/src/animation/narrated-motion.ts';
 import { ACTION_DEFS, IDLE_POSE, idleLayer } from '../../packages/engine/src/animation/actions.ts';
+import { BODY_ACTIONS } from '../../packages/engine/src/animation/lib/body-actions.ts';
 import { applyButtonState, applyPropTransform, discLowestPoint, discSignedDistance, discWorldSize, measuredPropTransform } from '../../packages/engine/src/prop-transform.ts';
 import { sampleWorld, type WorldPlan, type WorldState, type Posture } from '../../packages/narrated/src/world.ts';
 import type { Quat } from '../../packages/engine/src/math.ts';
@@ -67,7 +68,7 @@ export interface NarratedWorldAdapter {
 }
 
 type PlanSeg = WorldPlan['actors'][string]['segs'][number];
-type MKind = 'action' | 'rest' | 'turn' | 'gait' | 'jump' | 'fall' | 'prone' | 'seated' | 'layer';
+type MKind = 'action' | 'body_action' | 'rest' | 'turn' | 'gait' | 'jump' | 'fall' | 'prone' | 'seated' | 'layer';
 interface MSeg { t0: number; t1: number; kind: MKind; action: string | null; holds: boolean; label: string; plan: PlanSeg | null; blendSec: number }
 
 const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
@@ -123,6 +124,7 @@ export class NarratedEngineAdapter implements NarratedWorldAdapter {
       } else if (s.kind === 'turn') push({ t0: s.t0, t1: s.t1, kind: 'turn', action: 'turn_toward', holds: false, label: 'turn_toward', plan: s });
       else if (s.kind === 'jump') push({ t0: s.t0, t1: s.t1, kind: 'jump', action: 'jump', holds: false, label: 'jump', plan: s, blendSec: 0.1 });
       else if (s.kind === 'fall') push({ t0: s.t0, t1: s.t1, kind: 'fall', action: 'fall_prone', holds: true, label: 'fall_prone', plan: s });
+      else if (s.action === 'stand_up' && BODY_ACTIONS.stand_up) push({ t0: s.t0, t1: s.t1, kind: 'body_action', action: 'stand_up', holds: false, label: 'stand_up', plan: s, blendSec: BODY_ACTIONS.stand_up.blendIn });
       else if (s.posture === 'prone') push({ t0: s.t0, t1: s.t1, kind: 'prone', action: null, holds: true, label: 'prone', plan: s });
       else if (s.posture === 'implied_seated') push({ t0: s.t0, t1: s.t1, kind: 'seated', action: null, holds: true, label: 'implied_seated_fallback', plan: s });
       else if (!s.action) push({ t0: s.t0, t1: s.t1, kind: 'rest', action: null, holds: false, label: 'rest', plan: s });
@@ -170,6 +172,10 @@ export class NarratedEngineAdapter implements NarratedWorldAdapter {
       case 'jump': return { pose: jumpPose(lt / Math.max(1e-6, d)), layers: [] };
       case 'fall': case 'prone': return { pose: pronePose(), layers: [] };
       case 'seated': return { pose: neutralUpperBodyPose(), layers: [] };
+      case 'body_action': {
+        const def = BODY_ACTIONS[s.action!];
+        return { pose: def.pose({ ...ctx, u: Math.max(0, Math.min(1, lt / Math.max(1e-6, d))), params: {} }), layers: [] };
+      }
       case 'action': {
         const target = s.action === 'press_button' ? [...this.plan!.assets.button.pressSurface] as Vec3 : this.lookPoint(w.actors[actor].lookTarget, w) ?? undefined;
         return { pose: actionPose(s.action!, { ...ctx, target }), layers: [] };

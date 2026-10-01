@@ -8,11 +8,27 @@ import type { BeatSheet } from '../../director/src/beat-sheet.ts';
 import { LIBRARY, lookup, type Library, type SetEntry } from '../../library/src/ids.ts';
 import { resolveManifestKey, type ManifestLibrary } from '../../engine/src/build-dispatch.ts';
 import { ENVIRONMENT_CATALOG } from '../../environments/src/catalog.ts';
+import type { Mark as EnvironmentMark, PropAnchor } from '../../environments/src/schema.ts';
 import { placeholderSet, type PlaceholderSetSpec } from './placeholders.ts';
 import { resolveAsset } from './resolve.ts';
 
 export type Vec3 = [number, number, number];
-export interface StageMark { id: string; pos: Vec3; facingDeg: number; source: 'manifest' | 'catalog' | 'generated' | 'dressing'; /** props placed here stand on this height */ surfaceY: number; aliasOf?: string }
+export type PlacementCapability = 'actor-standing' | 'actor-seated' | 'waypoint' | 'prop' | 'hazard' | 'interaction' | 'camera-look-only';
+export interface StageMark {
+  id: string;
+  pos: Vec3;
+  facingDeg: number;
+  source: 'manifest' | 'catalog' | 'generated' | 'dressing';
+  /** props placed here stand on this height */
+  surfaceY: number;
+  /** Semantic placement roles retained from the environment profile. */
+  capabilities: PlacementCapability[];
+  postures: string[];
+  occupancy: number;
+  exclusiveWith: string[];
+  hazard: string;
+  aliasOf?: string;
+}
 export interface StageDoor {
   id: string;
   /** floor point in the doorway (world) */
@@ -65,6 +81,33 @@ const DRESSING: Record<string, Record<string, { instance: string; propRef: strin
 
 const add = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 const bare = (r: string) => r.split('@')[0];
+
+const generatedMark = (id: string, pos: Vec3, facingDeg: number, source: StageMark['source'] = 'generated'): StageMark => ({
+  id, pos, facingDeg, source, surfaceY: 0, capabilities: ['actor-standing'], postures: ['stand'], occupancy: 1,
+  exclusiveWith: [], hazard: 'none',
+});
+const capabilitiesForMark = (m: EnvironmentMark): PlacementCapability[] => {
+  const out: PlacementCapability[] = [];
+  if (m.kind === 'actor') {
+    if (m.postures.includes('stand') || m.postures.includes('crouch') || m.postures.includes('prone')) out.push('actor-standing');
+    if (m.postures.includes('sit')) out.push('actor-seated');
+  } else if (m.kind === 'waypoint') out.push('waypoint');
+  else if (m.kind === 'prop') out.push('prop');
+  else out.push('camera-look-only');
+  if (m.hazard.kind !== 'none') out.push('hazard');
+  return out;
+};
+const profiledMark = (m: EnvironmentMark, origin: Vec3, source: StageMark['source'] = 'catalog'): StageMark => ({
+  id: m.id, pos: add(m.position, origin), facingDeg: m.facingDeg, source, surfaceY: 0,
+  capabilities: capabilitiesForMark(m), postures: [...m.postures], occupancy: m.occupancy,
+  exclusiveWith: [...m.exclusiveWith], hazard: m.hazard.kind,
+  ...(m.aliasOf ? { aliasOf: m.aliasOf } : {}),
+});
+const anchorMark = (a: PropAnchor, origin: Vec3): StageMark => ({
+  id: a.id, pos: add(a.position, origin), facingDeg: a.rotationDeg[1], source: 'catalog', surfaceY: a.position[1],
+  capabilities: a.role === 'look_target' ? ['camera-look-only'] : a.categories.includes('device') ? ['interaction'] : ['prop'],
+  postures: [], occupancy: 0, exclusiveWith: [], hazard: a.hazard.kind,
+});
 
 /** names the beats use in a set: marks (cast/prop placements, lookAt/vfx targets that are not entities) and doors */
 function namesUsed(sheet: BeatSheet, setId: string): { marks: string[]; doors: string[]; lighting: string[] } {
@@ -127,11 +170,16 @@ export function layoutSets(sheet: BeatSheet, lib: ManifestLibrary, library: Libr
     if (res.resolution === 'available' && resolveManifestKey(refOf(id), lib.environments)) {
       key = resolveManifestKey(refOf(id), lib.environments)!;
       manifest = lib.environments[key];
-      for (const [m, v] of Object.entries(manifest.marks)) marks[m] = { id: m, pos: add(v.pos, origin), facingDeg: v.facingDeg, source: 'manifest', surfaceY: 0 };
+      for (const [m, v] of Object.entries(manifest.marks)) marks[m] = generatedMark(m, add(v.pos, origin), v.facingDeg, 'manifest');
       const prof = ENVIRONMENT_CATALOG.profiles.find((p) => `${p.id}@${p.version}` === key);
       for (const cm of prof?.marks ?? []) {
-        if (marks[cm.id] || cm.kind === 'offscreen_cue') continue;
-        marks[cm.id] = { id: cm.id, pos: add(cm.position, origin), facingDeg: cm.facingDeg, source: 'catalog', surfaceY: 0, ...(cm.aliasOf ? { aliasOf: cm.aliasOf } : {}) };
+        if (cm.kind === 'offscreen_cue') continue;
+        const source = marks[cm.id]?.source ?? 'catalog';
+        marks[cm.id] = profiledMark(cm, origin, source);
+      }
+      for (const a of prof?.anchors ?? []) {
+        if (marks[a.id] || a.role !== 'look_target') continue;
+        marks[a.id] = anchorMark(a, origin);
       }
       for (const [mk, d] of Object.entries(DRESSING[id] ?? {})) {
         if (!used.marks.includes(mk)) continue;
@@ -140,7 +188,12 @@ export function layoutSets(sheet: BeatSheet, lib: ManifestLibrary, library: Libr
         const pos = add(at, origin);
         dressing.push({ instance: d.instance, propRef: d.propRef, pos, yawDeg: 0, reason: d.reason });
         const s = desk.anchors[d.surfaceAnchor];
-        marks[mk] = { id: mk, pos: add(pos, [s[0], 0, s[2]]), facingDeg: 0, source: 'dressing', surfaceY: s[1] };
+        const prior = marks[mk];
+        marks[mk] = {
+          ...(prior ?? generatedMark(mk, pos, 0, 'dressing')),
+          id: mk, pos: add(pos, [s[0], 0, s[2]]), facingDeg: 0, source: 'dressing', surfaceY: s[1],
+          capabilities: ['prop', 'interaction'], postures: [], occupancy: 1, hazard: prior?.hazard ?? 'none',
+        };
       }
       for (const d of used.doors) {
         const sd = STAGING_DOORS[id]?.[d];
@@ -156,7 +209,7 @@ export function layoutSets(sheet: BeatSheet, lib: ManifestLibrary, library: Libr
       const spec = plannedLayout(id, used);
       manifest = placeholderSet(spec);
       key = `${manifest.id}@${manifest.version}`;
-      for (const [m, v] of Object.entries(spec.marks)) marks[m] = { id: m, pos: add(v.pos, origin), facingDeg: v.facingDeg, source: 'generated', surfaceY: 0 };
+      for (const [m, v] of Object.entries(spec.marks)) marks[m] = generatedMark(m, add(v.pos, origin), v.facingDeg);
       for (const [d, v] of Object.entries(spec.doors)) {
         const a = (v.facingDeg * Math.PI) / 180;
         doors[d] = { id: d, threshold: add(v.pos, origin), facingDeg: v.facingDeg, inside: add([v.pos[0] + Math.sin(a) * 0.9, 0, v.pos[2] + Math.cos(a) * 0.9], origin), source: 'generated' };

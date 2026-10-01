@@ -60,7 +60,8 @@ export function planPath(from: Vec3, to: Vec3, obstacles: Box2[], walk: Box2, r 
   }
   if (!(dist[1] < Infinity)) {
     const hit = boxes.find((b) => segmentHits(b, A[0], A[1], B[0], B[1]));
-    return { pts: [[from[0], 0, from[2]], [to[0], 0, to[2]]], length: straight, blockedBy: hit?.id ?? 'unknown', adjusted };
+    // Never return the blocked direct segment: callers may report/fallback, but must not animate through a collider.
+    return { pts: [[from[0], from[1], from[2]]], length: 0, blockedBy: hit?.id ?? 'walk-boundary', adjusted };
   }
   const idx: number[] = [];
   for (let k = 1; k >= 0; k = prev[k]) { idx.push(k); if (k === 0) break; }
