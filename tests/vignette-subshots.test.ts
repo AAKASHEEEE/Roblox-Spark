@@ -227,19 +227,24 @@ test('coverage is clause/composition scoped, fail-closed, and retains the 90% fu
   assert.equal(coverage.threshold, 0.9);
   assert.equal(canonical.report.summary.coverageThreshold, 0.9);
   assert.equal(coverage.blocking, false);
-  assert.deepEqual(coverage.fullVideoCoverage, { required: 85, realized: 85, pct: 1 });
+  assert.deepEqual(coverage.fullVideoCoverage, { required: 97, realized: 95, pct: 0.9794 });
   assert.deepEqual(coverage.literalCoverage, { required: 22, realized: 22, pct: 1 });
-  assert.deepEqual(coverage.actionRealization, { required: 13, realized: 6, pct: 0.4615 });
+  assert.deepEqual(coverage.actionRealization, { required: 12, realized: 10, pct: 0.8333 });
   assert.deepEqual(coverage.propStateRealization, { required: 1, realized: 1, pct: 1 });
   assert.equal(coverage.clauses.length, 31);
   assert.equal(coverage.audioOnly, 19);
 
   const subjects = coverage.items.filter((item) => item.basis === 'composition-subject');
-  assert.equal(subjects.length, canonical.compositions.length);
-  for (const item of subjects) {
-    const composition = canonical.compositions.find((candidate) => candidate.beat === item.beat && candidate.index === item.composition)!;
-    assert.deepEqual(item.window, [composition.start, composition.end]);
-    assert.equal(item.witness[0], composition.subject ?? composition.shot.subjects.active);
+  assert.ok(subjects.length >= canonical.compositions.length);
+  for (const composition of canonical.compositions) {
+    const primary = composition.subject ?? composition.shot.subjects.active;
+    const primaryItem = subjects.find((item) => item.beat === composition.beat && item.composition === composition.index && item.witness[0] === primary)!;
+    assert.ok(primaryItem, `${composition.beat}[${composition.index}] primary ${primary}`);
+    assert.deepEqual(primaryItem.window, [composition.start, composition.end]);
+    if (composition.secondary && composition.shot.subjects.required.includes(composition.secondary)) {
+      assert.ok(subjects.some((item) => item.beat === composition.beat && item.composition === composition.index && item.witness[0] === composition.secondary),
+        `${composition.beat}[${composition.index}] required secondary ${composition.secondary}`);
+    }
   }
   for (const item of coverage.items.filter((candidate) => candidate.basis === 'clause-literal')) {
     const composition = canonical.compositions.find((candidate) => candidate.beat === item.beat && candidate.index === item.composition)!;
@@ -253,6 +258,31 @@ test('coverage is clause/composition scoped, fail-closed, and retains the 90% fu
   assert.deepEqual(emote.window, [6.2, 7.3], 'VFX uses its exact runtime default duration and tail');
   assert.deepEqual(text.window, [36, 37.6], 'text graphic uses its complete authored duration');
   assert.deepEqual(entrance.window, [60.6, 62.0636], 'entrance uses the exact staged movement interval');
+  for (const item of coverage.items.filter((candidate) => candidate.space === 'world' && candidate.basis !== 'diagnostic')) {
+    assert.equal(item.samples, item.sampleTimes.length);
+    for (const time of item.sampleTimes) {
+      assert.ok(Math.abs(time * canonical.stage.fps - Math.round(time * canonical.stage.fps)) < 1e-3, `${item.id}@${time} is not an emitted frame`);
+      assert.ok(time >= item.window[0] - 1e-4 && time < item.window[1] + 1e-4, `${item.id}@${time} outside ${item.window}`);
+    }
+  }
+
+  const secondaryComposition = canonical.compositions.find((composition) => composition.secondary)!;
+  assert.ok(secondaryComposition);
+  const hiddenSecondary = canonical.compositions.map((composition) => composition === secondaryComposition ? {
+    ...composition, secondary: 'missing_target', shot: {
+      ...composition.shot,
+      subjects: { ...composition.shot.subjects, required: [...composition.shot.subjects.required, 'missing_target'] },
+    },
+  } : composition);
+  const hiddenSecondaryCoverage = coverageCheck(canonical.scene, canonical.stage, hiddenSecondary);
+  assert.equal(hiddenSecondaryCoverage.blocking, true);
+  assert.ok(hiddenSecondaryCoverage.items.some((item) => item.basis === 'composition-subject' && item.witness[0] === 'missing_target' && !item.covered));
+
+  const noPress = structuredClone(canonical.stage);
+  noPress.world.button.pressT = null;
+  const noPressCoverage = coverageCheck(canonical.scene, noPress, canonical.compositions);
+  assert.equal(noPressCoverage.propStateRealization.realized, 0, 'requested pressed label cannot replace an emitted press transition');
+  assert.ok(noPressCoverage.fullVideoCoverage.realized < coverage.fullVideoCoverage.realized);
 
   const blindPose = { pos: [0, 100, 0] as [number, number, number], target: [0, 101, 0] as [number, number, number], fovDeg: 10 };
   const first = canonical.compositions[0];

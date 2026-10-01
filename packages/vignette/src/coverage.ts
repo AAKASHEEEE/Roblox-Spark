@@ -19,7 +19,7 @@ export type CoverageBasis = 'composition-subject' | 'clause-literal' | 'clause-a
 export interface RealizationCoverage { required: number; realized: number; pct: number }
 export interface CoverageItem {
   beat: string; kind: CoverageKind; id: string; label: string; witness: string[]; space: 'world' | 'screen' | 'audio';
-  counted: boolean; samples: number; seen: number; covered: boolean; reason?: string;
+  counted: boolean; samples: number; sampleTimes: number[]; seen: number; covered: boolean; reason?: string;
   basis: CoverageBasis; clause: number | null; composition: number | null; window: [start: number, end: number];
 }
 export interface ClauseCoverage {
@@ -49,17 +49,24 @@ function aliases(id: string, entries: readonly LibraryEntry[]): string[][] {
   const match = entry(id, entries);
   return [bare(id).replace(/_/g, ' '), ...(match?.tags ?? [])].map(canonicalWords).filter((words) => words.length > 0);
 }
-function mentioned(text: string, id: string, entries: readonly LibraryEntry[]): boolean {
-  const haystack = canonicalWords(text);
-  return aliases(id, entries).some((needle) => {
-    for (let start = 0; start <= haystack.length - needle.length; start++) {
-      if (needle.every((word, offset) => haystack[start + offset] === word)) return true;
-    }
-    return false;
-  });
-}
 function mentionedIds(text: string, ids: readonly string[], entries: readonly LibraryEntry[]): string[] {
-  return [...new Set(ids.filter((id) => mentioned(text, id, entries)).map(bare))];
+  const haystack = canonicalWords(text);
+  const candidates = [...new Set(ids.map(bare))].map((id) => {
+    const spans: Array<{ start: number; end: number }> = [];
+    for (const needle of aliases(id, entries)) for (let start = 0; start <= haystack.length - needle.length; start++) {
+      if (needle.every((word, offset) => haystack[start + offset] === word)) spans.push({ start, end: start + needle.length });
+    }
+    const covered = new Set(spans.flatMap((span) => Array.from({ length: span.end - span.start }, (_, offset) => span.start + offset))).size;
+    return { id, spans, covered, longest: Math.max(0, ...spans.map((span) => span.end - span.start)) };
+  }).filter((candidate) => candidate.spans.length > 0);
+  // Shared aliases (for example "free coins") go to the entity with the strongest complete contextual match.
+  const selected: string[] = [];
+  for (const candidate of candidates.sort((a, b) => b.covered - a.covered || b.longest - a.longest || (a.id < b.id ? -1 : 1))) {
+    const whollyShadowed = candidate.spans.every((span) => candidates.some((other) => other.id !== candidate.id && selected.includes(other.id)
+      && other.covered > candidate.covered && other.spans.some((otherSpan) => otherSpan.start <= span.start && otherSpan.end >= span.end)));
+    if (!whollyShadowed) selected.push(candidate.id);
+  }
+  return selected;
 }
 function metricFromItems(items: readonly CoverageItem[]): RealizationCoverage {
   return ratio(items.filter((item) => item.covered).length, items.length);
@@ -70,12 +77,15 @@ function overlap(a: readonly [number, number], b: readonly [number, number]): [n
 }
 function sampleWindow(window: readonly [number, number], fps: number): number[] {
   const [start, end] = window;
-  if (!(end > start) || !Number.isFinite(start) || !Number.isFinite(end)) return [];
-  const step = 1 / Math.max(1, fps), out: number[] = [];
-  for (let t = start; t < end - 1e-9; t += step) out.push(r4(t));
-  const final = r4(Math.max(start, end - Math.min(step / 2, 1e-4)));
-  if (!out.length || Math.abs(out[out.length - 1] - final) > 1e-6) out.push(final);
-  return [...new Set(out)];
+  if (!(end > start) || !Number.isFinite(start) || !Number.isFinite(end) || !(fps > 0)) return [];
+  const firstFrame = Math.max(0, Math.ceil(start * fps - 1e-9));
+  const endFrame = Math.ceil(end * fps - 1e-9);
+  const out: number[] = [];
+  for (let frame = firstFrame; frame < endFrame; frame++) {
+    const time = frame / fps;
+    if (time >= start - 1e-9 && time < end - 1e-9) out.push(time);
+  }
+  return out;
 }
 function clauseWindow(beat: StagedBeat, clause: DirectorClause, wordCount: number): [number, number] {
   const duration = beat.end - beat.start;
@@ -107,18 +117,22 @@ function labelForEvent(staged: StagedEvent): string {
   if (event.type === 'text_graphic') return `text ${event.textStyleId}@${event.at}${event.target ? `->${event.target}` : ''}`;
   return `${event.type} ${'characterId' in event ? `${event.characterId} ` : ''}${'doorId' in event ? event.doorId : ''}@${event.at}`;
 }
-function propStateRealized(plan: StagePlan, beat: StagedBeat, propId: string, actions: readonly string[], actorId: string | undefined): boolean {
+function propStateRealized(plan: StagePlan, beat: StagedBeat, propId: string, actions: readonly string[], actorId: string | undefined, window: readonly [number, number]): boolean {
   const span = plan.props[propId]?.spans.find((candidate) => candidate.beat === beat.phraseId);
   if (!span) return false;
+  const inWindow = (time: number | null) => time !== null && time >= window[0] - 1e-9 && time < window[1] + 1e-9;
+  const actorContact = actorId ? plan.world.actors[actorId]?.contacts.some((contact) => contact.with === 'button' && overlap(window, [contact.t0, contact.t1])) : true;
   if (actions.some((action) => ['pick_up', 'grab', 'hold', 'drink', 'use_phone', 'eat', 'type_laptop'].includes(action))) {
-    return span.kind === 'held' && (!actorId || span.target === actorId);
+    return span.kind === 'held' && (!actorId || span.target === actorId) && !!overlap(window, [span.t0, span.t1]);
   }
-  if (actions.includes('put_down')) return span.kind !== 'held' && !IDLE_PROP_STATES.has(span.state);
-  if (actions.includes('throw')) return span.kind !== 'held' && !IDLE_PROP_STATES.has(span.state);
-  if (actions.includes('press_button')) return ['pressed', 'flashing', 'reset'].includes(span.state);
-  if (actions.includes('open_door')) return beat.events.some((event) => event.event.type === 'door_open');
-  if (actions.includes('slam_door')) return beat.events.some((event) => event.event.type === 'door_close');
-  return !IDLE_PROP_STATES.has(span.state);
+  if (actions.includes('put_down') || actions.includes('throw')) {
+    const spans = plan.props[propId]?.spans ?? [], index = spans.indexOf(span), previous = index > 0 ? spans[index - 1] : undefined;
+    return !!previous && previous.kind === 'held' && span.kind !== 'held' && span.t0 >= window[0] - 1e-9 && span.t0 < window[1] + 1e-9;
+  }
+  if (actions.includes('press_button')) return inWindow(plan.world.button.pressT) && actorContact;
+  if (actions.includes('open_door')) return beat.events.some((event) => event.event.type === 'door_open' && inWindow(event.event.at));
+  if (actions.includes('slam_door')) return beat.events.some((event) => event.event.type === 'door_close' && inWindow(event.event.at));
+  return !IDLE_PROP_STATES.has(span.state) && !!overlap(window, [span.t0, span.t1]);
 }
 
 export function coverageCheck(scene: VignetteScene, plan: StagePlan, compositions: readonly CameraComposition[]): CoverageReport {
@@ -145,10 +159,10 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
     }
     return visibilityOf(geometry, camera, ASPECT, witness).ok;
   };
-  const addWorld = (input: Omit<CoverageItem, 'space' | 'samples' | 'seen' | 'covered' | 'window'>, window: [number, number], witness: readonly string[], composition?: CameraComposition, minimumFraction = 0.5, realized = true): CoverageItem => {
-    const times = sampleWindow(window, plan.fps), seen = realized ? times.filter((time) => witness.some((id) => seenWith(inputBeat(input.beat), time, id, composition))).length : 0;
+  const addWorld = (input: Omit<CoverageItem, 'space' | 'samples' | 'sampleTimes' | 'seen' | 'covered' | 'window'>, window: [number, number], witness: readonly string[], composition?: CameraComposition, minimumFraction = 0.5, realized = true): CoverageItem => {
+    const times = sampleWindow(window, plan.fps), seen = realized ? times.filter((time) => witness.length > 0 && witness.every((id) => seenWith(inputBeat(input.beat), time, id, composition))).length : 0;
     const covered = realized && times.length > 0 && seen / times.length >= minimumFraction;
-    const item: CoverageItem = { ...input, witness: [...witness], space: 'world', window: window.map(r4) as [number, number], samples: times.length, seen, covered };
+    const item: CoverageItem = { ...input, witness: [...witness], space: 'world', window: window.map(r4) as [number, number], samples: times.length, sampleTimes: times, seen, covered };
     items.push(item); return item;
   };
   const beatById = new Map(plan.beats.map((beat) => [beat.phraseId, beat] as const));
@@ -159,49 +173,110 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
     const selectedIds = new Set<string>();
     for (const composition of beatCompositions) {
       const subject = composition.subject ?? composition.shot.subjects.active;
-      selectedIds.add(subject);
-      addWorld({ beat: beat.phraseId, kind: beat.props.includes(subject) ? 'prop' : 'cast', id: `${beat.phraseId}#composition-${composition.index}:${subject}`, label: `${subject} (composition ${composition.index} subject)`, witness: [subject], counted: true, basis: 'composition-subject', clause: null, composition: composition.index }, [composition.start, composition.end], [subject], composition);
+      const targets = [...new Set([subject, ...(composition.secondary ? [composition.secondary] : [])])];
+      for (const [targetIndex, target] of targets.entries()) {
+        selectedIds.add(target);
+        const requiredTarget = targetIndex === 0 || composition.shot.subjects.required.includes(target);
+        addWorld({
+          beat: beat.phraseId, kind: beat.props.includes(target) ? 'prop' : 'cast',
+          id: `${beat.phraseId}#composition-${composition.index}:${target}`,
+          label: `${target} (composition ${composition.index} ${targetIndex === 0 ? 'subject' : 'secondary'})`, witness: [target], counted: requiredTarget,
+          basis: requiredTarget ? 'composition-subject' : 'diagnostic', clause: null, composition: composition.index,
+          ...(!requiredTarget ? { reason: 'optional composition context (diagnostic)' } : {}),
+        }, [composition.start, composition.end], [target], composition);
+      }
     }
 
     const directorClauses = splitDirectorClauses(beat.text);
-    const wordCount = Math.max(1, canonicalWords(beat.text).length);
+    const wordCount = Math.max(1, beat.text.trim().split(/\s+/).filter(Boolean).length);
     const clauseRanges = new Map(directorClauses.map((clause) => [clause.index, clauseWindow(beat, clause, wordCount)] as const));
     const literalIds = new Set<string>(), actionActorIds = new Set<string>();
     for (const clause of directorClauses) {
       const rawWindow = clauseRanges.get(clause.index)!;
-      const composition = compositionAt(beatCompositions, rawWindow[0]) ?? beatCompositions.find((candidate) => overlap(rawWindow, [candidate.start, candidate.end])) ?? beatCompositions[0];
-      const window = composition ? (overlap(rawWindow, [composition.start, composition.end]) ?? [composition.start, composition.end]) : rawWindow;
+      const segments = beatCompositions.map((composition) => ({ composition, window: overlap(rawWindow, [composition.start, composition.end]) }))
+        .filter((segment): segment is { composition: CameraComposition; window: [number, number] } => !!segment.window);
       const people = mentionedIds(clause.text, beat.cast.map((cast) => cast.id), LIBRARY.characters);
       const objects = mentionedIds(clause.text, beat.props, LIBRARY.props);
-      const actions = mentionedIds(clause.text, LIBRARY.actions.map((action) => action.id), LIBRARY.actions);
+      let actions = mentionedIds(clause.text, LIBRARY.actions.map((action) => action.id), LIBRARY.actions);
+      const objectKinds = new Set(objects.map((id) => plan.props[id]?.propId ?? id));
+      actions = actions.filter((action) => !['open_door', 'slam_door'].includes(action) || [...objectKinds].some((id) => /door/.test(id)));
+      if (!people.length) actions = actions.filter((action) => action !== 'sit'); // descriptive prop "sitting" is not an actor action
       const literalItems: CoverageItem[] = [];
       for (const id of [...people, ...objects]) {
         literalIds.add(id);
-        literalItems.push(addWorld({ beat: beat.phraseId, kind: objects.includes(id) ? 'prop' : 'cast', id: `${beat.phraseId}#clause-${clause.index}:literal:${id}`, label: `${clause.text} [${id}]`, witness: [id], counted: true, basis: 'clause-literal', clause: clause.index, composition: composition?.index ?? -1 }, window, [id], composition, 0.000001));
+        const frameSegments = segments.filter((segment) => sampleWindow(segment.window, plan.fps).length > 0);
+        const representing = frameSegments.find((segment) => segment.composition.subject === id || segment.composition.secondary === id)
+          ?? [...frameSegments].sort((a, b) => (b.window[1] - b.window[0]) - (a.window[1] - a.window[0]))[0];
+        const segment = representing ?? { composition: undefined, window: rawWindow };
+        literalItems.push(addWorld({
+          beat: beat.phraseId, kind: objects.includes(id) ? 'prop' : 'cast',
+          id: `${beat.phraseId}#clause-${clause.index}:literal:${id}`,
+          label: `${clause.text} [${id}]`, witness: [id], counted: true, basis: 'clause-literal', clause: clause.index,
+          composition: segment.composition?.index ?? -1,
+          ...(!segment.composition ? { reason: 'clause window has no emitted-frame composition' } : {}),
+        }, segment.window, [id], segment.composition, 0.000001));
       }
 
-      const matchingActors = beat.cast.filter((cast) => actions.includes(bare(cast.actionId)));
-      const actor = matchingActors.find((cast) => people.includes(cast.id)) ?? matchingActors.find((cast) => cast.id === composition?.subject) ?? matchingActors[0];
+      const supportsAction = (cast: StagedBeat['cast'][number], action: string) => bare(cast.actionId) === action
+        || (action === 'sit' && cast.play.contract === 'remain_still')
+        || (action === 'look_at' && !!cast.lookAt)
+        || (action === 'exit_frame' && cast.exitAt !== null)
+        || (action === 'enter_frame' && cast.enterAt !== null);
+      const matchingActors = beat.cast.filter((cast) => actions.some((action) => supportsAction(cast, action)));
+      const firstComposition = segments[0]?.composition;
+      const actor = matchingActors.find((cast) => people.includes(cast.id)) ?? matchingActors.find((cast) => cast.id === firstComposition?.subject) ?? matchingActors[0];
       const actionItems: CoverageItem[] = [];
       if (actions.length) {
         if (actor) actionActorIds.add(actor.id);
-        const actionWindow = actor ? overlap(window, [actor.actionT0, actor.actionT1]) : null;
-        const implemented = !!actor && !actor.play.placeholder && !!actionWindow;
-        const attemptedWindow = actionWindow ?? window;
-        actionItems.push(addWorld({ beat: beat.phraseId, kind: 'action', id: `${beat.phraseId}#clause-${clause.index}:action`, label: `${clause.text} [${actions.join(', ')}]`, witness: actor ? [actor.id] : [], counted: false, basis: 'clause-action', clause: clause.index, composition: composition?.index ?? -1, ...(!implemented ? { reason: actor ? 'staged action does not overlap its clause/composition' : 'named action was not staged' } : {}) }, attemptedWindow, actor ? [actor.id] : [], composition, 0.000001, implemented));
+        let evidenceWindow: [number, number] | null = null;
+        if (actor) {
+          if (actions.includes('exit_frame') && actor.exitAt !== null) evidenceWindow = overlap(rawWindow, [actor.moveT0 ?? beat.start, actor.exitAt + 1 / plan.fps]);
+          else if (actions.includes('enter_frame') && actor.enterAt !== null) evidenceWindow = overlap(rawWindow, [actor.enterAt, actor.moveT1 ?? actor.enterAt + 1 / plan.fps]);
+          else if (actions.includes('look_at') && actor.lookAt) evidenceWindow = rawWindow;
+          else evidenceWindow = overlap(rawWindow, [actor.actionT0, actor.actionT1]);
+        }
+        let actionComposition = evidenceWindow ? beatCompositions.find((candidate) => overlap(evidenceWindow!, [candidate.start, candidate.end])) : undefined;
+        let ownedWindow = evidenceWindow && actionComposition ? overlap(evidenceWindow, [actionComposition.start, actionComposition.end]) : null;
+        // A sub-frame clause owns the first emitted frame at its boundary rather than synthetic non-frame timestamps.
+        if (actor && (!ownedWindow || sampleWindow(ownedWindow, plan.fps).length === 0)) {
+          const frameTime = Math.ceil(rawWindow[0] * plan.fps - 1e-9) / plan.fps;
+          const boundaryComposition = compositionAt(beatCompositions, frameTime);
+          if (boundaryComposition && frameTime < beat.end) {
+            actionComposition = boundaryComposition;
+            ownedWindow = [frameTime, Math.min(boundaryComposition.end, frameTime + 1 / plan.fps)];
+          }
+        }
+        const implemented = !!actor && !actor.play.placeholder && !!ownedWindow && actions.every((action) => supportsAction(actor, action));
+        actionItems.push(addWorld({
+          beat: beat.phraseId, kind: 'action', id: `${beat.phraseId}#clause-${clause.index}:action`,
+          label: `${clause.text} [${actions.join(', ')}]`, witness: actor ? [actor.id] : [], counted: true, basis: 'clause-action', clause: clause.index,
+          composition: actionComposition?.index ?? -1,
+          ...(!implemented ? { reason: actor ? 'staged action does not overlap an emitted frame in its clause/composition' : 'named action was not staged' } : {}),
+        }, ownedWindow ?? evidenceWindow ?? rawWindow, actor ? [actor.id] : [], actionComposition, 0.000001, implemented));
       }
 
       const stateActions = actions.filter((action) => PROP_STATE_ACTIONS.has(action));
       const propStateItems: CoverageItem[] = [];
       if (objects.length && stateActions.length) {
-        const realizedProps = objects.filter((id) => propStateRealized(plan, beat, id, stateActions, actor?.id));
+        const stateComposition = segments[0]?.composition;
+        const stateWindow = segments[0]?.window ?? rawWindow;
+        const realizedProps = objects.filter((id) => propStateRealized(plan, beat, id, stateActions, actor?.id, rawWindow));
         const realized = realizedProps.length === objects.length;
-        const witnesses = objects;
-        propStateItems.push(addWorld({ beat: beat.phraseId, kind: 'prop_state', id: `${beat.phraseId}#clause-${clause.index}:prop-state`, label: `${clause.text} [${objects.join(', ')} -> ${stateActions.join(', ')}]`, witness: witnesses, counted: false, basis: 'clause-prop-state', clause: clause.index, composition: composition?.index ?? -1, ...(!realized ? { reason: 'named prop state/action was not realized by staging' } : {}) }, window, witnesses, composition, 0.000001, realized));
+        propStateItems.push(addWorld({
+          beat: beat.phraseId, kind: 'prop_state', id: `${beat.phraseId}#clause-${clause.index}:prop-state`,
+          label: `${clause.text} [${objects.join(', ')} -> ${stateActions.join(', ')}]`, witness: objects, counted: true,
+          basis: 'clause-prop-state', clause: clause.index, composition: stateComposition?.index ?? -1,
+          ...(!realized ? { reason: 'named prop transition was not emitted in the clause window' } : {}),
+        }, stateWindow, objects, stateComposition, 0.000001, realized));
       }
 
       const literalCoverage = metricFromItems(literalItems), actionRealization = metricFromItems(actionItems), propStateRealization = metricFromItems(propStateItems);
-      clauses.push({ beat: beat.phraseId, index: clause.index, text: clause.text, composition: composition?.index ?? -1, window: window.map(r4) as [number, number], literals: [...people, ...objects], actions, propStates: stateActions.length ? objects : [], literalCoverage, actionRealization, propStateRealization, missing: [...literalItems, ...actionItems, ...propStateItems].filter((item) => !item.covered).map((item) => item.label) });
+      clauses.push({
+        beat: beat.phraseId, index: clause.index, text: clause.text, composition: firstComposition?.index ?? -1,
+        window: rawWindow.map(r4) as [number, number], literals: [...people, ...objects], actions,
+        propStates: stateActions.length ? objects : [], literalCoverage, actionRealization, propStateRealization,
+        missing: [...literalItems, ...actionItems, ...propStateItems].filter((item) => !item.covered).map((item) => item.label),
+      });
     }
 
     for (const staged of beat.events) {
@@ -212,18 +287,18 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
       });
       const clause = clauseDefinition ? clauses.find((candidate) => candidate.beat === beat.phraseId && candidate.index === clauseDefinition.index) : undefined;
       const base = { beat: beat.phraseId, kind: 'event' as const, id: `${beat.phraseId}#event-${staged.index}`, label: labelForEvent(staged), witness: staged.witness, basis: 'event' as const, clause: clause?.index ?? null, composition: composition?.index ?? null, window };
-      if (staged.space === 'audio') items.push({ ...base, space: 'audio', counted: false, samples: 0, seen: 0, covered: true, reason: 'audio only' });
-      else if (staged.space === 'screen') items.push({ ...base, space: 'screen', counted: true, samples: sampleWindow(window, plan.fps).length, seen: sampleWindow(window, plan.fps).length, covered: true, reason: 'screen-space' });
+      if (staged.space === 'audio') items.push({ ...base, space: 'audio', counted: false, samples: 0, sampleTimes: [], seen: 0, covered: true, reason: 'audio only' });
+      else if (staged.space === 'screen') { const sampleTimes = sampleWindow(window, plan.fps); items.push({ ...base, space: 'screen', counted: true, samples: sampleTimes.length, sampleTimes, seen: sampleTimes.length, covered: sampleTimes.length > 0, reason: 'screen-space' }); }
       else addWorld({ ...base, counted: true }, window, staged.witness, undefined, 0.000001);
     }
 
     const eventWitnesses = new Set(beat.events.flatMap((event) => event.witness));
     for (const cast of beat.cast) if (!selectedIds.has(cast.id) && !literalIds.has(cast.id) && !actionActorIds.has(cast.id) && !eventWitnesses.has(cast.id)) {
-      items.push({ beat: beat.phraseId, kind: 'cast', id: `${beat.phraseId}#diagnostic:${cast.id}`, label: `${cast.id} (${cast.actionId})`, witness: [cast.id], space: 'world', counted: false, samples: 0, seen: 0, covered: false, reason: 'background/continuity cast (diagnostic)', basis: 'diagnostic', clause: null, composition: null, window: [beat.start, beat.end] });
+      items.push({ beat: beat.phraseId, kind: 'cast', id: `${beat.phraseId}#diagnostic:${cast.id}`, label: `${cast.id} (${cast.actionId})`, witness: [cast.id], space: 'world', counted: false, samples: 0, sampleTimes: [], seen: 0, covered: false, reason: 'background/continuity cast (diagnostic)', basis: 'diagnostic', clause: null, composition: null, window: [beat.start, beat.end] });
     }
     for (const id of beat.props) if (!selectedIds.has(id) && !literalIds.has(id) && !eventWitnesses.has(id)) {
       const span = plan.props[id]?.spans.find((candidate) => candidate.beat === beat.phraseId);
-      items.push({ beat: beat.phraseId, kind: 'prop', id: `${beat.phraseId}#diagnostic:${id}`, label: `${id} (${span?.state ?? ''})`, witness: [id], space: 'world', counted: false, samples: 0, seen: 0, covered: false, reason: 'background/continuity prop (diagnostic)', basis: 'diagnostic', clause: null, composition: null, window: [beat.start, beat.end] });
+      items.push({ beat: beat.phraseId, kind: 'prop', id: `${beat.phraseId}#diagnostic:${id}`, label: `${id} (${span?.state ?? ''})`, witness: [id], space: 'world', counted: false, samples: 0, sampleTimes: [], seen: 0, covered: false, reason: 'background/continuity prop (diagnostic)', basis: 'diagnostic', clause: null, composition: null, window: [beat.start, beat.end] });
     }
   }
 
