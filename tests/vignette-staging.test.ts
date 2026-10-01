@@ -90,14 +90,17 @@ test('seated actors use the runtime-owned stand_up action before moving', () => 
 
 test('coin-pinned prone actors fail closed instead of escaping persistent contact', () => {
   const canonical = JSON.parse(readFileSync(new URL('../packages/director/fixtures/free-coins-classroom.beats.json', import.meta.url), 'utf8'));
-  const start = canonical.beats.at(-1).end + 20;
-  canonical.beats.push(beat('p15', start, start + 4, 'classroom', [cast('zapp', 'zapp_desk', 'walk')], [], []));
+  const gapStart = canonical.beats.at(-1).end + 20;
+  canonical.beats.push(beat('p15', gapStart, gapStart + 3, 'classroom', [cast('teacher', 'center_stage', 'idle')], [], []));
+  const start = gapStart + 3;
+  canonical.beats.push(beat('p16', start, start + 4, 'classroom', [cast('zapp', 'zapp_desk', 'walk')], [], []));
   const plan = stageBeatSheet(canonical, lib);
-  assert.ok(plan.issues.some((x) => x.code === 'GET_UP_UNAVAILABLE' && x.entity === undefined && x.message.includes('coin contact')),
-    JSON.stringify(plan.issues.filter((x) => x.beat === 'p15')));
+  assert.ok(plan.issues.some((x) => x.code === 'GET_UP_UNAVAILABLE' && x.message.includes('coin contact')),
+    JSON.stringify(plan.issues.filter((x) => x.beat === 'p16')));
   const state = sampleWorld(plan.world, start + 2).actors.zapp;
   assert.equal(state.posture, 'prone');
   assert.ok(state.contacts.includes('coin'));
+  assert.deepEqual(state.pos, sampleWorld(plan.world, gapStart - 1).actors.zapp.pos, 'cut re-entry must not relocate a pinned actor');
   assert.equal(plan.world.actors.zapp.segs.some((s) => s.t0 >= start && s.kind === 'path'), false);
 });
 

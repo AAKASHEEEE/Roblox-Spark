@@ -347,7 +347,11 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       if (!continuing && carried) issue('warning', 'CARRYOVER_BROKEN', B, `${id} is carried over but was not staged in ${set.id} in the previous beat: re-placed at the cut`, { entity: id });
       let from: Vec3 = end(id).pos, moveT0: number | null = null, moveT1: number | null = null, enterAt: number | null = null, exitAt: number | null = null;
       let visibleFrom = S, visibleTo = nextS;
-      if (!continuing) {
+      if (!continuing && priorPosture === 'prone' && c.actionId !== 'flattened') {
+        // A cut or intervening absence does not release physical contact. Preserve the prior root and fail before place().
+        postureTransition(id, S, 'standing', B, c.actionId);
+        from = end(id).pos;
+      } else if (!continuing) {
         // cut placement: where the beat needs the actor at its start
         let p0: Vec3, yaw: number;
         if (kind === 'enter' && door) { p0 = door.threshold; yaw = door.facingDeg; }
