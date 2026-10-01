@@ -6,7 +6,8 @@ This branch implements the S7-owned surface of the vignette pipeline:
 - `packages/engine/src/vfx/**` — registry/runtime for every existing and planned VFX, deterministic particles/post/camera effects, and seven original emote icons.
 - `packages/audio-mix/**` — voice-over plus event SFX mixer, all planned procedural SFX, no-music policy, 10-second WAV fixture, loudness/true-peak reporting.
 - `packages/captions/showcase/**` — three verified H.264/AAC MP4 visual feature showcases.
-- `packages/captions/full-render/**` — the complete 69.17 s real-voice S7 render plus review frames and digest-bound verification.
+- `packages/captions/full-render/**` — immutable v1 narrated golden.
+- `packages/captions/full-render-v2/**` — the existing 69.17 s Vignette-sourced review render, retroactively integrity-sealed with independently recomputed media/evidence hashes (not claimed as pre-authorized). See [`RENDER_EVIDENCE.md`](./RENDER_EVIDENCE.md).
 
 The code is deterministic and random-access safe: seeking to a frame or rendering frames in another order produces the same visual/audio result for the same inputs and seed.
 
@@ -57,12 +58,17 @@ Review frames and the digest-bound media report are in `packages/captions/full-r
 
 ```bash
 FFPROBE_PATH=/path/to/ffprobe node packages/captions/tools/render-full.ts \
+  --visual narrated \
+  --profile review-vertical-540p \
+  --evidenceProfile none \
   --voice /path/to/e_leven-1.mp3 \
   --ffmpeg /path/to/ffmpeg \
   --out out/s7-full
 ```
 
 The command refuses a voice file whose SHA-256 differs from the approved storyboard, refuses to cut speech, fails on unresolved SFX or face-overlapping captions, and independently probes/decodes the completed MP4.
+
+The Vignette-sourced competitor-v2 artifact is a **review-profile** render, not a 1080p final. Its source/input/tool manifest, evidence hashes, worker-safe invocation, and required upstream `web-entry.ts` integration are documented in [`RENDER_EVIDENCE.md`](./RENDER_EVIDENCE.md). The independent verifier never treats `full-render-v2/verification.json` or `.agents/**` approval metadata as truth.
 
 ## Quick start (step by step)
 
@@ -135,13 +141,15 @@ Run commands from the repository root.
 
    ```json
    {
-     "status": "ok",
-     "plannedImplemented": { "vfx": 11, "textStyles": 4, "sfx": 11 },
+     "status": "partial",
+     "plannedImplemented": { "vfx": 11, "textStyles": 2, "sfx": 11 },
      "captions": { "phrases": 14, "captions": 61, "oneToFourWords": true, "faceSafe": "61/61" },
      "audio": { "durationSec": 10, "integratedLufs": -14.01, "truePeakDbtp": -1.2, "music": "none", "eventSfx": 3 },
      "showcaseMp4s": 3
    }
    ```
+
+   `partial` is expected for the unchanged historical v2 artifact: all available bytes pass integrity checks, but it was retroactively sealed and the untracked voice/runtime bytes were not preserved as pre-render authorization evidence.
 
 8. Run repository regression checks:
 

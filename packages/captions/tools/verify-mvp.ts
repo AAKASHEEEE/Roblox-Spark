@@ -2,8 +2,12 @@
 // Usage from repo root: node packages/captions/tools/verify-mvp.ts
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join } from 'node:path';
-import { ROOT } from '../../../apps/render-worker/lib/server.ts';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
+import { verifyRenderV2 } from './verify-render-v2.ts';
+const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
+const { values: args } = parseArgs({ options: { v2Voice: { type: 'string' }, authorizedManifestSha256: { type: 'string' }, skipV2: { type: 'boolean', default: false } } });
 import { LIBRARY } from '../../library/src/ids.ts';
 import { VFX_DEFS, S7_NEW_VFX_IDS } from '../../engine/src/vfx/index.ts';
 import { SFX_DEFS, S7_NEW_SFX_IDS } from '../../audio-mix/src/sfx.ts';
@@ -115,13 +119,22 @@ if (existsSync(fullPath)) {
   fullVideo = { durationSec: full.output.durationSec, resolution: `${full.output.width}x${full.output.height}`, fps: full.output.fps, faceConflicts: full.s7.faceConflicts, music: full.s7.music, gates: full.gates.narratedIntegration };
 }
 
+let v2: ReturnType<typeof verifyRenderV2> | 'skipped' = 'skipped';
+if (!args.skipV2) {
+  const reportPath = join(ROOT, 'packages/captions/full-render-v2/render-evidence.json');
+  v2 = verifyRenderV2({ root: ROOT, reportPath, ...(args.v2Voice ? { voicePath: resolve(ROOT, args.v2Voice) } : {}), ...(args.authorizedManifestSha256 ? { authorizedManifestSha256: args.authorizedManifestSha256 } : {}) });
+  for (const issue of v2.issues) issues.push(`full render v2: ${issue}`);
+}
+
+const verificationStatus = issues.length ? 'failed' : v2 !== 'skipped' && !v2.complete ? 'partial' : 'ok';
 const summary = {
-  status: issues.length ? 'failed' : 'ok',
+  status: verificationStatus,
   plannedImplemented: { vfx: plannedVfx.length, textStyles: plannedText.length, sfx: plannedSfx.length },
   captions: { phrases: phrases.length, captions: plan.captions.length, oneToFourWords: plan.captions.every((c) => c.words.length <= 4), faceSafe: stills ? `${stills.summary.clearOfFaces}/${stills.summary.captions}` : 'missing' },
   audio: mix && measuredAudio ? { durationSec: mix.fileCheck.durationSec, integratedLufs: measuredAudio.integratedLufs, truePeakDbtp: measuredAudio.truePeakDbtp, music: mix.mix.music, eventSfx: mix.mix.cues.length } : 'missing',
   showcaseMp4s: showcaseCount,
   fullVideo,
+  fullVideoV2: v2 === 'skipped' ? 'skipped' : { integrityOk: v2.ok, trusted: v2.trusted, complete: v2.complete, provenance: v2.provenance, sourceExactRecompute: v2.sourceExactRecompute, authorizationVerified: v2.authorizationVerified, manifestSha256: v2.manifestSha256, outputSha256: v2.outputSha256, mediaSha256: v2.mediaSha256, evidenceVerified: v2.evidenceVerified, voiceBytesVerified: v2.voiceBytesVerified, warnings: v2.warnings, media: v2.media },
   issues,
 };
 console.log(JSON.stringify(summary, null, 2));

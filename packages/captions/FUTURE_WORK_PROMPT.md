@@ -2,7 +2,7 @@
 
 Copy the prompt below into a new Kiro session after the S2–S7 pull requests have merged into `integration/vignette-v1` (or its successor).
 
-S7 now includes `packages/captions/tools/render-full.ts` and a verified complete real-voice render. The future task is to reuse that proven capture/audio path in the general Vignette worker and Studio rather than rebuilding it.
+S7 now includes `packages/captions/tools/render-full.ts`, the neutral `packages/captions/src/preview/vignette-render-session.ts` primitive, and independently verifiable real-voice render evidence. The future task is to reuse those paths in the general Vignette worker and Studio rather than rebuilding staging/camera/render logic. Read `packages/captions/RENDER_EVIDENCE.md` first.
 
 ---
 
@@ -12,8 +12,11 @@ Goals:
 
 1. **Do not redesign S7.** Reuse:
    - `packages/captions/src/index.ts`
+   - `packages/captions/src/preview/vignette-render-session.ts`
+   - `packages/captions/src/preview/composition.ts`
    - `packages/engine/src/vfx/index.ts`
    - `packages/audio-mix/src/index.ts`
+   Replace `packages/vignette/src/web-entry.ts`'s local validate/stage/pose/camera/render sequence with the neutral render session (or move that contract to an agreed lower-level package). Keep the Vignette overlay and encoder in the entry; do not create a third renderer.
 2. In the S0-owned library manifest, flip every implemented S7 planned ID to `available` without renaming IDs:
    - text styles: `caption_bold`, `world_text_3d`, `ui_popup`, `title_card`
    - VFX: `sparkle`, `smoke_puff`, `fire`, `explosion`, `zoom_punch`, `emote_exclaim`, `emote_question`, `emote_sweat`, `emote_anger`, `emote_hearts`, `emote_tears`
@@ -31,7 +34,7 @@ Goals:
    - never add planned music IDs
    - write/report about −14 LUFS integrated and <= −1 dBTP
 6. Keep the existing Visual Comedy and narrated render modes backward compatible unless their output explicitly selects the new S7 pipeline.
-7. Re-run `packages/captions/tools/render-full.ts` with the supplied approved voice-over, then port its proven exact-frame WebCodecs/AAC/mux/probe/playback flow into the supported general Vignette worker. Do not use the synthetic stand-in for production output.
+7. Generate a strict pre-render manifest before running `packages/captions/tools/render-full.ts`; never use `.agents/**` review metadata as authorization. Port the proven exact-frame WebCodecs/AAC/mux/probe/playback flow into the supported general Vignette worker, then seal and independently verify output/media/input/evidence hashes. Do not use the synthetic stand-in for production output.
 8. Validate:
    - `npm run typecheck`
    - `npm test`

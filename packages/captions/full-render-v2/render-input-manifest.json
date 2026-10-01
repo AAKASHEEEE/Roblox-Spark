@@ -1,0 +1,59 @@
+{
+  "schema": "blockspark.render-input-manifest/2",
+  "provenance": "retroactive-integrity-seal",
+  "job": {
+    "jobId": "historical-competitor-v2-9b5e6c7",
+    "outputPath": "packages/captions/full-render-v2/zapp-vs-kira-competitor-performance-v2.mp4",
+    "visual": "vignette",
+    "renderProfile": "review-vertical-540p",
+    "evidenceProfile": "competitor-v2"
+  },
+  "source": {
+    "repository": "AAKASHEEEE/Roblox-Spark",
+    "commitSha": "9b5e6c736ca1483b7486ea197e8c0a344ba0fb8c",
+    "treeSha": "8bf0198e75a23cc5e14b38795a138bfcca3734ad",
+    "baseSha": "9b5e6c736ca1483b7486ea197e8c0a344ba0fb8c"
+  },
+  "inputs": {
+    "storyboard": {
+      "path": "tests/fixtures/narrated/approved-narrated-v0.1.json",
+      "sha256": "76a6b5f26af5f9e0f1bcf635677f8c9f7a79f16d9f1bfc48575f3e0be2985856"
+    },
+    "beatSheet": {
+      "path": "packages/director/fixtures/free-coins-classroom.beats.json",
+      "sha256": "9ba38d3188352eb1d506003c1667cbcd11e9397e6ac2c2fd46e544ecde3bf6c4"
+    },
+    "voice": {
+      "sha256": "d97fd8656d7c427e93ea4da2b7ca289945b02f999114f5b44fa5b4e1fdb4e4f2"
+    },
+    "solvedCompositions": {
+      "sha256": "a18c4cf526428ac239d43aa0ce09bdc97af75b15e52ff83caea002c32582da54",
+      "count": 41
+    },
+    "assetLock": {
+      "path": "assets/asset-lock.json",
+      "sha256": "53704065fcc14e43160bbaa9be7406c118ed14dadd126672027f6e4dcbfbd624"
+    },
+    "packageLock": {
+      "path": "package-lock.json",
+      "sha256": "4505fe0949d4d5e47449eba0ccd8d14b920216696d1516ad69a4c9a79fcfa7a5"
+    }
+  },
+  "tools": {
+    "node": "v22.23.3",
+    "typescript": "7.0.2",
+    "playwrightCore": "1.62.0-alpha-1783623505000",
+    "chromium": "151.0.7922.10",
+    "ffmpegStatic": "5.3.0",
+    "ffprobeStatic": "3.1.0",
+    "rendererCodec": "avc1.64001f"
+  },
+  "runtime": {
+    "visualEntry": "dist/packages/captions/src/preview/vignette-full-page.js",
+    "bundleTreeSha256": null,
+    "ffmpegSha256": null,
+    "ffprobeSha256": null,
+    "playwrightTreeSha256": null,
+    "chromiumSha256": null
+  }
+}
