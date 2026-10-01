@@ -1,8 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 const { loadLibrary } = await import('../apps/render-worker/lib/library.ts');
 const { stageBeatSheet } = await import('../packages/vignette/src/stage.ts');
+const { sampleWorld } = await import('../packages/narrated/src/world.ts');
+const { BODY_ACTIONS } = await import('../packages/engine/src/animation/lib/body-actions.ts');
 const { planPath, segmentHits, BODY_RADIUS } = await import('../packages/vignette/src/path.ts');
 
 const lib = loadLibrary();
@@ -68,19 +71,34 @@ test('overlapping actor requests use distinct actor marks, never prop or hazard-
   assert.equal(plan.issues.some((x) => x.code === 'ACTOR_OVERLAP'), false, JSON.stringify(plan.issues));
 });
 
-test('prone actors get an explicit deterministic posture transition before moving', () => {
+test('seated actors use the runtime-owned stand_up action before moving', () => {
   const input = sheet([
-    beat('p1', 0, 3, 'playground', [cast('zapp', 'play_center', 'fall')]),
+    beat('p1', 0, 3, 'playground', [cast('zapp', 'bench', 'sit')]),
     beat('p2', 3, 9, 'playground', [cast('zapp', 'playground_path', 'walk')], [], ['zapp']),
   ]);
   const a = stageBeatSheet(input, lib), b = stageBeatSheet(input, lib);
-  const getUp = a.world.actors.zapp.segs.find((s) => s.action === 'get_up');
-  assert.ok(getUp);
-  assert.equal(getUp!.posture, 'prone');
-  assert.equal(getUp!.endPosture, 'standing');
-  assert.ok(a.world.actors.zapp.segs.some((s) => s.kind === 'path' && s.t0 >= getUp!.t1));
-  assert.equal(a.issues.some((x) => x.code === 'GET_UP_UNAVAILABLE' || x.code === 'PRONE_RESET_AT_CUT'), false);
+  const stand = a.world.actors.zapp.segs.find((s) => s.action === 'stand_up');
+  assert.ok(stand);
+  assert.equal(stand!.posture, 'standing', 'adapter action dispatch must win over static seated posture');
+  assert.equal(stand!.endPosture, 'standing');
+  assert.ok(BODY_ACTIONS.stand_up, 'adapter-owned body action must exist');
+  assert.equal(sampleWorld(a.world, (stand!.t0 + stand!.t1) / 2).actors.zapp.action, 'stand_up');
+  assert.ok(a.world.actors.zapp.segs.some((s) => s.kind === 'path' && s.t0 >= stand!.t1));
+  assert.equal(a.issues.some((x) => x.code === 'GET_UP_UNAVAILABLE'), false);
   assert.deepEqual(a.world.actors.zapp.segs, b.world.actors.zapp.segs);
+});
+
+test('coin-pinned prone actors fail closed instead of escaping persistent contact', () => {
+  const canonical = JSON.parse(readFileSync(new URL('../packages/director/fixtures/free-coins-classroom.beats.json', import.meta.url), 'utf8'));
+  const start = canonical.beats.at(-1).end + 20;
+  canonical.beats.push(beat('p15', start, start + 4, 'classroom', [cast('zapp', 'zapp_desk', 'walk')], [], []));
+  const plan = stageBeatSheet(canonical, lib);
+  assert.ok(plan.issues.some((x) => x.code === 'GET_UP_UNAVAILABLE' && x.entity === undefined && x.message.includes('coin contact')),
+    JSON.stringify(plan.issues.filter((x) => x.beat === 'p15')));
+  const state = sampleWorld(plan.world, start + 2).actors.zapp;
+  assert.equal(state.posture, 'prone');
+  assert.ok(state.contacts.includes('coin'));
+  assert.equal(plan.world.actors.zapp.segs.some((s) => s.t0 >= start && s.kind === 'path'), false);
 });
 
 test('press requires an available control on an interaction mark before contracts are scheduled', () => {
@@ -93,6 +111,13 @@ test('press requires an available control on an interaction mark before contract
   ])]), lib);
   assert.equal(available.issues.some((x) => x.code === 'PRESS_NO_BUTTON'), false, JSON.stringify(available.issues));
   assert.ok(available.world.instances.some((x) => x.contract === 'press_button'));
+
+  const prefixed = stageBeatSheet(sheet([beat('p1', 0, 5, 'classroom', [cast('zapp', 'zapp_desk', 'press_button')], [
+    { propId: 'suspicious_button', placement: 'mark:button_desk', state: 'idle' },
+  ])]), lib);
+  assert.equal(prefixed.issues.some((x) => x.code === 'PRESS_NO_BUTTON'), false, JSON.stringify(prefixed.issues));
+  assert.ok(prefixed.world.assets.button.base[1] > 0, `button bound below set: ${prefixed.world.assets.button.base}`);
+  assert.ok(prefixed.world.instances.some((x) => x.contract === 'press_button'));
 });
 
 test('generic prop looks use the dynamic prop target and prop cuts are always reported', () => {

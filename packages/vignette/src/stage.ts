@@ -123,8 +123,10 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
   const coinM = propInstances.coin ? lib.props[propRef(propInstances.coin)!] : lib.props['spark_coin@1.0.0'];
   const btnM = propInstances.button ? lib.props[propRef(propInstances.button)!] : lib.props['suspicious_button@1.0.0'];
   const btnSet = propInstances.button ? firstSetOf(propInstances.button) : sets[0];
-  const btnMark = propInstances.button ? beats.flatMap((b) => b.props).find((p) => (p.instanceId ?? bare(p.propId)) === propInstances.button)!.placement : null;
-  const btnBase: Vec3 = btnMark && btnSet.marks[btnMark] ? [btnSet.marks[btnMark].pos[0], btnSet.marks[btnMark].surfaceY, btnSet.marks[btnMark].pos[2]] : add(btnSet.origin, [0, -50, 0]);
+  const btnPlacement = propInstances.button ? beats.flatMap((b) => b.props).find((p) => (p.instanceId ?? bare(p.propId)) === propInstances.button)!.placement : null;
+  const [btnPlacementKind, btnMark] = btnPlacement ? parsePlacement(btnPlacement) : ['mark', ''];
+  const resolvedBtnMark = btnPlacementKind === 'mark' ? btnSet.marks[btnMark] : undefined;
+  const btnBase: Vec3 = resolvedBtnMark ? [resolvedBtnMark.pos[0], resolvedBtnMark.surfaceY, resolvedBtnMark.pos[2]] : add(btnSet.origin, [0, -50, 0]);
   const hero = btnSet.dressing[0];
   const deskM = hero ? lib.props[hero.propRef] : undefined;
   const firstDoor = sets.flatMap((s) => Object.values(s.doors))[0];
@@ -188,14 +190,31 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
   const look = (id: string, t: number, v: string | null) => plan.actors[id].looks.push({ t: r4(t), v });
   const expr = (id: string, t: number, v: string) => plan.actors[id].exprs.push({ t: r4(t), v });
   const bridge = (contract: ContractId, actor: string, reason: string, forContract: string, s: { t0: number; t1: number; p0: Vec3; p1: Vec3 }) => plan.bridges.push({ id: `b${String(++nBr).padStart(2, '0')}`, contract, actor, reason, forContract, t0: r4(s.t0), t1: r4(s.t1), from: s.p0.map(r4) as Vec3, to: s.p1.map(r4) as Vec3 });
-  const postureTransition = (id: string, t: number, to: 'standing', phraseId: string, reason: string): Seg => {
-    const e = end(id), action = e.posture === 'implied_seated' ? 'stand_up' : 'get_up', seconds = e.posture === 'implied_seated' ? 0.45 : 0.65;
-    const c = inst('remain_still', id, null, Math.max(t, e.t), Math.max(t, e.t) + seconds, phraseId, { transition: `${e.posture}->${to}`, reason });
-    const s = push(id, { t0: Math.max(t, e.t), t1: Math.max(t, e.t) + seconds, kind: 'hold', contract: c.id, action, posture: e.posture, endPosture: to, heldPose: action, endMark: e.mark, p1: e.pos, yaw1: e.yaw });
-    issue('info', 'POSTURE_TRANSITION', phraseId, `${id}: explicit ${action} transition before ${reason}`, { entity: id, t: s.t0 });
+  const mobilityBlocked = new Set<string>();
+  const postureTransition = (id: string, t: number, to: 'standing', phraseId: string, reason: string): Seg | null => {
+    const e = end(id);
+    if (e.posture === 'prone') {
+      const pinned = plan.actors[id].contacts.some((c) => c.with === 'coin' && t >= c.t0 - 1e-9 && t < c.t1 - 1e-9);
+      err('GET_UP_UNAVAILABLE', 'remain_still', phraseId, t, `${id}: no authored prone-to-standing transition is available${pinned ? ' while the coin contact remains active' : ''}; movement before ${reason} is blocked`);
+      mobilityBlocked.add(id);
+      return null;
+    }
+    if (e.posture !== 'implied_seated') return null;
+    // The existing engine body-action library owns stand_up. Mark this as an action segment (standing world root)
+    // so the adapter dispatches the authored transition instead of its static implied-seated fallback.
+    const seconds = 0.9, start = Math.max(t, e.t);
+    const c = inst('remain_still', id, null, start, start + seconds, phraseId, { transition: `${e.posture}->${to}`, reason });
+    const s = push(id, { t0: start, t1: start + seconds, kind: 'hold', contract: c.id, action: 'stand_up', posture: 'standing', endPosture: to, heldPose: 'stand_up', endMark: e.mark, p1: e.pos, yaw1: e.yaw });
+    issue('info', 'POSTURE_TRANSITION', phraseId, `${id}: authored stand_up transition before ${reason}`, { entity: id, t: s.t0 });
     return s;
   };
-  const walkTime = (from: Vec3, yaw: number, pts: Vec3[], speed: number, yawOut: number) => { const all = [from, ...pts]; let L = 0; for (let k = 1; k < all.length; k++) L += d2(all[k - 1], all[k]); const h0 = yawTo(all[0], all[1]), hl = yawTo(all[all.length - 2], all[all.length - 1]); return turnSec(angDiff(yaw, h0)) + L / speed + turnSec(angDiff(hl, yawOut)); };
+  const walkTime = (from: Vec3, yaw: number, pts: Vec3[], speed: number, yawOut: number) => {
+    if (!pts.length) return 0;
+    const all = [from, ...pts]; let L = 0;
+    for (let k = 1; k < all.length; k++) L += d2(all[k - 1], all[k]);
+    const h0 = yawTo(all[0], all[1]), hl = yawTo(all[all.length - 2], all[all.length - 1]);
+    return turnSec(angDiff(yaw, h0)) + L / speed + turnSec(angDiff(hl, yawOut));
+  };
 
   // ---------------------------------------------------------------- dynamic walk obstacles (the coin as it grows / lies)
   const coinBox = (t: number): Box2 | null => {
@@ -227,7 +246,7 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
     const p = wanted?.pos ?? from ?? set.origin;
     const candidates = Object.values(set.marks).filter((m) => actorCap(m, posture) && !markConflict(m, used) && routable(m));
     candidates.sort((a, b) => (posture === 'implied_seated' ? Number(!a.capabilities.includes('actor-seated')) - Number(!b.capabilities.includes('actor-seated')) : 0)
-      || Number(a.capabilities.includes('hazard')) - Number(b.capabilities.includes('hazard')) || d2(a.pos, p) - d2(b.pos, p) || a.id.localeCompare(b.id));
+      || Number(a.capabilities.includes('hazard')) - Number(b.capabilities.includes('hazard')) || d2(a.pos, p) - d2(b.pos, p) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     return { mark: candidates[0] ?? null, fallback: true };
   };
 
@@ -278,8 +297,11 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
     const cast: StagedCast[] = [];
     const occupiedMarks: StageMark[] = [];
     const compatibleButton = b.props.find((p) => {
-      const pr = props[p.instanceId ?? bare(p.propId)], [pk, pm] = parsePlacement(p.placement), mark = pk === 'mark' ? set.marks[pm] : undefined;
-      return pr?.world === 'button' && pr.resolution.resolution === 'available' && !!mark?.capabilities.includes('interaction');
+      const instance = p.instanceId ?? bare(p.propId);
+      const pr = props[instance], [pk, pm] = parsePlacement(p.placement), mark = pk === 'mark' ? set.marks[pm] : undefined;
+      const boundHere = instance === propInstances.button && set.id === btnSet.id && !!mark
+        && d2(mark.pos, assets.button.base) <= 1e-6 && Math.abs(mark.surfaceY - assets.button.base[1]) <= 1e-6;
+      return pr?.world === 'button' && pr.resolution.resolution === 'available' && boundHere && mark.capabilities.includes('interaction');
     });
     for (const c of b.cast) if (resolveAction(c.actionId, library).contract === 'press_button' && !compatibleButton) {
       issue('error', 'PRESS_NO_BUTTON', B, `${bare(c.characterId)} presses a button but the beat has no available control on a compatible interaction mark`, { entity: bare(c.characterId) });
@@ -342,43 +364,73 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
         postureTransition(id, S + 0.05, 'standing', B, `move to ${target}`);
       }
       const t0 = Math.max(S + 0.05, end(id).t);
-      if (kind === 'enter' && door) {
+      if (mobilityBlocked.has(id)) {
+        hold(id, t0, nextS - 0.02, null, 'prone_mobility_blocked', 'prone');
+      } else if (kind === 'enter' && door) {
         const at = enterE?.at ?? S + 0.1;
         enterAt = at; visibleFrom = at;
         if (!doorOpen(set.id, target, at)) issue('warning', 'DOOR_CLOSED_AT_ENTER', B, `${id} enters through ${target} at ${at} s but the door is closed`, { entity: id, t: at });
-        if (continuing) { const s = walk(id, t0, [door.threshold], null, 'move_to', speed, door.facingDeg + 180); if (s.t1 > at) issue('warning', 'ENTER_LATE', B, `${id} reaches ${target} at ${r4(s.t1)} s, after the enter event (${at})`, { entity: id }); }
-        hold(id, t0, at, null, 'hold');
-        const c1 = inst('move_to', id, null, at, at, B, { to: `${target}:inside`, kind: 'enter' });
-        const rr = route(set, door.threshold, door.inside, at, B, id);
-        const s = walk(id, at, rr.pts.slice(1), null, c1.id, speed, door.facingDeg);
-        c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
-        ev('enter', at, id, target, door.threshold, c1.id);
-        gone.delete(id);
+        let approachBlocked = false;
+        if (continuing) {
+          const approach = route(set, end(id).pos, door.threshold, t0, B, id);
+          if (approach.blockedBy) approachBlocked = true;
+          else {
+            const s = walk(id, t0, approach.pts.slice(1), null, 'move_to', speed, door.facingDeg + 180);
+            if (s.t1 > at) issue('warning', 'ENTER_LATE', B, `${id} reaches ${target} at ${r4(s.t1)} s, after the enter event (${at})`, { entity: id });
+          }
+        }
+        if (!approachBlocked) {
+          hold(id, Math.max(t0, end(id).t), Math.max(at, end(id).t + 0.05), null, 'hold');
+          const rr = route(set, door.threshold, door.inside, Math.max(at, end(id).t), B, id);
+          if (rr.blockedBy) {
+            visibleFrom = nextS;
+            hold(id, end(id).t, nextS - 0.02, null, 'blocked_enter');
+          } else {
+            const c1 = inst('move_to', id, null, at, at, B, { to: `${target}:inside`, kind: 'enter' });
+            const s = walk(id, Math.max(at, end(id).t), rr.pts.slice(1), null, c1.id, speed, door.facingDeg);
+            c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
+            ev('enter', at, id, target, door.threshold, c1.id);
+            gone.delete(id);
+          }
+        } else {
+          visibleFrom = nextS;
+          hold(id, end(id).t, nextS - 0.02, null, 'blocked_enter');
+        }
       } else if (kind === 'exit' && door) {
         const at = exitE?.at ?? E - 0.1;
-        exitAt = at; visibleTo = at + 0.05;
+        exitAt = at;
         const e0 = end(id);
         const rr = route(set, e0.pos, door.inside, t0, B, id);
-        const pts = rr.pts.slice(1).concat(rr.blockedBy ? [] : [door.threshold]);
-        const need = walkTime(e0.pos, e0.yaw, pts, speed, door.facingDeg + 180);
-        const c1 = inst('move_to', id, null, 0, 0, B, { to: `${target}:threshold`, kind: 'exit' });
-        const s = walk(id, Math.max(t0, at - need), pts, null, c1.id, speed, door.facingDeg + 180);
-        c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
-        if (s.t1 > at + 1 / FPS) issue('warning', 'EXIT_LATE', B, `${id} reaches ${target} at ${r4(s.t1)} s, after the exit event (${at})`, { entity: id, t: s.t1 });
-        if (!doorOpen(set.id, target, at)) issue('warning', 'DOOR_CLOSED_AT_EXIT', B, `${id} exits through ${target} at ${at} s but the door is closed`, { entity: id, t: at });
-        ev('exit', at, id, target, door.threshold, c1.id);
-        gone.add(id);
+        if (rr.blockedBy) {
+          visibleTo = nextS;
+          hold(id, end(id).t, nextS - 0.02, null, 'blocked_exit');
+        } else {
+          const pts = rr.pts.slice(1).concat([door.threshold]);
+          const need = walkTime(e0.pos, e0.yaw, pts, speed, door.facingDeg + 180);
+          const c1 = inst('move_to', id, null, 0, 0, B, { to: `${target}:threshold`, kind: 'exit' });
+          const s = walk(id, Math.max(t0, at - need), pts, null, c1.id, speed, door.facingDeg + 180);
+          c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
+          if (s.t1 > at + 1 / FPS) issue('warning', 'EXIT_LATE', B, `${id} reaches ${target} at ${r4(s.t1)} s, after the exit event (${at})`, { entity: id, t: s.t1 });
+          if (!doorOpen(set.id, target, at)) issue('warning', 'DOOR_CLOSED_AT_EXIT', B, `${id} exits through ${target} at ${at} s but the door is closed`, { entity: id, t: at });
+          visibleTo = at + 0.05;
+          ev('exit', at, id, target, door.threshold, c1.id);
+          gone.add(id);
+        }
       } else if (markPos && d2(end(id).pos, markPos.pos) > 0.05) {
-        if (end(id).posture === 'prone') postureTransition(id, t0, 'standing', B, `move to ${target}`);
-        const moveStart = Math.max(t0, end(id).t);
-        const isMove = play.contract === 'move_to';
-        const c1 = inst('move_to', id, null, 0, 0, B, { to: target }, isMove ? null : c.actionId);
-        const rr = route(set, end(id).pos, markPos.pos, moveStart, B, id);
-        const s = walk(id, moveStart, rr.pts.slice(1), rr.blockedBy ? null : target, c1.id, speed, markPos.facingDeg);
-        c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
-        if (!isMove) bridge('move_to', id, `${c.actionId} happens at ${target}: ${id} walks there first`, c1.id, s);
-        if (!rr.blockedBy) { ev('reached_mark', s.t1, id, target, markPos.pos, c1.id); keyTimes.add(s.t1); }
-        if (s.t1 > E) issue('warning', 'MOVE_OVERRUNS_BEAT', B, `${id} reaches ${target} at ${r4(s.t1)} s, ${r4(s.t1 - E)} s after the beat ends (${E})`, { entity: id, t: s.t1 });
+        const mayMove = end(id).posture !== 'prone' || !!postureTransition(id, t0, 'standing', B, `move to ${target}`);
+        if (!mayMove) {
+          hold(id, Math.max(t0, end(id).t), nextS - 0.02, null, 'prone_mobility_blocked', 'prone');
+        } else {
+          const moveStart = Math.max(t0, end(id).t);
+          const isMove = play.contract === 'move_to';
+          const c1 = inst('move_to', id, null, 0, 0, B, { to: target }, isMove ? null : c.actionId);
+          const rr = route(set, end(id).pos, markPos.pos, moveStart, B, id);
+          const s = walk(id, moveStart, rr.pts.slice(1), rr.blockedBy ? null : target, c1.id, speed, markPos.facingDeg);
+          c1.t0 = r4(s.t0); c1.t1 = r4(s.t1); moveT0 = s.t0; moveT1 = s.t1;
+          if (!isMove) bridge('move_to', id, `${c.actionId} happens at ${target}: ${id} walks there first`, c1.id, s);
+          if (!rr.blockedBy) { ev('reached_mark', s.t1, id, target, markPos.pos, c1.id); keyTimes.add(s.t1); }
+          if (s.t1 > E) issue('warning', 'MOVE_OVERRUNS_BEAT', B, `${id} reaches ${target} at ${r4(s.t1)} s, ${r4(s.t1 - E)} s after the beat ends (${E})`, { entity: id, t: s.t1 });
+        }
       }
       const to = end(id).pos;
       (presence[id] ??= []).push({ setId: set.id, beat: B, t0: r4(visibleFrom), t1: r4(visibleTo) });
@@ -417,6 +469,11 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
       let t0 = Math.max(S + 0.05, e0.t);
       const holdEnd = nextS - 0.02;
       expr(id, Math.max(S + 0.05, sc.enterAt ?? S + 0.05), sc.face.applied);
+      if (mobilityBlocked.has(id)) {
+        look(id, S + 0.05, sc.lookTarget);
+        sc.actionT0 = t0; sc.actionT1 = end(id).t;
+        continue;
+      }
       if (sc.placementKind === 'exit' || sc.placementKind === 'enter') {
         look(id, S + 0.05, sc.lookTarget);
         if (sc.placementKind === 'enter') hold(id, t0, holdEnd, 'look_at', 'look_at');
@@ -424,7 +481,14 @@ export function stageBeatSheet(sheet: BeatSheet, lib: ManifestLibrary, opts: Sta
         continue;
       }
       const needsStanding = e0.posture === 'prone' && play.contract !== 'fall_prone' && play.contract !== 'look_at' && play.contract !== 'remain_still';
-      if (needsStanding) { postureTransition(id, t0, 'standing', B, sc.actionId); e0 = end(id); t0 = e0.t; }
+      if (needsStanding) {
+        if (!postureTransition(id, t0, 'standing', B, sc.actionId)) {
+          hold(id, Math.max(t0, end(id).t), holdEnd, null, 'prone_mobility_blocked', 'prone');
+          sc.actionT0 = t0; sc.actionT1 = end(id).t;
+          continue;
+        }
+        e0 = end(id); t0 = e0.t;
+      }
       // turn toward the look target when it is far outside the head's range (seated / prone actors only turn the head)
       const tp = targetPos(sc.lookAt ?? undefined, t0);
       if (tp && e0.posture === 'standing' && play.contract !== 'press_button' && play.contract !== 'fall_prone') {
