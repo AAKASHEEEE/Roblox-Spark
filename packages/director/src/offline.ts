@@ -4,7 +4,14 @@ import { LIBRARY, type Library, type LibraryEntry, type LibraryKind, type SetEnt
 import { validateBeatSheet, type BeatSheet } from './beat-sheet.ts';
 import type { DirectorIntent } from './intent.ts';
 
-export const DIRECTOR_ALGORITHM_VERSION = 'director-v1';
+export const DIRECTOR_EDIT_PLAN_POLICY = {
+  version: 'clause-edit-v1',
+  coverageVersion: 'literal-visual-clauses-v1',
+  minimumSegmentSeconds: 0.6,
+  targetAverageSeconds: { min: 1.2, preferred: 1.7, max: 2.2 },
+  maximumSubShots: 4,
+} as const;
+export const DIRECTOR_ALGORITHM_VERSION = 'director-v2-clause-edit-v1';
 export type DirectorMode = 'offline' | 'openrouter' | 'auto';
 export type MatchKind = 'sets' | 'characters' | 'actions' | 'expressions' | 'props' | 'cameraRecipes';
 
@@ -47,12 +54,59 @@ export interface MissingAsset {
   reason: string;
   beat?: string;
 }
+export type ClauseBoundaryReason = 'start' | 'punctuation' | 'conjunction' | 'action_change';
+export interface DirectorClause {
+  index: number;
+  text: string;
+  /** Half-open indexes into the normalized whitespace-delimited phrase words. */
+  words: [start: number, end: number];
+  boundary: ClauseBoundaryReason[];
+}
+export interface EditPlanClauseReport extends DirectorClause {
+  cues: { people: string[]; objects: string[]; actions: string[]; pronouns: string[] };
+  visual: boolean;
+  covered: boolean;
+  subjectBasis?: 'person' | 'object' | 'pronoun' | 'action';
+  composition: number;
+  shot: { recipeId: string; subject: string; secondary?: string; source: 'main' | 'local' | 'provider' };
+  providerHint: 'none' | 'accepted' | 'rebuilt' | 'not_selected';
+}
+export interface EditPlanSegmentReport {
+  index: number;
+  start: number;
+  end: number;
+  duration: number;
+  clause: number;
+  recipeId: string;
+  subject: string;
+  secondary?: string;
+  source: 'main' | 'local' | 'provider';
+}
+export interface EditPlanBeatReport {
+  beat: string;
+  clauses: EditPlanClauseReport[];
+  segments: EditPlanSegmentReport[];
+  candidateCuts: number;
+  targetSegments: number;
+  actualSegments: number;
+  averageSegmentSeconds: number;
+  shortestSegmentSeconds: number;
+  targetAverageMet: boolean;
+  visualClauses: number;
+  coveredVisualClauses: number;
+}
+export interface DirectorEditPlanReport {
+  policy: typeof DIRECTOR_EDIT_PLAN_POLICY;
+  coverage: { version: typeof DIRECTOR_EDIT_PLAN_POLICY.coverageVersion; visualClauses: number; coveredVisualClauses: number; pct: number };
+  beats: EditPlanBeatReport[];
+}
 export interface DirectorReport {
   algorithmVersion: string;
   provider: DirectorProviderReport;
   matches: MatchDecision[];
   substitutions: AssetSubstitution[];
   missingAssets: MissingAsset[];
+  editPlan: DirectorEditPlanReport;
   validation: { ok: boolean; issues: Array<{ path: string; message: string }> };
 }
 export interface DirectorResult { sheet: BeatSheet; report: DirectorReport }
@@ -136,6 +190,319 @@ function requiredDefault(kind: MatchKind, id: string, lib: Library): LibraryEntr
   const e = availableEntries(kind, lib).find((x) => x.id === id);
   if (!e) throw new DirectorInputError(`director library has no available ${kind} fallback "${id}"`);
   return e;
+}
+
+interface LiteralHit { id: string; tag: string; startWord: number; endWord: number }
+const CLAUSE_CONJUNCTIONS = new Set(['and', 'but', 'then', 'while', 'when', 'before', 'after', 'so', 'yet', 'until', 'meanwhile']);
+const NON_VERBAL_ACTION_TAGS = new Set(['phone', 'party', 'yay', 'no', 'hi', 'bye', 'confident', 'curious', 'regret', 'shocked', 'fast']);
+const PERSON_PRONOUNS = new Set(['he', 'she', 'they', 'him', 'her', 'them', 'who']);
+const OBJECT_PRONOUNS = new Set(['it', 'this', 'that', 'these', 'those']);
+
+function literalHits(entries: Array<LibraryEntry | SetEntry>, phraseWords: string[]): LiteralHit[] {
+  const indexed = phraseWords.flatMap((raw, word) => canonicalWords(raw).map((value) => ({ value, word })));
+  const out: LiteralHit[] = [];
+  for (const entry of [...entries].sort((a, b) => a.id.localeCompare(b.id))) {
+    const tags = [...new Set([...entry.tags, entry.id.replace(/_/g, ' ')].map(canonical).filter(Boolean))];
+    for (const tag of tags) {
+      const needle = tag.split(' ');
+      for (let i = 0; i <= indexed.length - needle.length; i++) {
+        if (!needle.every((part, k) => indexed[i + k].value === part)) continue;
+        out.push({ id: entry.id, tag, startWord: indexed[i].word, endWord: indexed[i + needle.length - 1].word + 1 });
+      }
+    }
+  }
+  const seen = new Set<string>();
+  return out.sort((a, b) => a.startWord - b.startWord || b.endWord - a.endWord || a.id.localeCompare(b.id) || a.tag.localeCompare(b.tag))
+    .filter((hit) => { const key = `${hit.id}:${hit.startWord}:${hit.endWord}`; if (seen.has(key)) return false; seen.add(key); return true; });
+}
+
+function primaryActionHits(phraseWords: string[], lib: Library): LiteralHit[] {
+  const hits = literalHits(availableEntries('actions', lib), phraseWords)
+    .filter((hit) => !NON_VERBAL_ACTION_TAGS.has(hit.tag));
+  const selected: LiteralHit[] = [];
+  let cursor = -1;
+  for (let i = 0; i < hits.length;) {
+    const start = hits[i].startWord;
+    const sameStart: LiteralHit[] = [];
+    while (i < hits.length && hits[i].startWord === start) sameStart.push(hits[i++]);
+    if (start < cursor) continue;
+    const best = sameStart.sort((a, b) => (b.endWord - b.startWord) - (a.endWord - a.startWord) || a.id.localeCompare(b.id))[0];
+    selected.push(best); cursor = best.endWord;
+  }
+  return selected;
+}
+
+function addBoundary(boundaries: Map<number, Set<ClauseBoundaryReason>>, at: number, reason: ClauseBoundaryReason, wordCount: number): void {
+  if (at <= 0 || at >= wordCount) return;
+  const reasons = boundaries.get(at) ?? new Set<ClauseBoundaryReason>();
+  reasons.add(reason); boundaries.set(at, reasons);
+}
+
+/** Deterministic word-indexed clause split shared with the advisory provider prompt. */
+export function splitDirectorClauses(text: string, lib: Library = LIBRARY): DirectorClause[] {
+  const phraseWords = words(text);
+  const boundaries = new Map<number, Set<ClauseBoundaryReason>>();
+  for (let i = 0; i < phraseWords.length; i++) {
+    const token = phraseWords[i];
+    if (/[,.;:!?](?:["')\]]*)$/u.test(token) || token.includes('—') || token.includes('–')) addBoundary(boundaries, i + 1, 'punctuation', phraseWords.length);
+    if (i > 0 && CLAUSE_CONJUNCTIONS.has(canonical(token))) addBoundary(boundaries, i, 'conjunction', phraseWords.length);
+  }
+  const entityHits = literalHits([
+    ...availableEntries('characters', lib),
+    ...availableEntries('props', lib),
+  ], phraseWords);
+  const characterIds = new Set(availableEntries('characters', lib).map((entry) => entry.id));
+  let previousAction: LiteralHit | undefined;
+  for (const hit of primaryActionHits(phraseWords, lib)) {
+    const previousStart = previousAction?.startWord;
+    const alreadySeparated = previousStart !== undefined && [...boundaries.keys()].some((at) => at > previousStart && at <= hit.startWord);
+    if (previousAction && !alreadySeparated && hit.id !== previousAction.id && hit.startWord >= previousAction.endWord) {
+      const previousEnd = previousAction.endWord;
+      const precedingEntities = entityHits.filter((entity) => entity.startWord >= previousEnd && entity.startWord < hit.startWord);
+      const namedActor = precedingEntities.filter((entity) => characterIds.has(entity.id)).at(-1);
+      addBoundary(boundaries, (namedActor ?? precedingEntities.at(-1))?.startWord ?? hit.startWord, 'action_change', phraseWords.length);
+    }
+    previousAction = hit;
+  }
+  const starts = [0, ...boundaries.keys()].sort((a, b) => a - b);
+  return starts.map((start, index) => {
+    const end = starts[index + 1] ?? phraseWords.length;
+    return { index, text: phraseWords.slice(start, end).join(' '), words: [start, end], boundary: index === 0 ? ['start'] : [...boundaries.get(start)!].sort() };
+  });
+}
+
+interface ClauseAnalysis extends DirectorClause {
+  people: string[];
+  objects: string[];
+  actions: string[];
+  pronouns: string[];
+  visual: boolean;
+  subject?: string;
+  subjectBasis?: 'person' | 'object' | 'pronoun' | 'action';
+  secondaryCandidates: string[];
+  usefulCut: boolean;
+}
+interface CameraSpec { recipeId: string; subject: string; secondary?: string }
+interface PlannedCut { clause: ClauseAnalysis; from: number; shot: CameraSpec; source: 'local' | 'provider'; providerHint: 'none' | 'accepted' | 'rebuilt' }
+type ProviderShotHint = NonNullable<DirectorIntent['beats'][number]['shots']>[number];
+
+function uniqueIds(hits: LiteralHit[]): string[] { return [...new Set(hits.map((hit) => hit.id))]; }
+function analyzeClauses(text: string, characters: LibraryEntry[], props: LibraryEntry[], active: LibraryEntry, lib: Library): ClauseAnalysis[] {
+  const rawWords = words(text);
+  let lastPerson: string | undefined = active.id;
+  let lastObject: string | undefined;
+  const clauses: ClauseAnalysis[] = splitDirectorClauses(text, lib).map((clause) => {
+    const clauseWords = rawWords.slice(clause.words[0], clause.words[1]);
+    const personHits = literalHits(characters, clauseWords);
+    const objectHits = literalHits(props, clauseWords);
+    const actionHits = literalHits(availableEntries('actions', lib), clauseWords);
+    const people = uniqueIds(personHits), objects = uniqueIds(objectHits), actions = uniqueIds(actionHits);
+    const pronounWords = clauseWords.flatMap(canonicalWords).filter((word) => PERSON_PRONOUNS.has(word) || OBJECT_PRONOUNS.has(word));
+    const pronouns = [...new Set(pronounWords)];
+    const entities = [
+      ...personHits.map((hit) => ({ ...hit, kind: 'person' as const })),
+      ...objectHits.map((hit) => ({ ...hit, kind: 'object' as const })),
+    ].sort((a, b) => a.startWord - b.startWord || a.kind.localeCompare(b.kind) || a.id.localeCompare(b.id));
+    let subject: string | undefined, subjectBasis: ClauseAnalysis['subjectBasis'];
+    if (entities[0]) { subject = entities[0].id; subjectBasis = entities[0].kind; }
+    else if (pronounWords.length) {
+      subject = OBJECT_PRONOUNS.has(pronounWords[0]) ? (lastObject ?? lastPerson) : lastPerson;
+      if (subject) subjectBasis = 'pronoun';
+    } else if (actions.length) { subject = active.id; subjectBasis = 'action'; }
+    const secondaryCandidates = [...new Set([...people, ...objects])].filter((id) => id !== subject);
+    if (people.length) lastPerson = people.at(-1);
+    if (objects.length) lastObject = objects.at(-1);
+    return { ...clause, people, objects, actions, pronouns, visual: Boolean(people.length || objects.length || actions.length), ...(subject ? { subject } : {}), ...(subjectBasis ? { subjectBasis } : {}), secondaryCandidates, usefulCut: false };
+  });
+  let previousSemantic = '';
+  for (const clause of clauses) {
+    if (!clause.visual || !clause.subject) continue;
+    const semantic = `${clause.subject}|${clause.people.join(',')}|${clause.objects.join(',')}|${clause.actions.join(',')}`;
+    clause.usefulCut = clause.index > 0 && semantic !== previousSemantic;
+    previousSemantic = semantic;
+  }
+  return clauses;
+}
+
+const PAIR_REQUIRED_RECIPES = new Set(['two_shot', 'over_shoulder']);
+const PROP_ONLY_RECIPES = new Set(['prop_ecu', 'insert_prop', 'top_down_insert']);
+const LOCOMOTION_ACTIONS = new Set(['walk', 'run', 'chase', 'sneak', 'enter_frame', 'exit_frame', 'enter_door', 'exit_door']);
+const REACTION_ACTIONS = new Set(['shock_recoil', 'cower', 'laugh', 'facepalm', 'regret_freeze', 'cry', 'scream', 'shrug']);
+const OVERHEAD_ACTIONS = new Set(['fall', 'jump', 'flattened', 'dive_prone']);
+
+function framingFamily(recipeId: string): string {
+  if (['prop_ecu', 'hook_closeup', 'insert_prop', 'reaction_punch_in'].includes(recipeId)) return 'close';
+  if (['establishing_wide', 'wide_environment', 'two_shot', 'top_down', 'top_down_insert'].includes(recipeId)) return 'wide';
+  if (['chase_cam', 'whip_pan', 'slow_push_in', 'final_loop'].includes(recipeId)) return 'moving';
+  return 'medium';
+}
+function nearIdentical(a: CameraSpec, b: CameraSpec): boolean {
+  return a.recipeId === b.recipeId || (a.subject === b.subject && framingFamily(a.recipeId) === framingFamily(b.recipeId));
+}
+function recipeCompatible(recipeId: string, subject: string, secondary: string | undefined, objectIds: Set<string>): boolean {
+  return (!PROP_ONLY_RECIPES.has(recipeId) || objectIds.has(subject)) && (!PAIR_REQUIRED_RECIPES.has(recipeId) || Boolean(secondary && secondary !== subject));
+}
+function framedEntities(camera: CameraSpec): string[] {
+  const usesSecondary = ['two_shot', 'over_shoulder', 'pov', 'whip_pan', 'establishing_wide', 'wide_environment', 'top_down', 'final_loop'].includes(camera.recipeId);
+  return [camera.subject, ...(usesSecondary && camera.secondary ? [camera.secondary] : [])];
+}
+function entityAliases(id: string, characters: LibraryEntry[], props: LibraryEntry[]): string[] {
+  const entry = [...characters, ...props].find((item) => item.id === id);
+  return [...new Set([id.replace(/_/g, ' '), ...(entry?.tags ?? [])].map(canonical).filter(Boolean))];
+}
+function providerEntity(query: string, clause: ClauseAnalysis, characters: LibraryEntry[], props: LibraryEntry[]): string | undefined {
+  const normalized = canonical(query);
+  if (!normalized) return undefined;
+  const allowed = [...new Set([...clause.people, ...clause.objects, ...(clause.subject ? [clause.subject] : []), ...clause.secondaryCandidates])];
+  return allowed.find((id) => entityAliases(id, characters, props).includes(normalized));
+}
+function rankedLocalRecipes(clause: ClauseAnalysis, seed: number, phraseId: string): string[] {
+  const tiers: string[][] = [];
+  const actionIds = new Set(clause.actions);
+  if (clause.subject && clause.objects.includes(clause.subject)) tiers.push(['insert_prop', 'prop_ecu', 'top_down_insert']);
+  if ([...actionIds].some((id) => LOCOMOTION_ACTIONS.has(id))) tiers.push(['chase_cam', 'whip_pan']);
+  if ([...actionIds].some((id) => REACTION_ACTIONS.has(id))) tiers.push(['reaction_punch_in', 'hook_closeup']);
+  if ([...actionIds].some((id) => OVERHEAD_ACTIONS.has(id))) tiers.push(['top_down', 'low_angle_reveal']);
+  if (actionIds.has('look_at') || actionIds.has('look_around') || actionIds.has('point')) tiers.push(['pov', 'over_shoulder']);
+  if (clause.secondaryCandidates.length) tiers.push(['over_shoulder', 'two_shot', 'whip_pan']);
+  tiers.push(['medium_single', 'frontal_medium', 'slow_push_in', 'hook_closeup', 'low_angle_hero', 'wide_environment', 'top_down']);
+  const seen = new Set<string>();
+  return tiers.flatMap((tier, tierIndex) => [...tier].sort((a, b) => hash32(`${seed}:${phraseId}:${clause.index}:${tierIndex}:${a}`) - hash32(`${seed}:${phraseId}:${clause.index}:${tierIndex}:${b}`)))
+    .filter((id) => { if (seen.has(id)) return false; seen.add(id); return true; });
+}
+
+function chooseClauseShot(
+  clause: ClauseAnalysis,
+  previous: CameraSpec,
+  hint: ProviderShotHint | undefined,
+  characters: LibraryEntry[],
+  props: LibraryEntry[],
+  availableRecipes: Set<string>,
+  seed: number,
+  phraseId: string,
+): { shot: CameraSpec; source: 'local' | 'provider'; providerHint: 'none' | 'accepted' | 'rebuilt' } | null {
+  const objectIds = new Set(props.map((prop) => prop.id));
+  if (hint) {
+    const subject = providerEntity(hint.subject, clause, characters, props);
+    const secondary = hint.secondary.trim() ? providerEntity(hint.secondary, clause, characters, props) : undefined;
+    const secondaryValid = !hint.secondary.trim() || Boolean(secondary);
+    if (subject && secondaryValid && subject !== secondary && availableRecipes.has(hint.recipe) && recipeCompatible(hint.recipe, subject, secondary, objectIds)) {
+      const shot = { recipeId: hint.recipe, subject, ...(secondary ? { secondary } : {}) };
+      if (!nearIdentical(previous, shot)) return { shot, source: 'provider', providerHint: 'accepted' };
+    }
+  }
+  if (!clause.subject) return null;
+  for (const recipeId of rankedLocalRecipes(clause, seed, phraseId)) {
+    if (!availableRecipes.has(recipeId)) continue;
+    const secondary = clause.secondaryCandidates[0];
+    const includeSecondary = Boolean(secondary && (PAIR_REQUIRED_RECIPES.has(recipeId) || ['pov', 'whip_pan', 'two_shot', 'over_shoulder'].includes(recipeId)));
+    const shot = { recipeId, subject: clause.subject, ...(includeSecondary ? { secondary } : {}) };
+    if (!recipeCompatible(recipeId, shot.subject, shot.secondary, objectIds) || nearIdentical(previous, shot)) continue;
+    return { shot, source: 'local', providerHint: hint ? 'rebuilt' : 'none' };
+  }
+  return null;
+}
+
+interface TimedCandidate { clause: ClauseAnalysis; from: number }
+function canCompleteCuts(candidates: TimedCandidate[], after: number, previous: number, remaining: number, end: number): boolean {
+  const floor = DIRECTOR_EDIT_PLAN_POLICY.minimumSegmentSeconds;
+  if (remaining === 0) return end - previous >= floor - 1e-9;
+  for (let i = after; i < candidates.length; i++) {
+    if (candidates[i].from - previous < floor - 1e-9) continue;
+    if (canCompleteCuts(candidates, i + 1, candidates[i].from, remaining - 1, end)) return true;
+  }
+  return false;
+}
+function selectTimedCuts(candidates: TimedCandidate[], start: number, end: number, segmentCount: number, seed: number, phraseId: string): TimedCandidate[] | null {
+  const chosen: TimedCandidate[] = [];
+  let previous = start, after = 0;
+  for (let step = 1; step < segmentCount; step++) {
+    const target = start + (end - start) * step / segmentCount;
+    const remaining = segmentCount - step - 1;
+    const ranked = candidates.map((candidate, index) => ({ candidate, index }))
+      .filter(({ candidate, index }) => index >= after && candidate.from - previous >= DIRECTOR_EDIT_PLAN_POLICY.minimumSegmentSeconds - 1e-9 && canCompleteCuts(candidates, index + 1, candidate.from, remaining, end))
+      .sort((a, b) => Math.abs(a.candidate.from - target) - Math.abs(b.candidate.from - target) || hash32(`${seed}:${phraseId}:cut:${a.candidate.clause.index}`) - hash32(`${seed}:${phraseId}:cut:${b.candidate.clause.index}`) || a.candidate.clause.index - b.candidate.clause.index);
+    if (!ranked.length) return null;
+    const next = ranked[0]; chosen.push(next.candidate); previous = next.candidate.from; after = next.index + 1;
+  }
+  return chosen;
+}
+function targetSegmentCount(duration: number, maximum: number): number {
+  let best = 1, bestScore = Number.POSITIVE_INFINITY;
+  for (let segments = 1; segments <= maximum; segments++) {
+    const average = duration / segments;
+    if (segments > 1 && average < DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.min - 1e-9) continue;
+    const outside = average < DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.min ? DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.min - average
+      : average > DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.max ? average - DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.max : 0;
+    const score = outside * 100 + Math.abs(average - DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.preferred);
+    if (score < bestScore - 1e-9) { best = segments; bestScore = score; }
+  }
+  return best;
+}
+const round6 = (value: number): number => Math.round(value * 1_000_000) / 1_000_000;
+
+function planBeatEdits(input: {
+  text: string; phraseId: string; start: number; end: number; seed: number; lib: Library;
+  characters: LibraryEntry[]; props: LibraryEntry[]; active: LibraryEntry; main: CameraSpec; providerShots?: ProviderShotHint[];
+}): { subShots: Array<{ from: number; recipeId: string; subject: string; secondary?: string }>; report: EditPlanBeatReport } {
+  const clauses = analyzeClauses(input.text, input.characters, input.props, input.active, input.lib);
+  const duration = input.end - input.start, wordCount = words(input.text).length;
+  const floor = DIRECTOR_EDIT_PLAN_POLICY.minimumSegmentSeconds;
+  const candidates = clauses.filter((clause) => clause.usefulCut && clause.subject).map((clause) => ({ clause, from: input.start + duration * clause.words[0] / wordCount }))
+    .filter((candidate) => candidate.from - input.start >= floor - 1e-9 && input.end - candidate.from >= floor - 1e-9);
+  const maximumSegments = Math.min(DIRECTOR_EDIT_PLAN_POLICY.maximumSubShots + 1, candidates.length + 1, Math.max(1, Math.floor(duration / floor + 1e-9)));
+  const targetSegments = targetSegmentCount(duration, maximumSegments);
+  let selected: TimedCandidate[] = [];
+  for (let segments = targetSegments; segments >= 2; segments--) {
+    const attempt = selectTimedCuts(candidates, input.start, input.end, segments, input.seed, input.phraseId);
+    if (attempt) { selected = attempt; break; }
+  }
+  const hints = new Map((input.providerShots ?? []).map((hint) => [hint.clause, hint]));
+  const availableRecipes = new Set(availableEntries('cameraRecipes', input.lib).map((entry) => entry.id));
+  const cuts: PlannedCut[] = [];
+  let previous = input.main;
+  for (const candidate of selected) {
+    const choice = chooseClauseShot(candidate.clause, previous, hints.get(candidate.clause.index), input.characters, input.props, availableRecipes, input.seed, input.phraseId);
+    if (!choice) continue;
+    cuts.push({ ...candidate, ...choice }); previous = choice.shot;
+  }
+  const cutByClause = new Map(cuts.map((cut) => [cut.clause.index, cut]));
+  let composition = 0, current = input.main, currentSource: 'main' | 'local' | 'provider' = 'main';
+  const clauseReports: EditPlanClauseReport[] = clauses.map((clause) => {
+    const cut = cutByClause.get(clause.index);
+    if (cut) { composition++; current = cut.shot; currentSource = cut.source; }
+    const cueEntities = new Set([...clause.people, ...clause.objects, ...(clause.subject ? [clause.subject] : [])]);
+    const covered = clause.visual && framedEntities(current).some((entity) => cueEntities.has(entity));
+    const providerHint = cut?.providerHint ?? (hints.has(clause.index) ? 'not_selected' : 'none');
+    return {
+      index: clause.index, text: clause.text, words: clause.words, boundary: clause.boundary,
+      cues: { people: clause.people, objects: clause.objects, actions: clause.actions, pronouns: clause.pronouns },
+      visual: clause.visual, covered, ...(clause.subjectBasis ? { subjectBasis: clause.subjectBasis } : {}), composition,
+      shot: { ...current, source: currentSource }, providerHint,
+    };
+  });
+  const times = [input.start, ...cuts.map((cut) => cut.from), input.end];
+  const segmentDurations = times.slice(1).map((time, index) => time - times[index]);
+  const segmentShots = [
+    { clause: 0, shot: input.main, source: 'main' as const },
+    ...cuts.map((cut) => ({ clause: cut.clause.index, shot: cut.shot, source: cut.source })),
+  ];
+  const segments: EditPlanSegmentReport[] = segmentShots.map((segment, index) => ({
+    index, start: times[index], end: times[index + 1], duration: round6(segmentDurations[index]), clause: segment.clause,
+    ...segment.shot, source: segment.source,
+  }));
+  const averageSegmentSeconds = duration / (cuts.length + 1);
+  const visualClauses = clauseReports.filter((clause) => clause.visual).length;
+  const coveredVisualClauses = clauseReports.filter((clause) => clause.visual && clause.covered).length;
+  return {
+    subShots: cuts.map((cut) => ({ from: cut.from, ...cut.shot })),
+    report: {
+      beat: input.phraseId, clauses: clauseReports, segments, candidateCuts: candidates.length, targetSegments,
+      actualSegments: cuts.length + 1, averageSegmentSeconds: round6(averageSegmentSeconds), shortestSegmentSeconds: round6(Math.min(...segmentDurations)),
+      targetAverageMet: averageSegmentSeconds >= DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.min - 1e-9 && averageSegmentSeconds <= DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds.max + 1e-9,
+      visualClauses, coveredVisualClauses,
+    },
+  };
 }
 
 interface BuildState {
@@ -248,6 +615,7 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
   let elapsedWords = 0;
   let previousEntities = new Set<string>();
   const beats: BeatSheet['beats'] = [];
+  const editBeats: EditPlanBeatReport[] = [];
 
   for (let i = 0; i < req.lines.length; i++) {
     const phraseId = `p${String(i + 1).padStart(2, '0')}`;
@@ -308,9 +676,18 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
     const entities = new Set([...orderedCharacters.map((x) => x.id), ...props.map((x) => x.id)]);
     const carryOver = i === 0 ? [] : [...entities].filter((id) => previousEntities.has(id));
     previousEntities = entities;
+    const editPlan = planBeatEdits({
+      text: req.lines[i], phraseId, start, end, seed: req.seed, lib,
+      characters: orderedCharacters, props, active,
+      main: { recipeId: camera.id, subject, ...(secondary ? { secondary } : {}) },
+      ...(intentBeat?.shots ? { providerShots: intentBeat.shots } : {}),
+    });
+    editBeats.push(editPlan.report);
     beats.push({
       phraseId, start, end, text: req.lines[i], setId: latestRef(set), lighting: set.lighting[req.seed % set.lighting.length],
-      cast, props: beatProps, events: [], camera: { recipeId: camera.id, subject, ...(secondary ? { secondary } : {}) }, captions, carryOver,
+      cast, props: beatProps, events: [],
+      camera: { recipeId: camera.id, subject, ...(secondary ? { secondary } : {}), ...(editPlan.subShots.length ? { subShots: editPlan.subShots } : {}) },
+      captions, carryOver,
     });
   }
 
@@ -321,12 +698,24 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
     music: [], beats,
   };
   const validation = validateBeatSheet(sheet, { library: lib, requireAvailable: true });
+  const visualClauses = editBeats.reduce((sum, beat) => sum + beat.visualClauses, 0);
+  const coveredVisualClauses = editBeats.reduce((sum, beat) => sum + beat.coveredVisualClauses, 0);
   const report: DirectorReport = {
     algorithmVersion: DIRECTOR_ALGORITHM_VERSION,
     provider,
     matches: state.matches,
     substitutions: state.substitutions,
     missingAssets: state.missingAssets,
+    editPlan: {
+      policy: DIRECTOR_EDIT_PLAN_POLICY,
+      coverage: {
+        version: DIRECTOR_EDIT_PLAN_POLICY.coverageVersion,
+        visualClauses,
+        coveredVisualClauses,
+        pct: visualClauses ? coveredVisualClauses / visualClauses : 1,
+      },
+      beats: editBeats,
+    },
     validation: { ok: validation.ok, issues: validation.issues },
   };
   if (!validation.ok) throw new DirectorInputError(`generated BeatSheet failed validation: ${validation.issues.slice(0, 3).map((x) => `${x.path} ${x.message}`).join('; ')}`);

@@ -7,12 +7,13 @@ import { directScript } from '../packages/director/src/pipeline.ts';
 import { DIRECTOR_ALGORITHM_VERSION, normalizeDirectorRequest } from '../packages/director/src/offline.ts';
 import { NodeDirectorCache, shouldCacheDirectorResult, type DirectorCacheDescriptor } from '../packages/director/node/cache.ts';
 import { OpenRouterIntentProvider, OpenRouterProviderError, normalizeFreeModelList } from '../packages/director/src/openrouter.ts';
+import { validateDirectorIntent } from '../packages/director/src/intent.ts';
 import type { DirectorIntentClient } from '../packages/director/src/pipeline.ts';
 
 const intent = (lineCount = 1) => ({
   set: 'classroom',
   characters: ['zapp'],
-  beats: Array.from({ length: lineCount }, (_, line) => ({ line, action: line ? 'runs' : 'grabs', props: line ? [] : ['phone'] })),
+  beats: Array.from({ length: lineCount }, (_, line) => ({ line, action: line ? 'runs' : 'grabs', props: line ? [] : ['phone'], shots: [] })),
 });
 const answer = (value: unknown, status = 200) => new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(value) } }] }), { status, headers: { 'content-type': 'application/json' } });
 const fakeFetch = (fn: (body: any, init: RequestInit, call: number) => Promise<Response> | Response): { fetch: typeof fetch; bodies: any[] } => {
@@ -40,6 +41,7 @@ test('strict invalid intent gets exactly one repair attempt without echoing refl
   assert.equal(mock.bodies.length, 2);
   assert.equal(mock.bodies[0].body.response_format.json_schema.strict, true);
   assert.equal(mock.bodies[0].body.response_format.json_schema.schema.additionalProperties, false);
+  assert.ok(mock.bodies[0].body.response_format.json_schema.schema.properties.beats.items.required.includes('shots'));
   assert.equal(mock.bodies[0].body.model, 'vendor/model:free');
   assert.doesNotMatch(JSON.stringify(mock.bodies.map((x) => x.body)), /test-secret/);
   assert.equal((mock.bodies[0].headers as Record<string, string>).authorization, 'Bearer test-secret');
@@ -86,7 +88,7 @@ test('auto mode transparently falls back to deterministic offline generation', a
 });
 
 test('validated OpenRouter intent is resolved through local library ids, never copied blindly', async () => {
-  const client: DirectorIntentClient = { models: ['fake:free'], async infer() { return { intent: { set: 'playground', characters: ['zapp'], beats: [{ line: 0, action: 'runs', props: ['ball'] }] }, model: 'fake:free', attempts: [] }; } };
+  const client: DirectorIntentClient = { models: ['fake:free'], async infer() { return { intent: { set: 'playground', characters: ['zapp'], beats: [{ line: 0, action: 'runs', props: ['ball'], shots: [] }] }, model: 'fake:free', attempts: [] }; } };
   const result = await directScript({ script: 'He moves quickly.', duration: 2, seed: 1 }, { provider: 'openrouter', intentClient: client });
   assert.match(result.sheet.beats[0].setId, /^playground@/);
   assert.equal(result.sheet.beats[0].cast[0].actionId, 'run');
@@ -96,7 +98,7 @@ test('validated OpenRouter intent is resolved through local library ids, never c
 
 test('schema-valid reflected credential is omitted from report and persisted cache', async () => {
   const secret = 'review-secret-value';
-  const reflected = { set: secret, characters: [secret], beats: [{ line: 0, action: secret, props: [secret] }] };
+  const reflected = { set: secret, characters: [secret], beats: [{ line: 0, action: secret, props: [secret], shots: [] }] };
   const mock = fakeFetch(() => answer(reflected));
   const provider = new OpenRouterIntentProvider({ apiKey: secret, models: ['safe:free'], timeoutMs: 50, fetchImpl: mock.fetch });
   const request = { script: 'Someone waits quietly.', duration: 2, seed: 4 };
@@ -136,7 +138,7 @@ test('configured auto fallback is not cached, so a recovered provider is retried
     let calls = 0;
     const recoveredClient: DirectorIntentClient = {
       models: ['one:free'],
-      async infer() { calls++; return { intent: { set: 'classroom', characters: ['zapp'], beats: [{ line: 0, action: 'runs', props: [] }] }, model: 'one:free', attempts: [] }; },
+      async infer() { calls++; return { intent: { set: 'classroom', characters: ['zapp'], beats: [{ line: 0, action: 'runs', props: [], shots: [] }] }, model: 'one:free', attempts: [] }; },
     };
     const recovered = await directScript(request, { provider: 'auto', intentClient: recoveredClient });
     assert.equal(calls, 1);
@@ -146,4 +148,81 @@ test('configured auto fallback is not cached, so a recovered provider is retried
     assert.equal(cache.get(descriptor)?.value.report.provider.used, 'openrouter');
     assert.notEqual(cache.digest(descriptor), cache.digest({ ...descriptor, timeoutMs: 51 }));
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('advisory shot intents are strict, ordered, line-bounded, and capped', () => {
+  const base = intent();
+  assert.equal(validateDirectorIntent(base, 1, [1]).ok, true);
+  const outsideLine = { ...base, beats: [{ ...base.beats[0], shots: [{ clause: 1, recipe: 'chase_cam', subject: 'zapp', secondary: '' }] }] };
+  assert.equal(validateDirectorIntent(outsideLine, 1, [1]).ok, false);
+  const outOfOrder = {
+    ...base,
+    beats: [{ ...base.beats[0], shots: [
+      { clause: 2, recipe: 'medium_single', subject: 'zapp', secondary: '' },
+      { clause: 1, recipe: 'chase_cam', subject: 'zapp', secondary: '' },
+    ] }],
+  };
+  assert.equal(validateDirectorIntent(outOfOrder, 1).ok, false);
+
+  const extraKey = {
+    ...base,
+    beats: [{ ...base.beats[0], shots: [
+      { clause: 1, recipe: 'chase_cam', subject: 'zapp', secondary: '', extra: true },
+    ] }],
+  };
+  assert.equal(validateDirectorIntent(extraKey, 1).ok, false);
+
+  const tooMany = {
+    ...base,
+    beats: [{ ...base.beats[0], shots: Array.from({ length: 5 }, (_, index) => ({ clause: index + 1, recipe: 'medium_single', subject: 'zapp', secondary: '' })) }],
+  };
+  assert.equal(validateDirectorIntent(tooMany, 1).ok, false);
+});
+
+test('local planner accepts valid catalog shot hints and rebuilds invalid ones without copying them', async () => {
+  const reflected = 'not-a-real-camera-secret';
+  const client: DirectorIntentClient = {
+    models: ['fake:free'],
+    async infer() {
+      return {
+        intent: {
+          set: 'classroom', characters: ['zapp', 'kira'],
+          beats: [{
+            line: 0, action: 'runs', props: ['phone'], shots: [
+              { clause: 1, recipe: 'chase_cam', subject: 'kira', secondary: '' },
+              { clause: 2, recipe: reflected, subject: reflected, secondary: '' },
+            ],
+          }],
+        },
+        model: 'fake:free', attempts: [],
+      };
+    },
+  };
+  const result = await directScript({ script: 'Zapp waits, then Kira runs, but the phone drops.', duration: 6, seed: 12 }, { provider: 'openrouter', intentClient: client });
+  const clauses = result.report.editPlan.beats[0].clauses;
+  const accepted = clauses.find((clause) => clause.index === 1)!;
+  const rebuilt = clauses.find((clause) => clause.index === 2)!;
+  assert.equal(accepted.providerHint, 'accepted');
+  assert.deepEqual(accepted.shot, { recipeId: 'chase_cam', subject: 'kira', source: 'provider' });
+  assert.equal(rebuilt.providerHint, 'rebuilt');
+  assert.equal(rebuilt.shot.source, 'local');
+  assert.doesNotMatch(JSON.stringify(result), new RegExp(reflected));
+  assert.equal(result.report.validation.ok, true);
+});
+
+
+test('injected intent clients receive the same runtime structure and clause-bound validation', async () => {
+  const client: DirectorIntentClient = {
+    models: ['fake:free'],
+    async infer() {
+      return {
+        intent: { set: 'classroom', characters: ['zapp'], beats: [{ line: 0, action: 'runs', props: [], shots: [{ clause: 7, recipe: 'chase_cam', subject: 'zapp', secondary: '' }] }] },
+        model: 'fake:free', attempts: [],
+      };
+    },
+  };
+  await assert.rejects(
+    directScript({ script: 'Zapp runs.', duration: 3, seed: 1 }, { provider: 'openrouter', intentClient: client }),
+    (error: unknown) => error instanceof OpenRouterProviderError && error.code === 'exhausted' && /invalid compact intent/.test(error.message),
+  );
 });

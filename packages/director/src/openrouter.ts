@@ -2,7 +2,7 @@
 // which is strictly validated before the deterministic Director may consume it.
 import { LIBRARY, type Library, type LibraryEntry } from '../../library/src/ids.ts';
 import { directorIntentJsonSchema, validateDirectorIntent, type DirectorIntent } from './intent.ts';
-import type { ProviderAttempt } from './offline.ts';
+import { splitDirectorClauses, type ProviderAttempt } from './offline.ts';
 
 export const DEFAULT_OPENROUTER_MODELS = ['openrouter/free'] as const;
 const DEFAULT_BASE_URL = 'https://openrouter.ai/api/v1';
@@ -45,19 +45,24 @@ const SYSTEM = [
   'You extract compact animation staging intent from script lines.',
   'Return JSON only, exactly matching the supplied strict schema; do not rewrite, summarize, add, or remove script lines.',
   'Use short catalog ids or tags when possible. Use an empty string/array when there is no clue.',
-  'The line field is the zero-based input line index, in order. Never include dialogue, captions, timing, markdown, or extra keys.',
+  'The line field is the zero-based input line index, in order.',
+  'The shots list contains sub-shot suggestions only: use strictly increasing supplied clause indexes above zero and exact camera/entity catalog ids; use an empty list or at most four rows.',
+  'Never include dialogue, captions, timing, markdown, or extra keys.',
 ].join(' ');
 
 function catalogForPrompt(lib: Library): Record<string, Array<{ id: string; tags: string[]; status: string }>> {
-  const kinds = ['sets', 'characters', 'actions', 'props'] as const;
+  const kinds = ['sets', 'characters', 'actions', 'props', 'cameraRecipes'] as const;
   return Object.fromEntries(kinds.map((kind) => [kind, (lib[kind] as LibraryEntry[]).map((e) => ({ id: e.id, tags: e.tags, status: e.status }))]));
 }
+function promptLines(lines: string[], lib: Library): Array<{ line: number; text: string; clauses: Array<{ clause: number; text: string }> }> {
+  return lines.map((text, line) => ({ line, text, clauses: splitDirectorClauses(text, lib).map((clause) => ({ clause: clause.index, text: clause.text })) }));
+}
 function initialPrompt(lines: string[], lib: Library): string {
-  return JSON.stringify({ task: 'Extract one global set query, global character queries, and one action/prop row per line.', lines, catalog: catalogForPrompt(lib) });
+  return JSON.stringify({ task: 'Extract one global set query, global character queries, one action/prop row per line, and optional catalog-only sub-shot suggestions for useful later clauses.', lines: promptLines(lines, lib), catalog: catalogForPrompt(lib) });
 }
 function repairPrompt(lines: string[], issueCount: number, lib: Library): string {
   // Regenerate from trusted input instead of echoing invalid model output, which could reflect the bearer credential.
-  return JSON.stringify({ task: 'Regenerate the complete corrected JSON object once. The previous output failed strict validation.', lines, validationIssueCount: issueCount, catalog: catalogForPrompt(lib) });
+  return JSON.stringify({ task: 'Regenerate the complete corrected JSON object once. The previous output failed strict validation.', lines: promptLines(lines, lib), validationIssueCount: issueCount, catalog: catalogForPrompt(lib) });
 }
 
 export class OpenRouterIntentProvider {
@@ -130,7 +135,7 @@ export class OpenRouterIntentProvider {
         if (!e.retryable) throw new OpenRouterProviderError(e.message.includes('authentication') ? 'auth' : 'http', e.message, attempts);
         continue; // timeout / 429 / network / 5xx fail over to the next configured free model
       }
-      const first = parseIntentContent(completion.content, lines.length);
+      const first = parseIntentContent(completion.content, lines, this.library);
       if (first.ok) {
         attempts.push({ model, phase: 'initial', outcome: 'ok' });
         return { intent: first.value, model, attempts };
@@ -146,7 +151,7 @@ export class OpenRouterIntentProvider {
         if (!e.retryable) throw new OpenRouterProviderError(e.message.includes('authentication') ? 'auth' : 'http', e.message, attempts);
         continue;
       }
-      const second = parseIntentContent(repaired.content, lines.length);
+      const second = parseIntentContent(repaired.content, lines, this.library);
       if (second.ok) {
         attempts.push({ model, phase: 'repair', outcome: 'ok' });
         return { intent: second.value, model, attempts };
@@ -158,11 +163,11 @@ export class OpenRouterIntentProvider {
 }
 
 type Parsed = { ok: true; value: DirectorIntent } | { ok: false; issues: Array<{ path: string; message: string }> };
-function parseIntentContent(content: string, lineCount: number): Parsed {
+function parseIntentContent(content: string, lines: string[], lib: Library): Parsed {
   let raw: unknown;
   try { raw = JSON.parse(content); }
   catch { return { ok: false, issues: [{ path: '$', message: 'model content is not JSON' }] }; }
-  const checked = validateDirectorIntent(raw, lineCount);
+  const checked = validateDirectorIntent(raw, lines.length, lines.map((line) => splitDirectorClauses(line, lib).length));
   return checked.ok ? { ok: true, value: checked.value! } : { ok: false, issues: checked.issues };
 }
 function summarizeIssues(issues: Array<{ path: string; message: string }>): string {

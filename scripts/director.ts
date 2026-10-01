@@ -6,7 +6,7 @@
 import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, writeSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { directScript } from '../packages/director/src/pipeline.ts';
-import { DIRECTOR_ALGORITHM_VERSION, normalizeDirectorRequest, type DirectorMode } from '../packages/director/src/offline.ts';
+import { DIRECTOR_ALGORITHM_VERSION, DIRECTOR_EDIT_PLAN_POLICY, normalizeDirectorRequest, type DirectorMode } from '../packages/director/src/offline.ts';
 import { normalizeFreeModelList } from '../packages/director/src/openrouter.ts';
 import { NodeDirectorCache, shouldCacheDirectorResult, type DirectorCacheDescriptor } from '../packages/director/node/cache.ts';
 
@@ -52,13 +52,23 @@ if (outputPath === reportPath) fail('--out and --report must be different files'
 const modelSetting = option('models') ?? process.env.OPENROUTER_MODELS;
 const models = provider === 'openrouter' || (provider === 'auto' && Boolean(key)) ? safeModels(modelSetting) : [];
 const timeoutMs = option('timeout-ms') ? numeric('timeout-ms', true) : 12_000;
-const descriptor: DirectorCacheDescriptor = {
+const planningKey = {
+  editPlan: {
+    version: DIRECTOR_EDIT_PLAN_POLICY.version,
+    minimumSegmentSeconds: DIRECTOR_EDIT_PLAN_POLICY.minimumSegmentSeconds,
+    targetAverageSeconds: DIRECTOR_EDIT_PLAN_POLICY.targetAverageSeconds,
+    maximumSubShots: DIRECTOR_EDIT_PLAN_POLICY.maximumSubShots,
+  },
+  coverage: { version: DIRECTOR_EDIT_PLAN_POLICY.coverageVersion },
+} as const;
+const descriptor: DirectorCacheDescriptor & typeof planningKey = {
   algorithmVersion: DIRECTOR_ALGORITHM_VERSION,
   request,
   provider,
   models,
   timeoutMs: provider === 'offline' ? null : timeoutMs,
   openRouterConfigured: provider !== 'offline' && Boolean(key),
+  ...planningKey,
 };
 
 try {
@@ -70,7 +80,7 @@ try {
   });
   const cacheable = Boolean(cache && shouldCacheDirectorResult(descriptor, result));
   const digest = cached?.digest ?? (cacheable ? cache!.put(descriptor, result) : undefined);
-  const cacheReport = { enabled: Boolean(cache), hit: Boolean(cached), stored: Boolean(digest), ...(digest ? { digest } : {}) };
+  const cacheReport = { enabled: Boolean(cache), hit: Boolean(cached), stored: Boolean(digest), keyMetadata: planningKey, ...(digest ? { digest } : {}) };
   writeAtomic(outputPath, `${JSON.stringify(result.sheet, null, 2)}\n`);
   writeAtomic(reportPath, `${JSON.stringify({ ...result.report, cache: cacheReport, input: { script: scriptArg, duration, seed, lineCount: request.lines.length } }, null, 2)}\n`);
   const cacheStatus = !cache ? 'disabled' : cached ? 'hit' : cacheable ? 'miss' : 'miss (transient fallback not stored)';

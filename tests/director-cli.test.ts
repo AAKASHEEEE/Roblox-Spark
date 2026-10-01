@@ -24,6 +24,9 @@ test('CLI keyless auto ignores inert paid model settings and falls back offline'
     const parsed = JSON.parse(readFileSync(report, 'utf8'));
     assert.equal(parsed.provider.used, 'offline');
     assert.equal(parsed.provider.fallback.code, 'openrouter_key_missing');
+    assert.equal(parsed.editPlan.policy.minimumSegmentSeconds, 0.6);
+    assert.equal(parsed.cache.keyMetadata.editPlan.version, parsed.editPlan.policy.version);
+    assert.equal(parsed.cache.keyMetadata.coverage.version, parsed.editPlan.coverage.version);
   } finally { rmSync(temp, { recursive: true, force: true }); }
 });
 
