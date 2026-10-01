@@ -47,7 +47,7 @@ import { assertCompositionTimeline, compositionAt } from '../src/preview/composi
 import { COMPETITOR_EVIDENCE_FILES, resolveRenderSelection } from './render-config.ts';
 import { validateRenderPaths } from './render-paths.ts';
 import { assertManifestActuals, assertRuntimePins, gitSource, hashDirectoryTree, hashFile, manifestDigest, packageVersion, parseJsonBytes, readAuthenticatedFile, readBoundedFile, readInputManifest, readTrustedRenderInputs, RENDER_BYTE_LIMITS, sha256Bytes, solvedCompositionsDigest, type RenderInputManifest, type RuntimePins, type ToolPins } from './render-manifest.ts';
-import { buildEvidenceReport, codecPinIssues, COMPETITOR_DECODED_FRAMES, createDecodedFrameReceipt, DECODED_FRAME_RECEIPT_FILE, type DecodedFrameClaim } from './verify-render-v2.ts';
+import { buildEvidenceReport, codecPinIssues, COMPARISON_SHEET_RECEIPT_FILE, COMPETITOR_DECODED_FRAMES, createDecodedFrameReceipt, DECODED_FRAME_RECEIPT_FILE, type DecodedFrameClaim } from './verify-render-v2.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const requireFromHere = createRequire(import.meta.url);
@@ -127,6 +127,7 @@ const selection = resolveRenderSelection({
 const { visual, profile, evidenceProfile } = selection;
 if (!arg.voice) throw new Error('--voice is required; production render never substitutes synthetic speech');
 if (!arg.ffmpeg) throw new Error('--ffmpeg is required for MP3 decode');
+if (evidenceProfile === 'competitor-v2' && !arg.workerSafe) throw new Error('--evidenceProfile competitor-v2 requires --workerSafe; trusted evidence must use a new isolated job output');
 if (arg.workerSafe && !arg.prebuilt) throw new Error('--worker-safe requires --prebuilt so concurrent workers never compile into shared dist/');
 if (evidenceProfile === 'competitor-v2' && !arg.prebuilt) throw new Error('--evidenceProfile competitor-v2 requires a prebuilt, content-addressed bundle');
 if ((arg.workerSafe || evidenceProfile === 'competitor-v2') && (!arg.inputManifest || !arg.authorizedManifestSha256 || !arg.jobId)) throw new Error('trusted rendering requires --inputManifest, --jobId, and a scheduler-supplied --authorizedManifestSha256');
@@ -189,6 +190,11 @@ const inputBytes = trustedManifest
       beatSheet: readBoundedFile(beatsPath, RENDER_BYTE_LIMITS.beatSheet, 'BeatSheet'),
       voice: readBoundedFile(voicePath, RENDER_BYTE_LIMITS.voice, 'voice'),
     };
+const packageLockPath = resolve(ROOT, 'package-lock.json'), assetLockPath = resolve(ROOT, 'assets/asset-lock.json');
+const trustedLockBytes = trustedManifest ? {
+  packageLock: readAuthenticatedFile(packageLockPath, trustedManifest.inputs.packageLock, RENDER_BYTE_LIMITS.packageLock, 'package lock'),
+  assetLock: readAuthenticatedFile(assetLockPath, trustedManifest.inputs.assetLock, RENDER_BYTE_LIMITS.assetLock, 'asset lock'),
+} : null;
 const sbSha = sha256Bytes(inputBytes.storyboard), beatsSha = sha256Bytes(inputBytes.beatSheet), voiceSha = sha256Bytes(inputBytes.voice);
 const sb: any = parseJsonBytes(inputBytes.storyboard, 'storyboard');
 const sheet: any = parseJsonBytes(inputBytes.beatSheet, 'BeatSheet');
@@ -209,7 +215,7 @@ const voice = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset +
 const decodedDuration = voice.length / 48000;
 if (Math.abs(decodedDuration - sb.audio.durationSeconds) > 0.05) throw new Error(`decoded voice ${decodedDuration.toFixed(3)}s differs from approved ${sb.audio.durationSeconds}s`);
 
-const lib = loadLibrary();
+const lib = loadLibrary(trustedLockBytes ? { lockBytes: trustedLockBytes.assetLock } : {});
 if (lib.errors.length) throw new Error(`asset library: ${lib.errors.join('; ')}`);
 
 // ---------------------------------------------------------------- visual planning (mode-specific)
@@ -260,9 +266,7 @@ if (visual === 'narrated') {
 
 if (trustedManifest) {
   stage('verify trusted pre-render manifest against source, inputs, solve, asset lock, and exact tools');
-  const packageLockPath = resolve(ROOT, 'package-lock.json'), assetLockPath = resolve(ROOT, 'assets/asset-lock.json');
-  const packageLockBytes = readAuthenticatedFile(packageLockPath, trustedManifest.inputs.packageLock, RENDER_BYTE_LIMITS.packageLock, 'package lock');
-  const assetLockBytes = readAuthenticatedFile(assetLockPath, trustedManifest.inputs.assetLock, RENDER_BYTE_LIMITS.assetLock, 'asset lock');
+  const assetLockBytes = trustedLockBytes!.assetLock, packageLockBytes = trustedLockBytes!.packageLock;
   const packageLock = parseJsonBytes(packageLockBytes, 'package lock');
   if (!checkedPaths.chromium) throw new Error('trusted render requires an explicitly discovered Chromium executable');
   assertPinnedRuntimeFile(checkedPaths.chromium, trustedManifest.runtime.chromiumSha256, 'Chromium');
@@ -276,7 +280,7 @@ if (trustedManifest) {
     rendererCodec: profile.codec,
   };
   assertManifestActuals(trustedManifest, {
-    job: { jobId: arg.jobId!, outputPath: relative(ROOT, join(outDir, mp4Name)), visual, renderProfile: profile.id, evidenceProfile },
+    job: { jobId: arg.jobId!, outputPath: relative(ROOT, join(outDir, mp4Name)).split('\\').join('/'), visual, renderProfile: profile.id, evidenceProfile, workerSafe: true },
     source: gitSource(ROOT, trustedManifest.source.baseSha),
     inputs: {
       storyboard: { path: relative(ROOT, sbPath), sha256: sbSha },
@@ -622,10 +626,11 @@ try {
     // comparison-sheet.jpg is assembled after the MP4. Seal only when all evidence exists and the sheet is not stale;
     // otherwise the independent sealing/verifier step must run after the sheet is regenerated.
     const comparisonPath = join(outDir, 'comparison-sheet.jpg');
+    const comparisonReceiptPath = join(outDir, COMPARISON_SHEET_RECEIPT_FILE);
     const evidenceReady = COMPETITOR_EVIDENCE_FILES.every((name) => existsSync(join(outDir, name)))
-      && statSync(comparisonPath).mtimeMs >= statSync(mp4Path).mtimeMs;
+      && existsSync(comparisonReceiptPath) && statSync(comparisonPath).mtimeMs >= statSync(mp4Path).mtimeMs;
     if (evidenceReady) {
-      const report = buildEvidenceReport({ root: ROOT, inputManifestPath: checkedPaths.inputManifest!, outputPath: mp4Path, evidenceDir: outDir, decodedFrames: decodedFrameClaims });
+      const report = buildEvidenceReport({ root: ROOT, inputManifestPath: checkedPaths.inputManifest!, outputPath: mp4Path, evidenceDir: outDir, decodedFrames: decodedFrameClaims, comparisonSheetReceiptPath: comparisonReceiptPath });
       writeFileSync(join(outDir, 'render-evidence.json'), JSON.stringify(report, null, 2) + '\n');
     } else {
       console.warn('  render-evidence.json not sealed: regenerate comparison-sheet.jpg, then run packages/captions/tools/seal-render-evidence.ts');

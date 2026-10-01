@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { createPrivateKey, createPublicKey, sign, verify } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { loadLibrary } from '../../../apps/render-worker/lib/library.ts';
@@ -11,9 +12,12 @@ import { EVIDENCE_REPORT_SCHEMA, LEGACY_EVIDENCE_REPORT_SCHEMA, RENDER_BYTE_LIMI
 import { isPathInside, policyRealpath } from './render-paths.ts';
 
 const SHA256 = /^[a-f0-9]{64}$/;
-export const POST_RENDER_ATTESTATION_SCHEMA = 'blockspark.render-post-attestation/1' as const;
+export const POST_RENDER_ATTESTATION_SCHEMA = 'blockspark.render-post-attestation/2' as const;
+export const SIGNED_POST_RENDER_ATTESTATION_SCHEMA = 'blockspark.signed-render-post-attestation/1' as const;
 export const DECODED_FRAME_RECEIPT_SCHEMA = 'blockspark.render-decoded-frame-receipt/1' as const;
 export const DECODED_FRAME_RECEIPT_FILE = 'render-decoded-frames.json' as const;
+export const COMPARISON_SHEET_RECEIPT_SCHEMA = 'blockspark.comparison-sheet-receipt/1' as const;
+export const COMPARISON_SHEET_RECEIPT_FILE = 'comparison-sheet-receipt.json' as const;
 
 /** Exact seeks used for future decoded-output evidence. Historical renderer snapshots intentionally do not claim this. */
 export const COMPETITOR_DECODED_FRAMES = [
@@ -32,12 +36,21 @@ export interface DecodedFrameReceipt {
   outputSha256: string;
   frames: Array<Omit<DecodedFrameClaim, 'outputSha256'>>;
 }
+export interface ComparisonSheetReceipt {
+  schema: typeof COMPARISON_SHEET_RECEIPT_SCHEMA;
+  outputSha256: string;
+  frames: Array<Omit<DecodedFrameClaim, 'outputSha256'>>;
+  comparison: { sha256: string; bytes: number };
+  runtime: { playwrightTreeSha256: string; chromiumSha256: string };
+}
 
 interface BaseEvidenceFilePin { file: string; sha256: string; bytes: number }
 export interface LegacyFrameEvidencePin extends BaseEvidenceFilePin { kind: 'frame-png' }
 export interface DecodedFrameEvidencePin extends BaseEvidenceFilePin { kind: 'decoded-frame-png'; timestampSec: number; outputSha256: string }
-export interface OtherEvidenceFilePin extends BaseEvidenceFilePin { kind: 'comparison-jpeg' | 'diagnostics' }
-export type EvidenceFilePin = LegacyFrameEvidencePin | DecodedFrameEvidencePin | OtherEvidenceFilePin;
+export interface LegacyComparisonEvidencePin extends BaseEvidenceFilePin { kind: 'comparison-jpeg' }
+export interface ComparisonEvidencePin extends BaseEvidenceFilePin { kind: 'comparison-jpeg'; outputSha256: string; sourceFramesSha256: string }
+export interface DiagnosticsEvidencePin extends BaseEvidenceFilePin { kind: 'diagnostics' }
+export type EvidenceFilePin = LegacyFrameEvidencePin | DecodedFrameEvidencePin | LegacyComparisonEvidencePin | ComparisonEvidencePin | DiagnosticsEvidencePin;
 export interface RenderEvidenceReport {
   schema: typeof EVIDENCE_REPORT_SCHEMA | typeof LEGACY_EVIDENCE_REPORT_SCHEMA;
   inputManifest: { file: string; sha256: string };
@@ -62,6 +75,7 @@ export interface V2VerificationResult {
   authorizationVerified: boolean;
   postRenderAttestationVerified: boolean;
   representativeFramesVerified: boolean;
+  comparisonSheetVerified: boolean;
   issues: string[];
   warnings: string[];
   manifestSha256?: string;
@@ -103,10 +117,11 @@ export function parseEvidenceReport(value: unknown): RenderEvidenceReport {
   const evidence = root.evidence.map((entry, index) => {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) throw new Error(`evidence report.evidence[${index}] must be an object`);
     const kind = (entry as Record<string, unknown>).kind;
-    const decoded = kind === 'decoded-frame-png';
-    if (decoded && schema === LEGACY_EVIDENCE_REPORT_SCHEMA) throw new Error(`evidence report schema ${LEGACY_EVIDENCE_REPORT_SCHEMA} cannot claim decoded frames`);
+    const decoded = kind === 'decoded-frame-png', comparison = kind === 'comparison-jpeg';
+    if (decoded && schema === LEGACY_EVIDENCE_REPORT_SCHEMA) throw new Error(`evidence report schema ${LEGACY_EVIDENCE_REPORT_SCHEMA} cannot claim decoded-frame provenance`);
     const pin = record(entry, `evidence report.evidence[${index}]`, decoded
       ? ['file', 'sha256', 'bytes', 'kind', 'timestampSec', 'outputSha256']
+      : comparison && schema === EVIDENCE_REPORT_SCHEMA ? ['file', 'sha256', 'bytes', 'kind', 'outputSha256', 'sourceFramesSha256']
       : ['file', 'sha256', 'bytes', 'kind']);
     if (kind !== 'frame-png' && kind !== 'decoded-frame-png' && kind !== 'comparison-jpeg' && kind !== 'diagnostics') throw new Error(`evidence report.evidence[${index}].kind is invalid`);
     const base = {
@@ -118,7 +133,12 @@ export function parseEvidenceReport(value: unknown): RenderEvidenceReport {
       if (typeof pin.timestampSec !== 'number' || !Number.isFinite(pin.timestampSec) || pin.timestampSec < 0 || pin.timestampSec > 300) throw new Error(`evidence report.evidence[${index}].timestampSec is invalid`);
       return { ...base, kind, timestampSec: pin.timestampSec, outputSha256: digest(pin.outputSha256, `evidence report.evidence[${index}].outputSha256`) } as DecodedFrameEvidencePin;
     }
-    return { ...base, kind } as LegacyFrameEvidencePin | OtherEvidenceFilePin;
+    if (comparison && schema === EVIDENCE_REPORT_SCHEMA) return {
+      ...base, kind,
+      outputSha256: digest(pin.outputSha256, `evidence report.evidence[${index}].outputSha256`),
+      sourceFramesSha256: digest(pin.sourceFramesSha256, `evidence report.evidence[${index}].sourceFramesSha256`),
+    } as ComparisonEvidencePin;
+    return { ...base, kind } as LegacyFrameEvidencePin | LegacyComparisonEvidencePin | DiagnosticsEvidencePin;
   });
   return {
     schema,
@@ -174,39 +194,134 @@ export function readDecodedFrameReceipt(path: string): DecodedFrameReceipt {
   return parseDecodedFrameReceipt(parseJsonBytes(bytes, 'decoded frame receipt'));
 }
 
+export function parseComparisonSheetReceipt(value: unknown): ComparisonSheetReceipt {
+  const root = record(value, 'comparison sheet receipt', ['schema', 'outputSha256', 'frames', 'comparison', 'runtime']);
+  if (root.schema !== COMPARISON_SHEET_RECEIPT_SCHEMA) throw new Error('unsupported comparison sheet receipt schema');
+  const decoded = parseDecodedFrameReceipt({ schema: DECODED_FRAME_RECEIPT_SCHEMA, outputSha256: root.outputSha256, frames: root.frames });
+  const comparison = record(root.comparison, 'comparison sheet receipt.comparison', ['sha256', 'bytes']);
+  const runtime = record(root.runtime, 'comparison sheet receipt.runtime', ['playwrightTreeSha256', 'chromiumSha256']);
+  return {
+    schema: COMPARISON_SHEET_RECEIPT_SCHEMA, outputSha256: decoded.outputSha256, frames: decoded.frames,
+    comparison: { sha256: digest(comparison.sha256, 'comparison sheet receipt.comparison.sha256'), bytes: count(comparison.bytes, 'comparison sheet receipt.comparison.bytes') },
+    runtime: { playwrightTreeSha256: digest(runtime.playwrightTreeSha256, 'comparison sheet receipt.runtime.playwrightTreeSha256'), chromiumSha256: digest(runtime.chromiumSha256, 'comparison sheet receipt.runtime.chromiumSha256') },
+  };
+}
+
+export function readComparisonSheetReceipt(path: string): ComparisonSheetReceipt {
+  return parseComparisonSheetReceipt(parseJsonBytes(readBoundedFile(path, RENDER_BYTE_LIMITS.evidenceReport, 'comparison sheet receipt'), 'comparison sheet receipt'));
+}
+
 export interface PostRenderAttestationPayload {
   schema: typeof POST_RENDER_ATTESTATION_SCHEMA;
   evidenceReportSchema: RenderEvidenceReport['schema'];
   jobSha256: string;
+  sourceSha256: string;
   inputManifestSha256: string;
   outputSha256: string;
+  outputBytes: number;
   mediaSha256: string;
   evidenceSha256: string;
+  representativeFramesSha256: string;
+  comparisonSheetSha256: string;
+  workerClaims: { workerSafe: true; freshOutput: true; decodedFromCompletedOutput: true; comparisonFromDecodedFrames: true };
+}
+export interface SignedPostRenderAttestation {
+  schema: typeof SIGNED_POST_RENDER_ATTESTATION_SCHEMA;
+  algorithm: 'ed25519';
+  keyId: string;
+  payload: PostRenderAttestationPayload;
+  signature: string;
 }
 
 function sortedEvidencePins(report: RenderEvidenceReport): EvidenceFilePin[] {
   return [...report.evidence].sort((a, b) => a.file.localeCompare(b.file));
 }
 
-/** Canonical post-render claim retained by the scheduler/worker control plane, never inside the resealable report. */
+export function representativeFramesDigest(report: RenderEvidenceReport): string {
+  const frames = sortedEvidencePins(report).filter((pin): pin is DecodedFrameEvidencePin => pin.kind === 'decoded-frame-png');
+  return sha256Bytes(canonicalJson(frames));
+}
+
+/** New comparison sheets commit to the exact decoded-frame set and output they summarize. */
+export function verifyComparisonSheetCommitment(report: RenderEvidenceReport): boolean {
+  const comparisons = report.evidence.filter((pin): pin is ComparisonEvidencePin => pin.kind === 'comparison-jpeg' && 'sourceFramesSha256' in pin);
+  return comparisons.length === 1 && comparisons[0].outputSha256 === report.output.sha256
+    && comparisons[0].sourceFramesSha256 === representativeFramesDigest(report);
+}
+
+/** Canonical claim signed by a worker key unavailable to the writable job/artifact environment. */
 export function postRenderAttestationPayload(manifest: RenderInputManifest, report: RenderEvidenceReport): PostRenderAttestationPayload {
+  const comparison = report.evidence.find((pin): pin is ComparisonEvidencePin => pin.kind === 'comparison-jpeg' && 'sourceFramesSha256' in pin);
+  if (manifest.provenance !== 'pre-render-authorized' || manifest.job.workerSafe !== true) throw new Error('only a pre-authorized worker-safe job can be attested');
+  if (!verifyRepresentativeFrameClaims(report)) throw new Error('cannot attest incomplete or mismatched decoded-frame claims');
+  if (!verifyComparisonSheetCommitment(report) || !comparison) throw new Error('cannot attest a comparison sheet not bound to current decoded frames');
   return {
     schema: POST_RENDER_ATTESTATION_SCHEMA,
     evidenceReportSchema: report.schema,
     jobSha256: sha256Bytes(canonicalJson(manifest.job)),
+    sourceSha256: sha256Bytes(canonicalJson(manifest.source)),
     inputManifestSha256: report.inputManifest.sha256,
     outputSha256: report.output.sha256,
+    outputBytes: report.output.bytes,
     mediaSha256: report.media.sha256,
     evidenceSha256: sha256Bytes(canonicalJson(sortedEvidencePins(report))),
+    representativeFramesSha256: representativeFramesDigest(report),
+    comparisonSheetSha256: comparison.sha256,
+    workerClaims: { workerSafe: true, freshOutput: true, decodedFromCompletedOutput: true, comparisonFromDecodedFrames: true },
   };
 }
 
+/** An unkeyed digest is only a claim identifier; it never authenticates a worker. */
 export function postRenderAttestationDigest(manifest: RenderInputManifest, report: RenderEvidenceReport): string {
   return sha256Bytes(canonicalJson(postRenderAttestationPayload(manifest, report)));
 }
 
-export function verifyPostRenderAttestation(manifest: RenderInputManifest, report: RenderEvidenceReport, suppliedDigest?: string): boolean {
-  return !!suppliedDigest && SHA256.test(suppliedDigest) && suppliedDigest === postRenderAttestationDigest(manifest, report);
+export function createSignedPostRenderAttestation(manifest: RenderInputManifest, report: RenderEvidenceReport, privateKey: Uint8Array, keyId: string): SignedPostRenderAttestation {
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/.test(keyId)) throw new Error('attestation keyId is invalid');
+  const payload = postRenderAttestationPayload(manifest, report);
+  const key = createPrivateKey(Buffer.from(privateKey));
+  if (key.asymmetricKeyType !== 'ed25519') throw new Error('post-render attestation key must be Ed25519');
+  const signature = sign(null, Buffer.from(canonicalJson(payload)), key).toString('base64');
+  return { schema: SIGNED_POST_RENDER_ATTESTATION_SCHEMA, algorithm: 'ed25519', keyId, payload, signature };
+}
+
+export function parseSignedPostRenderAttestation(value: unknown): SignedPostRenderAttestation {
+  const envelope = record(value, 'post-render attestation', ['schema', 'algorithm', 'keyId', 'payload', 'signature']);
+  if (envelope.schema !== SIGNED_POST_RENDER_ATTESTATION_SCHEMA || envelope.algorithm !== 'ed25519') throw new Error('unsupported post-render attestation schema or algorithm');
+  const keyId = text(envelope.keyId, 'post-render attestation.keyId');
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/.test(keyId)) throw new Error('post-render attestation.keyId is invalid');
+  const signature = text(envelope.signature, 'post-render attestation.signature');
+  if (!/^[A-Za-z0-9+/]{86}==$/.test(signature)) throw new Error('post-render attestation.signature is not canonical Ed25519 base64');
+  const payload = record(envelope.payload, 'post-render attestation.payload', ['schema', 'evidenceReportSchema', 'jobSha256', 'sourceSha256', 'inputManifestSha256', 'outputSha256', 'outputBytes', 'mediaSha256', 'evidenceSha256', 'representativeFramesSha256', 'comparisonSheetSha256', 'workerClaims']);
+  const claims = record(payload.workerClaims, 'post-render attestation.payload.workerClaims', ['workerSafe', 'freshOutput', 'decodedFromCompletedOutput', 'comparisonFromDecodedFrames']);
+  if (payload.schema !== POST_RENDER_ATTESTATION_SCHEMA || (payload.evidenceReportSchema !== EVIDENCE_REPORT_SCHEMA && payload.evidenceReportSchema !== LEGACY_EVIDENCE_REPORT_SCHEMA)) throw new Error('unsupported post-render attestation payload');
+  if (!Object.values(claims).every((claim) => claim === true)) throw new Error('post-render attestation worker claims must all be true');
+  return {
+    schema: SIGNED_POST_RENDER_ATTESTATION_SCHEMA, algorithm: 'ed25519', keyId,
+    payload: {
+      schema: POST_RENDER_ATTESTATION_SCHEMA, evidenceReportSchema: payload.evidenceReportSchema,
+      jobSha256: digest(payload.jobSha256, 'post-render attestation.payload.jobSha256'),
+      sourceSha256: digest(payload.sourceSha256, 'post-render attestation.payload.sourceSha256'),
+      inputManifestSha256: digest(payload.inputManifestSha256, 'post-render attestation.payload.inputManifestSha256'),
+      outputSha256: digest(payload.outputSha256, 'post-render attestation.payload.outputSha256'),
+      outputBytes: count(payload.outputBytes, 'post-render attestation.payload.outputBytes'),
+      mediaSha256: digest(payload.mediaSha256, 'post-render attestation.payload.mediaSha256'),
+      evidenceSha256: digest(payload.evidenceSha256, 'post-render attestation.payload.evidenceSha256'),
+      representativeFramesSha256: digest(payload.representativeFramesSha256, 'post-render attestation.payload.representativeFramesSha256'),
+      comparisonSheetSha256: digest(payload.comparisonSheetSha256, 'post-render attestation.payload.comparisonSheetSha256'),
+      workerClaims: { workerSafe: true, freshOutput: true, decodedFromCompletedOutput: true, comparisonFromDecodedFrames: true },
+    }, signature,
+  };
+}
+
+export function verifyPostRenderAttestation(manifest: RenderInputManifest, report: RenderEvidenceReport, value: unknown, publicKey: Uint8Array | undefined, expectedKeyId: string | undefined): boolean {
+  if (!value || !publicKey || !expectedKeyId) return false;
+  try {
+    const attestation = parseSignedPostRenderAttestation(value);
+    if (attestation.keyId !== expectedKeyId || canonicalJson(attestation.payload) !== canonicalJson(postRenderAttestationPayload(manifest, report))) return false;
+    const key = createPublicKey(Buffer.from(publicKey));
+    return key.asymmetricKeyType === 'ed25519' && verify(null, Buffer.from(canonicalJson(attestation.payload)), key, Buffer.from(attestation.signature, 'base64'));
+  } catch { return false; }
 }
 
 /** A decoded-frame claim is valid only for the fixed seek and the exact output sealed by this report. */
@@ -315,6 +430,8 @@ export interface BuildEvidenceReportOptions {
   decodedFrames?: readonly DecodedFrameClaim[];
   /** Delayed finalization consumes the worker receipt after comparison-sheet generation. */
   decodedFrameReceiptPath?: string;
+  /** Required for v3: produced by the authenticated worker-safe comparison builder. */
+  comparisonSheetReceiptPath?: string;
 }
 
 /** Seal already-produced artifacts. This performs no render and never copies media or creates an attestation. */
@@ -345,6 +462,23 @@ export function buildEvidenceReport(options: BuildEvidenceReportOptions): Render
     decodedClaims = receipt.frames.map((frame) => ({ ...frame, outputSha256: receipt.outputSha256 }));
   }
   const decoded = decodedClaims ? validateDecodedFrameClaims(output.sha256, decodedClaims) : new Map<string, DecodedFrameClaim>();
+  let comparisonReceipt: ComparisonSheetReceipt | undefined;
+  if (decoded.size) {
+    if (!options.comparisonSheetReceiptPath) throw new Error('decoded evidence requires a worker comparison-sheet receipt');
+    const comparisonReceiptPath = policyRealpath(options.comparisonSheetReceiptPath);
+    if (!isPathInside(evidenceDir, comparisonReceiptPath)) throw new Error('comparison sheet receipt is outside the evidence directory');
+    comparisonReceipt = readComparisonSheetReceipt(comparisonReceiptPath);
+    if (comparisonReceipt.outputSha256 !== output.sha256) throw new Error('comparison sheet was built for a different output');
+    const receiptClaims = validateDecodedFrameClaims(output.sha256, comparisonReceipt.frames.map((frame) => ({ ...frame, outputSha256: output.sha256 })));
+    for (const [name, claim] of decoded) if (canonicalJson(claim) !== canonicalJson(receiptClaims.get(name))) throw new Error(`comparison sheet used different decoded bytes for ${name}`);
+    if (comparisonReceipt.runtime.playwrightTreeSha256 !== manifest.runtime.playwrightTreeSha256 || comparisonReceipt.runtime.chromiumSha256 !== manifest.runtime.chromiumSha256) throw new Error('comparison sheet builder runtime does not match the authorized worker runtime');
+  }
+  const reportSchema = decoded.size === COMPETITOR_DECODED_FRAMES.length ? EVIDENCE_REPORT_SCHEMA : LEGACY_EVIDENCE_REPORT_SCHEMA;
+  const decodedPins = COMPETITOR_DECODED_FRAMES.flatMap(({ file }) => {
+    const claim = decoded.get(file);
+    return claim ? [{ file: repoRelative(join(evidenceDir, file)), sha256: claim.sha256, bytes: claim.bytes, kind: 'decoded-frame-png' as const, timestampSec: claim.timestampSec, outputSha256: output.sha256 }] : [];
+  }).sort((a, b) => a.file.localeCompare(b.file));
+  const sourceFramesSha256 = sha256Bytes(canonicalJson(decodedPins));
   const names = [...COMPETITOR_EVIDENCE_FILES, 'verification.json'];
   const evidence: EvidenceFilePin[] = names.map((name) => {
     const path = join(evidenceDir, name);
@@ -355,10 +489,14 @@ export function buildEvidenceReport(options: BuildEvidenceReportOptions): Render
       if (base.sha256 !== decodedClaim.sha256 || base.bytes !== decodedClaim.bytes) throw new Error(`committed evidence ${name} does not match the decoded frame bytes`);
       return { ...base, kind: 'decoded-frame-png', timestampSec: decodedClaim.timestampSec, outputSha256: output.sha256 };
     }
+    if (name.endsWith('.jpg') && reportSchema === EVIDENCE_REPORT_SCHEMA) {
+      if (!comparisonReceipt || base.sha256 !== comparisonReceipt.comparison.sha256 || base.bytes !== comparisonReceipt.comparison.bytes) throw new Error('comparison sheet bytes do not match the authenticated worker builder receipt');
+      return { ...base, kind: 'comparison-jpeg', outputSha256: output.sha256, sourceFramesSha256 };
+    }
     return { ...base, kind: name.endsWith('.png') ? 'frame-png' : name.endsWith('.jpg') ? 'comparison-jpeg' : 'diagnostics' } as EvidenceFilePin;
   });
   return {
-    schema: EVIDENCE_REPORT_SCHEMA,
+    schema: reportSchema,
     inputManifest: { file: repoRelative(manifestPath), sha256: manifestDigest(manifest) },
     output: { file: repoRelative(outputPath), ...output },
     media: { sha256: mediaFingerprintDigest(mediaFingerprint(probe)) },
@@ -372,11 +510,11 @@ export interface VerifyV2Options {
   voicePath?: string;
   /** Scheduler-owned expected digest; required before provenance can be called trusted. */
   authorizedManifestSha256?: string;
-  /**
-   * Worker/scheduler digest delivered through an authenticated control-plane channel outside the job request and
-   * writable artifact directory. Callers must never populate this from an uploaded/local report.
-   */
-  postRenderAttestationSha256?: string;
+  /** Signed worker attestation supplied outside the writable artifact directory. */
+  postRenderAttestation?: unknown;
+  /** Independently configured worker public key bytes and scheduler-selected identity. */
+  attestationPublicKey?: Uint8Array;
+  attestationKeyId?: string;
   /** Tests may inject an independent parser; production uses the deterministic built-in MP4 parser. */
   probeMedia?: (bytes: Uint8Array) => ProbeResult;
   /** Tests of hash/path behavior may disable the expensive deterministic camera solve. */
@@ -390,14 +528,14 @@ export interface VerifyV2Options {
 export function verifyRenderV2(options: VerifyV2Options): V2VerificationResult {
   const root = policyRealpath(options.root), reportPath = policyRealpath(options.reportPath), issues: string[] = [], warnings: string[] = [];
   let voiceBytesVerified = false, evidenceVerified = 0, sourceExactRecompute = false, authorizationVerified = false, runtimePinsComplete = false;
-  let postRenderAttestationVerified = false, representativeFramesVerified = false;
+  let postRenderAttestationVerified = false, representativeFramesVerified = false, comparisonSheetVerified = false;
   let report: RenderEvidenceReport;
   try {
     if (!isPathInside(root, reportPath)) throw new Error('evidence report escapes the repository');
     const reportBytes = readBoundedFile(reportPath, RENDER_BYTE_LIMITS.evidenceReport, 'evidence report');
     report = parseEvidenceReport(parseJsonBytes(reportBytes, 'evidence report'));
   } catch (error) {
-    return { ok: false, trusted: false, complete: false, sourceExactRecompute, authorizationVerified, postRenderAttestationVerified, representativeFramesVerified, issues: [`cannot read evidence report: ${error instanceof Error ? error.message : String(error)}`], warnings, voiceBytesVerified, evidenceVerified };
+    return { ok: false, trusted: false, complete: false, sourceExactRecompute, authorizationVerified, postRenderAttestationVerified, representativeFramesVerified, comparisonSheetVerified, issues: [`cannot read evidence report: ${error instanceof Error ? error.message : String(error)}`], warnings, voiceBytesVerified, evidenceVerified };
   }
 
   let manifest: RenderInputManifest;
@@ -408,17 +546,21 @@ export function verifyRenderV2(options: VerifyV2Options): V2VerificationResult {
     manifestSha256 = manifestDigest(manifest);
     if (manifestSha256 !== report.inputManifest.sha256) issues.push(`input manifest SHA-256 ${manifestSha256} != report ${report.inputManifest.sha256}`);
   } catch (error) {
-    return { ok: false, trusted: false, complete: false, sourceExactRecompute, authorizationVerified, postRenderAttestationVerified, representativeFramesVerified, issues: [`cannot verify input manifest: ${error instanceof Error ? error.message : String(error)}`], warnings, voiceBytesVerified, evidenceVerified };
+    return { ok: false, trusted: false, complete: false, sourceExactRecompute, authorizationVerified, postRenderAttestationVerified, representativeFramesVerified, comparisonSheetVerified, issues: [`cannot verify input manifest: ${error instanceof Error ? error.message : String(error)}`], warnings, voiceBytesVerified, evidenceVerified };
   }
 
   authorizationVerified = options.authorizedManifestSha256 === manifestSha256;
   if (options.authorizedManifestSha256 && !authorizationVerified) issues.push('scheduler-authorized manifest digest does not match the evidence manifest');
   if (!options.authorizedManifestSha256) warnings.push('no scheduler-owned manifest digest supplied; authorization is not verified');
-  postRenderAttestationVerified = verifyPostRenderAttestation(manifest, report, options.postRenderAttestationSha256);
-  if (options.postRenderAttestationSha256 && !postRenderAttestationVerified) issues.push('worker/scheduler post-render attestation digest does not match the sealed job, manifest, output, media, and evidence hashes');
-  if (!options.postRenderAttestationSha256) warnings.push('no independently supplied post-render attestation digest; local resealing can prove integrity but never trust');
+  postRenderAttestationVerified = verifyPostRenderAttestation(manifest, report, options.postRenderAttestation, options.attestationPublicKey, options.attestationKeyId);
+  const anyAttestationInput = !!options.postRenderAttestation || !!options.attestationPublicKey || !!options.attestationKeyId;
+  if (anyAttestationInput && !postRenderAttestationVerified) issues.push('signed worker post-render attestation does not match the configured key/job/source/manifest/output/media/evidence claims');
+  if (!anyAttestationInput) warnings.push('no independently supplied signed worker attestation; local resealing and unkeyed digests can never establish trust');
   const frameClaimsStructurallyValid = verifyRepresentativeFrameClaims(report);
+  comparisonSheetVerified = verifyComparisonSheetCommitment(report);
   if (!frameClaimsStructurallyValid) warnings.push('representative images are not claimed as decoded frames bound to this output; historical renderer snapshots remain integrity-only');
+  if (!comparisonSheetVerified) warnings.push('comparison sheet is not content-addressed to the current decoded frame set and output');
+  if (manifest.provenance === 'pre-render-authorized' && manifest.job.workerSafe !== true) issues.push('trusted renders require a worker-safe manifest and a fresh isolated output');
   if (manifest.provenance === 'retroactive-integrity-seal') warnings.push('artifact was retroactively sealed; integrity can be checked but pre-render authorization is not claimed');
   if (manifest.job.visual !== 'vignette' || manifest.job.evidenceProfile !== 'competitor-v2') issues.push('v2 evidence requires vignette + competitor-v2 manifest job');
   if (report.output.file !== manifest.job.outputPath) issues.push(`evidence output ${report.output.file} does not match manifest job output ${manifest.job.outputPath}`);
@@ -538,7 +680,7 @@ export function verifyRenderV2(options: VerifyV2Options): V2VerificationResult {
     && COMPETITOR_DECODED_FRAMES.every(({ file }) => verifiedDecodedFrames.has(file));
 
   const ok = issues.length === 0;
-  const complete = ok && manifest.provenance === 'pre-render-authorized' && authorizationVerified && postRenderAttestationVerified
-    && representativeFramesVerified && voiceBytesVerified && sourceExactRecompute && runtimePinsComplete;
-  return { ok, trusted: complete, complete, provenance: manifest.provenance, sourceExactRecompute, authorizationVerified, postRenderAttestationVerified, representativeFramesVerified, issues, warnings, manifestSha256, outputSha256, mediaSha256, voiceBytesVerified, evidenceVerified, media };
+  const complete = ok && manifest.provenance === 'pre-render-authorized' && manifest.job.workerSafe === true && authorizationVerified && postRenderAttestationVerified
+    && representativeFramesVerified && comparisonSheetVerified && voiceBytesVerified && sourceExactRecompute && runtimePinsComplete;
+  return { ok, trusted: complete, complete, provenance: manifest.provenance, sourceExactRecompute, authorizationVerified, postRenderAttestationVerified, representativeFramesVerified, comparisonSheetVerified, issues, warnings, manifestSha256, outputSha256, mediaSha256, voiceBytesVerified, evidenceVerified, media };
 }

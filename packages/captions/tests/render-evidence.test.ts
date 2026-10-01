@@ -1,17 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { generateKeyPairSync } from 'node:crypto';
 import { mkdirSync, mkdtempSync, rmSync, truncateSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ProbeResult } from '../../mp4/src/probe.ts';
-import { RENDER_BYTE_LIMITS, assertRuntimePins, canonicalJson, manifestDigest, parseInputManifest, parseJsonBytes, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
-import { COMPETITOR_DECODED_FRAMES, codecPinIssues, createDecodedFrameReceipt, mediaFingerprint, mediaFingerprintDigest, parseDecodedFrameReceipt, parseEvidenceReport, postRenderAttestationDigest, validateDecodedFrameClaims, verifyFilePin, verifyPostRenderAttestation, verifyRenderV2, verifyRepresentativeFrameClaims, type DecodedFrameClaim, type RenderEvidenceReport } from '../tools/verify-render-v2.ts';
+import { RENDER_BYTE_LIMITS, assertRuntimePins, canonicalJson, hashFile, manifestDigest, parseInputManifest, parseJsonBytes, readAuthenticatedFile, readInputManifest, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
+import { COMPETITOR_DECODED_FRAMES, COMPARISON_SHEET_RECEIPT_SCHEMA, codecPinIssues, createDecodedFrameReceipt, createSignedPostRenderAttestation, mediaFingerprint, mediaFingerprintDigest, parseComparisonSheetReceipt, parseDecodedFrameReceipt, parseEvidenceReport, postRenderAttestationDigest, representativeFramesDigest, validateDecodedFrameClaims, verifyComparisonSheetCommitment, verifyFilePin, verifyPostRenderAttestation, verifyRenderV2, verifyRepresentativeFrameClaims, type DecodedFrameClaim, type RenderEvidenceReport } from '../tools/verify-render-v2.ts';
 
 const sha = 'a'.repeat(64), git = 'b'.repeat(40);
 const manifest = {
   schema: 'blockspark.render-input-manifest/2',
   provenance: 'pre-render-authorized',
-  job: { jobId: 'job-1', outputPath: 'evidence/video.mp4', visual: 'vignette', renderProfile: 'review-vertical-540p', evidenceProfile: 'competitor-v2' },
+  job: { jobId: 'job-1', outputPath: 'evidence/video.mp4', visual: 'vignette', renderProfile: 'review-vertical-540p', evidenceProfile: 'competitor-v2', workerSafe: true },
   source: { repository: 'owner/repo', commitSha: git, treeSha: git, baseSha: git },
   inputs: {
     storyboard: { path: 'inputs/storyboard.json', sha256: sha }, beatSheet: { path: 'inputs/beats.json', sha256: sha },
@@ -26,9 +27,11 @@ test('trusted input manifest is strict and rejects traversal/unknown self-approv
   assert.equal(parseInputManifest(manifest).inputs.solvedCompositions.count, 2);
   assert.throws(() => parseInputManifest({ ...manifest, approval: { source: '.agents' } }), /keys must be exactly/);
   assert.throws(() => parseInputManifest({ ...manifest, inputs: { ...manifest.inputs, storyboard: { ...manifest.inputs.storyboard, path: '../secret' } } }), /normalized repository-relative path/);
+  assert.throws(() => parseInputManifest({ ...manifest, job: { ...manifest.job, workerSafe: false } }), /workerSafe must be true/);
+  assert.throws(() => parseInputManifest({ ...manifest, job: Object.fromEntries(Object.entries(manifest.job).filter(([key]) => key !== 'workerSafe')) }), /keys must be exactly/);
 });
 
-test('runtime byte mismatch fails before a caller can launch an executable', () => {
+test('runtime byte mismatch and oversized executable fail before launch', () => {
   const parsed = parseInputManifest(manifest);
   let launched = false;
   assert.throws(() => {
@@ -36,6 +39,27 @@ test('runtime byte mismatch fails before a caller can launch an executable', () 
     launched = true;
   }, /runtime bytes/);
   assert.equal(launched, false);
+
+  const dir = mkdtempSync(join(tmpdir(), 'captions-runtime-')), executable = join(dir, 'ffmpeg');
+  try {
+    writeFileSync(executable, 'pinned');
+    assert.equal(hashFile(executable, 6, 'FFmpeg').bytes, 6);
+    truncateSync(executable, 7);
+    assert.throws(() => hashFile(executable, 6, 'FFmpeg'), /FFmpeg exceeds 6 byte limit/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('manifest and lock size caps reject bytes before JSON parsing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'captions-parser-caps-'));
+  const manifestPath = join(dir, 'manifest.json'), lockPath = join(dir, 'package-lock.json');
+  try {
+    writeFileSync(manifestPath, '{}'); truncateSync(manifestPath, RENDER_BYTE_LIMITS.inputManifest + 1);
+    assert.throws(() => readInputManifest(manifestPath), /input manifest exceeds .* byte limit/);
+    writeFileSync(lockPath, '{}'); truncateSync(lockPath, RENDER_BYTE_LIMITS.packageLock + 1);
+    let parses = 0;
+    assert.throws(() => { const bytes = readAuthenticatedFile(lockPath, { sha256: sha }, RENDER_BYTE_LIMITS.packageLock, 'package lock'); parses++; parseJsonBytes(bytes, 'package lock'); }, /package lock exceeds .* byte limit/);
+    assert.equal(parses, 0);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('canonical manifest hashing is independent of object key insertion order', () => {
@@ -77,7 +101,7 @@ test('evidence report parser rejects omitted, extra, and unsafe fields', () => {
   assert.throws(() => parseEvidenceReport({ ...report, output: { ...report.output, file: '/tmp/video.mp4' } }), /normalized repository-relative path/);
   const decoded = { file: 'evidence/frame-teacher-exit.png', sha256: sha, bytes: 1, kind: 'decoded-frame-png', timestampSec: 3, outputSha256: sha };
   assert.equal(parseEvidenceReport({ ...report, schema: 'blockspark.render-evidence/3', evidence: [decoded] }).evidence[0].kind, 'decoded-frame-png');
-  assert.throws(() => parseEvidenceReport({ ...report, evidence: [decoded] }), /cannot claim decoded frames/);
+  assert.throws(() => parseEvidenceReport({ ...report, evidence: [decoded] }), /cannot claim decoded-frame provenance/);
   assert.throws(() => parseEvidenceReport({ ...report, schema: 'blockspark.render-evidence/3', evidence: [{ ...decoded, timestampSec: '3' }] }), /timestampSec is invalid/);
 });
 
@@ -115,37 +139,54 @@ test('trusted input batch rejects tampering and oversize bytes before JSON or FF
     truncateSync(beatSheetPath, RENDER_BYTE_LIMITS.beatSheet + 1);
     assert.throws(authenticateThenParseAndLaunch, /BeatSheet exceeds .* byte limit/);
     assert.equal(jsonParses, 0); assert.equal(ffmpegCalls, 0);
+
+    writeFileSync(beatSheetPath, beatSheetBytes);
+    truncateSync(storyboardPath, RENDER_BYTE_LIMITS.storyboard + 1);
+    assert.throws(authenticateThenParseAndLaunch, /storyboard exceeds .* byte limit/);
+    assert.equal(jsonParses, 0); assert.equal(ffmpegCalls, 0);
+
+    writeFileSync(storyboardPath, storyboardBytes);
+    truncateSync(voicePath, RENDER_BYTE_LIMITS.voice + 1);
+    assert.throws(authenticateThenParseAndLaunch, /voice exceeds .* byte limit/);
+    assert.equal(jsonParses, 0); assert.equal(ffmpegCalls, 0);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('replacement output and local reseal cannot reuse an independent post-render attestation', () => {
+test('replacement output and local reseal cannot reuse an independently signed worker attestation', () => {
   const parsedManifest = parseInputManifest(manifest);
   const outputSha256 = 'c'.repeat(64);
+  const frames = COMPETITOR_DECODED_FRAMES.map(({ file, timestampSec }) => ({
+    file: `evidence/${file}`, sha256: 'd'.repeat(64), bytes: 100, kind: 'decoded-frame-png' as const,
+    timestampSec, outputSha256,
+  }));
+  const frameOnly = { schema: 'blockspark.render-evidence/3', inputManifest: { file: 'evidence/input.json', sha256: sha }, output: { file: 'evidence/video.mp4', sha256: outputSha256, bytes: 1000 }, media: { sha256: '1'.repeat(64) }, evidence: frames } as RenderEvidenceReport;
   const evidence = [
-    ...COMPETITOR_DECODED_FRAMES.map(({ file, timestampSec }) => ({
-      file: `evidence/${file}`, sha256: 'd'.repeat(64), bytes: 100, kind: 'decoded-frame-png' as const,
-      timestampSec, outputSha256,
-    })),
-    { file: 'evidence/comparison-sheet.jpg', sha256: 'e'.repeat(64), bytes: 100, kind: 'comparison-jpeg' as const },
+    ...frames,
+    { file: 'evidence/comparison-sheet.jpg', sha256: 'e'.repeat(64), bytes: 100, kind: 'comparison-jpeg' as const, outputSha256, sourceFramesSha256: representativeFramesDigest(frameOnly) },
     { file: 'evidence/verification.json', sha256: 'f'.repeat(64), bytes: 100, kind: 'diagnostics' as const },
   ];
-  const report: RenderEvidenceReport = {
-    schema: 'blockspark.render-evidence/3', inputManifest: { file: 'evidence/input.json', sha256: sha },
-    output: { file: 'evidence/video.mp4', sha256: outputSha256, bytes: 1000 }, media: { sha256: '1'.repeat(64) }, evidence,
-  };
-  const independentDigest = postRenderAttestationDigest(parsedManifest, report);
-  assert.equal(verifyPostRenderAttestation(parsedManifest, report), false, 'local sealing alone is never an attestation');
-  assert.equal(verifyPostRenderAttestation(parsedManifest, report, independentDigest), true);
+  const report: RenderEvidenceReport = { ...frameOnly, evidence };
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const privatePem = privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const publicPem = publicKey.export({ type: 'spki', format: 'pem' });
+  const signed = createSignedPostRenderAttestation(parsedManifest, report, Buffer.from(privatePem), 'worker-key-1');
+  const unkeyedDigest = postRenderAttestationDigest(parsedManifest, report);
+  assert.equal(verifyPostRenderAttestation(parsedManifest, report, unkeyedDigest, undefined, undefined), false, 'an artifact-local digest never authenticates a worker');
+  assert.equal(verifyPostRenderAttestation(parsedManifest, report, signed, Buffer.from(publicPem), 'worker-key-1'), true);
   assert.equal(verifyRepresentativeFrameClaims(report), true);
+  assert.equal(verifyComparisonSheetCommitment(report), true);
 
   const replacementSha = '2'.repeat(64);
   const locallyResealed: RenderEvidenceReport = {
     ...report,
     output: { ...report.output, sha256: replacementSha },
-    evidence: report.evidence.map((pin) => pin.kind === 'decoded-frame-png' ? { ...pin, outputSha256: replacementSha } : pin),
+    evidence: report.evidence.map((pin) => pin.kind === 'decoded-frame-png' ? { ...pin, outputSha256: replacementSha } : pin.kind === 'comparison-jpeg' ? { ...pin, outputSha256: replacementSha } : pin),
   };
-  assert.notEqual(postRenderAttestationDigest(parsedManifest, locallyResealed), independentDigest);
-  assert.equal(verifyPostRenderAttestation(parsedManifest, locallyResealed, independentDigest), false);
+  assert.throws(() => postRenderAttestationDigest(parsedManifest, locallyResealed), /comparison sheet not bound/);
+  assert.equal(verifyPostRenderAttestation(parsedManifest, locallyResealed, signed, Buffer.from(publicPem), 'worker-key-1'), false);
+  assert.equal(verifyPostRenderAttestation(parsedManifest, report, signed, Buffer.from(publicPem), 'wrong-key-id'), false);
+  const wrongImage: RenderEvidenceReport = { ...report, evidence: report.evidence.map((pin, index) => index === 0 ? { ...pin, sha256: '9'.repeat(64) } : pin) };
+  assert.equal(verifyPostRenderAttestation(parsedManifest, wrongImage, signed, Buffer.from(publicPem), 'worker-key-1'), false);
 });
 
 test('decoded-frame claims must bind every committed frame seek to the sealed output', () => {
@@ -200,7 +241,6 @@ test('replacement output is hash-rejected before the media parser and can never 
     const result = verifyRenderV2({
       root, reportPath: join(root, 'evidence/render-evidence.json'), recomputeCompositions: false,
       authorizedManifestSha256: manifestDigest(parsedManifest),
-      postRenderAttestationSha256: postRenderAttestationDigest(parsedManifest, report),
       probeMedia: () => { parserCalls++; throw new Error('must not parse replacement bytes'); },
     });
     assert.equal(parserCalls, 0);
@@ -221,4 +261,12 @@ test('decoded-frame receipt preserves decode-time output binding across delayed 
   assert.equal(validateDecodedFrameClaims(outputSha256, parsed.frames.map((frame) => ({ ...frame, outputSha256 }))).size, 7);
   assert.throws(() => validateDecodedFrameClaims('b'.repeat(64), claims), /decoded from a different output/);
   assert.throws(() => parseDecodedFrameReceipt({ ...receipt, localTrusted: true }), /keys must be exactly/);
+  const comparisonReceipt = {
+    schema: COMPARISON_SHEET_RECEIPT_SCHEMA, outputSha256, frames: receipt.frames,
+    comparison: { sha256: 'a'.repeat(64), bytes: 123 },
+    runtime: { playwrightTreeSha256: 'b'.repeat(64), chromiumSha256: 'c'.repeat(64) },
+  };
+  assert.equal(parseComparisonSheetReceipt(comparisonReceipt).comparison.bytes, 123);
+  assert.throws(() => parseComparisonSheetReceipt({ ...comparisonReceipt, frames: comparisonReceipt.frames.map((frame, index) => index === 0 ? { ...frame, timestampSec: frame.timestampSec + 0.01 } : frame) }), /exactly match.*seek times/);
+  assert.throws(() => parseComparisonSheetReceipt({ ...comparisonReceipt, selfApproved: true }), /keys must be exactly/);
 });

@@ -34,3 +34,16 @@ test('every asset has license metadata from an allowed source', () => {
   assert.ok(all.length >= 27);
   for (const a of all) assert.equal(a.license.source, 'original-procedural', a.id);
 });
+
+test('trusted library consumes authenticated asset-lock bytes instead of reopening the path', () => {
+  const root = mkdtempSync(join(tmpdir(), 'bs-assets-lock-'));
+  cpSync(join(ROOT, 'assets'), join(root, 'assets'), { recursive: true });
+  const lockPath = join(root, 'assets/asset-lock.json');
+  const authenticated = new Uint8Array(readFileSync(lockPath));
+  writeFileSync(lockPath, '{"assets":{}}\n');
+  const trusted = loadLibrary({ root, lockBytes: authenticated });
+  const reopened = loadLibrary({ root });
+  assert.deepEqual(trusted.errors, []);
+  assert.ok(reopened.errors.some((error) => error.startsWith('LOCK:')));
+  rmSync(root, { recursive: true, force: true });
+});

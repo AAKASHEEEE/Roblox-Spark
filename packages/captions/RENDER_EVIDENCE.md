@@ -30,7 +30,7 @@ Three independent choices replace the old overloaded `--visual` switch:
 - `--profile review-vertical-540p|production-vertical-1080p` selects immutable dimensions, fps, and bitrates. Conflicting width/height/fps/bitrate overrides fail.
 - `--evidenceProfile none|competitor-v2` selects fixture-specific teacher/door/action/evidence gates. `competitor-v2` requires the Vignette renderer and review profile; generic Vignette jobs do not inherit those fixture assumptions.
 
-A competitor evidence render must receive an input manifest before any output is created:
+A competitor evidence render is always a worker-safe render and must receive an input manifest before any output is created. It may never reuse the historical evidence directory:
 
 ```bash
 FFPROBE_PATH=node_modules/ffprobe-static/bin/linux/x64/ffprobe \
@@ -38,31 +38,74 @@ node packages/captions/tools/render-full.ts \
   --visual vignette \
   --profile review-vertical-540p \
   --evidenceProfile competitor-v2 \
+  --workerSafe \
   --prebuilt \
   --jobId <scheduler-job-id> \
   --inputManifest out/render-authorizations/job-manifest.json \
   --authorizedManifestSha256 <scheduler-owned-canonical-manifest-sha256> \
-  --voice .scratch/voice/eleven-1.mp3 \
+  --voice out/render-inputs/voice.mp3 \
   --ffmpeg node_modules/ffmpeg-static/ffmpeg \
-  --out packages/captions/full-render-v2
+  --out out/render-jobs/<scheduler-job-id>
 ```
 
 The checked retroactive manifest cannot authorize a render. For new evidence, a trusted scheduler must create a `pre-render-authorized` manifest after source and the prebuilt bundle are committed/reviewed, pin the job/output identity, emitted `dist` tree, and actual FFmpeg/FFprobe/Playwright/Chromium bytes, retain its canonical digest outside the upload area, and pass that digest separately. `render-full.ts` bounds and authenticates the raw storyboard, BeatSheet, and voice as one batch before any JSON/container/native parser is entered. Trusted FFmpeg receives those authenticated voice bytes over stdin; FFprobe receives the just-created MP4 bytes over stdin; Playwright and Chromium are loaded/launched only from the exact authenticated paths. The generic no-manifest CLI remains a trusted-local operator workflow and can never produce trusted provenance.
 
-After rendering, the worker copies the seven representative PNGs from decoded MP4 playback seeks, not from the pre-mux renderer, and writes `render-decoded-frames.json`. That bounded receipt pins the decode-time MP4 hash plus every frame seek/hash/size, so replacing the output before delayed sealing is rejected. The resulting `decoded-frame-png` report claims bind the fixed seek, committed PNG hash, and output hash. Regenerate `comparison-sheet.jpg`, then create the local integrity report without rendering media again:
+After rendering, the worker copies the seven representative PNGs from decoded playback of the completed MP4, not from the pre-mux renderer, and writes `render-decoded-frames.json`. That bounded receipt pins the completed MP4 hash plus every exact seek, PNG hash, and byte count. The v3 report also commits `comparison-sheet.jpg` to that exact decoded-frame set and output hash; mtime alone is never accepted as trust evidence. The independent verifier re-reads and authenticates the MP4, every PNG/JPEG, all sizes and hashes, the fixed timestamps, the frame-set commitment, and the comparison-sheet commitment.
+
+The worker-safe comparison builder must run first. It authenticates the completed MP4, decoded-frame receipt, every PNG, Playwright tree, and Chromium binary, creates the sheet without external inputs, and writes a strict generation receipt:
 
 ```bash
-node packages/captions/tools/seal-render-evidence.ts
-node packages/captions/tools/verify-mvp.ts \
-  --v2Voice .scratch/voice/eleven-1.mp3 \
-  --authorizedManifestSha256 <scheduler-owned-canonical-manifest-sha256>
+node packages/captions/tools/render-comparison-sheet.ts \
+  --manifest out/render-authorizations/job-manifest.json \
+  --authorizedManifestSha256 <scheduler-owned-canonical-manifest-sha256> \
+  --evidenceDir out/render-jobs/<scheduler-job-id> \
+  --playwrightCore node_modules/playwright-core \
+  --chromium <authorized-chromium-path>
 ```
 
-That standalone seal intentionally reports `integrity-sealed-untrusted`: for a new worker output it can preserve decoded claims only by validating the worker receipt against the current MP4 and committed PNG bytes; the historical directory has no receipt and remains legacy `frame-png`. The sealer never creates or prints a trust credential. A trusted scheduler/worker must separately retain and deliver `postRenderAttestationSha256`, computed over the canonical job hash plus input-manifest, output, media-fingerprint, and complete sorted evidence hashes. The caller supplies it to `verifyRenderV2` outside the artifact directory together with `authorizedManifestSha256`. `trusted` requires both independently supplied digests, exact source/voice/runtime recomputation, and all seven decoded-frame claims. Replacing output or evidence and locally resealing changes the expected post-render digest, so it remains untrusted.
+Local finalization validates that builder receipt against current output/frame/JPEG/runtime bytes. It can build the integrity report but cannot create trust:
+
+```bash
+node packages/captions/tools/seal-render-evidence.ts \
+  --manifest out/render-authorizations/job-manifest.json \
+  --output out/render-jobs/<scheduler-job-id>/zapp-vs-kira-competitor-performance-v2.mp4 \
+  --evidenceDir out/render-jobs/<scheduler-job-id> \
+  --report out/render-jobs/<scheduler-job-id>/render-evidence.json
+```
+
+That command always reports `integrity-sealed-untrusted`. An unkeyed digest—whether stored beside the artifact or supplied as an argument—is only an identifier and never authenticates a worker. After checking the current report against the current completed output, decoded-frame receipt, frame bytes, comparison bytes, and manifest, a trusted worker may create an Ed25519 attestation with a private key injected from **outside** the repository/job filesystem:
+
+```bash
+node packages/captions/tools/seal-render-attestation.ts \
+  --manifest out/render-authorizations/job-manifest.json \
+  --output out/render-jobs/<scheduler-job-id>/zapp-vs-kira-competitor-performance-v2.mp4 \
+  --evidenceDir out/render-jobs/<scheduler-job-id> \
+  --report out/render-jobs/<scheduler-job-id>/render-evidence.json \
+  --privateKey /run/secrets/render-worker-ed25519.pem \
+  --keyId production-render-worker-1 \
+  --attestationOut out/render-attestations/<scheduler-job-id>.json
+```
+
+The scheduler retains that envelope outside the artifact channel. Verification requires the separately configured public key and key identity; the signature binds the full job, source/tree/base, authorized manifest, output hash/size, media fingerprint, every evidence hash, decoded-frame set, and comparison sheet:
+
+```bash
+node packages/captions/tools/verify-mvp.ts \
+  --v2Report out/render-jobs/<scheduler-job-id>/render-evidence.json \
+  --v2Voice out/render-inputs/voice.mp3 \
+  --authorizedManifestSha256 <scheduler-owned-canonical-manifest-sha256> \
+  --postRenderAttestation out/render-attestations/<scheduler-job-id>.json \
+  --attestationPublicKey /etc/blockspark/render-worker-ed25519.pub.pem \
+  --attestationKeyId production-render-worker-1 \
+  --requireTrusted
+```
+
+Exit status is strict: `0` means the requested verification level passed, `1` means integrity or input verification failed, and `2` means integrity passed but `--requireTrusted` could not establish trusted provenance. `trusted` additionally requires worker-safe/new-output authorization, exact source/voice/runtime recomputation, and all seven decoded frames. Replacing output/evidence, changing a seek/image/size, changing source or job identity, substituting a key, or locally resealing invalidates the signed attestation.
+
+The verifier-side threat model is explicit: it independently verifies all bytes and commitments, while the signed worker claim establishes that the seven committed PNGs were decoded from the completed MP4 and that the comparison sheet was built from those committed frames. The worker signing key must be inaccessible to render inputs and artifact writers and released only in the immutable worker after successful render/decode/finalization. Without that boundary, output-decoding provenance remains untrusted.
 
 ## Worker-safe mode
 
-`--workerSafe --prebuilt` disables per-job compilation into shared `dist/`, requires a scheduler-authorized manifest plus separately supplied digest, rejects any pre-existing output directory, and enforces symlink-aware allowlists. Before the first storyboard/BeatSheet JSON parse or MP3 container/FFmpeg operation, all three input files are opened no-follow, rejected by hard byte caps, read once, and compared to scheduler hashes. The same authenticated voice buffer is piped to FFmpeg. Runtime file/tree hashes are compared before invocation and again at the relevant launch boundary; trusted Playwright/Chromium and FFprobe have no PATH/default-runtime fallback:
+`--evidenceProfile competitor-v2` now requires `--workerSafe --prebuilt`; the authorized manifest itself must carry `job.workerSafe: true`. The worker rejects every pre-existing output directory, so trusted mode cannot reuse the checked historical directory or any prior job output. Worker-safe mode disables per-job compilation into shared `dist/`, requires a scheduler-authorized manifest plus separately supplied digest, and enforces symlink-aware allowlists. Before the first storyboard/BeatSheet/lock JSON parse or MP3/container/native operation, inputs are opened no-follow, rejected by hard byte caps, read once, and compared to scheduler hashes. Runtime trees have per-file/count/aggregate limits and selected executable binaries have hard limits before hashing or invocation. The same authenticated voice buffer is piped to FFmpeg. Runtime file/tree hashes are compared before invocation and again at the relevant launch boundary; trusted Playwright/Chromium and FFprobe have no PATH/default-runtime fallback:
 
 - manifest: scheduler-only `out/render-authorizations` (never `out/render-inputs`);
 - storyboard/BeatSheet: approved fixture or `out/render-inputs` roots;

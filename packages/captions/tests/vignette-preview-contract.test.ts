@@ -44,10 +44,13 @@ test('review stills and S7 video share the same exact-time Vignette render sessi
 
 test('trusted raw inputs are batch-authenticated before parsing or native decode', () => {
   const authenticate = renderFull.indexOf('readTrustedRenderInputs(trustedManifest');
+  const authenticateLocks = renderFull.indexOf('const trustedLockBytes = trustedManifest');
   const storyboardParse = renderFull.indexOf("parseJsonBytes(inputBytes.storyboard, 'storyboard')");
   const containerParse = renderFull.indexOf("checkContainer(voiceBytes, 'mp3')");
   const ffmpegLaunch = renderFull.indexOf('const raw = execFileSync(ffmpeg');
   assert.ok(authenticate >= 0 && authenticate < storyboardParse, 'scheduler pins must authenticate inputs before storyboard JSON parsing');
+  assert.ok(authenticateLocks >= 0 && authenticateLocks < storyboardParse, 'scheduler pins must authenticate asset/package locks before any JSON parsing');
+  assert.ok(authenticateLocks < containerParse && authenticateLocks < ffmpegLaunch, 'locks must authenticate before native parsers and FFmpeg');
   assert.ok(authenticate < containerParse, 'scheduler pins must authenticate voice before container parsing');
   assert.ok(authenticate < ffmpegLaunch, 'scheduler pins must authenticate all inputs before FFmpeg');
   assert.match(renderFull, /input: Buffer\.from\(voiceBytes\)/, 'trusted FFmpeg must consume the authenticated bytes, not reopen the upload path');
