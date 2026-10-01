@@ -225,7 +225,7 @@ function requiredDefault(kind: MatchKind, id: string, lib: Library): LibraryEntr
 }
 
 interface LiteralHit { id: string; tag: string; startWord: number; endWord: number }
-const CLAUSE_CONJUNCTIONS = new Set(['and', 'but', 'then', 'while', 'when', 'before', 'after', 'so', 'yet', 'until', 'meanwhile']);
+const CLAUSE_CONJUNCTIONS = new Set(['and', 'or', 'but', 'then', 'while', 'when', 'before', 'after', 'so', 'yet', 'until', 'meanwhile']);
 const NON_VERBAL_ACTION_TAGS = new Set(['phone', 'party', 'yay', 'no', 'hi', 'bye', 'confident', 'curious', 'regret', 'shocked', 'fast']);
 const PERSON_PRONOUNS = new Set(['he', 'she', 'they', 'him', 'her', 'them', 'who']);
 const OBJECT_PRONOUNS = new Set(['it', 'this', 'that', 'these', 'those']);
@@ -404,7 +404,7 @@ function conceptMatch(term: string, lib: Library): { kind: 'sets' | 'characters'
 interface VisibleConceptCandidate { term: string; category: ConceptDiagnostic['category'] }
 const DESTINATION_VERBS = new Set(['enters', 'enter', 'visits', 'visit', 'reaches', 'reach', 'leaves', 'leave', 'arrives', 'arrive', 'travels', 'travel']);
 const MODAL_VERBS = new Set(['can', 'could', 'will', 'would', 'should', 'must', 'may', 'might']);
-const NON_NOUN_TAILS = new Set(['often', 'well', 'today', 'tomorrow', 'yesterday', 'now', 'here', 'there', 'away', 'together', 'apart']);
+const NON_NOUN_TAILS = new Set(['often', 'well', 'today', 'tomorrow', 'yesterday', 'now', 'here', 'there', 'away', 'together', 'apart', 'downstairs', 'upstairs', 'indoors', 'outdoors']);
 const looksVerbLike = (word: string) => /(?:s|ed|ing)$/.test(word) && word.length > 3;
 /**
  * Build a conservative noun-phrase inventory independently from authorization. Complete available catalog spans are
@@ -454,11 +454,15 @@ function requiredVisibleConcepts(text: string, lib: Library): VisibleConceptCand
       verb = modal !== undefined ? indexes.find((index) => index > modal && content.includes(index)) : content.find((index) => index > knownPerson);
     }
     if (verb === undefined) {
-      const possible = content.find((index, position) => position > 0 && position < content.length - 1 && looksVerbLike(tokens[index]));
-      if (possible !== undefined) verb = possible;
-      else if (content.length === 2 && CONCEPT_DETERMINERS.has(tokens[content[0] - 1])) {
-        add(tokens[content[0]], 'entity');
-        verb = content[1];
+      const determinerLed = indexes.some((index) => CONCEPT_DETERMINERS.has(tokens[index]) && index < (content[0] ?? Infinity));
+      if (knownPerson === undefined && determinerLed && content.length >= 2 && looksVerbLike(tokens[content.at(-1)!])) verb = content.at(-1)!;
+      else {
+        const possible = content.find((index, position) => position > 0 && position < content.length - 1 && looksVerbLike(tokens[index]));
+        if (possible !== undefined) verb = possible;
+        else if (content.length === 2 && determinerLed) {
+          add(tokens[content[0]], 'entity');
+          verb = content[1];
+        }
       }
     }
     if (verb !== undefined) {

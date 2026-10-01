@@ -408,3 +408,16 @@ test('subject heads, recognized-concept modifiers, and non-ly adverbs stay seman
   for (const expected of ['compass', 'painting', 'sled', 'drone', 'dragon', 'violin', 'telescope', 'suitcase']) assert.ok(terms.has(expected), expected);
   for (const falseHead of ['gleams', 'hangs', 'glides', 'wooden', 'purple', 'often', 'well', 'today']) assert.equal(terms.has(falseHead), false, falseHead);
 });
+
+test('modifiers preserve subject heads, spatial tails stop object phrases, and or coordinates nouns', async () => {
+  const result = await directScript({
+    script: [
+      'A wooden compass gleams.', 'A bright painting hangs.', 'A small sled glides.',
+      'Kira repairs the violin downstairs.', 'Kira repairs a telescope indoors.',
+      'Kira repairs violin or suitcase.',
+    ], duration: 20, seed: 33,
+  }, { provider: 'offline' });
+  const terms = new Set(result.report.conceptDiagnostics.map((item) => item.term));
+  for (const expected of ['compass', 'painting', 'sled', 'violin', 'telescope', 'suitcase']) assert.ok(terms.has(expected), expected);
+  for (const falseHead of ['gleams', 'hangs', 'glides', 'downstairs', 'indoors']) assert.equal(terms.has(falseHead), false, falseHead);
+});
