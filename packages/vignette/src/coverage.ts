@@ -7,7 +7,7 @@
 // Coverage % = covered / visual items over the whole sheet; below COVERAGE_THRESHOLD (90 %) the sheet is blocked.
 import type { Vec3 } from '../../engine/src/math.ts';
 import { ASPECT } from './camera-recipes.ts';
-import { poseAt, type ShotChoice } from './camera.ts';
+import { compositionAt, poseAt, type CameraComposition } from './camera.ts';
 import { frameGeometry, visibilityOf, type FrameGeometry } from './geometry.ts';
 import type { VignetteScene } from './scene.ts';
 import { actorPresent, type StagePlan, type StagedBeat } from './stage.ts';
@@ -24,7 +24,7 @@ export interface CoverageReport { threshold: number; step: number; visual: numbe
 
 const r4 = (x: number) => Math.round(x * 1e4) / 1e4;
 
-export function coverageCheck(scene: VignetteScene, plan: StagePlan, shots: Record<string, ShotChoice>): CoverageReport {
+export function coverageCheck(scene: VignetteScene, plan: StagePlan, compositions: readonly CameraComposition[]): CoverageReport {
   const items: CoverageItem[] = [];
   const cache = new Map<number, FrameGeometry>();
   const geoAt = (t: number) => { const k = r4(t); let g = cache.get(k); if (!g) { g = frameGeometry(scene, scene.pose(k)); cache.set(k, g); } return g; };
@@ -36,7 +36,9 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, shots: Reco
     return out;
   };
   const seenAt = (b: StagedBeat, t: number, witness: string) => {
-    const g = geoAt(t), cam = poseAt(shots[b.phraseId], b.start, t);
+    const active = compositionAt(compositions, t);
+    if (!active || active.beat !== b.phraseId) return false;
+    const g = geoAt(t), cam = poseAt(active.shot, active.start, t);
     if (witness.startsWith('door:')) return visibilityOf(g, cam, ASPECT, witness, doorPts(b, witness.slice(5))).ok;
     if (!g.actors[witness] && !g.props[witness]) {
       const set = plan.sets.find((s) => s.id === b.setId)!, m = set.marks[witness];
@@ -51,11 +53,13 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, shots: Reco
   for (const b of plan.beats) {
     const S = b.start + 0.05, E = b.end - 0.05;
     const grid = times(S, E);
+    const beatCompositions = compositions.filter((c) => c.beat === b.phraseId);
+    const cameraRequires = (id: string) => beatCompositions.some((c) => c.subject === id || c.secondary === id || (c.subject === undefined && (c.shot.subjects.active === id || c.shot.subjects.required.includes(id) || c.shot.subjects.optional.includes(id))));
     for (const c of b.cast) {
       const ts = grid.filter((t) => actorPresent(plan, c.id, t, b.setId));
       const seen = ts.filter((t) => seenAt(b, t, c.id)).length;
       const namedInScript = new RegExp(`\\b${c.id.replace(/_/g, '[ _-]')}\\b`, 'i').test(b.text);
-      const cameraRequired = b.camera.subject === c.id || b.camera.secondary === c.id;
+      const cameraRequired = cameraRequires(c.id);
       const eventRequired = b.events.some((e) => e.witness.includes(c.id));
       // Beat sheets may carry background/continuity cast forward. Only characters selected by the director as camera
       // subjects, named by the script, or witnessing an event block semantic coverage; the rest stay diagnostic.
@@ -72,7 +76,7 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, shots: Reco
       const propWords = new Set(`${id} ${plan.props[id]?.propId ?? ''}`.toLowerCase().split(/[^a-z0-9]+/).filter((x) => x.length >= 3 && !['spark', 'suspicious'].includes(x)));
       const text = b.text.toLowerCase();
       const namedInScript = [...propWords].some((word) => new RegExp(`\\b${word}\\b`).test(text));
-      const cameraRequired = b.camera.subject === id || b.camera.secondary === id;
+      const cameraRequired = cameraRequires(id);
       const actionRequired = b.cast.some((c) => c.lookAt === id);
       const eventRequired = b.events.some((e) => e.space === 'world' && e.witness.includes(id));
       const stateChanged = !!previousSpan && (previousSpan.state !== st || previousSpan.target !== span?.target);
@@ -100,5 +104,6 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, shots: Reco
   });
   const counted = items.filter((i) => i.counted), covered = counted.filter((i) => i.covered).length;
   const pct = counted.length ? covered / counted.length : 1;
-  return { threshold: COVERAGE_THRESHOLD, step: r4(COVERAGE_STEP), visual: counted.length, covered, pct: r4(pct), blocking: pct < COVERAGE_THRESHOLD, audioOnly: items.length - counted.length, beats, items };
+  const audioOnly = items.filter((i) => i.space === 'audio').length;
+  return { threshold: COVERAGE_THRESHOLD, step: r4(COVERAGE_STEP), visual: counted.length, covered, pct: r4(pct), blocking: pct < COVERAGE_THRESHOLD, audioOnly, beats, items };
 }

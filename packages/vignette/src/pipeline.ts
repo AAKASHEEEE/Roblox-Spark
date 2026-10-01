@@ -4,8 +4,9 @@
 import { validateBeatSheet, type BeatSheet, type BeatSheetResult } from '../../director/src/beat-sheet.ts';
 import type { ScreenDirectionState } from '../../engine/src/camera-safety.ts';
 import type { ManifestLibrary } from '../../engine/src/build-dispatch.ts';
+import type { Library } from '../../library/src/ids.ts';
 import { CAMERA_RECIPES, PLANNED_RECIPES } from './camera-recipes.ts';
-import { beatSamples, sampleBeat, solveBeatCamera, type ShotChoice } from './camera.ts';
+import { beatSamples, compositionAt, sampleBeat, solveBeatCamera, type CameraComposition, type ShotChoice } from './camera.ts';
 import { coverageCheck, type CoverageReport } from './coverage.ts';
 import { VignetteScene } from './scene.ts';
 import { registerRuntimeLibrary } from './runtime-library.ts';
@@ -16,22 +17,26 @@ export const REPORT_SCHEMA = 'blockspark.vignette-analysis/1';
 export interface VignetteOptions {
   /** narration phrases the sheet must cover one-to-one (validateBeatSheet) */
   phrases?: Array<{ id: string; start: number; end: number; text: string }>;
+  /** Optional semantic library override; validation and staging use the same availability catalog. */
+  library?: Library;
   /** implied-seated actors must be framed waist-up (camera safety WAIST_UP_REQUIRED). Default false: a planned `sit`
    *  is rendered as a labelled placeholder (standing pose + "ACTION SIT" label), not hidden by framing */
   waistUp?: boolean;
   onProgress?: (stage: string, done: number, total: number) => void;
 }
 /** one composition of a beat: a time window and its solved shot. A beat with no sub-shots has exactly one. */
-export interface Composition { beat: string; index: number; start: number; end: number; shot: ShotChoice }
+export type Composition = CameraComposition;
 export interface VignetteRun {
   validation: BeatSheetResult; stage: StagePlan; scene: VignetteScene; shots: Record<string, ShotChoice>;
   /** every composition of every beat in play order (beat.camera first, then camera.subShots). One caption band per entry. */
   compositions: Composition[];
+  /** Canonical bounded lookup; returns undefined in inter-beat gaps and outside the timeline. */
+  compositionAt(t: number): Composition | undefined;
   coverage: CoverageReport; report: VignetteReport;
 }
 
 export interface VignetteReport {
-  schema: typeof REPORT_SCHEMA; sheetId: string; title: string; beats: number; duration: number;
+  schema: typeof REPORT_SCHEMA; sheetId: string; title: string; beats: number; compositions: number; duration: number;
   summary: { blocking: boolean; reasons: string[]; coveragePct: number; coverageThreshold: number; camerasAccepted: number; camerasFallback: number; camerasBlocked: number; stagingErrors: number; stagingWarnings: number; placeholders: number };
   validation: { ok: boolean; issues: BeatSheetResult['issues']; planned: Array<{ kind: string; id: string; uses: number }> };
   sets: Array<{ id: string; resolution: string; key: string; origin: number[]; marks: number; doors: string[]; dressing: string[]; notes: string[] }>;
@@ -48,26 +53,61 @@ export interface VignetteReport {
 const bare = (r: string) => r.split('@')[0];
 const r3 = (v: readonly number[]) => v.map((x) => Math.round(x * 1000) / 1000);
 
+export class VignetteValidationError extends Error {
+  readonly validation: BeatSheetResult;
+  constructor(message: string, validation: BeatSheetResult) { super(message); this.name = 'VignetteValidationError'; this.validation = validation; }
+}
+
+function cameraRecipeUses(sheet: BeatSheet): Array<{ beat: string; index: number; id: string; path: string }> {
+  return sheet.beats.flatMap((b, bi) => [b.camera, ...(b.camera.subShots ?? [])].map((c, index) => ({
+    beat: b.phraseId, index, id: c.recipeId,
+    path: index === 0 ? `$.beats[${bi}].camera.recipeId` : `$.beats[${bi}].camera.subShots[${index - 1}].recipeId`,
+  })));
+}
+
 export function runVignette(input: unknown, lib: ManifestLibrary, opts: VignetteOptions = {}): VignetteRun {
-  // Activate the exact locked S3 character recipes and S4 prop rigs before resolution decides what is real.
-  registerRuntimeLibrary(lib);
-  const validation = validateBeatSheet(input, { ...(opts.phrases ? { phrases: opts.phrases } : {}) });
-  if (!validation.value || validation.unknown.length || !validation.ok) {
-    if (!validation.value) throw new Error(`beat sheet invalid: ${validation.issues.slice(0, 5).map((i) => `${i.path} ${i.message}`).join('; ')}`);
+  const validation = validateBeatSheet(input, {
+    ...(opts.library ? { library: opts.library } : {}),
+    ...(opts.phrases ? { phrases: opts.phrases } : {}),
+  });
+  const unavailable = validation.planned.filter((p) => p.kind === 'cameraRecipes');
+  if (!validation.value || !validation.ok || validation.unknown.length || unavailable.length) {
+    const details = [
+      ...validation.issues.slice(0, 8).map((i) => `${i.path} ${i.message}`),
+      ...unavailable.map((p) => `${p.paths[0]} camera recipe "${p.id}" is planned, not available`),
+    ];
+    throw new VignetteValidationError(`beat sheet rejected before staging: ${details.join('; ') || 'invalid input'}`, validation);
   }
-  const sheet = validation.value as BeatSheet;
+  const sheet = validation.value;
+  const unresolved = cameraRecipeUses(sheet).filter((u) => !CAMERA_RECIPES[u.id] || CAMERA_RECIPES[u.id].planned);
+  if (unresolved.length) {
+    throw new VignetteValidationError(`beat sheet rejected before staging: ${unresolved.map((u) => `${u.path} camera recipe "${u.id}" has no available runtime implementation`).join('; ')}`, validation);
+  }
+  // Activate the exact locked S3 character recipes and S4 prop rigs only after semantic/camera preflight succeeds.
+  registerRuntimeLibrary(lib);
   opts.onProgress?.('stage', 0, 1);
-  const stage = stageBeatSheet(sheet, lib);
+  let stage: StagePlan;
+  try {
+    stage = stageBeatSheet(sheet, lib, opts.library ? { library: opts.library } : {});
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`vignette staging failed closed: ${message}`);
+  }
   const scene = new VignetteScene(stage, lib);
   const shots: Record<string, ShotChoice> = {};
   const compositions: Composition[] = [];
-  let sd: ScreenDirectionState | undefined, prevSet: string | null = null, prevPrimary: string | null = null;
+  let sd: ScreenDirectionState | undefined, prevSet: string | null = null, prevPrimary: string | null = null, prevCameraTargets: string[] = [];
   stage.beats.forEach((b, i) => {
     opts.onProgress?.('cameras', i, stage.beats.length);
+    const currentCameraTargets = [b.camera.subject, ...(b.camera.secondary ? [b.camera.secondary] : [])];
     if (b.setId !== prevSet) sd = prevSet === null ? {} : { previousWasNeutral: true };
     else if (prevPrimary && !b.cast.some((c) => c.id === prevPrimary) && !b.props.includes(prevPrimary)) {
       // The previous primary has left the scene, so this beat establishes a new action axis. Carrying the old side
       // across unrelated actor pairs produces a false 180-degree reversal (teacher exit -> Zapp/Kira scene).
+      sd = { previousWasNeutral: true };
+    } else if ((prevCameraTargets.length > 1 || currentCameraTargets.length > 1) && prevCameraTargets.filter((id) => currentCameraTargets.includes(id)).length < 2) {
+      // A two-entity action axis only survives an edit when both authored endpoints survive. A single-to-pair or changed
+      // secondary establishes a new axis; retaining a side label from the old pair would manufacture a false reversal.
       sd = { previousWasNeutral: true };
     } else if (prevPrimary && prevPrimary !== b.camera.subject && prevPrimary !== b.camera.secondary && b.cast.some((c) => c.id === b.camera.subject && c.placementKind === 'enter')) {
       // This beat's hero enters the scene (a new action axis): the carried side belongs to the previous hero, so
@@ -79,45 +119,66 @@ export function runVignette(input: unknown, lib: ManifestLibrary, opts: Vignette
     // them); screen direction still carries continuously so no cut breaks the 180-degree line.
     const cuts = [b.start, ...(b.camera.subShots?.map((s) => s.from) ?? []), b.end];
     const cams = [b.camera, ...(b.camera.subShots ?? [])];
-    // screen direction threads sub-shot -> sub-shot inside the beat, but the axis carried to the NEXT beat is the one
-    // established by the beat's main composition (ci=0), not a transient sub-shot subject.
-    let intraSd = sd, carrySd = sd, prevCompSubject: string | null = prevPrimary;
+    // Screen direction threads every chronological composition and the FINAL composition is authoritative at the
+    // next beat boundary. Carrying composition zero would skip the real final edit and permit an unmotivated reversal.
+    let intraSd = sd, prevCompSubject: string | null = prevPrimary;
     cams.forEach((cam, ci) => {
       const cStart = cuts[ci], cEnd = cuts[ci + 1];
       // A sub-shot cut that changes the action axis (the previous composition's subject is neither this composition's
       // subject nor secondary) resets screen direction, exactly as a beat cut does: carrying the old side across an
       // unrelated pair produces a false 180-degree reversal (e.g. the teacher-exit wide -> a Zapp/Kira two-shot).
       if (ci > 0 && prevCompSubject && prevCompSubject !== cam.subject && prevCompSubject !== cam.secondary) intraSd = { previousWasNeutral: true };
-      const wb: StagedBeat = { ...b, start: cStart, end: cEnd, camera: { recipeId: cam.recipeId, subject: cam.subject, ...(cam.secondary !== undefined ? { secondary: cam.secondary } : {}) }, keyTimes: b.keyTimes.filter((t) => t > cStart + 1e-6 && t < cEnd - 1e-6) };
+      const wb: StagedBeat = { ...b, start: cStart, end: cEnd, camera: { recipeId: cam.recipeId, subject: cam.subject, ...(cam.secondary !== undefined ? { secondary: cam.secondary } : {}) }, keyTimes: b.keyTimes.filter((t) => t >= cStart - 1e-6 && t <= cEnd + 1e-6) };
       const samples = sampleBeat(scene, wb, beatSamples(wb));
       const r = solveBeatCamera({ scene, beat: wb, samples, screenDirection: intraSd, waistUp: opts.waistUp ?? false });
+      if (!r.shot.recipeKnown) throw new Error(`camera recipe resolution failed closed for ${b.phraseId}[${ci}]: ${cam.recipeId}`);
       intraSd = r.next; prevCompSubject = cam.subject;
-      if (ci === 0) { shots[b.phraseId] = r.shot; carrySd = r.next; }
-      compositions.push({ beat: b.phraseId, index: ci, start: cStart, end: cEnd, shot: r.shot });
+      if (ci === 0) shots[b.phraseId] = r.shot;
+      compositions.push({ beat: b.phraseId, index: ci, start: cStart, end: cEnd, subject: cam.subject, ...(cam.secondary !== undefined ? { secondary: cam.secondary } : {}), shot: r.shot });
     });
-    sd = carrySd; prevSet = b.setId; prevPrimary = b.camera.subject;
+    sd = intraSd; prevSet = b.setId;
+    const finalCamera = cams[cams.length - 1];
+    prevPrimary = finalCamera?.subject ?? null;
+    prevCameraTargets = finalCamera ? [finalCamera.subject, ...(finalCamera.secondary ? [finalCamera.secondary] : [])] : [];
   });
   opts.onProgress?.('coverage', 0, 1);
-  const coverage = coverageCheck(scene, stage, shots);
-  const report = buildReport(sheet, validation, stage, scene, shots, coverage);
-  return { validation, stage, scene, shots, compositions, coverage, report };
+  const coverage = coverageCheck(scene, stage, compositions);
+  const report = buildReport(sheet, validation, stage, scene, compositions, coverage);
+  return { validation, stage, scene, shots, compositions, compositionAt: (t) => compositionAt(compositions, t), coverage, report };
 }
 
-function buildReport(sheet: BeatSheet, validation: BeatSheetResult, stage: StagePlan, scene: VignetteScene, shots: Record<string, ShotChoice>, coverage: CoverageReport): VignetteReport {
-  const cams = Object.values(shots);
+export interface CompositionCameraSummary {
+  accepted: number; fallback: number; blocked: number;
+  blockedCompositions: Array<{ beat: string; index: number; shot: ShotChoice }>;
+}
+
+/** Camera report accounting is composition-based; every intra-beat cut participates in blocking and fallback totals. */
+export function summarizeCompositionCameras(compositions: readonly Composition[]): CompositionCameraSummary {
+  const isBlocked = (c: Composition) => !c.shot.recipeKnown || !c.shot.accepted || c.shot.source === 'blocked_best_effort';
+  const blockedCompositions = compositions.filter(isBlocked).map((c) => ({ beat: c.beat, index: c.index, shot: c.shot }));
+  return {
+    accepted: compositions.filter((c) => !isBlocked(c) && c.shot.source === 'recipe').length,
+    fallback: compositions.filter((c) => !isBlocked(c) && c.shot.source === 'fallback').length,
+    blocked: blockedCompositions.length,
+    blockedCompositions,
+  };
+}
+
+function buildReport(sheet: BeatSheet, validation: BeatSheetResult, stage: StagePlan, scene: VignetteScene, compositions: readonly Composition[], coverage: CoverageReport): VignetteReport {
+  const cams = compositions.map((c) => c.shot);
+  const cameraSummary = summarizeCompositionCameras(compositions);
   const errs = stage.issues.filter((i) => i.severity === 'error'), warns = stage.issues.filter((i) => i.severity === 'warning');
   const reasons: string[] = [];
   if (!validation.ok) reasons.push(`beat sheet validation: ${validation.issues.length} issue(s)`);
   if (errs.length) reasons.push(`staging: ${errs.length} contract error(s) (${[...new Set(errs.map((e) => e.code))].join(', ')})`);
-  const blocked = cams.filter((c) => c.source === 'blocked_best_effort');
-  if (blocked.length) reasons.push(`camera safety blocked ${blocked.length} beat(s): ${blocked.map((c) => c.beat).join(', ')}`);
+  if (cameraSummary.blocked) reasons.push(`camera safety blocked ${cameraSummary.blocked} composition(s): ${cameraSummary.blockedCompositions.map((c) => `${c.beat}[${c.index}]`).join(', ')}`);
   if (coverage.blocking) reasons.push(`script coverage ${(coverage.pct * 100).toFixed(1)}% < ${(coverage.threshold * 100).toFixed(0)}%`);
   const placeholders = stage.resolution.filter((r) => r.resolution === 'placeholder').length + stage.beats.reduce((a, b) => a + b.cast.filter((c) => c.labels.length).length, 0);
   return {
-    schema: REPORT_SCHEMA, sheetId: sheet.id, title: sheet.title, beats: stage.beats.length, duration: stage.duration,
+    schema: REPORT_SCHEMA, sheetId: sheet.id, title: sheet.title, beats: stage.beats.length, compositions: compositions.length, duration: stage.duration,
     summary: {
       blocking: reasons.length > 0, reasons, coveragePct: coverage.pct, coverageThreshold: coverage.threshold,
-      camerasAccepted: cams.filter((c) => c.source === 'recipe').length, camerasFallback: cams.filter((c) => c.source === 'fallback').length, camerasBlocked: blocked.length,
+      camerasAccepted: cameraSummary.accepted, camerasFallback: cameraSummary.fallback, camerasBlocked: cameraSummary.blocked,
       stagingErrors: errs.length, stagingWarnings: warns.length, placeholders,
     },
     validation: { ok: validation.ok, issues: validation.issues, planned: validation.planned.map((p) => ({ kind: p.kind, id: p.id, uses: p.paths.length })) },
@@ -141,7 +202,7 @@ export function reportMarkdown(r: VignetteReport, stills: Record<string, string>
   const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
   const L: string[] = [];
   L.push(`# Vignette staging analysis: ${r.title}`, '');
-  L.push(`Sheet \`${r.sheetId}\`: ${r.beats} beats, ${r.duration.toFixed(2)} s, ${r.sets.length} set(s).`, '');
+  L.push(`Sheet \`${r.sheetId}\`: ${r.beats} beats, ${r.compositions} camera compositions, ${r.duration.toFixed(2)} s, ${r.sets.length} set(s).`, '');
   L.push(`**Verdict: ${r.summary.blocking ? 'BLOCKED' : 'PASS'}**${r.summary.reasons.length ? ` (${r.summary.reasons.join('; ')})` : ''}`, '');
   L.push('| Check | Result |', '|---|---|');
   L.push(`| Beat sheet validation | ${r.validation.ok ? 'ok' : `${r.validation.issues.length} issue(s)`}; ${r.validation.planned.length} planned IDs |`);
@@ -177,4 +238,4 @@ export function reportMarkdown(r: VignetteReport, stills: Record<string, string>
   return L.join('\n');
 }
 
-export { bare };
+export { bare, compositionAt };
