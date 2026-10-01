@@ -58,7 +58,9 @@ export class VignetteRenderSession {
 
   constructor(options: VignetteRenderSessionOptions) {
     const validation = validateBeatSheet(options.sheet);
-    if (!validation.value) throw new Error('beat sheet invalid');
+    if (!validation.value || !validation.ok || validation.unknown.length) {
+      throw new Error(`beat sheet invalid: ${validation.issues.slice(0, 5).map((x) => `${x.path} ${x.message}`).join('; ')}`);
+    }
     registerRuntimeLibrary(options.library);
     this.plan = stageBeatSheet(validation.value, options.library);
     this.scene = new VignetteScene(this.plan, options.library);

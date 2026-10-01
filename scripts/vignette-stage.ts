@@ -52,7 +52,7 @@ if (!argv.includes('--no-stills')) {
     await page.goto(`${url}/packages/vignette/web/stills.html`);
     await page.waitForFunction(() => (window as unknown as { __vignette?: { ready: boolean } }).__vignette?.ready, null, { timeout: 60000 });
     const libSub = { characters: lib.characters, props: lib.props, environments: lib.environments };
-    await page.evaluate(([s, l, sh, w, h]: [unknown, unknown, unknown, number, number]) => (window as unknown as { __vignette: { load: (...a: unknown[]) => unknown } }).__vignette.load(s, l, sh, w, h), [sheet, libSub, run.shots, W, H]);
+    await page.evaluate(([s, l, sh, w, h, compositions]: [unknown, unknown, unknown, number, number, unknown]) => (window as unknown as { __vignette: { load: (...a: unknown[]) => unknown } }).__vignette.load(s, l, sh, w, h, compositions), [sheet, libSub, run.shots, W, H, run.compositions]);
     mkdirSync(join(out, 'stills'), { recursive: true });
     for (const b of run.stage.beats) {
       const t = stillTime(b);

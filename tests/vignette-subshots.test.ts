@@ -191,8 +191,9 @@ test('final composition direction, not composition zero, feeds the next persiste
 });
 
 test('final-camera safety evaluates posed output frames after scene shake and supplemental zoom/shake', () => {
-  const composition = canonical.compositions.find((c) => c.beat === 'p10' && c.index === 1)!;
   const t = 46.1;
+  const composition = canonical.compositionAt(t)!;
+  assert.equal(composition.beat, 'p10');
   const withoutSceneFx = evaluateFinalCameraAt(canonical.scene, composition, t, { includeSceneShake: false, supplementalVfx: [] });
   const final = evaluateFinalCameraAt(canonical.scene, composition, t, { supplementalVfx: [{ vfxId: 'zoom_punch', at: 46.0 }] });
   assert.ok(final.result, final.reasons.join('; '));

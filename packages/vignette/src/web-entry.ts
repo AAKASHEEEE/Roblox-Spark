@@ -1,32 +1,21 @@
-// Browser entry for vignette stills/video: rebuilds the deterministic stage from BeatSheet + locked library and uses
-// the solved cameras. The same renderAt(frame/fps) feeds PNG review stills and WebCodecs H.264 video.
-import { Renderer } from '../../engine/src/gl/renderer.ts';
-import { applyShake } from '../../engine/src/camera.ts';
+// Browser entry for vignette stills/video. Scene validation, builder registration, exact-time posing and final camera
+// calculation are shared with the S7 renderer through VignetteRenderSession so review pixels cannot drift from video.
 import type { ManifestLibrary } from '../../engine/src/build-dispatch.ts';
-import { validateBeatSheet } from '../../director/src/beat-sheet.ts';
-import { stageBeatSheet, beatAt, type StagePlan } from './stage.ts';
-import { VignetteScene } from './scene.ts';
-import { poseAt, type ShotChoice } from './camera.ts';
+import type { ShotChoice, CameraComposition } from './camera.ts';
+import { beatAt } from './stage.ts';
 import { drawVignetteOverlay } from './captions.ts';
-import { registerRuntimeLibrary } from './runtime-library.ts';
+import { VignetteRenderSession } from '../../captions/src/preview/vignette-render-session.ts';
 
-let warm = false;
-let canvas: HTMLCanvasElement | null = null, composite: HTMLCanvasElement | null = null, renderer: Renderer | null = null;
-let scene: VignetteScene | null = null, plan: StagePlan | null = null, shots: Record<string, ShotChoice> = {};
+let composite: HTMLCanvasElement | null = null, session: VignetteRenderSession | null = null;
 
 function renderAt(t: number): HTMLCanvasElement {
-  if (!scene || !plan || !renderer || !canvas || !composite) throw new Error('load() first');
-  const f = scene.pose(t), b = beatAt(plan, t), shot = shots[b.phraseId];
-  const p = poseAt(shot, b.start, t), fx = scene.vfx(f);
-  const cam = applyShake({ pos: p.pos, target: p.target, fovY: (p.fovDeg * Math.PI) / 180, ...(p.roll ? { roll: p.roll } : {}) }, fx.shake, t, plan.seed);
-  // The first draw uploads meshes/textures; warm once so frame zero is complete.
-  const n = warm ? 1 : 2;
-  for (let i = 0; i < n; i++) renderer.render(scene.root, cam, scene.lighting(f), fx.post, fx.particles);
-  warm = true;
+  if (!session || !composite) throw new Error('load() first');
+  const frame = session.frame(t);
+  session.render(frame);
   const g = composite.getContext('2d')!;
   g.clearRect(0, 0, composite.width, composite.height);
-  g.drawImage(canvas, 0, 0);
-  drawVignetteOverlay(g, b, t, composite.width, composite.height);
+  g.drawImage(session.canvas, 0, 0);
+  drawVignetteOverlay(g, frame.beat, t, composite.width, composite.height);
   return composite;
 }
 
@@ -38,24 +27,16 @@ const toB64 = (bytes: Uint8Array): string => {
 
 const api = {
   ready: true,
-  load(sheet: unknown, lib: ManifestLibrary, s: Record<string, ShotChoice>, w: number, h: number) {
-    const v = validateBeatSheet(sheet);
-    if (!v.value) throw new Error('beat sheet invalid');
-    // Browser and Node analysis are separate realms: register identical builders before staging/rendering.
-    registerRuntimeLibrary(lib);
-    plan = stageBeatSheet(v.value, lib);
-    scene = new VignetteScene(plan, lib);
-    shots = s; warm = false;
-    if (!canvas) { canvas = document.createElement('canvas'); document.body.appendChild(canvas); }
+  load(sheet: unknown, lib: ManifestLibrary, shots: Record<string, ShotChoice>, w: number, h: number, compositions: readonly CameraComposition[] = []) {
+    session = new VignetteRenderSession({ sheet, library: lib, shots, compositions, width: w, height: h });
     if (!composite) composite = document.createElement('canvas');
     composite.width = w; composite.height = h;
-    if (!renderer || renderer.width !== w || renderer.height !== h) renderer = new Renderer(canvas, w, h);
-    return { beats: plan.beats.length, sets: plan.sets.map((x) => x.id), duration: plan.duration };
+    return { beats: session.plan.beats.length, sets: session.plan.sets.map((x) => x.id), duration: session.plan.duration, compositions: session.compositions.length };
   },
   still(t: number): string { return renderAt(t).toDataURL('image/png'); },
   async encode(duration: number, fps: number, bitrate: number): Promise<{ b64: string; frames: number; bytes: number; codec: string }> {
-    if (!composite || !plan) throw new Error('load() first');
-    if (!Number.isFinite(duration) || duration <= 0 || duration > plan.duration + 0.1) throw new Error('bad duration');
+    if (!composite || !session) throw new Error('load() first');
+    if (!Number.isFinite(duration) || duration <= 0 || duration > session.plan.duration + 0.1) throw new Error('bad duration');
     if (!Number.isInteger(fps) || fps < 1 || fps > 60) throw new Error('bad fps');
     const codec = 'avc1.640028', chunks: Uint8Array[] = [];
     let failure: Error | null = null;
@@ -78,6 +59,6 @@ const api = {
     let offset = 0; for (const chunk of chunks) { joined.set(chunk, offset); offset += chunk.byteLength; }
     return { b64: toB64(joined), frames, bytes, codec };
   },
-  describe(t: number) { const b = plan ? beatAt(plan, t) : null; return b ? { beat: b.phraseId, set: b.setId } : null; },
+  describe(t: number) { const b = session ? beatAt(session.plan, t) : null; return b ? { beat: b.phraseId, set: b.setId } : null; },
 };
 (window as unknown as { __vignette: typeof api }).__vignette = api;

@@ -37,7 +37,7 @@ import { SFX_DEFS } from '../../audio-mix/src/sfx.ts';
 // vignette pipeline (node-side solve; browser rendering delegates to the neutral VignetteRenderSession)
 import { ensureHeadlessCanvas } from '../../vignette/src/headless.ts';
 import { runVignette, type Composition, type VignetteRun } from '../../vignette/src/pipeline.ts';
-import { poseAt, type ShotChoice } from '../../vignette/src/camera.ts';
+import { auditFinalCameraSafety, poseAt, type ShotChoice } from '../../vignette/src/camera.ts';
 import { beatAt } from '../../vignette/src/stage.ts';
 import { applyShake } from '../../engine/src/camera.ts';
 import { evalVfxEvents, applyZoom, type VfxEvent } from '../../engine/src/vfx/index.ts';
@@ -299,22 +299,16 @@ try {
 
   // ============================================================ fixture-specific acceptance gates
   if (evidenceProfile === 'competitor-v2') {
-    stage('composition camera acceptance coverage: map every output frame to an accepted solved interval');
-    // This is intentionally not called a fresh per-frame camera-safety audit. Camera safety is solved over each
-    // composition's samples by runVignette; this pass only proves complete frame-to-interval coverage and rejects any
-    // interval whose solved shot was blocked.
-    const perBeat: Record<string, { frames: number; acceptedFrames: number; compositions: number; minScore: number }> = {};
-    for (let i = 0; i < N; i++) {
-      const t = i / fps, c = compAt(t), b = beatAt(run!.stage, t);
-      const rec = (perBeat[b.phraseId] ??= { frames: 0, acceptedFrames: 0, compositions: 0, minScore: 1 });
-      rec.frames++;
-      if (c.shot.accepted && c.shot.source !== 'blocked_best_effort') rec.acceptedFrames++;
-      rec.minScore = Math.min(rec.minScore, c.shot.minScore);
+    stage('dense final-camera safety audit: evaluate every output frame after scene and S7 zoom/shake effects');
+    const denseCamera = auditFinalCameraSafety(run!.scene, compositions, { fps, supplementalVfx: vfx as VfxEvent[] });
+    if (!denseCamera.accepted) {
+      const failed = denseCamera.samples.filter((sample) => !sample.accepted).slice(0, 8);
+      throw new Error(`final-camera safety blocked ${denseCamera.frames - denseCamera.acceptedFrames}/${denseCamera.frames} frame(s): ${failed.map((sample) => `${sample.beat}[${sample.composition}]@${sample.t.toFixed(3)} ${sample.reasons.join(',')}`).join('; ')}`);
     }
-    for (const c of compositions) perBeat[c.beat] && (perBeat[c.beat].compositions++);
-    const allCompositionsAccepted = Object.values(perBeat).every((r) => r.acceptedFrames === r.frames);
-    if (!allCompositionsAccepted) throw new Error('composition acceptance coverage: some output frames map to a blocked composition');
-    gates.compositionCameraAcceptance = { method: 'solved-composition-sample-acceptance', fps, framesMapped: N, allCompositionsAccepted, perBeat };
+    gates.finalCameraSafety = {
+      method: 'posed-final-camera-after-scene-and-s7-effects', fps: denseCamera.fps, frames: denseCamera.frames,
+      acceptedFrames: denseCamera.acceptedFrames, minScore: denseCamera.minScore, compositions: denseCamera.compositions,
+    };
 
     stage('teacher visibility gate: meaningful projected area at exit(p01) + return(p13) + present(p14), from teacher@1.0.0');
     const tExit = [2.4, 3.0, 3.8], tReturn = [60.3, 60.8, 61.5, 62.5], tPresent = [65.5, 66.5, 67.5, 68.5];

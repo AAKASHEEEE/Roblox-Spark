@@ -8,6 +8,7 @@ const root = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 const adapter = readFileSync(resolve(root, 'packages/captions/src/preview/vignette-full-page.ts'), 'utf8');
 const session = readFileSync(resolve(root, 'packages/captions/src/preview/vignette-render-session.ts'), 'utf8');
 const renderFull = readFileSync(resolve(root, 'packages/captions/tools/render-full.ts'), 'utf8');
+const webEntry = readFileSync(resolve(root, 'packages/vignette/src/web-entry.ts'), 'utf8');
 
 test('S7 vignette adapter consumes the neutral shared render session', () => {
   assert.match(adapter, /new VignetteRenderSession/);
@@ -30,4 +31,11 @@ test('trusted runtime bytes are authorized before any selected media executable 
   const chromiumLaunch = renderFull.indexOf("const chromiumBanner = execFileSync(checkedPaths.chromium");
   assert.ok(authorize >= 0 && authorize < ffmpegLaunch, 'FFmpeg must not run before runtime byte authorization');
   assert.ok(authorize < chromiumLaunch, 'Chromium must not run before runtime byte authorization');
+});
+
+test('review stills and S7 video share the same exact-time Vignette render session', () => {
+  assert.match(webEntry, /new VignetteRenderSession/);
+  assert.doesNotMatch(webEntry, /new VignetteScene|stageBeatSheet\(|poseAt\(|registerRuntimeLibrary\(/);
+  assert.match(webEntry, /session\.frame\(t\)/);
+  assert.match(webEntry, /session\.render\(frame\)/);
 });
