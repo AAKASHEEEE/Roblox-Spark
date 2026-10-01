@@ -1,0 +1,871 @@
+{
+  "sourceFixture": "packages/director/fixtures/free-coins-classroom.beats.json",
+  "renderSize": [
+    540,
+    960
+  ],
+  "maximumArtifactDimension": 1800,
+  "compositionCount": 41,
+  "compositionContactSheet": {
+    "file": "composition-contact-sheet.jpg",
+    "dimensions": [
+      1751,
+      1794
+    ]
+  },
+  "keyNarrativeContactSheet": {
+    "file": "key-narrative-contact-sheet.jpg",
+    "dimensions": [
+      1778,
+      1403
+    ]
+  },
+  "compositions": [
+    {
+      "ordinal": 1,
+      "phraseId": "p01",
+      "composition": 1,
+      "start": 0.06,
+      "end": 1.6,
+      "representativeTime": 0.83,
+      "recipeId": "establishing_wide",
+      "subject": "teacher",
+      "file": "composition-stills/01-p01-c1-t00.83.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 2,
+      "phraseId": "p01",
+      "composition": 2,
+      "start": 1.6,
+      "end": 3.0,
+      "representativeTime": 2.3,
+      "recipeId": "wide_environment",
+      "subject": "teacher",
+      "secondary": "kira",
+      "file": "composition-stills/02-p01-c2-t02.30.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 3,
+      "phraseId": "p01",
+      "composition": 3,
+      "start": 3.0,
+      "end": 4.3,
+      "representativeTime": 3.65,
+      "recipeId": "wide_environment",
+      "subject": "zapp",
+      "secondary": "kira",
+      "file": "composition-stills/03-p01-c3-t03.65.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 4,
+      "phraseId": "p02",
+      "composition": 1,
+      "start": 4.6,
+      "end": 6.4,
+      "representativeTime": 5.5,
+      "recipeId": "final_loop",
+      "subject": "zapp",
+      "secondary": "kira",
+      "file": "composition-stills/04-p02-c1-t05.50.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 5,
+      "phraseId": "p02",
+      "composition": 2,
+      "start": 6.4,
+      "end": 8.0,
+      "representativeTime": 7.2,
+      "recipeId": "slow_push_in",
+      "subject": "zapp",
+      "file": "composition-stills/05-p02-c2-t07.20.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 6,
+      "phraseId": "p02",
+      "composition": 3,
+      "start": 8.0,
+      "end": 9.32,
+      "representativeTime": 8.66,
+      "recipeId": "medium_single",
+      "subject": "kira",
+      "file": "composition-stills/06-p02-c3-t08.66.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 7,
+      "phraseId": "p03",
+      "composition": 1,
+      "start": 9.58,
+      "end": 11.4,
+      "representativeTime": 10.49,
+      "recipeId": "establishing_wide",
+      "subject": "zapp",
+      "file": "composition-stills/07-p03-c1-t10.49.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 8,
+      "phraseId": "p03",
+      "composition": 2,
+      "start": 11.4,
+      "end": 13.5,
+      "representativeTime": 12.45,
+      "recipeId": "reaction_punch_in",
+      "subject": "zapp",
+      "file": "composition-stills/08-p03-c2-t12.45.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 9,
+      "phraseId": "p03",
+      "composition": 3,
+      "start": 13.5,
+      "end": 15.44,
+      "representativeTime": 14.47,
+      "recipeId": "final_loop",
+      "subject": "kira",
+      "secondary": "zapp",
+      "file": "composition-stills/09-p03-c3-t14.47.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 10,
+      "phraseId": "p04",
+      "composition": 1,
+      "start": 15.68,
+      "end": 17.4,
+      "representativeTime": 16.54,
+      "recipeId": "final_loop",
+      "subject": "kira",
+      "secondary": "zapp",
+      "file": "composition-stills/10-p04-c1-t16.54.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 11,
+      "phraseId": "p04",
+      "composition": 2,
+      "start": 17.4,
+      "end": 19.0,
+      "representativeTime": 18.2,
+      "recipeId": "slow_push_in",
+      "subject": "zapp",
+      "file": "composition-stills/11-p04-c2-t18.20.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 12,
+      "phraseId": "p04",
+      "composition": 3,
+      "start": 19.0,
+      "end": 20.26,
+      "representativeTime": 19.63,
+      "recipeId": "medium_single",
+      "subject": "kira",
+      "file": "composition-stills/12-p04-c3-t19.63.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 13,
+      "phraseId": "p05",
+      "composition": 1,
+      "start": 20.96,
+      "end": 22.4,
+      "representativeTime": 21.68,
+      "recipeId": "final_loop",
+      "subject": "zapp",
+      "secondary": "kira",
+      "file": "composition-stills/13-p05-c1-t21.68.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 14,
+      "phraseId": "p05",
+      "composition": 2,
+      "start": 22.4,
+      "end": 24.0,
+      "representativeTime": 23.2,
+      "recipeId": "insert_prop",
+      "subject": "suspicious_button",
+      "file": "composition-stills/14-p05-c2-t23.20.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 15,
+      "phraseId": "p05",
+      "composition": 3,
+      "start": 24.0,
+      "end": 25.62,
+      "representativeTime": 24.81,
+      "recipeId": "reaction_punch_in",
+      "subject": "zapp",
+      "file": "composition-stills/15-p05-c3-t24.81.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 16,
+      "phraseId": "p06",
+      "composition": 1,
+      "start": 25.94,
+      "end": 27.6,
+      "representativeTime": 26.77,
+      "recipeId": "final_loop",
+      "subject": "kira",
+      "secondary": "zapp",
+      "file": "composition-stills/16-p06-c1-t26.77.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 17,
+      "phraseId": "p06",
+      "composition": 2,
+      "start": 27.6,
+      "end": 29.6,
+      "representativeTime": 28.6,
+      "recipeId": "wide_environment",
+      "subject": "zapp",
+      "secondary": "suspicious_button",
+      "file": "composition-stills/17-p06-c2-t28.60.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 18,
+      "phraseId": "p06",
+      "composition": 3,
+      "start": 29.6,
+      "end": 31.3,
+      "representativeTime": 30.45,
+      "recipeId": "insert_prop",
+      "subject": "suspicious_button",
+      "file": "composition-stills/18-p06-c3-t30.45.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 19,
+      "phraseId": "p07",
+      "composition": 1,
+      "start": 31.52,
+      "end": 32.27,
+      "representativeTime": 31.895,
+      "recipeId": "insert_prop",
+      "subject": "suspicious_button",
+      "file": "composition-stills/19-p07-c1-t31.90.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 20,
+      "phraseId": "p07",
+      "composition": 2,
+      "start": 32.27,
+      "end": 33.6,
+      "representativeTime": 32.935,
+      "recipeId": "prop_ecu",
+      "subject": "suspicious_button",
+      "file": "composition-stills/20-p07-c2-t32.94.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 21,
+      "phraseId": "p07",
+      "composition": 3,
+      "start": 33.6,
+      "end": 34.9,
+      "representativeTime": 34.25,
+      "recipeId": "insert_prop",
+      "subject": "spark_coin",
+      "file": "composition-stills/21-p07-c3-t34.25.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 22,
+      "phraseId": "p08",
+      "composition": 1,
+      "start": 35.2,
+      "end": 37.0,
+      "representativeTime": 36.1,
+      "recipeId": "slow_push_in",
+      "subject": "zapp",
+      "file": "composition-stills/22-p08-c1-t36.10.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 23,
+      "phraseId": "p08",
+      "composition": 2,
+      "start": 37.0,
+      "end": 38.4,
+      "representativeTime": 37.7,
+      "recipeId": "reaction_punch_in",
+      "subject": "kira",
+      "file": "composition-stills/23-p08-c2-t37.70.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 24,
+      "phraseId": "p08",
+      "composition": 3,
+      "start": 38.4,
+      "end": 39.86,
+      "representativeTime": 39.13,
+      "recipeId": "slow_push_in",
+      "subject": "zapp",
+      "file": "composition-stills/24-p08-c3-t39.13.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 25,
+      "phraseId": "p09",
+      "composition": 1,
+      "start": 40.24,
+      "end": 42.077,
+      "representativeTime": 41.159,
+      "recipeId": "wide_environment",
+      "subject": "zapp",
+      "secondary": "spark_coin",
+      "file": "composition-stills/25-p09-c1-t41.16.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 26,
+      "phraseId": "p09",
+      "composition": 2,
+      "start": 42.077,
+      "end": 43.96,
+      "representativeTime": 43.019,
+      "recipeId": "final_loop",
+      "subject": "spark_coin",
+      "secondary": "zapp",
+      "file": "composition-stills/26-p09-c2-t43.02.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 27,
+      "phraseId": "p10",
+      "composition": 1,
+      "start": 44.22,
+      "end": 46.33,
+      "representativeTime": 45.275,
+      "recipeId": "final_loop",
+      "subject": "spark_coin",
+      "file": "composition-stills/27-p10-c1-t45.27.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 28,
+      "phraseId": "p10",
+      "composition": 2,
+      "start": 46.33,
+      "end": 48.44,
+      "representativeTime": 47.385,
+      "recipeId": "final_loop",
+      "subject": "spark_coin",
+      "secondary": "zapp",
+      "file": "composition-stills/28-p10-c2-t47.38.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 29,
+      "phraseId": "p10",
+      "composition": 3,
+      "start": 48.44,
+      "end": 49.5,
+      "representativeTime": 48.97,
+      "recipeId": "wide_environment",
+      "subject": "spark_coin",
+      "secondary": "kira",
+      "file": "composition-stills/29-p10-c3-t48.97.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 30,
+      "phraseId": "p11",
+      "composition": 1,
+      "start": 49.86,
+      "end": 51.5,
+      "representativeTime": 50.68,
+      "recipeId": "final_loop",
+      "subject": "zapp",
+      "secondary": "kira",
+      "file": "composition-stills/30-p11-c1-t50.68.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 31,
+      "phraseId": "p11",
+      "composition": 2,
+      "start": 51.5,
+      "end": 53.2,
+      "representativeTime": 52.35,
+      "recipeId": "chase_cam",
+      "subject": "kira",
+      "file": "composition-stills/31-p11-c2-t52.35.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 32,
+      "phraseId": "p11",
+      "composition": 3,
+      "start": 53.2,
+      "end": 54.7,
+      "representativeTime": 53.95,
+      "recipeId": "reaction_punch_in",
+      "subject": "zapp",
+      "file": "composition-stills/32-p11-c3-t53.95.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 33,
+      "phraseId": "p12",
+      "composition": 1,
+      "start": 55.06,
+      "end": 58.01,
+      "representativeTime": 56.535,
+      "recipeId": "final_loop",
+      "subject": "spark_coin",
+      "secondary": "zapp",
+      "file": "composition-stills/33-p12-c1-t56.53.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 34,
+      "phraseId": "p12",
+      "composition": 2,
+      "start": 58.01,
+      "end": 58.74,
+      "representativeTime": 58.375,
+      "recipeId": "reaction_punch_in",
+      "subject": "kira",
+      "file": "composition-stills/34-p12-c2-t58.38.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 35,
+      "phraseId": "p12",
+      "composition": 3,
+      "start": 58.74,
+      "end": 59.48,
+      "representativeTime": 59.11,
+      "recipeId": "final_loop",
+      "subject": "spark_coin",
+      "secondary": "zapp",
+      "file": "composition-stills/35-p12-c3-t59.11.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 36,
+      "phraseId": "p13",
+      "composition": 1,
+      "start": 59.86,
+      "end": 62.2,
+      "representativeTime": 61.03,
+      "recipeId": "wide_environment",
+      "subject": "teacher",
+      "secondary": "kira",
+      "file": "composition-stills/36-p13-c1-t61.03.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 37,
+      "phraseId": "p13",
+      "composition": 2,
+      "start": 62.2,
+      "end": 63.38,
+      "representativeTime": 62.79,
+      "recipeId": "final_loop",
+      "subject": "teacher",
+      "secondary": "kira",
+      "file": "composition-stills/37-p13-c2-t62.79.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 38,
+      "phraseId": "p13",
+      "composition": 3,
+      "start": 63.38,
+      "end": 64.94,
+      "representativeTime": 64.16,
+      "recipeId": "reaction_punch_in",
+      "subject": "kira",
+      "secondary": "teacher",
+      "file": "composition-stills/38-p13-c3-t64.16.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 39,
+      "phraseId": "p14",
+      "composition": 1,
+      "start": 65.3,
+      "end": 66.43,
+      "representativeTime": 65.865,
+      "recipeId": "wide_environment",
+      "subject": "teacher",
+      "secondary": "kira",
+      "file": "composition-stills/39-p14-c1-t65.87.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 40,
+      "phraseId": "p14",
+      "composition": 2,
+      "start": 66.43,
+      "end": 68.32,
+      "representativeTime": 67.375,
+      "recipeId": "insert_prop",
+      "subject": "suspicious_button",
+      "file": "composition-stills/40-p14-c2-t67.38.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 41,
+      "phraseId": "p14",
+      "composition": 3,
+      "start": 68.32,
+      "end": 69.08,
+      "representativeTime": 68.7,
+      "recipeId": "prop_ecu",
+      "subject": "suspicious_button",
+      "file": "composition-stills/41-p14-c3-t68.70.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    }
+  ],
+  "keyStills": [
+    {
+      "ordinal": 1,
+      "label": "teacher-exit-leads",
+      "time": 3.0,
+      "file": "key-stills/01-teacher-exit-leads-t03.00.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 2,
+      "label": "clean-button-reveal",
+      "time": 23.2,
+      "file": "key-stills/02-clean-button-reveal-t23.20.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 3,
+      "label": "button-contact",
+      "time": 32.25,
+      "file": "key-stills/03-button-contact-t32.25.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 4,
+      "label": "coin-spawn",
+      "time": 32.8,
+      "file": "key-stills/04-coin-spawn-t32.80.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 5,
+      "label": "coin-spawn-hold",
+      "time": 33.2,
+      "file": "key-stills/05-coin-spawn-hold-t33.20.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 6,
+      "label": "coin-insert",
+      "time": 33.8,
+      "file": "key-stills/06-coin-insert-t33.80.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 7,
+      "label": "growth-onset",
+      "time": 42.2,
+      "file": "key-stills/07-growth-onset-t42.20.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 8,
+      "label": "desk-scale",
+      "time": 45.0,
+      "file": "key-stills/08-desk-scale-t45.00.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 9,
+      "label": "zapp-scale",
+      "time": 46.8,
+      "file": "key-stills/09-zapp-scale-t46.80.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 10,
+      "label": "room-scale",
+      "time": 48.8,
+      "file": "key-stills/10-room-scale-t48.80.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 11,
+      "label": "coin-tip",
+      "time": 56.3,
+      "file": "key-stills/11-coin-tip-t56.30.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 12,
+      "label": "exact-impact",
+      "time": 56.936,
+      "file": "key-stills/12-exact-impact-t56.94.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 13,
+      "label": "flatten-line-early",
+      "time": 57.2,
+      "file": "key-stills/13-flatten-line-early-t57.20.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 14,
+      "label": "flatten-line-late",
+      "time": 57.5,
+      "file": "key-stills/14-flatten-line-late-t57.50.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 15,
+      "label": "kira-post-flatten-reaction",
+      "time": 58.3,
+      "file": "key-stills/15-kira-post-flatten-reaction-t58.30.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 16,
+      "label": "floor-consequence",
+      "time": 58.9,
+      "file": "key-stills/16-floor-consequence-t58.90.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 17,
+      "label": "teacher-return",
+      "time": 60.8,
+      "file": "key-stills/17-teacher-return-t60.80.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 18,
+      "label": "teacher-kira-return",
+      "time": 62.4,
+      "file": "key-stills/18-teacher-kira-return-t62.40.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 19,
+      "label": "kira-still-reaction",
+      "time": 63.8,
+      "file": "key-stills/19-kira-still-reaction-t63.80.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 20,
+      "label": "reset-insert",
+      "time": 67.2,
+      "file": "key-stills/20-reset-insert-t67.20.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    },
+    {
+      "ordinal": 21,
+      "label": "reset-final",
+      "time": 68.5,
+      "file": "key-stills/21-reset-final-t68.50.png",
+      "dimensions": [
+        540,
+        960
+      ]
+    }
+  ]
+}
