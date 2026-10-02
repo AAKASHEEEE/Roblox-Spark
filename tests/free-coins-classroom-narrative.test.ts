@@ -82,7 +82,7 @@ test('key narration windows select the intended semantic subject and composition
     ['p12', 58.30, { recipeId: 'reaction_punch_in', subject: 'kira' }, 'Kira reaction only after the flatten line'],
     ['p12', 58.90, { recipeId: 'final_loop', subject: 'spark_coin', secondary: 'zapp' }, 'floor consequence'],
     ['p13', 60.80, { recipeId: 'wide_environment', subject: 'kira' }, 'doorway hold keeps Kira safe until the teacher enters'],
-    ['p13', 62.40, { recipeId: 'final_loop', subject: 'teacher', secondary: 'kira' }, 'teacher return and Kira reaction share the frame'],
+    ['p13', 62.40, { recipeId: 'wide_environment', subject: 'teacher', secondary: 'kira' }, 'teacher return and Kira reaction share the frame'],
     ['p13', 63.80, { recipeId: 'reaction_punch_in', subject: 'kira', secondary: 'teacher' }, 'Kira stillness reaction'],
     ['p14', 67.20, { recipeId: 'insert_prop', subject: 'suspicious_button' }, 'reset insert'],
     ['p14', 68.50, { recipeId: 'prop_ecu', subject: 'suspicious_button' }, 'readable loop-closing reset'],

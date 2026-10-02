@@ -5,6 +5,7 @@ import { test } from 'node:test';
 
 import { loadLibrary } from '../apps/render-worker/lib/library.ts';
 import { MIN_SUB_SHOT_DURATION, validateBeatSheet, type BeatSheet } from '../packages/director/src/beat-sheet.ts';
+import { splitDirectorClauses } from '../packages/director/src/offline.ts';
 import { LIBRARY, type Library } from '../packages/library/src/ids.ts';
 import { CAMERA_RECIPES } from '../packages/vignette/src/camera-recipes.ts';
 import { vfxEventsFromBeats } from '../packages/engine/src/vfx/index.ts';
@@ -222,16 +223,134 @@ test('blocked and fallback reporting counts every composition, not one shot per 
   assert.deepEqual(summary.blockedCompositions.map((c) => `${c.beat}[${c.index}]`), ['p01[2]', 'p02[3]']);
 });
 
-test('coverage uses the active composition camera and retains the 90% threshold', () => {
-  assert.equal(canonical.coverage.threshold, 0.9);
+test('coverage is clause/composition scoped, fail-closed, and retains the 90% full-video gate', () => {
+  const coverage = canonical.coverage;
+  assert.equal(coverage.threshold, 0.9);
   assert.equal(canonical.report.summary.coverageThreshold, 0.9);
-  assert.equal(canonical.coverage.blocking, false);
+  assert.equal(coverage.blocking, false);
+  assert.deepEqual(coverage.fullVideoCoverage, { required: 96, realized: 96, pct: 1 });
+  assert.deepEqual(coverage.literalCoverage, { required: 22, realized: 22, pct: 1 });
+  assert.deepEqual(coverage.actionRealization, { required: 11, realized: 11, pct: 1 });
+  assert.deepEqual(coverage.propStateRealization, { required: 1, realized: 1, pct: 1 });
+  assert.equal(coverage.clauses.length, 31);
+  assert.equal(coverage.audioOnly, 19);
+
+  const subjects = coverage.items.filter((item) => item.basis === 'composition-subject');
+  assert.ok(subjects.length >= canonical.compositions.length);
+  for (const composition of canonical.compositions) {
+    const primary = composition.subject ?? composition.shot.subjects.active;
+    const primaryItem = subjects.find((item) => item.beat === composition.beat && item.composition === composition.index && item.witness[0] === primary)!;
+    assert.ok(primaryItem, `${composition.beat}[${composition.index}] primary ${primary}`);
+    assert.deepEqual(primaryItem.window, [composition.start, composition.end]);
+    if (composition.secondary && composition.shot.subjects.required.includes(composition.secondary)) {
+      assert.ok(subjects.some((item) => item.beat === composition.beat && item.composition === composition.index && item.witness[0] === composition.secondary),
+        `${composition.beat}[${composition.index}] required secondary ${composition.secondary}`);
+    }
+  }
+  for (const item of coverage.items.filter((candidate) => candidate.basis === 'clause-literal')) {
+    const composition = canonical.compositions.find((candidate) => candidate.beat === item.beat && candidate.index === item.composition)!;
+    assert.ok(item.window[0] >= composition.start && item.window[1] <= composition.end);
+  }
+  assert.ok(coverage.items.filter((item) => item.basis === 'diagnostic').every((item) => !item.counted));
+
+  const emote = coverage.items.find((item) => item.label.startsWith('vfx emote_exclaim@6.2'))!;
+  const text = coverage.items.find((item) => item.label.startsWith('text ui_popup@36'))!;
+  const entrance = coverage.items.find((item) => item.label.startsWith('enter teacher classroom_door@60.6'))!;
+  assert.deepEqual(emote.window, [6.2, 7.3], 'VFX uses its exact runtime default duration and tail');
+  assert.deepEqual(text.window, [36, 37.6], 'text graphic uses its complete authored duration');
+  assert.deepEqual(entrance.window, [60.6, 62.0636], 'entrance uses the exact staged movement interval');
+  for (const item of coverage.items.filter((candidate) => candidate.space === 'world' && candidate.basis !== 'diagnostic')) {
+    assert.equal(item.samples, item.sampleTimes.length);
+    for (const time of item.sampleTimes) {
+      assert.ok(Math.abs(time * canonical.stage.fps - Math.round(time * canonical.stage.fps)) < 1e-3, `${item.id}@${time} is not an emitted frame`);
+      assert.ok(time >= item.window[0] - 1e-4 && time < item.window[1] + 1e-4, `${item.id}@${time} outside ${item.window}`);
+    }
+  }
+
+  const secondaryComposition = canonical.compositions.find((composition) => composition.secondary)!;
+  assert.ok(secondaryComposition);
+  const hiddenSecondary = canonical.compositions.map((composition) => composition === secondaryComposition ? {
+    ...composition, secondary: 'missing_target', shot: {
+      ...composition.shot,
+      subjects: { ...composition.shot.subjects, required: [...composition.shot.subjects.required, 'missing_target'] },
+    },
+  } : composition);
+  const hiddenSecondaryCoverage = coverageCheck(canonical.scene, canonical.stage, hiddenSecondary);
+  assert.equal(hiddenSecondaryCoverage.blocking, true);
+  assert.ok(hiddenSecondaryCoverage.items.some((item) => item.basis === 'composition-subject' && item.witness[0] === 'missing_target' && !item.covered));
+
+  const requiredOnly = canonical.compositions.map((composition) => composition === secondaryComposition ? {
+    ...composition, shot: { ...composition.shot, subjects: { ...composition.shot.subjects, required: [...composition.shot.subjects.required, 'required_only_missing'] } },
+  } : composition);
+  const requiredOnlyCoverage = coverageCheck(canonical.scene, canonical.stage, requiredOnly);
+  assert.equal(requiredOnlyCoverage.blocking, true);
+  assert.ok(requiredOnlyCoverage.items.some((item) => item.basis === 'composition-subject' && item.witness[0] === 'required_only_missing' && !item.covered));
+
+  const noPress = structuredClone(canonical.stage);
+  noPress.world.button.pressT = null;
+  const noPressCoverage = coverageCheck(canonical.scene, noPress, canonical.compositions);
+  assert.equal(noPressCoverage.propStateRealization.realized, 0, 'requested pressed label cannot replace an emitted press transition');
+  assert.ok(noPressCoverage.fullVideoCoverage.realized < coverage.fullVideoCoverage.realized);
+
+  const subframeAction = structuredClone(canonical.stage);
+  const subframeKira = subframeAction.beats.find((beat) => beat.phraseId === 'p13')!.cast.find((cast) => cast.id === 'kira')!;
+  subframeKira.actionT0 = 64.001; subframeKira.actionT1 = 64.01;
+  const subframeCoverage = coverageCheck(canonical.scene, subframeAction, canonical.compositions);
+  const subframeItem = subframeCoverage.items.find((item) => item.basis === 'clause-action' && item.beat === 'p13' && item.label.includes('sitting perfectly still'))!;
+  assert.equal(subframeItem.covered, false);
+  assert.equal(subframeItem.sampleTimes.length, 0, 'no output frame exists inside the staged action interval');
+  assert.equal(subframeCoverage.blocking, true);
+
+  const mixedIntent = structuredClone(canonical.stage);
+  mixedIntent.beats.find((beat) => beat.phraseId === 'p03')!.text = 'Zapp celebrates because he wants to leave.';
+  const mixedCoverage = coverageCheck(canonical.scene, mixedIntent, canonical.compositions);
+  const mixedAction = mixedCoverage.items.find((item) => item.basis === 'clause-action' && item.beat === 'p03')!;
+  assert.match(mixedAction.label, /celebrate/);
+  assert.doesNotMatch(mixedAction.label, /exit_frame/);
+  assert.equal(mixedAction.covered, true, 'executed celebrate remains required while intent-only leave is excluded');
+  mixedIntent.beats.find((beat) => beat.phraseId === 'p03')!.text = 'Zapp wants to celebrate because he celebrates.';
+  const repeatedIntentCoverage = coverageCheck(canonical.scene, mixedIntent, canonical.compositions);
+  const repeatedAction = repeatedIntentCoverage.items.find((item) => item.basis === 'clause-action' && item.beat === 'p03')!;
+  assert.match(repeatedAction.label, /celebrate/);
+  assert.equal(repeatedAction.covered, true, 'later execution of the same intended action remains required');
+
+  const propClause = coverage.clauses.find((clause) => clause.propStateRealization.required > 0)!;
+  const laterPress = structuredClone(canonical.stage);
+  laterPress.world.button.pressT = 32.5;
+  const laterPressCoverage = coverageCheck(canonical.scene, laterPress, canonical.compositions);
+  const laterState = laterPressCoverage.items.find((item) => item.basis === 'clause-prop-state')!;
+  assert.equal(laterState.composition, canonical.compositionAt(32.5)!.index, 'transition evidence owns its actual composition');
+  const boundaryPress = structuredClone(canonical.stage);
+  const propBeat = canonical.stage.beats.find((beat) => beat.phraseId === propClause.beat)!;
+  const clauseDefinition = splitDirectorClauses(propBeat.text).find((clause) => clause.index === propClause.index)!;
+  const exactClauseEnd = propBeat.start + (propBeat.end - propBeat.start) * clauseDefinition.words[1] / propBeat.text.trim().split(/\s+/).length;
+  boundaryPress.world.button.pressT = exactClauseEnd;
+  const boundaryCoverage = coverageCheck(canonical.scene, boundaryPress, canonical.compositions);
+  assert.equal(boundaryCoverage.propStateRealization.realized, 0, 'clause end is half-open');
+  for (const clause of coverage.clauses) {
+    const evidenceOwners = coverage.items.filter((item) => item.beat === clause.beat && item.clause === clause.index
+      && ['clause-literal', 'clause-action', 'clause-prop-state'].includes(item.basis) && item.sampleTimes.length > 0 && item.composition !== null && item.composition >= 0)
+      .map((item) => item.composition);
+    if (evidenceOwners.length) assert.ok(evidenceOwners.includes(clause.composition), `${clause.beat} clause ${clause.index} summary owner`);
+  }
+
   const blindPose = { pos: [0, 100, 0] as [number, number, number], target: [0, 101, 0] as [number, number, number], fovDeg: 10 };
-  const blind = canonical.compositions.map((c) => ({ ...c, shot: { ...c.shot, keys: [{ lt: 0, pose: blindPose }] } }));
+  const first = canonical.compositions[0];
+  const oneBlind = canonical.compositions.map((composition) => composition === first
+    ? { ...composition, shot: { ...composition.shot, keys: [{ lt: 0, pose: blindPose }] } }
+    : composition);
+  const scoped = coverageCheck(canonical.scene, canonical.stage, oneBlind);
+  const firstSubject = scoped.items.find((item) => item.basis === 'composition-subject' && item.beat === first.beat && item.composition === first.index)!;
+  assert.equal(firstSubject.covered, false, 'visibility in later compositions cannot satisfy this sub-shot subject');
+  assert.equal(scoped.blocking, true, 'a hidden selected target fails closed even if the global ratio remains high');
+
+  const blind = canonical.compositions.map((composition) => ({ ...composition, shot: { ...composition.shot, keys: [{ lt: 0, pose: blindPose }] } }));
   const blindCoverage = coverageCheck(canonical.scene, canonical.stage, blind);
-  assert.ok(blindCoverage.covered < canonical.coverage.covered, `${blindCoverage.covered} should be below ${canonical.coverage.covered}`);
+  assert.equal(blindCoverage.items.filter((item) => item.basis === 'composition-subject' && item.covered).length, 0);
+  assert.ok(blindCoverage.fullVideoCoverage.pct < 0.9);
+  assert.equal(blindCoverage.blocking, true);
   assert.equal(blindCoverage.threshold, 0.9);
-  assert.equal(canonical.coverage.audioOnly, canonical.coverage.items.filter((i) => i.space === 'audio').length);
+  assert.equal(coverage.audioOnly, coverage.items.filter((item) => item.space === 'audio').length);
 });
 
 test('final composition direction, not composition zero, feeds the next persistent action axis', () => {
