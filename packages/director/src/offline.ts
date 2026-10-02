@@ -3,6 +3,7 @@
 import { LIBRARY, type Library, type LibraryEntry, type SetEntry } from '../../library/src/ids.ts';
 import { ENVIRONMENT_CATALOG, type EnvironmentProfile } from '../../environments/src/index.ts';
 import { validateBeatSheet, type BeatSheet } from './beat-sheet.ts';
+import { buildSemanticRequirements, type SemanticRequirements } from './semantic-requirements.ts';
 import type { DirectorIntent } from './intent.ts';
 
 export const DIRECTOR_EDIT_PLAN_POLICY = {
@@ -12,7 +13,7 @@ export const DIRECTOR_EDIT_PLAN_POLICY = {
   targetAverageSeconds: { min: 1.2, preferred: 1.7, max: 2.2 },
   maximumSubShots: 4,
 } as const;
-export const DIRECTOR_ALGORITHM_VERSION = 'director-v3-generalized-v1';
+export const DIRECTOR_ALGORITHM_VERSION = 'director-v4-semantic-authorization-v1';
 export type DirectorMode = 'offline' | 'openrouter' | 'auto';
 export type MatchKind = 'sets' | 'characters' | 'actions' | 'expressions' | 'props' | 'cameraRecipes';
 
@@ -86,7 +87,7 @@ export interface UnresolvedConceptCoverage extends RealizationCoverage {
 export interface ConceptDiagnostic {
   term: string;
   category: 'entity' | 'place' | 'prop';
-  disposition: 'missing' | 'approved_substitution' | 'authorization_blocker';
+  disposition: 'approved_substitution' | 'authorization_blocker';
   reason: string;
   beat: string;
   substitute?: string;
@@ -132,6 +133,7 @@ export interface DirectorEditPlanReport {
 }
 export interface DirectorReport {
   algorithmVersion: string;
+  semanticRequirements: SemanticRequirements;
   provider: DirectorProviderReport;
   matches: MatchDecision[];
   substitutions: AssetSubstitution[];
@@ -193,6 +195,10 @@ function matchTag(haystack: string, tag: string): number {
   outer: for (let i = 0; i <= h.length - n.length; i++) {
     for (let k = 0; k < n.length; k++) if (h[i + k] !== n[k]) continue outer;
     return n.length * 1000 + n.join(' ').length;
+  }
+  // Narrow support for a separable authored action; do not treat the residual "down" as a new concept.
+  if (n.join(' ') === 'puts down') for (let i = 0; i <= h.length - 3; i++) {
+    if (h[i] === 'puts' && h[i + 1] === 'it' && h[i + 2] === 'down') return 2009;
   }
   return 0;
 }
@@ -262,6 +268,11 @@ function literalHits(entries: Array<LibraryEntry | SetEntry>, phraseWords: strin
       for (let i = 0; i <= indexed.length - needle.length; i++) {
         if (!needle.every((part, k) => indexed[i + k].value === part)) continue;
         out.push({ id: entry.id, tag, startWord: indexed[i].word, endWord: indexed[i + needle.length - 1].word + 1 });
+      }
+      if (entry.id === 'put_down' && tag === 'puts down') for (let i = 0; i <= indexed.length - 3; i++) {
+        if (indexed[i].value === 'puts' && indexed[i + 1].value === 'it' && indexed[i + 2].value === 'down') {
+          out.push({ id: entry.id, tag, startWord: indexed[i].word, endWord: indexed[i + 2].word + 1 });
+        }
       }
     }
   }
@@ -763,14 +774,14 @@ function diagnoseVisibleConcepts(concepts: readonly VisibleConceptCandidate[], b
     if (matched?.entry.status === 'planned') {
       const substitute = matched.kind === 'sets' ? selectedSet.id : undefined;
       const diagnostic: ConceptDiagnostic = {
-        term: concept.term, category: concept.category, disposition: substitute ? 'approved_substitution' : 'missing', beat,
-        reason: substitute ? 'matching catalog concept is planned; deterministic available set substitution recorded' : 'matching catalog concept is planned, not available',
+        term: concept.term, category: concept.category, disposition: substitute ? 'approved_substitution' : 'authorization_blocker', beat,
+        reason: substitute ? 'matching catalog concept is planned; deterministic available set substitution recorded' : 'matching catalog concept is planned, not available and blocks authorization',
         ...(substitute ? { substitute } : {}),
       };
       state.conceptDiagnostics.push(diagnostic);
       missing(state, { kind, requested: matched.entry.id, beat, reason: 'visible script concept matches a planned, unavailable asset' });
     } else {
-      state.conceptDiagnostics.push({ term: concept.term, category: concept.category, disposition: 'missing', beat, reason: 'visible script concept has no authorized available library asset' });
+      state.conceptDiagnostics.push({ term: concept.term, category: concept.category, disposition: 'authorization_blocker', beat, reason: 'visible script concept has no authorized available library asset' });
       missing(state, { kind, requested: concept.term, beat, reason: 'unsupported visible script concept; no authorized available library asset or approved substitution' });
     }
   }
@@ -1032,6 +1043,7 @@ export function generateOfflineBeatSheet(input: DirectorRequest | NormalizedDire
   };
   const report: DirectorReport = {
     algorithmVersion: DIRECTOR_ALGORITHM_VERSION,
+    semanticRequirements: buildSemanticRequirements(sheet, lib),
     provider,
     matches: state.matches,
     substitutions: state.substitutions,

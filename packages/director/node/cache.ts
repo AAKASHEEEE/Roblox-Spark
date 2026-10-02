@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, openSync, closeSync, fsyncSync, readFileSync, renameSync, unlinkSync, writeSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { validateBeatSheet } from '../src/beat-sheet.ts';
+import { verifySemanticRequirementsBinding } from '../src/semantic-requirements.ts';
 import type { DIRECTOR_ALGORITHM_VERSION, DirectorMode, DirectorResult, NormalizedDirectorRequest } from '../src/offline.ts';
 
 export interface DirectorCacheDescriptor {
@@ -52,13 +53,17 @@ export class NodeDirectorCache {
     if (parsed?.format !== 'spark-director-cache' || parsed.version !== 1 || parsed.descriptorHash !== digest) throw new Error(`Director cache entry ${digest} has an invalid envelope`);
     if (parsed.valueHash !== sha256(parsed.value)) throw new Error(`Director cache entry ${digest} failed its content hash`);
     const validation = validateBeatSheet(parsed.value?.sheet, { requireAvailable: true });
-    if (!validation.ok) throw new Error(`Director cache entry ${digest} contains an invalid BeatSheet`);
+    if (!validation.ok || !validation.value) throw new Error(`Director cache entry ${digest} contains an invalid BeatSheet`);
+    try { verifySemanticRequirementsBinding(validation.value, parsed.value?.report); }
+    catch (error) { throw new Error(`Director cache entry ${digest} contains invalid semantic authorization: ${error instanceof Error ? error.message : String(error)}`); }
     return { digest, value: parsed.value };
   }
 
   put(descriptor: DirectorCacheDescriptor, value: DirectorResult): string {
     const validation = validateBeatSheet(value.sheet, { requireAvailable: true });
-    if (!validation.ok) throw new Error(`refusing to cache invalid BeatSheet: ${validation.issues[0]?.message ?? 'unknown issue'}`);
+    if (!validation.ok || !validation.value) throw new Error(`refusing to cache invalid BeatSheet: ${validation.issues[0]?.message ?? 'unknown issue'}`);
+    try { verifySemanticRequirementsBinding(validation.value, value.report); }
+    catch (error) { throw new Error(`refusing to cache invalid semantic authorization: ${error instanceof Error ? error.message : String(error)}`); }
     const digest = this.digest(descriptor), file = this.pathFor(descriptor);
     mkdirSync(dirname(file), { recursive: true });
     const envelope: CacheEnvelope = { format: 'spark-director-cache', version: 1, descriptorHash: digest, valueHash: sha256(value), value };

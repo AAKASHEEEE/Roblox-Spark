@@ -568,6 +568,7 @@ export function verifyRenderV2(options: VerifyV2Options): V2VerificationResult {
   issues.push(...gitPins.issues); sourceExactRecompute = gitPins.sourceExact;
   if (!sourceExactRecompute) warnings.push('composition recomputation uses a checkout other than the clean pinned source; pinned blobs are checked separately');
 
+  const inputAuthenticationIssueStart = issues.length;
   const pinnedInputs = [
     ['storyboard', 'storyboard', manifest.inputs.storyboard, RENDER_BYTE_LIMITS.storyboard],
     ['beatSheet', 'beat sheet', manifest.inputs.beatSheet, RENDER_BYTE_LIMITS.beatSheet],
@@ -590,6 +591,32 @@ export function verifyRenderV2(options: VerifyV2Options): V2VerificationResult {
         warnings.push(`${message}; using the authenticated blob from the pinned historical commit`);
       } else issues.push(message);
     }
+  }
+
+  let authenticatedDirectorReport: Uint8Array | undefined;
+  if (manifest.inputs.directorReport) {
+    const pin = manifest.inputs.directorReport;
+    let pinnedBytes: Uint8Array | undefined;
+    try { pinnedBytes = readPinnedBlob(root, manifest, pin.path, pin.sha256, RENDER_BYTE_LIMITS.directorReport); }
+    catch (error) { issues.push(`Director report: ${error instanceof Error ? error.message : String(error)}`); }
+    try {
+      const path = resolvePinned(root, pin.path, 'Director report path');
+      const localBytes = readAuthenticatedFile(path, pin, RENDER_BYTE_LIMITS.directorReport, 'Director report');
+      authenticatedDirectorReport = manifest.provenance === 'retroactive-integrity-seal' ? pinnedBytes : localBytes;
+    } catch (error) {
+      const message = `Director report: ${error instanceof Error ? error.message : String(error)}`;
+      if (manifest.provenance === 'retroactive-integrity-seal' && pinnedBytes) {
+        authenticatedDirectorReport = pinnedBytes;
+        warnings.push(`${message}; using the authenticated blob from the pinned historical commit`);
+      } else issues.push(message);
+    }
+  }
+
+  const requiredInputsAuthenticated = pinnedInputs.every(([key]) => !!authenticatedInputs[key])
+    && (!manifest.inputs.directorReport || !!authenticatedDirectorReport);
+  if (!requiredInputsAuthenticated || issues.length > inputAuthenticationIssueStart) {
+    if (!requiredInputsAuthenticated) issues.push('required render inputs did not authenticate as a complete batch');
+    return { ok: false, trusted: false, complete: false, sourceExactRecompute, authorizationVerified, postRenderAttestationVerified, representativeFramesVerified, comparisonSheetVerified, issues, warnings, voiceBytesVerified, evidenceVerified };
   }
 
   let storyboard: any;
@@ -629,7 +656,8 @@ export function verifyRenderV2(options: VerifyV2Options): V2VerificationResult {
       const library = loadLibrary({ root });
       if (library.errors.length) issues.push(`asset library does not match lock: ${library.errors.join('; ')}`);
       else {
-        const run = runVignette(sheet, library, { phrases: storyboard?.script?.phrases });
+        const directorReport = authenticatedDirectorReport ? parseJsonBytes(authenticatedDirectorReport, 'Director report') : undefined;
+        const run = runVignette(sheet, library, { phrases: storyboard?.script?.phrases, directorReport });
         assertCompositionTimeline(run.compositions);
         const actual = solvedCompositionsDigest(run.compositions);
         if (run.compositions.length !== manifest.inputs.solvedCompositions.count) issues.push(`solved composition count ${run.compositions.length} != ${manifest.inputs.solvedCompositions.count}`);

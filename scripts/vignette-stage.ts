@@ -1,5 +1,5 @@
 // S6 staging / camera / multi-set run: analysis report + one still per beat.
-//   node scripts/vignette-stage.ts [--sheet packages/director/fixtures/free-coins-classroom.beats.json] [--out out/vignette/<id>]
+//   node scripts/vignette-stage.ts [--sheet packages/director/fixtures/free-coins-classroom.beats.json] [--report out/director/report.json] [--out out/vignette/<id>]
 //                                  [--no-stills] [--width 540 --height 960] [--extra 0.5,3.2 (extra stills at times)]
 // Exit code 2 when the sheet is blocked (staging contract errors, camera safety blocked beats, coverage < 90 %).
 import { createServer } from 'node:http';
@@ -9,6 +9,8 @@ import { execFileSync } from 'node:child_process';
 import { ROOT } from '../apps/render-worker/lib/server.ts';
 import { loadLibrary } from '../apps/render-worker/lib/library.ts';
 import { launchBrowser } from '../apps/render-worker/lib/browser.ts';
+import { verifySemanticAuthorization } from '../packages/director/src/semantic-requirements.ts';
+import { validateBeatSheet } from '../packages/director/src/beat-sheet.ts';
 import { ensureHeadlessCanvas } from '../packages/vignette/src/headless.ts';
 import { runVignette, reportMarkdown } from '../packages/vignette/src/pipeline.ts';
 
@@ -16,9 +18,13 @@ const argv = process.argv.slice(2);
 const arg = (n: string, d: string) => { const i = argv.indexOf(`--${n}`); return i >= 0 ? argv[i + 1] : d; };
 const sheetPath = resolve(ROOT, arg('sheet', 'packages/director/fixtures/free-coins-classroom.beats.json'));
 const sheet = JSON.parse(readFileSync(sheetPath, 'utf8'));
+const reportArg = arg('report', '');
+const directorReport = reportArg ? JSON.parse(readFileSync(resolve(ROOT, reportArg), 'utf8')) : undefined;
+const semanticPreflight = validateBeatSheet(sheet, { requireAvailable: true });
+if (!semanticPreflight.ok || !semanticPreflight.value) throw new Error(`BeatSheet preflight failed: ${semanticPreflight.issues.slice(0, 8).map((issue) => `${issue.path} ${issue.message}`).join('; ')}`);
+if (semanticPreflight.value.source.narrated === 'director:raw-script') verifySemanticAuthorization(semanticPreflight.value, directorReport);
 const out = resolve(ROOT, arg('out', `out/vignette/${sheet.id}`));
 const W = Number(arg('width', '540')), H = Number(arg('height', '960'));
-mkdirSync(out, { recursive: true });
 
 const lib = loadLibrary();
 if (lib.errors.length) console.warn(`library: ${lib.errors.length} error(s): ${lib.errors.slice(0, 3).join('; ')}`);
@@ -27,7 +33,8 @@ const phrases = narrated && existsSync(narrated) ? (JSON.parse(readFileSync(narr
 
 ensureHeadlessCanvas();
 const T0 = Date.now();
-const run = runVignette(sheet, lib, { ...(phrases?.length ? { phrases } : {}), onProgress: (s, d, t) => process.stdout.write(`[${((Date.now() - T0) / 1000).toFixed(1)}s] ${s} ${d}/${t}\n`) });
+const run = runVignette(sheet, lib, { ...(phrases?.length ? { phrases } : {}), ...(directorReport ? { directorReport } : {}), onProgress: (s, d, t) => process.stdout.write(`[${((Date.now() - T0) / 1000).toFixed(1)}s] ${s} ${d}/${t}\n`) });
+mkdirSync(out, { recursive: true });
 const { report } = run;
 console.log(`analysis in ${((Date.now() - T0) / 1000).toFixed(1)} s`);
 

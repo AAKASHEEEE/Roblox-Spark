@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,5 +49,18 @@ test('CLI rejects a whitespace credential before an explicit-mode cache lookup',
     assert.match(run.stderr, /OPENROUTER_API_KEY is not set/);
     assert.equal(existsSync(out), false);
     assert.equal(existsSync(report), false);
+  } finally { rmSync(temp, { recursive: true, force: true }); }
+});
+
+test('staging CLI rejects semantic blockers before creating output', async () => {
+  const temp = mkdtempSync(join(tmpdir(), 'spark-semantic-stage-'));
+  try {
+    const result = await directScript({ script: 'A drone hovers.', duration: 4, seed: 63 }, { provider: 'offline' });
+    const sheet = join(temp, 'beats.json'), report = join(temp, 'report.json'), out = join(temp, 'stage-output');
+    writeFileSync(sheet, JSON.stringify(result.sheet)); writeFileSync(report, JSON.stringify(result.report));
+    const run = spawnSync(process.execPath, ['scripts/vignette-stage.ts', '--sheet', sheet, '--report', report, '--out', out, '--no-stills'], { cwd: ROOT, encoding: 'utf8' });
+    assert.notEqual(run.status, 0);
+    assert.match(run.stderr, /semantic authorization blocked/);
+    assert.equal(existsSync(out), false, 'unauthorized staging must not create output');
   } finally { rmSync(temp, { recursive: true, force: true }); }
 });

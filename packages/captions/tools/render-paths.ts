@@ -43,6 +43,7 @@ export interface RenderPathSet {
   root: string;
   storyboard: string;
   beats: string;
+  directorReport?: string;
   voice: string;
   ffmpeg: string;
   output: string;
@@ -60,6 +61,7 @@ export function validateRenderPaths(paths: RenderPathSet, workerSafe: boolean): 
   const root = policyRealpath(paths.root);
   const storyboard = requireInputFile('storyboard', paths.storyboard);
   const beats = requireInputFile('beat sheet', paths.beats);
+  const directorReport = paths.directorReport ? requireInputFile('Director report', paths.directorReport) : undefined;
   const voice = requireInputFile('voice', paths.voice);
   const ffmpeg = requireExecutable('ffmpeg', paths.ffmpeg);
   const output = policyRealpath(paths.output);
@@ -67,6 +69,7 @@ export function validateRenderPaths(paths: RenderPathSet, workerSafe: boolean): 
 
   requireContainedPath('storyboard', storyboard, [root]);
   requireContainedPath('beat sheet', beats, [root]);
+  if (directorReport) requireContainedPath('Director report', directorReport, [root]);
   requireContainedPath('output', output, [root]);
   if (isPathInside(v1Golden, output, true)) throw new Error('refusing to write into the v1 golden subtree packages/captions/full-render/');
 
@@ -89,6 +92,7 @@ export function validateRenderPaths(paths: RenderPathSet, workerSafe: boolean): 
   if (workerSafe) {
     requireContainedPath('storyboard', storyboard, [resolve(root, 'tests/fixtures/narrated'), resolve(root, 'out/render-inputs')]);
     requireContainedPath('beat sheet', beats, [resolve(root, 'packages/director/fixtures'), resolve(root, 'out/render-inputs')]);
+    if (directorReport) requireContainedPath('Director report', directorReport, [resolve(root, 'packages/director/fixtures'), resolve(root, 'out/render-inputs')]);
     requireContainedPath('voice', voice, [resolve(root, 'out/render-inputs'), resolve(root, '.scratch/voice')]);
     requireContainedPath('output', output, [resolve(root, 'out/render-jobs')]);
     requireContainedPath('ffmpeg', ffmpeg, [resolve(root, 'node_modules/ffmpeg-static')]);
@@ -99,5 +103,5 @@ export function validateRenderPaths(paths: RenderPathSet, workerSafe: boolean): 
     if (chromium) requireContainedPath('chromium', chromium, [resolve(root, 'node_modules'), '/opt/playwright', resolve(process.env.HOME ?? root, '.cache/ms-playwright')]);
   }
 
-  return { ...paths, root, storyboard, beats, voice, ffmpeg, output, ...(inputManifest ? { inputManifest } : {}), ...(ffprobe ? { ffprobe } : {}), ...(chromium ? { chromium } : {}), ...(playwrightCore ? { playwrightCore } : {}) };
+  return { ...paths, root, storyboard, beats, ...(directorReport ? { directorReport } : {}), voice, ffmpeg, output, ...(inputManifest ? { inputManifest } : {}), ...(ffprobe ? { ffprobe } : {}), ...(chromium ? { chromium } : {}), ...(playwrightCore ? { playwrightCore } : {}) };
 }

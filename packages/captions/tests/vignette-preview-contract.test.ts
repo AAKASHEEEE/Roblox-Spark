@@ -10,6 +10,7 @@ const session = readFileSync(resolve(root, 'packages/captions/src/preview/vignet
 const renderFull = readFileSync(resolve(root, 'packages/captions/tools/render-full.ts'), 'utf8');
 const sealEvidence = readFileSync(resolve(root, 'packages/captions/tools/seal-render-evidence.ts'), 'utf8');
 const webEntry = readFileSync(resolve(root, 'packages/vignette/src/web-entry.ts'), 'utf8');
+const vignetteStage = readFileSync(resolve(root, 'scripts/vignette-stage.ts'), 'utf8');
 
 test('S7 vignette adapter consumes the neutral shared render session', () => {
   assert.match(adapter, /new VignetteRenderSession/);
@@ -48,9 +49,13 @@ test('trusted raw inputs are batch-authenticated before parsing or native decode
   const authenticate = renderFull.indexOf('readTrustedRenderInputs(trustedManifest');
   const authenticateLocks = renderFull.indexOf('const trustedLockBytes = trustedManifest');
   const storyboardParse = renderFull.indexOf("parseJsonBytes(inputBytes.storyboard, 'storyboard')");
+  const directorParse = renderFull.indexOf("parseJsonBytes(inputBytes.directorReport, 'Director report')");
+  const semanticAuthorization = renderFull.indexOf('verifySemanticAuthorization(preflight.value, directorReport)');
   const containerParse = renderFull.indexOf("checkContainer(voiceBytes, 'mp3')");
   const ffmpegLaunch = renderFull.indexOf('const raw = execFileSync(ffmpeg');
   assert.ok(authenticate >= 0 && authenticate < storyboardParse, 'scheduler pins must authenticate inputs before storyboard JSON parsing');
+  assert.ok(directorParse >= 0 && authenticate < directorParse, 'scheduler pins must authenticate the Director sidecar before parsing it');
+  assert.ok(semanticAuthorization >= 0 && semanticAuthorization < containerParse && semanticAuthorization < ffmpegLaunch, 'raw-script semantic authorization must fail before native parsing or FFmpeg');
   assert.ok(authenticateLocks >= 0 && authenticateLocks < storyboardParse, 'scheduler pins must authenticate asset/package locks before any JSON parsing');
   assert.ok(authenticateLocks < containerParse && authenticateLocks < ffmpegLaunch, 'locks must authenticate before native parsers and FFmpeg');
   assert.ok(authenticate < containerParse, 'scheduler pins must authenticate voice before container parsing');
@@ -69,4 +74,12 @@ test('trusted media tools use exact authenticated paths and evidence comes from 
   assert.ok(muxed >= 0 && muxed < committedDecodedFrame, 'representative evidence must be copied from post-mux decoded frames');
   assert.ok(committedDecodedFrame < receipt, 'decode-time output and frame hashes must be persisted after committed frame bytes');
   assert.match(sealEvidence, /decodedFrameReceiptPath: receiptPath/, 'delayed sealing must consume the worker-owned decoded-frame receipt');
+});
+
+test('staging CLI authorizes Director semantics before side effects', () => {
+  const authorize = vignetteStage.indexOf('verifySemanticAuthorization(semanticPreflight.value, directorReport)');
+  const headless = vignetteStage.indexOf('ensureHeadlessCanvas()');
+  const output = vignetteStage.indexOf('mkdirSync(out');
+  assert.ok(authorize >= 0 && authorize < headless, 'semantic authorization must precede headless initialization');
+  assert.ok(authorize < output, 'semantic authorization must precede output creation');
 });

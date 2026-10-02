@@ -52,3 +52,19 @@ test('path policy rejects symlink escapes and every descendant of the v1 golden'
     assert.throws(() => validateRenderPaths({ ...x.paths, output: join(x.root, 'packages/captions/full-render/nested') }, false), /v1 golden subtree/);
   } finally { x.cleanup(); rmSync(outside, { recursive: true, force: true }); }
 });
+
+test('worker-safe Director sidecars are restricted with the same symlink-aware policy as BeatSheets', () => {
+  const x = fixture(), outside = mkdtempSync(join(tmpdir(), 'captions-sidecar-outside-'));
+  try {
+    const allowed = join(x.root, 'out/render-inputs/director-report.json');
+    writeFileSync(allowed, '{}');
+    assert.equal(validateRenderPaths({ ...x.paths, directorReport: allowed }, true).directorReport, allowed);
+
+    const rogue = join(x.root, 'director-report.json'); writeFileSync(rogue, '{}');
+    assert.throws(() => validateRenderPaths({ ...x.paths, directorReport: rogue }, true), /Director report is outside/);
+
+    writeFileSync(join(outside, 'report.json'), '{}');
+    symlinkSync(outside, join(x.root, 'out/render-inputs/sidecar-link'));
+    assert.throws(() => validateRenderPaths({ ...x.paths, directorReport: join(x.root, 'out/render-inputs/sidecar-link/report.json') }, true), /Director report is outside/);
+  } finally { x.cleanup(); rmSync(outside, { recursive: true, force: true }); }
+});

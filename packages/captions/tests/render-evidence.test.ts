@@ -1,13 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
-import { mkdirSync, mkdtempSync, rmSync, truncateSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, truncateSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { ProbeResult } from '../../mp4/src/probe.ts';
-import { RENDER_BYTE_LIMITS, assertRuntimePins, canonicalJson, hashFile, manifestDigest, parseInputManifest, parseJsonBytes, readAuthenticatedFile, readInputManifest, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
+import { INPUT_MANIFEST_SCHEMA, RENDER_BYTE_LIMITS, assertRuntimePins, assertTrustedRenderManifest, canonicalJson, hashFile, manifestDigest, parseInputManifest, parseJsonBytes, readAuthenticatedFile, readInputManifest, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
 import { COMPETITOR_DECODED_FRAMES, COMPARISON_SHEET_RECEIPT_SCHEMA, codecPinIssues, createDecodedFrameReceipt, createSignedPostRenderAttestation, mediaFingerprint, mediaFingerprintDigest, parseComparisonSheetReceipt, parseDecodedFrameReceipt, parseEvidenceReport, postRenderAttestationDigest, representativeFramesDigest, validateDecodedFrameClaims, verifyComparisonSheetCommitment, verifyFilePin, verifyPostRenderAttestation, verifyRenderV2, verifyRepresentativeFrameClaims, type DecodedFrameClaim, type RenderEvidenceReport } from '../tools/verify-render-v2.ts';
 
+const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const sha = 'a'.repeat(64), git = 'b'.repeat(40);
 const manifest = {
   schema: 'blockspark.render-input-manifest/2',
@@ -204,7 +207,7 @@ test('decoded-frame claims must bind every committed frame seek to the sealed ou
 });
 
 
-test('replacement output is hash-rejected before the media parser and can never return trusted', () => {
+test('required input authentication fails fast before media parsing', () => {
   const root = mkdtempSync(join(tmpdir(), 'captions-replacement-output-'));
   try {
     for (const directory of ['inputs', 'assets', 'evidence']) mkdirSync(join(root, directory), { recursive: true });
@@ -245,7 +248,7 @@ test('replacement output is hash-rejected before the media parser and can never 
     });
     assert.equal(parserCalls, 0);
     assert.equal(result.trusted, false);
-    assert.match(result.issues.join('; '), /output SHA-256.*does not match authorized/);
+    assert.match(result.issues.join('; '), /cannot verify pinned git objects|required render inputs did not authenticate|storyboard:/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -269,4 +272,88 @@ test('decoded-frame receipt preserves decode-time output binding across delayed 
   assert.equal(parseComparisonSheetReceipt(comparisonReceipt).comparison.bytes, 123);
   assert.throws(() => parseComparisonSheetReceipt({ ...comparisonReceipt, frames: comparisonReceipt.frames.map((frame, index) => index === 0 ? { ...frame, timestampSec: frame.timestampSec + 0.01 } : frame) }), /exactly match.*seek times/);
   assert.throws(() => parseComparisonSheetReceipt({ ...comparisonReceipt, selfApproved: true }), /keys must be exactly/);
+});
+
+test('schema /3 strictly pins the Director sidecar while historical schema /2 remains unchanged', () => {
+  assert.equal(INPUT_MANIFEST_SCHEMA, 'blockspark.render-input-manifest/3');
+  const historical = parseInputManifest(manifest);
+  assert.equal(historical.schema, 'blockspark.render-input-manifest/2');
+  assert.equal(Object.hasOwn(historical.inputs, 'directorReport'), false);
+  assert.throws(() => assertTrustedRenderManifest(historical), /legacy manifests are verification-only/);
+
+  const semantic = {
+    ...manifest,
+    schema: 'blockspark.render-input-manifest/3',
+    inputs: { ...manifest.inputs, directorReport: { path: 'inputs/director-report.json', sha256: sha } },
+  };
+  const parsed = parseInputManifest(semantic);
+  assert.deepEqual(parsed.inputs.directorReport, { path: 'inputs/director-report.json', sha256: sha });
+  assert.doesNotThrow(() => assertTrustedRenderManifest(parsed));
+  assert.throws(() => parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: undefined } }), /manifest\.inputs\.directorReport must be an object/);
+  assert.throws(() => parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: { ...semantic.inputs.directorReport, extra: true } } }), /keys must be exactly/);
+  const handAuthored = parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: null } });
+  assert.equal(handAuthored.inputs.directorReport, null);
+});
+
+test('trusted schema /3 authenticates the complete sidecar batch before parsing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'captions-semantic-sidecar-'));
+  const storyboardPath = join(dir, 'storyboard.json'), beatSheetPath = join(dir, 'beats.json');
+  const directorReportPath = join(dir, 'director-report.json'), voicePath = join(dir, 'voice.mp3');
+  const bytes = {
+    storyboard: Buffer.from('{"storyboard":true}'), beatSheet: Buffer.from('{"beats":[]}'),
+    directorReport: Buffer.from('{"semanticRequirements":{}}'), voice: Buffer.from('voice'),
+  };
+  try {
+    writeFileSync(storyboardPath, bytes.storyboard); writeFileSync(beatSheetPath, bytes.beatSheet);
+    writeFileSync(directorReportPath, bytes.directorReport); writeFileSync(voicePath, bytes.voice);
+    const trusted = parseInputManifest({
+      ...manifest,
+      schema: 'blockspark.render-input-manifest/3',
+      inputs: {
+        ...manifest.inputs,
+        storyboard: { path: 'inputs/storyboard.json', sha256: sha256Bytes(bytes.storyboard) },
+        beatSheet: { path: 'inputs/beats.json', sha256: sha256Bytes(bytes.beatSheet) },
+        directorReport: { path: 'inputs/director-report.json', sha256: sha256Bytes(bytes.directorReport) },
+        voice: { sha256: sha256Bytes(bytes.voice) },
+      },
+    });
+    const paths = { storyboard: storyboardPath, beatSheet: beatSheetPath, directorReport: directorReportPath, voice: voicePath };
+    assert.deepEqual(Array.from(readTrustedRenderInputs(trusted, paths).directorReport!), Array.from(bytes.directorReport));
+    writeFileSync(directorReportPath, '{"tampered":true}');
+    let parses = 0;
+    assert.throws(() => { const authenticated = readTrustedRenderInputs(trusted, paths); parses++; parseJsonBytes(authenticated.directorReport!, 'Director report'); }, /Director report SHA-256.*does not match authorized/);
+    assert.equal(parses, 0);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('committed historical schema /2 evidence remains partial and verification-only', () => {
+  const run = spawnSync(process.execPath, ['packages/captions/tools/verify-mvp.ts'], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  const result = JSON.parse(run.stdout);
+  assert.equal(result.status, 'partial');
+  assert.equal(result.fullVideoV2.integrityOk, true);
+  assert.equal(result.fullVideoV2.trusted, false);
+  assert.equal(result.fullVideoV2.provenance, 'retroactive-integrity-seal');
+});
+
+test('render process rejects schema /2 before creating worker output', () => {
+  const id = `legacy-reject-${process.pid}-${Date.now()}`;
+  const authDir = join(ROOT, 'out/render-authorizations'), inputDir = join(ROOT, 'out/render-inputs');
+  const manifestPath = join(authDir, `${id}.json`), voicePath = join(inputDir, `${id}.mp3`), outputPath = join(ROOT, 'out/render-jobs', id);
+  mkdirSync(authDir, { recursive: true }); mkdirSync(inputDir, { recursive: true });
+  try {
+    writeFileSync(manifestPath, readFileSync(join(ROOT, 'packages/captions/full-render-v2/render-input-manifest.json')));
+    writeFileSync(voicePath, 'not parsed');
+    const run = spawnSync(process.execPath, [
+      'packages/captions/tools/render-full.ts', '--workerSafe', '--prebuilt', '--visual', 'vignette',
+      '--profile', 'review-vertical-540p', '--evidenceProfile', 'competitor-v2', '--jobId', id,
+      '--inputManifest', manifestPath, '--authorizedManifestSha256', '0'.repeat(64), '--voice', voicePath,
+      '--ffmpeg', 'node_modules/ffmpeg-static/ffmpeg', '--out', `out/render-jobs/${id}`,
+    ], { cwd: ROOT, encoding: 'utf8', env: { ...process.env, FFPROBE_PATH: 'node_modules/ffprobe-static/bin/linux/x64/ffprobe' } });
+    assert.notEqual(run.status, 0);
+    assert.match(run.stderr, /legacy manifests are verification-only/);
+    assert.equal(existsSync(outputPath), false);
+  } finally {
+    rmSync(manifestPath, { force: true }); rmSync(voicePath, { force: true }); rmSync(outputPath, { recursive: true, force: true });
+  }
 });

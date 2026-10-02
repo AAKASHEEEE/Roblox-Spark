@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { directScript } from '../packages/director/src/pipeline.ts';
 import { DIRECTOR_ALGORITHM_VERSION, DIRECTOR_EDIT_PLAN_POLICY, DirectorInputError, normalizeDirectorRequest, splitDirectorClauses } from '../packages/director/src/offline.ts';
+import { parseSemanticRequirements, SEMANTIC_REQUIREMENTS_SCHEMA } from '../packages/director/src/semantic-requirements.ts';
 import { LIBRARY, lookup } from '../packages/library/src/ids.ts';
 import { ENVIRONMENT_CATALOG } from '../packages/environments/src/index.ts';
 import { validateBeatSheet } from '../packages/director/src/beat-sheet.ts';
@@ -420,4 +421,59 @@ test('modifiers preserve subject heads, spatial tails stop object phrases, and o
   const terms = new Set(result.report.conceptDiagnostics.map((item) => item.term));
   for (const expected of ['compass', 'painting', 'sled', 'violin', 'telescope', 'suitcase']) assert.ok(terms.has(expected), expected);
   for (const falseHead of ['gleams', 'hangs', 'glides', 'downstairs', 'indoors']) assert.equal(terms.has(falseHead), false, falseHead);
+});
+
+test('semantic requirements are strict, versioned, ordered, and missing concepts block authorization', async () => {
+  const result = await directScript({ script: ['At school, Zapp grabs a phone.', 'A drone hovers.'], duration: 8, seed: 51 }, { provider: 'offline' });
+  assert.equal(result.report.semanticRequirements.schema, SEMANTIC_REQUIREMENTS_SCHEMA);
+  assert.deepEqual(parseSemanticRequirements(result.report.semanticRequirements), result.report.semanticRequirements);
+  assert.deepEqual(result.report.semanticRequirements.beats.map((beat) => beat.phraseId), result.sheet.beats.map((beat) => beat.phraseId));
+  for (const [index, beat] of result.report.semanticRequirements.beats.entries()) {
+    assert.equal(beat.text, result.sheet.beats[index].text);
+    assert.equal(beat.start, result.sheet.beats[index].start);
+    assert.equal(beat.end, result.sheet.beats[index].end);
+    assert.deepEqual([...beat.terms].sort((a, b) => a.words[0] - b.words[0] || a.words[1] - b.words[1] || a.category.localeCompare(b.category) || a.term.localeCompare(b.term)), beat.terms);
+  }
+  const first = result.report.semanticRequirements.beats[0].terms;
+  assert.ok(first.some((term) => term.category === 'set' && term.catalogId === 'classroom' && term.disposition === 'available'));
+  assert.ok(first.some((term) => term.category === 'character' && term.catalogId === 'zapp' && term.disposition === 'available'));
+  assert.ok(first.some((term) => term.category === 'prop' && term.catalogId === 'phone' && term.disposition === 'available'));
+  assert.ok(first.some((term) => term.category === 'action' && term.disposition === 'available'));
+  assert.ok(result.report.semanticRequirements.beats[1].terms.some((term) => term.term === 'drone' && term.category === 'unknown-content' && term.disposition === 'authorization_blocker'));
+  assert.ok(result.report.conceptDiagnostics.some((term) => term.term === 'drone' && term.disposition === 'authorization_blocker'));
+
+  const extra = structuredClone(result.report.semanticRequirements) as typeof result.report.semanticRequirements & { extra?: boolean };
+  extra.extra = true;
+  assert.throws(() => parseSemanticRequirements(extra), /keys must be exactly/);
+});
+
+test('semantic residuals never authorize canonical-empty, suffix-shaped entities, or visible modifiers', async () => {
+  for (const [script, expected] of [
+    ['🛸', '🛸'],
+    ['Butterfly hovers.', 'butterfly'],
+    ['A red phone waits.', 'red'],
+    ['A broken phone waits.', 'broken'],
+  ]) {
+    const result = await directScript({ script, duration: 3, seed: 52 }, { provider: 'offline' });
+    const blockers = result.report.semanticRequirements.beats[0].terms
+      .filter((term) => term.disposition === 'authorization_blocker').map((term) => term.term);
+    assert.ok(blockers.includes(expected), `${script}: ${blockers.join(', ')}`);
+  }
+});
+
+test('unrealized spatial relations and unapproved set substitutions block authorization', async () => {
+  for (const relation of ['under', 'behind', 'between']) {
+    const result = await directScript({ script: `Zapp waits ${relation} Kira.`, duration: 4, seed: 61 }, { provider: 'offline' });
+    const term = result.report.semanticRequirements.beats[0].terms.find((candidate) => candidate.term === relation);
+    assert.equal(term?.disposition, 'authorization_blocker', relation);
+  }
+  for (const script of ['Kira waits inside the phone.', 'Kira waits in the phone.', 'Kira waits at Zapp.', 'Kira waits in. School waits.', 'Kira waits in the. School waits.', 'Kira waits in the.” School waits.', 'Kira waits in (the.) School waits.', 'Kira waits in the؟” School waits.', 'Kira waits in the…” School waits.', 'Kira waits in and school waits.']) {
+    const result = await directScript({ script, duration: 4, seed: 61 }, { provider: 'offline' });
+    assert.ok(result.report.semanticRequirements.beats[0].terms.some((term) => ['at', 'in', 'inside'].includes(term.term) && term.disposition === 'authorization_blocker'), script);
+  }
+  const exterior = await directScript({ script: 'Zapp waits outside the school.', duration: 4, seed: 62 }, { provider: 'offline' });
+  const setRequirement = exterior.report.semanticRequirements.beats[0].terms.find((term) => term.catalogId === 'school_exterior');
+  assert.equal(setRequirement?.disposition, 'authorization_blocker');
+  const kitchen = await directScript({ script: 'Zapp waits in the kitchen.', duration: 4, seed: 62 }, { provider: 'offline' });
+  assert.ok(kitchen.report.semanticRequirements.beats[0].terms.some((term) => term.catalogId === 'home_kitchen' && term.disposition === 'approved_substitution' && term.substituteId === 'classroom'));
 });
