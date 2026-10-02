@@ -155,8 +155,10 @@ export function buildSemanticRequirements(sheet: BeatSheet, lib: Library = LIBRA
         const term = canonical(source[index]) || source[index].normalize('NFKC').toLowerCase();
         const relationTarget = known.find((requirement) => requirement.words[0] > index);
         const relationHasBoundary = /[,.!?;:]$/.test(source[index]);
-        const relationLink = relationTarget ? source.slice(index + 1, relationTarget.words[0]).map(canonical) : [];
-        const modeledSetMembership = SET_MEMBERSHIP_RELATIONS.has(term) && !relationHasBoundary
+        const relationLinkRaw = relationTarget ? source.slice(index + 1, relationTarget.words[0]) : [];
+        const relationLink = relationLinkRaw.map(canonical);
+        const relationLinkHasBoundary = relationLinkRaw.some((word) => /[,.!?;:]$/.test(word));
+        const modeledSetMembership = SET_MEMBERSHIP_RELATIONS.has(term) && !relationHasBoundary && !relationLinkHasBoundary
           && relationTarget?.category === 'set' && relationTarget.disposition !== 'authorization_blocker'
           && relationLink.every((word) => RELATION_LINKERS.has(word));
         const nonvisual = NONVISUAL.has(term) || modeledSetMembership;
