@@ -10,6 +10,7 @@ const session = readFileSync(resolve(root, 'packages/captions/src/preview/vignet
 const renderFull = readFileSync(resolve(root, 'packages/captions/tools/render-full.ts'), 'utf8');
 const sealEvidence = readFileSync(resolve(root, 'packages/captions/tools/seal-render-evidence.ts'), 'utf8');
 const webEntry = readFileSync(resolve(root, 'packages/vignette/src/web-entry.ts'), 'utf8');
+const vignetteStage = readFileSync(resolve(root, 'scripts/vignette-stage.ts'), 'utf8');
 
 test('S7 vignette adapter consumes the neutral shared render session', () => {
   assert.match(adapter, /new VignetteRenderSession/);
@@ -73,4 +74,12 @@ test('trusted media tools use exact authenticated paths and evidence comes from 
   assert.ok(muxed >= 0 && muxed < committedDecodedFrame, 'representative evidence must be copied from post-mux decoded frames');
   assert.ok(committedDecodedFrame < receipt, 'decode-time output and frame hashes must be persisted after committed frame bytes');
   assert.match(sealEvidence, /decodedFrameReceiptPath: receiptPath/, 'delayed sealing must consume the worker-owned decoded-frame receipt');
+});
+
+test('staging CLI authorizes Director semantics before side effects', () => {
+  const authorize = vignetteStage.indexOf('verifySemanticAuthorization(semanticPreflight.value, directorReport)');
+  const headless = vignetteStage.indexOf('ensureHeadlessCanvas()');
+  const output = vignetteStage.indexOf('mkdirSync(out');
+  assert.ok(authorize >= 0 && authorize < headless, 'semantic authorization must precede headless initialization');
+  assert.ok(authorize < output, 'semantic authorization must precede output creation');
 });

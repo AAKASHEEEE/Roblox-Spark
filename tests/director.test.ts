@@ -460,3 +460,16 @@ test('semantic residuals never authorize canonical-empty, suffix-shaped entities
     assert.ok(blockers.includes(expected), `${script}: ${blockers.join(', ')}`);
   }
 });
+
+test('unrealized spatial relations and unapproved set substitutions block authorization', async () => {
+  for (const relation of ['under', 'behind', 'between']) {
+    const result = await directScript({ script: `Zapp waits ${relation} Kira.`, duration: 4, seed: 61 }, { provider: 'offline' });
+    const term = result.report.semanticRequirements.beats[0].terms.find((candidate) => candidate.term === relation);
+    assert.equal(term?.disposition, 'authorization_blocker', relation);
+  }
+  const exterior = await directScript({ script: 'Zapp waits outside the school.', duration: 4, seed: 62 }, { provider: 'offline' });
+  const setRequirement = exterior.report.semanticRequirements.beats[0].terms.find((term) => term.catalogId === 'school_exterior');
+  assert.equal(setRequirement?.disposition, 'authorization_blocker');
+  const kitchen = await directScript({ script: 'Zapp waits in the kitchen.', duration: 4, seed: 62 }, { provider: 'offline' });
+  assert.ok(kitchen.report.semanticRequirements.beats[0].terms.some((term) => term.catalogId === 'home_kitchen' && term.disposition === 'approved_substitution' && term.substituteId === 'classroom'));
+});

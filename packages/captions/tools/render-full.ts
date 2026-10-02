@@ -47,7 +47,7 @@ import type { CameraState } from '../../engine/src/gl/renderer.ts';
 import { assertCompositionTimeline } from '../src/preview/composition.ts';
 import { COMPETITOR_EVIDENCE_FILES, resolveRenderSelection } from './render-config.ts';
 import { validateRenderPaths } from './render-paths.ts';
-import { assertManifestActuals, assertRuntimePins, gitSource, hashDirectoryTree, hashFile, manifestDigest, packageVersion, parseJsonBytes, readAuthenticatedFile, readBoundedFile, readInputManifest, readTrustedRenderInputs, RENDER_BYTE_LIMITS, sha256Bytes, solvedCompositionsDigest, type RenderInputManifest, type RuntimePins, type ToolPins } from './render-manifest.ts';
+import { assertManifestActuals, assertRuntimePins, assertTrustedRenderManifest, gitSource, hashDirectoryTree, hashFile, manifestDigest, packageVersion, parseJsonBytes, readAuthenticatedFile, readBoundedFile, readInputManifest, readTrustedRenderInputs, RENDER_BYTE_LIMITS, sha256Bytes, solvedCompositionsDigest, type RenderInputManifest, type RuntimePins, type ToolPins } from './render-manifest.ts';
 import { buildEvidenceReport, codecPinIssues, COMPARISON_SHEET_RECEIPT_FILE, COMPETITOR_DECODED_FRAMES, createDecodedFrameReceipt, DECODED_FRAME_RECEIPT_FILE, type DecodedFrameClaim } from './verify-render-v2.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
@@ -162,7 +162,7 @@ const mp4Name = evidenceProfile === 'competitor-v2' ? 'zapp-vs-kira-competitor-p
 const browserEntry = visual === 'vignette' ? 'dist/packages/captions/src/preview/vignette-full-page.js' : 'dist/packages/captions/src/preview/stills-page.js';
 let authorizedRuntime: RuntimePins | null = null;
 if (trustedManifest) {
-  if (trustedManifest.provenance !== 'pre-render-authorized') throw new Error('retroactive integrity manifests cannot authorize a render');
+  assertTrustedRenderManifest(trustedManifest);
   if (arg.authorizedManifestSha256 !== trustedManifestSha) throw new Error('input manifest does not match the scheduler-authorized digest');
   if (!checkedPaths.ffprobe || !checkedPaths.playwrightCore || !checkedPaths.chromium) throw new Error('trusted render requires explicit FFprobe, Playwright, and Chromium runtimes');
   if (!existsSync(resolve(ROOT, browserEntry))) throw new Error(`trusted prebuilt entry is missing: ${browserEntry}`);

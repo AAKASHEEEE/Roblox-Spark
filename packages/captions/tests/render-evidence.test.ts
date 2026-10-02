@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, rmSync, truncateSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ProbeResult } from '../../mp4/src/probe.ts';
-import { INPUT_MANIFEST_SCHEMA, RENDER_BYTE_LIMITS, assertRuntimePins, canonicalJson, hashFile, manifestDigest, parseInputManifest, parseJsonBytes, readAuthenticatedFile, readInputManifest, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
+import { INPUT_MANIFEST_SCHEMA, RENDER_BYTE_LIMITS, assertRuntimePins, assertTrustedRenderManifest, canonicalJson, hashFile, manifestDigest, parseInputManifest, parseJsonBytes, readAuthenticatedFile, readInputManifest, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
 import { COMPETITOR_DECODED_FRAMES, COMPARISON_SHEET_RECEIPT_SCHEMA, codecPinIssues, createDecodedFrameReceipt, createSignedPostRenderAttestation, mediaFingerprint, mediaFingerprintDigest, parseComparisonSheetReceipt, parseDecodedFrameReceipt, parseEvidenceReport, postRenderAttestationDigest, representativeFramesDigest, validateDecodedFrameClaims, verifyComparisonSheetCommitment, verifyFilePin, verifyPostRenderAttestation, verifyRenderV2, verifyRepresentativeFrameClaims, type DecodedFrameClaim, type RenderEvidenceReport } from '../tools/verify-render-v2.ts';
 
 const sha = 'a'.repeat(64), git = 'b'.repeat(40);
@@ -204,7 +204,7 @@ test('decoded-frame claims must bind every committed frame seek to the sealed ou
 });
 
 
-test('replacement output is hash-rejected before the media parser and can never return trusted', () => {
+test('required input authentication fails fast before media parsing', () => {
   const root = mkdtempSync(join(tmpdir(), 'captions-replacement-output-'));
   try {
     for (const directory of ['inputs', 'assets', 'evidence']) mkdirSync(join(root, directory), { recursive: true });
@@ -245,7 +245,7 @@ test('replacement output is hash-rejected before the media parser and can never 
     });
     assert.equal(parserCalls, 0);
     assert.equal(result.trusted, false);
-    assert.match(result.issues.join('; '), /output SHA-256.*does not match authorized/);
+    assert.match(result.issues.join('; '), /cannot verify pinned git objects|required render inputs did not authenticate|storyboard:/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -276,6 +276,7 @@ test('schema /3 strictly pins the Director sidecar while historical schema /2 re
   const historical = parseInputManifest(manifest);
   assert.equal(historical.schema, 'blockspark.render-input-manifest/2');
   assert.equal(Object.hasOwn(historical.inputs, 'directorReport'), false);
+  assert.throws(() => assertTrustedRenderManifest(historical), /legacy manifests are verification-only/);
 
   const semantic = {
     ...manifest,
@@ -284,6 +285,7 @@ test('schema /3 strictly pins the Director sidecar while historical schema /2 re
   };
   const parsed = parseInputManifest(semantic);
   assert.deepEqual(parsed.inputs.directorReport, { path: 'inputs/director-report.json', sha256: sha });
+  assert.doesNotThrow(() => assertTrustedRenderManifest(parsed));
   assert.throws(() => parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: undefined } }), /manifest\.inputs\.directorReport must be an object/);
   assert.throws(() => parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: { ...semantic.inputs.directorReport, extra: true } } }), /keys must be exactly/);
   const handAuthored = parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: null } });

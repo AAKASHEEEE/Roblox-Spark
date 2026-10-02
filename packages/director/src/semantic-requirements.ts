@@ -48,8 +48,7 @@ const NONVISUAL = new Set([
   'a', 'an', 'the', 'this', 'that', 'these', 'those', 'another', 'his', 'her', 'their', 'our', 'my', 'your',
   'he', 'she', 'they', 'him', 'them', 'it', 'who', 'his', 'hers', 'himself', 'herself', 'themselves',
   'and', 'or', 'but', 'then', 'while', 'when', 'before', 'after', 'so', 'yet', 'until', 'meanwhile',
-  'at', 'in', 'inside', 'into', 'outside', 'near', 'to', 'from', 'with', 'without', 'of', 'on', 'under', 'over',
-  'through', 'across', 'past', 'by', 'for', 'as', 'beside', 'behind', 'ahead', 'around', 'between',
+  'at', 'in', 'inside', 'to', 'from', 'with', 'without', 'of', 'for', 'as',
   'is', 'are', 'was', 'were', 'be', 'been', 'being', 'can', 'could', 'will', 'would', 'should', 'must', 'may', 'might',
   'not', 'very', 'quietly', 'quickly', 'slowly', 'suddenly', 'later', 'finally', 'again', 'often', 'well', 'today',
   'tomorrow', 'yesterday', 'now', 'here', 'there', 'away', 'together', 'apart', 'downstairs', 'upstairs', 'indoors', 'outdoors',
@@ -107,11 +106,16 @@ function selectedHits(kind: SemanticKind, text: string, represented: Set<string>
   return selected;
 }
 
+const APPROVED_SET_SUBSTITUTIONS: Readonly<Record<string, readonly string[]>> = {
+  home_kitchen: ['classroom'],
+  home_living_room: ['classroom'],
+};
+
 function knownRequirement(hit: Hit, represented: Record<SemanticKind, Set<string>>, selectedSet: string, lib: Library): SemanticRequirement {
   let disposition: SemanticDisposition = 'authorization_blocker';
   let substituteId: string | null = null;
   if (hit.entry.status === 'available' && represented[hit.kind].has(hit.entry.id)) disposition = 'available';
-  else if (hit.kind === 'sets' && hit.entry.status === 'planned') {
+  else if (hit.kind === 'sets' && hit.entry.status === 'planned' && APPROVED_SET_SUBSTITUTIONS[hit.entry.id]?.includes(selectedSet)) {
     const substitute = lib.sets.find((entry) => entry.id === selectedSet && entry.status === 'available');
     if (substitute) { disposition = 'approved_substitution'; substituteId = substitute.id; }
   }

@@ -292,6 +292,11 @@ export function parseInputManifest(value: unknown): RenderInputManifest {
   };
 }
 
+export function assertTrustedRenderManifest(manifest: RenderInputManifest): void {
+  if (manifest.schema !== INPUT_MANIFEST_SCHEMA) throw new Error(`trusted rendering requires ${INPUT_MANIFEST_SCHEMA}; legacy manifests are verification-only`);
+  if (manifest.provenance !== 'pre-render-authorized') throw new Error('retroactive integrity manifests cannot authorize a render');
+}
+
 export function readInputManifest(path: string): RenderInputManifest {
   return parseInputManifest(parseJsonBytes(readBoundedFile(path, RENDER_BYTE_LIMITS.inputManifest, 'input manifest'), 'input manifest'));
 }

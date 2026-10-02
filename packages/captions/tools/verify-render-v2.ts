@@ -568,6 +568,7 @@ export function verifyRenderV2(options: VerifyV2Options): V2VerificationResult {
   issues.push(...gitPins.issues); sourceExactRecompute = gitPins.sourceExact;
   if (!sourceExactRecompute) warnings.push('composition recomputation uses a checkout other than the clean pinned source; pinned blobs are checked separately');
 
+  const inputAuthenticationIssueStart = issues.length;
   const pinnedInputs = [
     ['storyboard', 'storyboard', manifest.inputs.storyboard, RENDER_BYTE_LIMITS.storyboard],
     ['beatSheet', 'beat sheet', manifest.inputs.beatSheet, RENDER_BYTE_LIMITS.beatSheet],
@@ -609,6 +610,13 @@ export function verifyRenderV2(options: VerifyV2Options): V2VerificationResult {
         warnings.push(`${message}; using the authenticated blob from the pinned historical commit`);
       } else issues.push(message);
     }
+  }
+
+  const requiredInputsAuthenticated = pinnedInputs.every(([key]) => !!authenticatedInputs[key])
+    && (!manifest.inputs.directorReport || !!authenticatedDirectorReport);
+  if (!requiredInputsAuthenticated || issues.length > inputAuthenticationIssueStart) {
+    if (!requiredInputsAuthenticated) issues.push('required render inputs did not authenticate as a complete batch');
+    return { ok: false, trusted: false, complete: false, sourceExactRecompute, authorizationVerified, postRenderAttestationVerified, representativeFramesVerified, comparisonSheetVerified, issues, warnings, voiceBytesVerified, evidenceVerified };
   }
 
   let storyboard: any;
