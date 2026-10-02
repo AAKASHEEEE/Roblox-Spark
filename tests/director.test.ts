@@ -467,6 +467,10 @@ test('unrealized spatial relations and unapproved set substitutions block author
     const term = result.report.semanticRequirements.beats[0].terms.find((candidate) => candidate.term === relation);
     assert.equal(term?.disposition, 'authorization_blocker', relation);
   }
+  for (const script of ['Kira waits inside the phone.', 'Kira waits in the phone.', 'Kira waits at Zapp.']) {
+    const result = await directScript({ script, duration: 4, seed: 61 }, { provider: 'offline' });
+    assert.ok(result.report.semanticRequirements.beats[0].terms.some((term) => ['at', 'in', 'inside'].includes(term.term) && term.disposition === 'authorization_blocker'), script);
+  }
   const exterior = await directScript({ script: 'Zapp waits outside the school.', duration: 4, seed: 62 }, { provider: 'offline' });
   const setRequirement = exterior.report.semanticRequirements.beats[0].terms.find((term) => term.catalogId === 'school_exterior');
   assert.equal(setRequirement?.disposition, 'authorization_blocker');

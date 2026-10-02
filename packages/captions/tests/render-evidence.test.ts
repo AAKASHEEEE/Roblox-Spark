@@ -1,13 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
-import { mkdirSync, mkdtempSync, rmSync, truncateSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, truncateSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { ProbeResult } from '../../mp4/src/probe.ts';
 import { INPUT_MANIFEST_SCHEMA, RENDER_BYTE_LIMITS, assertRuntimePins, assertTrustedRenderManifest, canonicalJson, hashFile, manifestDigest, parseInputManifest, parseJsonBytes, readAuthenticatedFile, readInputManifest, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
 import { COMPETITOR_DECODED_FRAMES, COMPARISON_SHEET_RECEIPT_SCHEMA, codecPinIssues, createDecodedFrameReceipt, createSignedPostRenderAttestation, mediaFingerprint, mediaFingerprintDigest, parseComparisonSheetReceipt, parseDecodedFrameReceipt, parseEvidenceReport, postRenderAttestationDigest, representativeFramesDigest, validateDecodedFrameClaims, verifyComparisonSheetCommitment, verifyFilePin, verifyPostRenderAttestation, verifyRenderV2, verifyRepresentativeFrameClaims, type DecodedFrameClaim, type RenderEvidenceReport } from '../tools/verify-render-v2.ts';
 
+const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const sha = 'a'.repeat(64), git = 'b'.repeat(40);
 const manifest = {
   schema: 'blockspark.render-input-manifest/2',
@@ -321,4 +324,36 @@ test('trusted schema /3 authenticates the complete sidecar batch before parsing'
     assert.throws(() => { const authenticated = readTrustedRenderInputs(trusted, paths); parses++; parseJsonBytes(authenticated.directorReport!, 'Director report'); }, /Director report SHA-256.*does not match authorized/);
     assert.equal(parses, 0);
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('committed historical schema /2 evidence remains partial and verification-only', () => {
+  const run = spawnSync(process.execPath, ['packages/captions/tools/verify-mvp.ts'], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  const result = JSON.parse(run.stdout);
+  assert.equal(result.status, 'partial');
+  assert.equal(result.fullVideoV2.integrityOk, true);
+  assert.equal(result.fullVideoV2.trusted, false);
+  assert.equal(result.fullVideoV2.provenance, 'retroactive-integrity-seal');
+});
+
+test('render process rejects schema /2 before creating worker output', () => {
+  const id = `legacy-reject-${process.pid}-${Date.now()}`;
+  const authDir = join(ROOT, 'out/render-authorizations'), inputDir = join(ROOT, 'out/render-inputs');
+  const manifestPath = join(authDir, `${id}.json`), voicePath = join(inputDir, `${id}.mp3`), outputPath = join(ROOT, 'out/render-jobs', id);
+  mkdirSync(authDir, { recursive: true }); mkdirSync(inputDir, { recursive: true });
+  try {
+    writeFileSync(manifestPath, readFileSync(join(ROOT, 'packages/captions/full-render-v2/render-input-manifest.json')));
+    writeFileSync(voicePath, 'not parsed');
+    const run = spawnSync(process.execPath, [
+      'packages/captions/tools/render-full.ts', '--workerSafe', '--prebuilt', '--visual', 'vignette',
+      '--profile', 'review-vertical-540p', '--evidenceProfile', 'competitor-v2', '--jobId', id,
+      '--inputManifest', manifestPath, '--authorizedManifestSha256', '0'.repeat(64), '--voice', voicePath,
+      '--ffmpeg', 'node_modules/ffmpeg-static/ffmpeg', '--out', `out/render-jobs/${id}`,
+    ], { cwd: ROOT, encoding: 'utf8', env: { ...process.env, FFPROBE_PATH: 'node_modules/ffprobe-static/bin/linux/x64/ffprobe' } });
+    assert.notEqual(run.status, 0);
+    assert.match(run.stderr, /legacy manifests are verification-only/);
+    assert.equal(existsSync(outputPath), false);
+  } finally {
+    rmSync(manifestPath, { force: true }); rmSync(voicePath, { force: true }); rmSync(outputPath, { recursive: true, force: true });
+  }
 });

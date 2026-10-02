@@ -48,11 +48,13 @@ const NONVISUAL = new Set([
   'a', 'an', 'the', 'this', 'that', 'these', 'those', 'another', 'his', 'her', 'their', 'our', 'my', 'your',
   'he', 'she', 'they', 'him', 'them', 'it', 'who', 'his', 'hers', 'himself', 'herself', 'themselves',
   'and', 'or', 'but', 'then', 'while', 'when', 'before', 'after', 'so', 'yet', 'until', 'meanwhile',
-  'at', 'in', 'inside', 'to', 'from', 'with', 'without', 'of', 'for', 'as',
+  'to', 'from', 'with', 'without', 'of', 'for', 'as',
   'is', 'are', 'was', 'were', 'be', 'been', 'being', 'can', 'could', 'will', 'would', 'should', 'must', 'may', 'might',
   'not', 'very', 'quietly', 'quickly', 'slowly', 'suddenly', 'later', 'finally', 'again', 'often', 'well', 'today',
   'tomorrow', 'yesterday', 'now', 'here', 'there', 'away', 'together', 'apart', 'downstairs', 'upstairs', 'indoors', 'outdoors',
 ]);
+
+const SET_MEMBERSHIP_RELATIONS = new Set(['at', 'in', 'inside']);
 
 const categoryFor = (kind: SemanticKind): SemanticCategory => kind === 'sets' ? 'set' : kind === 'characters' ? 'character' : kind === 'props' ? 'prop' : kind === 'actions' ? 'action' : 'expression';
 const entriesFor = (kind: SemanticKind, lib: Library): Array<LibraryEntry | SetEntry> => lib[kind] as Array<LibraryEntry | SetEntry>;
@@ -150,7 +152,10 @@ export function buildSemanticRequirements(sheet: BeatSheet, lib: Library = LIBRA
       for (let index = 0; index < source.length; index++) {
         if (covered.has(index)) continue;
         const term = canonical(source[index]) || source[index].normalize('NFKC').toLowerCase();
-        const nonvisual = NONVISUAL.has(term);
+        const relationTarget = known.find((requirement) => requirement.words[0] > index);
+        const modeledSetMembership = SET_MEMBERSHIP_RELATIONS.has(term) && relationTarget?.category === 'set'
+          && relationTarget.disposition !== 'authorization_blocker';
+        const nonvisual = NONVISUAL.has(term) || modeledSetMembership;
         residual.push({
           term, category: nonvisual ? 'nonvisual' : 'unknown-content',
           disposition: nonvisual ? 'nonvisual' : 'authorization_blocker', words: [index, index + 1],
