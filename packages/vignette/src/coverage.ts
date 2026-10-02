@@ -321,11 +321,13 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
   }
 
   const beats: CoverageBeat[] = plan.beats.map((beat) => {
-    const required = items.filter((item) => item.beat === beat.phraseId && item.counted), realized = required.filter((item) => item.covered);
+    const required = items.filter((item) => item.beat === beat.phraseId && item.counted && item.basis !== 'composition-subject'), realized = required.filter((item) => item.covered);
     return { beat: beat.phraseId, recipeId: beat.camera.recipeId, visual: required.length, covered: realized.length, pct: r4(required.length ? realized.length / required.length : 1), missing: required.filter((item) => !item.covered).map((item) => item.label) };
   });
-  const counted = items.filter((item) => item.counted), covered = counted.filter((item) => item.covered).length;
-  const fullVideoCoverage = ratio(covered, counted.length);
+  const counted = items.filter((item) => item.counted);
+  const semanticItems = counted.filter((item) => item.basis !== 'composition-subject');
+  const covered = semanticItems.filter((item) => item.covered).length;
+  const fullVideoCoverage = ratio(covered, semanticItems.length);
   const literalClauses = clauses.filter((clause) => clause.literalCoverage.required > 0);
   const actionClauses = clauses.filter((clause) => clause.actionRealization.required > 0);
   const propStateClauses = clauses.filter((clause) => clause.propStateRealization.required > 0);
@@ -334,7 +336,7 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
   const propStateRealization = ratio(propStateClauses.filter((clause) => clause.propStateRealization.pct === 1).length, propStateClauses.length);
   const subjectMiss = counted.some((item) => item.basis === 'composition-subject' && !item.covered);
   return {
-    threshold: COVERAGE_THRESHOLD, step: r4(1 / Math.max(1, plan.fps)), visual: counted.length, covered, pct: fullVideoCoverage.pct,
+    threshold: COVERAGE_THRESHOLD, step: r4(1 / Math.max(1, plan.fps)), visual: semanticItems.length, covered, pct: fullVideoCoverage.pct,
     blocking: fullVideoCoverage.pct < COVERAGE_THRESHOLD || subjectMiss || literalCoverage.pct < COVERAGE_THRESHOLD || actionRealization.pct < 1 || propStateRealization.pct < 1,
     audioOnly: items.filter((item) => item.space === 'audio').length,
     literalCoverage, actionRealization, propStateRealization, fullVideoCoverage, clauses, beats, items,

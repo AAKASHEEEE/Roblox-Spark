@@ -36,7 +36,7 @@ export interface SemanticRequirements {
 }
 
 type SemanticKind = 'sets' | 'characters' | 'props' | 'actions' | 'expressions';
-interface Hit { kind: SemanticKind; entry: LibraryEntry | SetEntry; start: number; end: number; term: string }
+interface Hit { kind: SemanticKind; entry: LibraryEntry | SetEntry; start: number; end: number; term: string; matched: string }
 const BARE = (ref: string): string => ref.split('@')[0];
 const rawWords = (text: string): string[] => text.trim().split(/\s+/).filter(Boolean);
 const canonicalWords = (text: string): string[] => text.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').match(/[a-z0-9']+/g) ?? [];
@@ -78,14 +78,14 @@ function literalHits(kind: SemanticKind, text: string, lib: Library): Hit[] {
       for (let i = 0; i <= indexed.length - needle.length; i++) {
         if (needle.every((part, offset) => indexed[i + offset].value === part)) {
           const start = indexed[i].word, end = indexed[i + needle.length - 1].word + 1;
-          hits.push({ kind, entry, start, end, term: source.slice(start, end).join(' ') });
+          hits.push({ kind, entry, start, end, term: source.slice(start, end).join(' '), matched: tag });
         }
       }
       // Narrow phrasal-verb support: the authored "puts down" action may contain its object pronoun in the middle.
       if (kind === 'actions' && tag === 'puts down') for (let i = 0; i <= indexed.length - 3; i++) {
         if (indexed[i].value === 'puts' && indexed[i + 1].value === 'it' && indexed[i + 2].value === 'down') {
-          const start = indexed[i].word, end = indexed[i + 2].word + 1;
-          hits.push({ kind, entry, start, end, term: source.slice(start, end).join(' ') });
+          const start = indexed[i].word, end = indexed[i + 2].word + 1, term = source.slice(start, end).join(' ');
+          hits.push({ kind, entry, start, end, term, matched: canonical(term) });
         }
       }
     }
@@ -117,8 +117,10 @@ const APPROVED_SET_SUBSTITUTIONS: Readonly<Record<string, readonly string[]>> = 
 function knownRequirement(hit: Hit, represented: Record<SemanticKind, Set<string>>, selectedSet: string, lib: Library): SemanticRequirement {
   let disposition: SemanticDisposition = 'authorization_blocker';
   let substituteId: string | null = null;
-  if (hit.entry.status === 'available' && represented[hit.kind].has(hit.entry.id)) disposition = 'available';
-  else if (hit.kind === 'sets' && hit.entry.status === 'planned' && APPROVED_SET_SUBSTITUTIONS[hit.entry.id]?.includes(selectedSet)) {
+  const exactTokenSpan = canonical(hit.term) === hit.matched
+    && rawWords(hit.term).length === hit.matched.split(' ').length;
+  if (exactTokenSpan && hit.entry.status === 'available' && represented[hit.kind].has(hit.entry.id)) disposition = 'available';
+  else if (exactTokenSpan && hit.kind === 'sets' && hit.entry.status === 'planned' && APPROVED_SET_SUBSTITUTIONS[hit.entry.id]?.includes(selectedSet)) {
     const substitute = lib.sets.find((entry) => entry.id === selectedSet && entry.status === 'available');
     if (substitute) { disposition = 'approved_substitution'; substituteId = substitute.id; }
   }
@@ -151,8 +153,10 @@ export function buildSemanticRequirements(sheet: BeatSheet, lib: Library = LIBRA
       for (const requirement of known) for (let word = requirement.words[0]; word < requirement.words[1]; word++) covered.add(word);
       const source = rawWords(beat.text), residual: SemanticRequirement[] = [];
       for (let index = 0; index < source.length; index++) {
-        if (covered.has(index)) continue;
-        const term = canonical(source[index]) || source[index].normalize('NFKC').toLowerCase();
+        const raw = source[index];
+        const unsupportedAttached = [...raw.normalize('NFKD')].some((character) => /[\p{L}\p{N}\p{S}]/u.test(character) && !/[A-Za-z0-9]/.test(character));
+        if (covered.has(index) && !unsupportedAttached) continue;
+        const term = unsupportedAttached ? raw.normalize('NFKC').toLowerCase() : canonical(raw) || raw.normalize('NFKC').toLowerCase();
         const relationTarget = known.find((requirement) => requirement.words[0] > index);
         const relationHasBoundary = /\p{P}/u.test(source[index]);
         const relationLinkRaw = relationTarget ? source.slice(index + 1, relationTarget.words[0]) : [];

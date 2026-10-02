@@ -55,6 +55,8 @@ test('valid sub-shot cuts produce ordered, bounded, minimum-duration composition
     }
   }
   assert.ok(canonical.compositions.every((c) => c.shot.recipeKnown));
+  assert.equal(canonical.report.summary.camerasAccepted, 38);
+  assert.equal(canonical.report.summary.camerasFallback, 3);
   assert.equal(canonical.report.summary.camerasBlocked, 0);
   assert.equal(canonical.report.summary.camerasAccepted + canonical.report.summary.camerasFallback, canonical.compositions.length);
 });
@@ -229,7 +231,7 @@ test('coverage is clause/composition scoped, fail-closed, and retains the 90% fu
   assert.equal(coverage.threshold, 0.9);
   assert.equal(canonical.report.summary.coverageThreshold, 0.9);
   assert.equal(coverage.blocking, false);
-  assert.deepEqual(coverage.fullVideoCoverage, { required: 96, realized: 96, pct: 1 });
+  assert.deepEqual(coverage.fullVideoCoverage, { required: 55, realized: 55, pct: 1 });
   assert.deepEqual(coverage.literalCoverage, { required: 22, realized: 22, pct: 1 });
   assert.deepEqual(coverage.actionRealization, { required: 11, realized: 11, pct: 1 });
   assert.deepEqual(coverage.propStateRealization, { required: 1, realized: 1, pct: 1 });
@@ -428,6 +430,15 @@ test('unknown residual semantics block instead of silently becoming idle', async
     ['A drone hovers.', ['drone']],
     ['Octopus swam.', ['octopus', 'swam']],
     ['The locksmith gave a parcel.', ['locksmith', 'gave', 'parcel']],
+    ['Zapp runs/octopus.', ['runs octopus']],
+    ['Kira/alien waits.', ['kira alien']],
+    ['Zapp holds phone/meteor.', ['phone meteor']],
+    ['Zapp runs🐙.', ['runs🐙.']],
+    ['Kira外星 waits.', ['kira外星']],
+    ['Zapp holds phone☄️.', ['phone☄️.']],
+    ['Zapp picks/up the phone.', ['picks up']],
+    ['Zapp picks／up the phone.', ['picks up']],
+    ['Zapp picks—up the phone.', ['picks up']],
   ] as const) {
     const result = await directScript({ script, duration: 4, seed: 45 }, { provider: 'offline' });
     const blockers = result.report.semanticRequirements.beats.flatMap((beat) => beat.terms

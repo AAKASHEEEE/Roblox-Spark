@@ -79,7 +79,9 @@ export class OpenRouterIntentProvider {
     this.models = normalizeFreeModelList(options.models);
     this.timeoutMs = options.timeoutMs ?? 12_000;
     if (!Number.isFinite(this.timeoutMs) || this.timeoutMs <= 0) throw new OpenRouterProviderError('config', 'OpenRouter timeout must be greater than zero');
-    this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
+    const requestedBaseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
+    if (requestedBaseUrl !== DEFAULT_BASE_URL) throw new OpenRouterProviderError('config', 'OpenRouter bearer credentials are restricted to https://openrouter.ai/api/v1');
+    this.baseUrl = DEFAULT_BASE_URL;
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.library = options.library ?? LIBRARY;
   }

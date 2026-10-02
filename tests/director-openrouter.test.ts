@@ -29,8 +29,11 @@ test('OpenRouter enforces free-only model configuration', () => {
   assert.deepEqual(normalizeFreeModelList(undefined), ['openrouter/free']);
   assert.deepEqual(normalizeFreeModelList(['a/model:free', 'a/model:free']), ['a/model:free']);
   for (const paidOrAmbiguous of ['paid/model', 'vendor/model:free:paid', 'openrouter/free?fallback=paid', 'OPENROUTER/FREE']) {
-    assert.throws(() => normalizeFreeModelList([paidOrAmbiguous]), (e: unknown) => e instanceof OpenRouterProviderError && e.code === 'config');
+    assert.throws(() => normalizeFreeModelList([paidOrAmbiguous]), (error: unknown) => error instanceof OpenRouterProviderError && error.code === 'config');
   }
+  assert.throws(() => new OpenRouterIntentProvider({ apiKey: 'secret', baseUrl: 'https://example.invalid/api/v1', fetchImpl: fakeFetch(() => answer(intent())).fetch }),
+    (error: unknown) => error instanceof OpenRouterProviderError && error.code === 'config' && /credentials are restricted/.test(error.message));
+  assert.doesNotThrow(() => new OpenRouterIntentProvider({ apiKey: 'secret', baseUrl: 'https://openrouter.ai/api/v1/' }));
 });
 
 test('strict invalid intent gets exactly one repair attempt without echoing reflected credentials', async () => {
