@@ -55,6 +55,7 @@ const NONVISUAL = new Set([
 ]);
 
 const SET_MEMBERSHIP_RELATIONS = new Set(['at', 'in', 'inside']);
+const RELATION_LINKERS = new Set(['a', 'an', 'the', 'this', 'that']);
 
 const categoryFor = (kind: SemanticKind): SemanticCategory => kind === 'sets' ? 'set' : kind === 'characters' ? 'character' : kind === 'props' ? 'prop' : kind === 'actions' ? 'action' : 'expression';
 const entriesFor = (kind: SemanticKind, lib: Library): Array<LibraryEntry | SetEntry> => lib[kind] as Array<LibraryEntry | SetEntry>;
@@ -153,8 +154,11 @@ export function buildSemanticRequirements(sheet: BeatSheet, lib: Library = LIBRA
         if (covered.has(index)) continue;
         const term = canonical(source[index]) || source[index].normalize('NFKC').toLowerCase();
         const relationTarget = known.find((requirement) => requirement.words[0] > index);
-        const modeledSetMembership = SET_MEMBERSHIP_RELATIONS.has(term) && relationTarget?.category === 'set'
-          && relationTarget.disposition !== 'authorization_blocker';
+        const relationHasBoundary = /[,.!?;:]$/.test(source[index]);
+        const relationLink = relationTarget ? source.slice(index + 1, relationTarget.words[0]).map(canonical) : [];
+        const modeledSetMembership = SET_MEMBERSHIP_RELATIONS.has(term) && !relationHasBoundary
+          && relationTarget?.category === 'set' && relationTarget.disposition !== 'authorization_blocker'
+          && relationLink.every((word) => RELATION_LINKERS.has(word));
         const nonvisual = NONVISUAL.has(term) || modeledSetMembership;
         residual.push({
           term, category: nonvisual ? 'nonvisual' : 'unknown-content',
