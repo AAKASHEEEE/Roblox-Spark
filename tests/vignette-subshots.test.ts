@@ -308,6 +308,11 @@ test('coverage is clause/composition scoped, fail-closed, and retains the 90% fu
   assert.match(mixedAction.label, /celebrate/);
   assert.doesNotMatch(mixedAction.label, /exit_frame/);
   assert.equal(mixedAction.covered, true, 'executed celebrate remains required while intent-only leave is excluded');
+  mixedIntent.beats.find((beat) => beat.phraseId === 'p03')!.text = 'Zapp wants to celebrate because he celebrates.';
+  const repeatedIntentCoverage = coverageCheck(canonical.scene, mixedIntent, canonical.compositions);
+  const repeatedAction = repeatedIntentCoverage.items.find((item) => item.basis === 'clause-action' && item.beat === 'p03')!;
+  assert.match(repeatedAction.label, /celebrate/);
+  assert.equal(repeatedAction.covered, true, 'later execution of the same intended action remains required');
 
   const propClause = coverage.clauses.find((clause) => clause.propStateRealization.required > 0)!;
   const laterPress = structuredClone(canonical.stage);

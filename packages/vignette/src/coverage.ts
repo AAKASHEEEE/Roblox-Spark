@@ -200,14 +200,18 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
         .filter((segment): segment is { composition: CameraComposition; window: [number, number] } => !!segment.window);
       const people = mentionedIds(clause.text, beat.cast.map((cast) => cast.id), LIBRARY.characters);
       const objects = mentionedIds(clause.text, beat.props, LIBRARY.props);
-      let actions = mentionedIds(clause.text, LIBRARY.actions.map((action) => action.id), LIBRARY.actions);
-      const objectKinds = new Set(objects.map((id) => plan.props[id]?.propId ?? id));
-      actions = actions.filter((action) => !['open_door', 'slam_door'].includes(action) || [...objectKinds].some((id) => /door/.test(id)));
+      let actionText = clause.text;
       const intentMatch = /\bwants?\s+to\b/i.exec(clause.text);
       if (intentMatch) {
-        const governed = mentionedIds(clause.text.slice(intentMatch.index), actions, LIBRARY.actions);
-        actions = actions.filter((action) => !governed.includes(action));
+        const governedStart = intentMatch.index + intentMatch[0].length;
+        const governedSuffix = clause.text.slice(governedStart);
+        const boundary = /\b(?:because|but|and|then|while|when|after|before|so|yet|until)\b|[,.;!?]/i.exec(governedSuffix);
+        const governedEnd = boundary ? governedStart + boundary.index : clause.text.length;
+        actionText = `${clause.text.slice(0, intentMatch.index)} ${clause.text.slice(governedEnd)}`;
       }
+      let actions = mentionedIds(actionText, LIBRARY.actions.map((action) => action.id), LIBRARY.actions);
+      const objectKinds = new Set(objects.map((id) => plan.props[id]?.propId ?? id));
+      actions = actions.filter((action) => !['open_door', 'slam_door'].includes(action) || [...objectKinds].some((id) => /door/.test(id)));
       if (!people.length) actions = actions.filter((action) => action !== 'sit'); // descriptive prop "sitting" is not an actor action
       const literalItems: CoverageItem[] = [];
       for (const id of [...people, ...objects]) {
