@@ -164,10 +164,13 @@ test('merged S3-S6 fixture resolves builders and real actions/faces without plac
   assert.ok(!names.some((n) => n.includes('doorway:classroom_door:fallback')), 'no duplicate fallback frame for real door');
 });
 
-test('fresh browser entry registers the same runtime builders before rebuilding the scene', () => {
-  const source = readFileSync(join(ROOT, 'packages/vignette/src/web-entry.ts'), 'utf8');
-  const register = source.indexOf('registerRuntimeLibrary(lib);');
-  const stage = source.indexOf('plan = stageBeatSheet(v.value, lib);');
-  const scene = source.indexOf('scene = new VignetteScene(plan, lib);');
-  assert.ok(register >= 0 && register < stage && stage < scene, 'browser must register builders before staging/rendering');
+test('fresh browser entry delegates ordered builder registration and staging to the shared session', () => {
+  const entry = readFileSync(join(ROOT, 'packages/vignette/src/web-entry.ts'), 'utf8');
+  const session = readFileSync(join(ROOT, 'packages/captions/src/preview/vignette-render-session.ts'), 'utf8');
+  assert.match(entry, /new VignetteRenderSession/);
+  assert.doesNotMatch(entry, /stageBeatSheet\(|new VignetteScene\(|registerRuntimeLibrary\(/);
+  const register = session.indexOf('registerRuntimeLibrary(options.library);');
+  const stage = session.indexOf('this.plan = stageBeatSheet(validation.value, options.library);');
+  const scene = session.indexOf('this.scene = new VignetteScene(this.plan, options.library);');
+  assert.ok(register >= 0 && register < stage && stage < scene, 'shared browser session must register builders before staging/rendering');
 });
