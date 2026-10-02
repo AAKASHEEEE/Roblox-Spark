@@ -117,28 +117,28 @@ function labelForEvent(staged: StagedEvent): string {
   if (event.type === 'text_graphic') return `text ${event.textStyleId}@${event.at}${event.target ? `->${event.target}` : ''}`;
   return `${event.type} ${'characterId' in event ? `${event.characterId} ` : ''}${'doorId' in event ? event.doorId : ''}@${event.at}`;
 }
-function propStateRealized(plan: StagePlan, beat: StagedBeat, propId: string, actions: readonly string[], actorId: string | undefined, window: readonly [number, number]): boolean {
+function propStateEvidenceTime(plan: StagePlan, beat: StagedBeat, propId: string, actions: readonly string[], actorId: string | undefined, window: readonly [number, number]): number | null {
   const span = plan.props[propId]?.spans.find((candidate) => candidate.beat === beat.phraseId);
-  if (!span) return false;
-  const inWindow = (time: number | null) => time !== null && time >= window[0] - 1e-9 && time < window[1] + 1e-9;
+  if (!span) return null;
+  const inWindow = (time: number | null) => time !== null && time >= window[0] - 1e-9 && time < window[1] - 1e-9;
   const actorContact = actorId ? plan.world.actors[actorId]?.contacts.some((contact) => contact.with === 'button' && overlap(window, [contact.t0, contact.t1])) : true;
   if (actions.some((action) => ['pick_up', 'grab', 'hold', 'drink', 'use_phone', 'eat', 'type_laptop'].includes(action))) {
-    return span.kind === 'held' && (!actorId || span.target === actorId) && !!overlap(window, [span.t0, span.t1]);
+    return span.kind === 'held' && (!actorId || span.target === actorId) && !!overlap(window, [span.t0, span.t1]) ? Math.max(window[0], span.t0) : null;
   }
   if (actions.includes('put_down') || actions.includes('throw')) {
     const spans = plan.props[propId]?.spans ?? [], index = spans.indexOf(span), previous = index > 0 ? spans[index - 1] : undefined;
-    return !!previous && previous.kind === 'held' && span.kind !== 'held' && span.t0 >= window[0] - 1e-9 && span.t0 < window[1] + 1e-9;
+    return previous && previous.kind === 'held' && span.kind !== 'held' && inWindow(span.t0) ? span.t0 : null;
   }
-  if (actions.includes('press_button')) return inWindow(plan.world.button.pressT) && actorContact;
-  if (actions.includes('open_door')) return beat.events.some((event) => event.event.type === 'door_open' && inWindow(event.event.at));
-  if (actions.includes('slam_door')) return beat.events.some((event) => event.event.type === 'door_close' && inWindow(event.event.at));
-  return !IDLE_PROP_STATES.has(span.state) && !!overlap(window, [span.t0, span.t1]);
+  if (actions.includes('press_button')) return inWindow(plan.world.button.pressT) && actorContact ? plan.world.button.pressT : null;
+  if (actions.includes('open_door')) return beat.events.find((event) => event.event.type === 'door_open' && inWindow(event.event.at))?.event.at ?? null;
+  if (actions.includes('slam_door')) return beat.events.find((event) => event.event.type === 'door_close' && inWindow(event.event.at))?.event.at ?? null;
+  return !IDLE_PROP_STATES.has(span.state) && overlap(window, [span.t0, span.t1]) ? Math.max(window[0], span.t0) : null;
 }
 
 export function coverageCheck(scene: VignetteScene, plan: StagePlan, compositions: readonly CameraComposition[]): CoverageReport {
   const items: CoverageItem[] = [], clauses: ClauseCoverage[] = [];
   const cache = new Map<number, FrameGeometry>();
-  const geoAt = (t: number) => { const key = r4(t); let geometry = cache.get(key); if (!geometry) { geometry = frameGeometry(scene, scene.pose(key)); cache.set(key, geometry); } return geometry; };
+  const geoAt = (t: number) => { const key = r4(t); let geometry = cache.get(key); if (!geometry) { geometry = frameGeometry(scene, scene.pose(t)); cache.set(key, geometry); } return geometry; };
   const doorPts = (beat: StagedBeat, doorId: string): Vec3[] => {
     const door = plan.sets.find((set) => set.id === beat.setId)?.doors[doorId];
     if (!door) return [];
@@ -173,10 +173,13 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
     const selectedIds = new Set<string>();
     for (const composition of beatCompositions) {
       const subject = composition.subject ?? composition.shot.subjects.active;
-      const targets = [...new Set([subject, ...(composition.secondary ? [composition.secondary] : [])])];
-      for (const [targetIndex, target] of targets.entries()) {
+      const requiredTargets = [...new Set([subject, ...composition.shot.subjects.required])];
+      const optionalTargets = composition.secondary && !requiredTargets.includes(composition.secondary) ? [composition.secondary] : [];
+      const targets = [...requiredTargets.map((target) => ({ target, required: true })), ...optionalTargets.map((target) => ({ target, required: false }))];
+      for (const [targetIndex, descriptor] of targets.entries()) {
+        const { target } = descriptor;
         selectedIds.add(target);
-        const requiredTarget = targetIndex === 0 || composition.shot.subjects.required.includes(target);
+        const requiredTarget = descriptor.required;
         addWorld({
           beat: beat.phraseId, kind: beat.props.includes(target) ? 'prop' : 'cast',
           id: `${beat.phraseId}#composition-${composition.index}:${target}`,
@@ -200,6 +203,7 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
       let actions = mentionedIds(clause.text, LIBRARY.actions.map((action) => action.id), LIBRARY.actions);
       const objectKinds = new Set(objects.map((id) => plan.props[id]?.propId ?? id));
       actions = actions.filter((action) => !['open_door', 'slam_door'].includes(action) || [...objectKinds].some((id) => /door/.test(id)));
+      if (/\bwants?\s+to\b/i.test(clause.text)) actions = []; // narrated desire/intent is not an executed transition
       if (!people.length) actions = actions.filter((action) => action !== 'sit'); // descriptive prop "sitting" is not an actor action
       const literalItems: CoverageItem[] = [];
       for (const id of [...people, ...objects]) {
@@ -218,6 +222,7 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
       }
 
       const supportsAction = (cast: StagedBeat['cast'][number], action: string) => bare(cast.actionId) === action
+        || (action === 'jump' && cast.play.contract === 'celebrate')
         || (action === 'sit' && cast.play.contract === 'remain_still')
         || (action === 'look_at' && !!cast.lookAt)
         || (action === 'exit_frame' && cast.exitAt !== null)
@@ -238,7 +243,7 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
         let actionComposition = evidenceWindow ? beatCompositions.find((candidate) => overlap(evidenceWindow!, [candidate.start, candidate.end])) : undefined;
         let ownedWindow = evidenceWindow && actionComposition ? overlap(evidenceWindow, [actionComposition.start, actionComposition.end]) : null;
         // A sub-frame clause owns the first emitted frame at its boundary rather than synthetic non-frame timestamps.
-        if (actor && (!ownedWindow || sampleWindow(ownedWindow, plan.fps).length === 0)) {
+        if (actor && evidenceWindow && (!ownedWindow || sampleWindow(ownedWindow, plan.fps).length === 0)) {
           const frameTime = Math.ceil(rawWindow[0] * plan.fps - 1e-9) / plan.fps;
           const boundaryComposition = compositionAt(beatCompositions, frameTime);
           if (boundaryComposition && frameTime < beat.end) {
@@ -258,10 +263,14 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
       const stateActions = actions.filter((action) => PROP_STATE_ACTIONS.has(action));
       const propStateItems: CoverageItem[] = [];
       if (objects.length && stateActions.length) {
-        const stateComposition = segments[0]?.composition;
-        const stateWindow = segments[0]?.window ?? rawWindow;
-        const realizedProps = objects.filter((id) => propStateRealized(plan, beat, id, stateActions, actor?.id, rawWindow));
-        const realized = realizedProps.length === objects.length;
+        const evidenceTimes = objects.map((id) => propStateEvidenceTime(plan, beat, id, stateActions, actor?.id, rawWindow));
+        const realized = evidenceTimes.every((time) => time !== null);
+        const transitionTime = evidenceTimes.find((time): time is number => time !== null);
+        const stateFrame = transitionTime !== undefined ? Math.ceil(transitionTime * plan.fps - 1e-9) / plan.fps : undefined;
+        const stateComposition = stateFrame !== undefined ? compositionAt(beatCompositions, stateFrame) : undefined;
+        const stateWindow: [number, number] = stateFrame !== undefined && stateComposition
+          ? [stateFrame, Math.min(stateComposition.end, stateFrame + 1 / plan.fps)]
+          : rawWindow;
         propStateItems.push(addWorld({
           beat: beat.phraseId, kind: 'prop_state', id: `${beat.phraseId}#clause-${clause.index}:prop-state`,
           label: `${clause.text} [${objects.join(', ')} -> ${stateActions.join(', ')}]`, witness: objects, counted: true,
@@ -271,8 +280,9 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
       }
 
       const literalCoverage = metricFromItems(literalItems), actionRealization = metricFromItems(actionItems), propStateRealization = metricFromItems(propStateItems);
+      const responsibleComposition = [...literalItems, ...actionItems, ...propStateItems].find((item) => item.composition !== null && item.composition >= 0 && item.sampleTimes.length > 0)?.composition;
       clauses.push({
-        beat: beat.phraseId, index: clause.index, text: clause.text, composition: firstComposition?.index ?? -1,
+        beat: beat.phraseId, index: clause.index, text: clause.text, composition: responsibleComposition ?? firstComposition?.index ?? -1,
         window: rawWindow.map(r4) as [number, number], literals: [...people, ...objects], actions,
         propStates: stateActions.length ? objects : [], literalCoverage, actionRealization, propStateRealization,
         missing: [...literalItems, ...actionItems, ...propStateItems].filter((item) => !item.covered).map((item) => item.label),
@@ -317,7 +327,7 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
   const subjectMiss = counted.some((item) => item.basis === 'composition-subject' && !item.covered);
   return {
     threshold: COVERAGE_THRESHOLD, step: r4(1 / Math.max(1, plan.fps)), visual: counted.length, covered, pct: fullVideoCoverage.pct,
-    blocking: fullVideoCoverage.pct < COVERAGE_THRESHOLD || subjectMiss,
+    blocking: fullVideoCoverage.pct < COVERAGE_THRESHOLD || subjectMiss || literalCoverage.pct < COVERAGE_THRESHOLD || actionRealization.pct < 1 || propStateRealization.pct < 1,
     audioOnly: items.filter((item) => item.space === 'audio').length,
     literalCoverage, actionRealization, propStateRealization, fullVideoCoverage, clauses, beats, items,
   };

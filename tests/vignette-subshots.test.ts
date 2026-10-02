@@ -5,6 +5,7 @@ import { test } from 'node:test';
 
 import { loadLibrary } from '../apps/render-worker/lib/library.ts';
 import { MIN_SUB_SHOT_DURATION, validateBeatSheet, type BeatSheet } from '../packages/director/src/beat-sheet.ts';
+import { splitDirectorClauses } from '../packages/director/src/offline.ts';
 import { LIBRARY, type Library } from '../packages/library/src/ids.ts';
 import { CAMERA_RECIPES } from '../packages/vignette/src/camera-recipes.ts';
 import { vfxEventsFromBeats } from '../packages/engine/src/vfx/index.ts';
@@ -227,9 +228,9 @@ test('coverage is clause/composition scoped, fail-closed, and retains the 90% fu
   assert.equal(coverage.threshold, 0.9);
   assert.equal(canonical.report.summary.coverageThreshold, 0.9);
   assert.equal(coverage.blocking, false);
-  assert.deepEqual(coverage.fullVideoCoverage, { required: 97, realized: 95, pct: 0.9794 });
+  assert.deepEqual(coverage.fullVideoCoverage, { required: 96, realized: 96, pct: 1 });
   assert.deepEqual(coverage.literalCoverage, { required: 22, realized: 22, pct: 1 });
-  assert.deepEqual(coverage.actionRealization, { required: 12, realized: 10, pct: 0.8333 });
+  assert.deepEqual(coverage.actionRealization, { required: 11, realized: 11, pct: 1 });
   assert.deepEqual(coverage.propStateRealization, { required: 1, realized: 1, pct: 1 });
   assert.equal(coverage.clauses.length, 31);
   assert.equal(coverage.audioOnly, 19);
@@ -278,11 +279,38 @@ test('coverage is clause/composition scoped, fail-closed, and retains the 90% fu
   assert.equal(hiddenSecondaryCoverage.blocking, true);
   assert.ok(hiddenSecondaryCoverage.items.some((item) => item.basis === 'composition-subject' && item.witness[0] === 'missing_target' && !item.covered));
 
+  const requiredOnly = canonical.compositions.map((composition) => composition === secondaryComposition ? {
+    ...composition, shot: { ...composition.shot, subjects: { ...composition.shot.subjects, required: [...composition.shot.subjects.required, 'required_only_missing'] } },
+  } : composition);
+  const requiredOnlyCoverage = coverageCheck(canonical.scene, canonical.stage, requiredOnly);
+  assert.equal(requiredOnlyCoverage.blocking, true);
+  assert.ok(requiredOnlyCoverage.items.some((item) => item.basis === 'composition-subject' && item.witness[0] === 'required_only_missing' && !item.covered));
+
   const noPress = structuredClone(canonical.stage);
   noPress.world.button.pressT = null;
   const noPressCoverage = coverageCheck(canonical.scene, noPress, canonical.compositions);
   assert.equal(noPressCoverage.propStateRealization.realized, 0, 'requested pressed label cannot replace an emitted press transition');
   assert.ok(noPressCoverage.fullVideoCoverage.realized < coverage.fullVideoCoverage.realized);
+
+  const propClause = coverage.clauses.find((clause) => clause.propStateRealization.required > 0)!;
+  const laterPress = structuredClone(canonical.stage);
+  laterPress.world.button.pressT = 32.5;
+  const laterPressCoverage = coverageCheck(canonical.scene, laterPress, canonical.compositions);
+  const laterState = laterPressCoverage.items.find((item) => item.basis === 'clause-prop-state')!;
+  assert.equal(laterState.composition, canonical.compositionAt(32.5)!.index, 'transition evidence owns its actual composition');
+  const boundaryPress = structuredClone(canonical.stage);
+  const propBeat = canonical.stage.beats.find((beat) => beat.phraseId === propClause.beat)!;
+  const clauseDefinition = splitDirectorClauses(propBeat.text).find((clause) => clause.index === propClause.index)!;
+  const exactClauseEnd = propBeat.start + (propBeat.end - propBeat.start) * clauseDefinition.words[1] / propBeat.text.trim().split(/\s+/).length;
+  boundaryPress.world.button.pressT = exactClauseEnd;
+  const boundaryCoverage = coverageCheck(canonical.scene, boundaryPress, canonical.compositions);
+  assert.equal(boundaryCoverage.propStateRealization.realized, 0, 'clause end is half-open');
+  for (const clause of coverage.clauses) {
+    const evidenceOwners = coverage.items.filter((item) => item.beat === clause.beat && item.clause === clause.index
+      && ['clause-literal', 'clause-action', 'clause-prop-state'].includes(item.basis) && item.sampleTimes.length > 0 && item.composition !== null && item.composition >= 0)
+      .map((item) => item.composition);
+    if (evidenceOwners.length) assert.ok(evidenceOwners.includes(clause.composition), `${clause.beat} clause ${clause.index} summary owner`);
+  }
 
   const blindPose = { pos: [0, 100, 0] as [number, number, number], target: [0, 101, 0] as [number, number, number], fovDeg: 10 };
   const first = canonical.compositions[0];
