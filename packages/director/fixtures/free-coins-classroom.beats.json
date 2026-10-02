@@ -254,7 +254,7 @@
         {
           "characterId": "zapp",
           "role": "lead",
-          "placement": "center_stage",
+          "placement": "zapp_desk",
           "actionId": "celebrate",
           "expressionId": "big_grin",
           "lookAt": "camera"
@@ -957,7 +957,7 @@
         {
           "characterId": "zapp",
           "role": "lead",
-          "placement": "press_spot",
+          "placement": "zapp_impact",
           "actionId": "shock_recoil",
           "expressionId": "shocked",
           "lookAt": "spark_coin"
@@ -1341,7 +1341,7 @@
         "recipeId": "wide_environment",
         "subject": "kira",
         "subShots": [
-          { "from": 62.2, "recipeId": "final_loop", "subject": "teacher", "secondary": "kira" },
+          { "from": 62.2, "recipeId": "wide_environment", "subject": "teacher", "secondary": "kira" },
           { "from": 63.38, "recipeId": "reaction_punch_in", "subject": "kira", "secondary": "teacher" }
         ]
       },
