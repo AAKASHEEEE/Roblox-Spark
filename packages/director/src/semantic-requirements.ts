@@ -154,10 +154,10 @@ export function buildSemanticRequirements(sheet: BeatSheet, lib: Library = LIBRA
         if (covered.has(index)) continue;
         const term = canonical(source[index]) || source[index].normalize('NFKC').toLowerCase();
         const relationTarget = known.find((requirement) => requirement.words[0] > index);
-        const relationHasBoundary = /[,.!?;:]$/.test(source[index]);
+        const relationHasBoundary = /[,.!?;:\u3002\uFF01\uFF1F]/u.test(source[index]);
         const relationLinkRaw = relationTarget ? source.slice(index + 1, relationTarget.words[0]) : [];
         const relationLink = relationLinkRaw.map(canonical);
-        const relationLinkHasBoundary = relationLinkRaw.some((word) => /[,.!?;:]$/.test(word));
+        const relationLinkHasBoundary = relationLinkRaw.some((word) => /[,.!?;:\u3002\uFF01\uFF1F]/u.test(word));
         const modeledSetMembership = SET_MEMBERSHIP_RELATIONS.has(term) && !relationHasBoundary && !relationLinkHasBoundary
           && relationTarget?.category === 'set' && relationTarget.disposition !== 'authorization_blocker'
           && relationLink.every((word) => RELATION_LINKERS.has(word));
