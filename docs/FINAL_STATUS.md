@@ -55,7 +55,16 @@ Therefore v4 is a strong safe canonical MVP and a fail-closed arbitrary-script f
 
 ## Media status
 
-The checked PR #23 MP4 is stale historical media and is not evidence for v4. A fresh v4 MP4 must be generated only after all final no-render checks pass, then independently probed/decoded and reviewed frame-by-frame before any visual-quality claim.
+A fresh v4 **visual-review** MP4 was generated after the no-render gates passed:
+
+- `out/v4-review-render/s7-vignette.mp4`
+- SHA-256 `df8dfab37f73674872bdacdb07793f938fec6564827e555d1877d701145fb0a3`
+- 22,816,997 bytes; 540×960; H.264 High/yuv420p; 30 fps; exactly 2,075 frames; 69.167 s
+- AAC-LC 48 kHz stereo; 0 ms measured A/V lag; independent playback/probe PASS; 0 dropped playback frames
+
+The original approved narration MP3 was not present in the repository or release assets. This review file therefore uses an explicitly generated silent optional-audio bed plus the 19 authored original SFX cues and no music. It is suitable for visual review, but it is **not** trusted final narration evidence and must not be represented as such. A fully trusted release still requires the original approved voice bytes (or new human-approved voice), schema-v3 scheduler authorization, decoded-frame commitments, and the independent worker signature.
+
+The checked PR #23 MP4 remains stale historical media and is not evidence for v4.
 
 ## IP and publication rules
 
