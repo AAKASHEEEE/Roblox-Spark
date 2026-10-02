@@ -203,7 +203,11 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
       let actions = mentionedIds(clause.text, LIBRARY.actions.map((action) => action.id), LIBRARY.actions);
       const objectKinds = new Set(objects.map((id) => plan.props[id]?.propId ?? id));
       actions = actions.filter((action) => !['open_door', 'slam_door'].includes(action) || [...objectKinds].some((id) => /door/.test(id)));
-      if (/\bwants?\s+to\b/i.test(clause.text)) actions = []; // narrated desire/intent is not an executed transition
+      const intentMatch = /\bwants?\s+to\b/i.exec(clause.text);
+      if (intentMatch) {
+        const governed = mentionedIds(clause.text.slice(intentMatch.index), actions, LIBRARY.actions);
+        actions = actions.filter((action) => !governed.includes(action));
+      }
       if (!people.length) actions = actions.filter((action) => action !== 'sit'); // descriptive prop "sitting" is not an actor action
       const literalItems: CoverageItem[] = [];
       for (const id of [...people, ...objects]) {
@@ -244,9 +248,9 @@ export function coverageCheck(scene: VignetteScene, plan: StagePlan, composition
         let ownedWindow = evidenceWindow && actionComposition ? overlap(evidenceWindow, [actionComposition.start, actionComposition.end]) : null;
         // A sub-frame clause owns the first emitted frame at its boundary rather than synthetic non-frame timestamps.
         if (actor && evidenceWindow && (!ownedWindow || sampleWindow(ownedWindow, plan.fps).length === 0)) {
-          const frameTime = Math.ceil(rawWindow[0] * plan.fps - 1e-9) / plan.fps;
+          const frameTime = Math.ceil(evidenceWindow[0] * plan.fps - 1e-9) / plan.fps;
           const boundaryComposition = compositionAt(beatCompositions, frameTime);
-          if (boundaryComposition && frameTime < beat.end) {
+          if (boundaryComposition && frameTime < evidenceWindow[1] - 1e-9) {
             actionComposition = boundaryComposition;
             ownedWindow = [frameTime, Math.min(boundaryComposition.end, frameTime + 1 / plan.fps)];
           }

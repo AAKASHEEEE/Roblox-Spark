@@ -292,6 +292,23 @@ test('coverage is clause/composition scoped, fail-closed, and retains the 90% fu
   assert.equal(noPressCoverage.propStateRealization.realized, 0, 'requested pressed label cannot replace an emitted press transition');
   assert.ok(noPressCoverage.fullVideoCoverage.realized < coverage.fullVideoCoverage.realized);
 
+  const subframeAction = structuredClone(canonical.stage);
+  const subframeKira = subframeAction.beats.find((beat) => beat.phraseId === 'p13')!.cast.find((cast) => cast.id === 'kira')!;
+  subframeKira.actionT0 = 64.001; subframeKira.actionT1 = 64.01;
+  const subframeCoverage = coverageCheck(canonical.scene, subframeAction, canonical.compositions);
+  const subframeItem = subframeCoverage.items.find((item) => item.basis === 'clause-action' && item.beat === 'p13' && item.label.includes('sitting perfectly still'))!;
+  assert.equal(subframeItem.covered, false);
+  assert.equal(subframeItem.sampleTimes.length, 0, 'no output frame exists inside the staged action interval');
+  assert.equal(subframeCoverage.blocking, true);
+
+  const mixedIntent = structuredClone(canonical.stage);
+  mixedIntent.beats.find((beat) => beat.phraseId === 'p03')!.text = 'Zapp celebrates because he wants to leave.';
+  const mixedCoverage = coverageCheck(canonical.scene, mixedIntent, canonical.compositions);
+  const mixedAction = mixedCoverage.items.find((item) => item.basis === 'clause-action' && item.beat === 'p03')!;
+  assert.match(mixedAction.label, /celebrate/);
+  assert.doesNotMatch(mixedAction.label, /exit_frame/);
+  assert.equal(mixedAction.covered, true, 'executed celebrate remains required while intent-only leave is excluded');
+
   const propClause = coverage.clauses.find((clause) => clause.propStateRealization.required > 0)!;
   const laterPress = structuredClone(canonical.stage);
   laterPress.world.button.pressT = 32.5;
