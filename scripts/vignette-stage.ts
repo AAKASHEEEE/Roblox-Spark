@@ -20,7 +20,7 @@ const sheetPath = resolve(ROOT, arg('sheet', 'packages/director/fixtures/free-co
 const sheet = JSON.parse(readFileSync(sheetPath, 'utf8'));
 const reportArg = arg('report', '');
 const directorReport = reportArg ? JSON.parse(readFileSync(resolve(ROOT, reportArg), 'utf8')) : undefined;
-const semanticPreflight = validateBeatSheet(sheet, { requireAvailable: true });
+const semanticPreflight = validateBeatSheet(sheet);
 if (!semanticPreflight.ok || !semanticPreflight.value) throw new Error(`BeatSheet preflight failed: ${semanticPreflight.issues.slice(0, 8).map((issue) => `${issue.path} ${issue.message}`).join('; ')}`);
 if (semanticPreflight.value.source.narrated === 'director:raw-script') verifySemanticAuthorization(semanticPreflight.value, directorReport);
 const out = resolve(ROOT, arg('out', `out/vignette/${sheet.id}`));
