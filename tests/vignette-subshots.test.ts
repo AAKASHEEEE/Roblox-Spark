@@ -5,6 +5,7 @@ import { test } from 'node:test';
 
 import { loadLibrary } from '../apps/render-worker/lib/library.ts';
 import { MIN_SUB_SHOT_DURATION, validateBeatSheet, type BeatSheet } from '../packages/director/src/beat-sheet.ts';
+import { directScript } from '../packages/director/src/pipeline.ts';
 import { splitDirectorClauses } from '../packages/director/src/offline.ts';
 import { LIBRARY, type Library } from '../packages/library/src/ids.ts';
 import { CAMERA_RECIPES } from '../packages/vignette/src/camera-recipes.ts';
@@ -396,4 +397,52 @@ test('final-camera safety evaluates posed output frames after scene shake and su
   assert.equal(dense.samples.length, dense.frames);
   assert.ok(dense.samples.every((s) => s.result !== undefined), dense.samples.flatMap((s) => s.reasons).join('; '));
   assert.equal(dense.accepted, dense.acceptedFrames === dense.frames);
+});
+
+test('raw Director sheets require exact complete blocker-free semantic authorization before staging', async () => {
+  const approved = await directScript({ script: 'Kira waits in the kitchen.', duration: 4, seed: 44 }, { provider: 'offline' });
+  const substitution = approved.report.semanticRequirements.beats[0].terms.find((term) => term.term === 'kitchen')!;
+  assert.deepEqual(substitution, {
+    term: 'kitchen', category: 'set', disposition: 'approved_substitution', words: [4, 5],
+    catalogId: 'home_kitchen', substituteId: 'classroom',
+  });
+  assert.doesNotThrow(() => runVignette(approved.sheet, lib, { directorReport: approved.report }));
+
+  assert.throws(() => runVignette(approved.sheet, lib), (error: unknown) =>
+    error instanceof VignetteValidationError && /semantic sidecar/.test(error.message));
+
+  const deleted = structuredClone(approved.report);
+  deleted.semanticRequirements.beats[0].terms.splice(0, 1);
+  assert.throws(() => runVignette(approved.sheet, lib, { directorReport: deleted }), (error: unknown) =>
+    error instanceof VignetteValidationError && /do not exactly match/.test(error.message));
+
+  const tamperedSubstitution = structuredClone(approved.report);
+  tamperedSubstitution.semanticRequirements.beats[0].terms.find((term) => term.term === 'kitchen')!.substituteId = 'playground';
+  assert.throws(() => runVignette(approved.sheet, lib, { directorReport: tamperedSubstitution }), (error: unknown) =>
+    error instanceof VignetteValidationError && /do not exactly match/.test(error.message));
+
+});
+
+test('unknown residual semantics block instead of silently becoming idle', async () => {
+  for (const [script, expected] of [
+    ['A drone hovers.', ['drone']],
+    ['Octopus swam.', ['octopus', 'swam']],
+    ['The locksmith gave a parcel.', ['locksmith', 'gave', 'parcel']],
+  ] as const) {
+    const result = await directScript({ script, duration: 4, seed: 45 }, { provider: 'offline' });
+    const blockers = result.report.semanticRequirements.beats.flatMap((beat) => beat.terms
+      .filter((term) => term.disposition === 'authorization_blocker').map((term) => term.term));
+    for (const term of expected) assert.ok(blockers.includes(term), `${script}: ${term}`);
+    assert.throws(() => runVignette(result.sheet, lib, { directorReport: result.report }), (error: unknown) =>
+      error instanceof VignetteValidationError && /semantic authorization blocked/.test(error.message));
+  }
+});
+
+test('separable puts-it-down action is authorized without a false down concept', async () => {
+  const result = await directScript({ script: ['Kira holds the phone.', 'She puts it down.'], duration: 8, seed: 46 }, { provider: 'offline' });
+  assert.equal(result.sheet.beats[1].cast[0].actionId, 'put_down');
+  const second = result.report.semanticRequirements.beats[1].terms;
+  assert.ok(second.some((term) => term.term === 'puts it down' && term.category === 'action' && term.catalogId === 'put_down' && term.disposition === 'available'));
+  assert.equal(second.some((term) => term.term === 'down' && term.category === 'unknown-content'), false);
+  assert.doesNotThrow(() => runVignette(result.sheet, lib, { directorReport: result.report }));
 });

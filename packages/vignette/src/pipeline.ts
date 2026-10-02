@@ -2,6 +2,7 @@
 // action contracts) -> multi-set scene -> per-beat camera recipes on camera safety -> script coverage -> analysis report.
 // Browser-safe; node callers install the headless canvas first (headless.ts).
 import { validateBeatSheet, type BeatSheet, type BeatSheetResult } from '../../director/src/beat-sheet.ts';
+import { verifySemanticAuthorization } from '../../director/src/semantic-requirements.ts';
 import type { ScreenDirectionState } from '../../engine/src/camera-safety.ts';
 import type { ManifestLibrary } from '../../engine/src/build-dispatch.ts';
 import type { Library } from '../../library/src/ids.ts';
@@ -17,6 +18,8 @@ export const REPORT_SCHEMA = 'blockspark.vignette-analysis/1';
 export interface VignetteOptions {
   /** narration phrases the sheet must cover one-to-one (validateBeatSheet) */
   phrases?: Array<{ id: string; start: number; end: number; text: string }>;
+  /** Required strict Director sidecar/report for source.narrated === "director:raw-script". */
+  directorReport?: unknown;
   /** Optional semantic library override; validation and staging use the same availability catalog. */
   library?: Library;
   /** implied-seated actors must be framed waist-up (camera safety WAIST_UP_REQUIRED). Default false: a planned `sit`
@@ -81,6 +84,12 @@ export function runVignette(input: unknown, lib: ManifestLibrary, opts: Vignette
     throw new VignetteValidationError(`beat sheet rejected before staging: ${details.join('; ') || 'invalid input'}`, validation);
   }
   const sheet = validation.value;
+  if (sheet.source.narrated === 'director:raw-script') {
+    try { verifySemanticAuthorization(sheet, opts.directorReport, opts.library); }
+    catch (error) {
+      throw new VignetteValidationError(`beat sheet rejected before staging: ${error instanceof Error ? error.message : String(error)}`, validation);
+    }
+  }
   const unresolved = cameraRecipeUses(sheet).filter((u) => !CAMERA_RECIPES[u.id] || CAMERA_RECIPES[u.id].planned);
   if (unresolved.length) {
     throw new VignetteValidationError(`beat sheet rejected before staging: ${unresolved.map((u) => `${u.path} camera recipe "${u.id}" has no available runtime implementation`).join('; ')}`, validation);

@@ -48,9 +48,13 @@ test('trusted raw inputs are batch-authenticated before parsing or native decode
   const authenticate = renderFull.indexOf('readTrustedRenderInputs(trustedManifest');
   const authenticateLocks = renderFull.indexOf('const trustedLockBytes = trustedManifest');
   const storyboardParse = renderFull.indexOf("parseJsonBytes(inputBytes.storyboard, 'storyboard')");
+  const directorParse = renderFull.indexOf("parseJsonBytes(inputBytes.directorReport, 'Director report')");
+  const semanticAuthorization = renderFull.indexOf('verifySemanticAuthorization(preflight.value, directorReport)');
   const containerParse = renderFull.indexOf("checkContainer(voiceBytes, 'mp3')");
   const ffmpegLaunch = renderFull.indexOf('const raw = execFileSync(ffmpeg');
   assert.ok(authenticate >= 0 && authenticate < storyboardParse, 'scheduler pins must authenticate inputs before storyboard JSON parsing');
+  assert.ok(directorParse >= 0 && authenticate < directorParse, 'scheduler pins must authenticate the Director sidecar before parsing it');
+  assert.ok(semanticAuthorization >= 0 && semanticAuthorization < containerParse && semanticAuthorization < ffmpegLaunch, 'raw-script semantic authorization must fail before native parsing or FFmpeg');
   assert.ok(authenticateLocks >= 0 && authenticateLocks < storyboardParse, 'scheduler pins must authenticate asset/package locks before any JSON parsing');
   assert.ok(authenticateLocks < containerParse && authenticateLocks < ffmpegLaunch, 'locks must authenticate before native parsers and FFmpeg');
   assert.ok(authenticate < containerParse, 'scheduler pins must authenticate voice before container parsing');

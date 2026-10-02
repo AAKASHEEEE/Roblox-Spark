@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, rmSync, truncateSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ProbeResult } from '../../mp4/src/probe.ts';
-import { RENDER_BYTE_LIMITS, assertRuntimePins, canonicalJson, hashFile, manifestDigest, parseInputManifest, parseJsonBytes, readAuthenticatedFile, readInputManifest, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
+import { INPUT_MANIFEST_SCHEMA, RENDER_BYTE_LIMITS, assertRuntimePins, canonicalJson, hashFile, manifestDigest, parseInputManifest, parseJsonBytes, readAuthenticatedFile, readInputManifest, readTrustedRenderInputs, sha256Bytes } from '../tools/render-manifest.ts';
 import { COMPETITOR_DECODED_FRAMES, COMPARISON_SHEET_RECEIPT_SCHEMA, codecPinIssues, createDecodedFrameReceipt, createSignedPostRenderAttestation, mediaFingerprint, mediaFingerprintDigest, parseComparisonSheetReceipt, parseDecodedFrameReceipt, parseEvidenceReport, postRenderAttestationDigest, representativeFramesDigest, validateDecodedFrameClaims, verifyComparisonSheetCommitment, verifyFilePin, verifyPostRenderAttestation, verifyRenderV2, verifyRepresentativeFrameClaims, type DecodedFrameClaim, type RenderEvidenceReport } from '../tools/verify-render-v2.ts';
 
 const sha = 'a'.repeat(64), git = 'b'.repeat(40);
@@ -269,4 +269,54 @@ test('decoded-frame receipt preserves decode-time output binding across delayed 
   assert.equal(parseComparisonSheetReceipt(comparisonReceipt).comparison.bytes, 123);
   assert.throws(() => parseComparisonSheetReceipt({ ...comparisonReceipt, frames: comparisonReceipt.frames.map((frame, index) => index === 0 ? { ...frame, timestampSec: frame.timestampSec + 0.01 } : frame) }), /exactly match.*seek times/);
   assert.throws(() => parseComparisonSheetReceipt({ ...comparisonReceipt, selfApproved: true }), /keys must be exactly/);
+});
+
+test('schema /3 strictly pins the Director sidecar while historical schema /2 remains unchanged', () => {
+  assert.equal(INPUT_MANIFEST_SCHEMA, 'blockspark.render-input-manifest/3');
+  const historical = parseInputManifest(manifest);
+  assert.equal(historical.schema, 'blockspark.render-input-manifest/2');
+  assert.equal(Object.hasOwn(historical.inputs, 'directorReport'), false);
+
+  const semantic = {
+    ...manifest,
+    schema: 'blockspark.render-input-manifest/3',
+    inputs: { ...manifest.inputs, directorReport: { path: 'inputs/director-report.json', sha256: sha } },
+  };
+  const parsed = parseInputManifest(semantic);
+  assert.deepEqual(parsed.inputs.directorReport, { path: 'inputs/director-report.json', sha256: sha });
+  assert.throws(() => parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: undefined } }), /manifest\.inputs\.directorReport must be an object/);
+  assert.throws(() => parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: { ...semantic.inputs.directorReport, extra: true } } }), /keys must be exactly/);
+  const handAuthored = parseInputManifest({ ...semantic, inputs: { ...semantic.inputs, directorReport: null } });
+  assert.equal(handAuthored.inputs.directorReport, null);
+});
+
+test('trusted schema /3 authenticates the complete sidecar batch before parsing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'captions-semantic-sidecar-'));
+  const storyboardPath = join(dir, 'storyboard.json'), beatSheetPath = join(dir, 'beats.json');
+  const directorReportPath = join(dir, 'director-report.json'), voicePath = join(dir, 'voice.mp3');
+  const bytes = {
+    storyboard: Buffer.from('{"storyboard":true}'), beatSheet: Buffer.from('{"beats":[]}'),
+    directorReport: Buffer.from('{"semanticRequirements":{}}'), voice: Buffer.from('voice'),
+  };
+  try {
+    writeFileSync(storyboardPath, bytes.storyboard); writeFileSync(beatSheetPath, bytes.beatSheet);
+    writeFileSync(directorReportPath, bytes.directorReport); writeFileSync(voicePath, bytes.voice);
+    const trusted = parseInputManifest({
+      ...manifest,
+      schema: 'blockspark.render-input-manifest/3',
+      inputs: {
+        ...manifest.inputs,
+        storyboard: { path: 'inputs/storyboard.json', sha256: sha256Bytes(bytes.storyboard) },
+        beatSheet: { path: 'inputs/beats.json', sha256: sha256Bytes(bytes.beatSheet) },
+        directorReport: { path: 'inputs/director-report.json', sha256: sha256Bytes(bytes.directorReport) },
+        voice: { sha256: sha256Bytes(bytes.voice) },
+      },
+    });
+    const paths = { storyboard: storyboardPath, beatSheet: beatSheetPath, directorReport: directorReportPath, voice: voicePath };
+    assert.deepEqual(Array.from(readTrustedRenderInputs(trusted, paths).directorReport!), Array.from(bytes.directorReport));
+    writeFileSync(directorReportPath, '{"tampered":true}');
+    let parses = 0;
+    assert.throws(() => { const authenticated = readTrustedRenderInputs(trusted, paths); parses++; parseJsonBytes(authenticated.directorReport!, 'Director report'); }, /Director report SHA-256.*does not match authorized/);
+    assert.equal(parses, 0);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

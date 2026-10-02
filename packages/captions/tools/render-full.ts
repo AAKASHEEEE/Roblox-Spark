@@ -36,6 +36,8 @@ import { vfxEventsFromBeats, VFX_DEFS } from '../../engine/src/vfx/index.ts';
 import { TEXT_STYLE_DEFS } from '../src/styles.ts';
 import { SFX_DEFS } from '../../audio-mix/src/sfx.ts';
 // vignette pipeline (node-side solve; browser rendering delegates to the neutral VignetteRenderSession)
+import { verifySemanticAuthorization } from '../../director/src/semantic-requirements.ts';
+import { validateBeatSheet } from '../../director/src/beat-sheet.ts';
 import { ensureHeadlessCanvas } from '../../vignette/src/headless.ts';
 import { runVignette, type Composition, type VignetteRun } from '../../vignette/src/pipeline.ts';
 import { auditFinalCameraSafety, heldSceneTime, poseAt } from '../../vignette/src/camera.ts';
@@ -115,6 +117,7 @@ const { values: arg } = parseArgs({ options: {
   evidenceProfile: { type: 'string', default: 'none' }, inputManifest: { type: 'string' }, authorizedManifestSha256: { type: 'string' }, jobId: { type: 'string' },
   storyboard: { type: 'string', default: 'tests/fixtures/narrated/approved-narrated-v0.1.json' },
   beats: { type: 'string', default: 'packages/director/fixtures/free-coins-classroom.beats.json' },
+  directorReport: { type: 'string' },
   width: { type: 'string' }, height: { type: 'string' }, fps: { type: 'string' },
   bitrate: { type: 'string' }, audioBitrate: { type: 'string' }, gpu: { type: 'boolean', default: false },
   workerSafe: { type: 'boolean', default: false }, prebuilt: { type: 'boolean', default: false },
@@ -139,6 +142,7 @@ const checkedPaths = validateRenderPaths({
   root: ROOT,
   voice: fromRoot(arg.voice), ffmpeg: fromRoot(arg.ffmpeg),
   storyboard: fromRoot(arg.storyboard!), beats: fromRoot(arg.beats!), output: fromRoot(arg.out ?? defaultOut),
+  ...(arg.directorReport ? { directorReport: fromRoot(arg.directorReport) } : {}),
   ...(arg.inputManifest ? { inputManifest: fromRoot(arg.inputManifest) } : {}),
   ...(ffprobeCandidate ? { ffprobe: ffprobeCandidate } : {}),
   ...(chromiumCandidate ? { chromium: chromiumCandidate } : {}),
@@ -146,6 +150,7 @@ const checkedPaths = validateRenderPaths({
 }, !!arg.workerSafe);
 if (arg.workerSafe && !checkedPaths.ffprobe) throw new Error('--worker-safe requires FFPROBE_PATH inside node_modules/ffprobe-static');
 const voicePath = checkedPaths.voice, ffmpeg = checkedPaths.ffmpeg, sbPath = checkedPaths.storyboard, beatsPath = checkedPaths.beats;
+const directorReportPath = checkedPaths.directorReport;
 const outDir = checkedPaths.output, W = profile.width, H = profile.height, fps = profile.fps;
 const bitrate = profile.videoBitrate, audioBitrate = profile.audioBitrate;
 if (arg.workerSafe && existsSync(outDir)) throw new Error('--worker-safe output directory must not already exist');
@@ -180,13 +185,19 @@ if (trustedManifest) {
   const beatSheetPath = relative(ROOT, beatsPath).split('\\').join('/');
   if (storyboardPath !== trustedManifest.inputs.storyboard.path) throw new Error(`storyboard path ${storyboardPath} does not match scheduler manifest`);
   if (beatSheetPath !== trustedManifest.inputs.beatSheet.path) throw new Error(`BeatSheet path ${beatSheetPath} does not match scheduler manifest`);
+  if (trustedManifest.inputs.directorReport) {
+    if (!directorReportPath) throw new Error('scheduler manifest requires --directorReport');
+    const reportPath = relative(ROOT, directorReportPath).split('\\').join('/');
+    if (reportPath !== trustedManifest.inputs.directorReport.path) throw new Error(`Director report path ${reportPath} does not match scheduler manifest`);
+  } else if (directorReportPath) throw new Error('Director report is not pinned by the scheduler manifest');
 }
 // Authenticate the entire parser/native-input set as raw bytes before parsing even the first JSON document.
 const inputBytes = trustedManifest
-  ? readTrustedRenderInputs(trustedManifest, { storyboard: sbPath, beatSheet: beatsPath, voice: voicePath })
+  ? readTrustedRenderInputs(trustedManifest, { storyboard: sbPath, beatSheet: beatsPath, ...(directorReportPath ? { directorReport: directorReportPath } : {}), voice: voicePath })
   : {
       storyboard: readBoundedFile(sbPath, RENDER_BYTE_LIMITS.storyboard, 'storyboard'),
       beatSheet: readBoundedFile(beatsPath, RENDER_BYTE_LIMITS.beatSheet, 'BeatSheet'),
+      ...(directorReportPath ? { directorReport: readBoundedFile(directorReportPath, RENDER_BYTE_LIMITS.directorReport, 'Director report') } : {}),
       voice: readBoundedFile(voicePath, RENDER_BYTE_LIMITS.voice, 'voice'),
     };
 const packageLockPath = resolve(ROOT, 'package-lock.json'), assetLockPath = resolve(ROOT, 'assets/asset-lock.json');
@@ -195,8 +206,15 @@ const trustedLockBytes = trustedManifest ? {
   assetLock: readAuthenticatedFile(assetLockPath, trustedManifest.inputs.assetLock, RENDER_BYTE_LIMITS.assetLock, 'asset lock'),
 } : null;
 const sbSha = sha256Bytes(inputBytes.storyboard), beatsSha = sha256Bytes(inputBytes.beatSheet), voiceSha = sha256Bytes(inputBytes.voice);
+const directorReportSha = inputBytes.directorReport ? sha256Bytes(inputBytes.directorReport) : null;
 const sb: any = parseJsonBytes(inputBytes.storyboard, 'storyboard');
 const sheet: any = parseJsonBytes(inputBytes.beatSheet, 'BeatSheet');
+const directorReport: unknown = inputBytes.directorReport ? parseJsonBytes(inputBytes.directorReport, 'Director report') : undefined;
+if (sheet?.source?.narrated === 'director:raw-script') {
+  const preflight = validateBeatSheet(sheet, { requireAvailable: true });
+  if (!preflight.ok || !preflight.value) throw new Error(`raw Director BeatSheet failed preflight: ${preflight.issues.slice(0, 8).map((issue) => `${issue.path} ${issue.message}`).join('; ')}`);
+  verifySemanticAuthorization(preflight.value, directorReport);
+}
 const voiceBytes = inputBytes.voice;
 checkContainer(voiceBytes, 'mp3');
 if (voiceSha !== sb.audio.contentHash) throw new Error(`voice hash ${voiceSha} does not match approved ${sb.audio.contentHash}`);
@@ -234,7 +252,7 @@ if (visual === 'narrated') {
 } else {
   stage('solve the integrated Vignette scene cameras (runVignette) and enforce the staging/camera gates');
   ensureHeadlessCanvas();
-  run = runVignette(sheet, lib, { phrases: sb.script.phrases });
+  run = runVignette(sheet, lib, { phrases: sb.script.phrases, directorReport });
   compositions = run.compositions;
   assertCompositionTimeline(compositions);
   const rep = run.report;
@@ -284,6 +302,9 @@ if (trustedManifest) {
     inputs: {
       storyboard: { path: relative(ROOT, sbPath), sha256: sbSha },
       beatSheet: { path: relative(ROOT, beatsPath), sha256: beatsSha },
+      ...(trustedManifest.inputs.directorReport !== undefined ? {
+        directorReport: directorReportPath && directorReportSha ? { path: relative(ROOT, directorReportPath), sha256: directorReportSha } : null,
+      } : {}),
       voice: { sha256: voiceSha },
       solvedCompositions: { sha256: solvedCompositionsDigest(compositions), count: compositions.length },
       assetLock: { path: relative(ROOT, assetLockPath), sha256: sha256Bytes(assetLockBytes) },

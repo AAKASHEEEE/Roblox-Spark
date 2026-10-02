@@ -5,7 +5,9 @@ import { isAbsolute, join, posix, relative } from 'node:path';
 import type { TimedComposition } from '../src/preview/composition.ts';
 import type { EvidenceProfileId, RenderProfileId, VisualMode } from './render-config.ts';
 
-export const INPUT_MANIFEST_SCHEMA = 'blockspark.render-input-manifest/2' as const;
+export const LEGACY_INPUT_MANIFEST_SCHEMA = 'blockspark.render-input-manifest/2' as const;
+export const INPUT_MANIFEST_SCHEMA = 'blockspark.render-input-manifest/3' as const;
+export const SEMANTIC_INPUT_MANIFEST_SCHEMA = INPUT_MANIFEST_SCHEMA;
 export const LEGACY_EVIDENCE_REPORT_SCHEMA = 'blockspark.render-evidence/2' as const;
 export const EVIDENCE_REPORT_SCHEMA = 'blockspark.render-evidence/3' as const;
 const SHA256 = /^[a-f0-9]{64}$/;
@@ -16,6 +18,7 @@ export const RENDER_BYTE_LIMITS = Object.freeze({
   inputManifest: 1024 * 1024,
   storyboard: 4 * 1024 * 1024,
   beatSheet: 8 * 1024 * 1024,
+  directorReport: 8 * 1024 * 1024,
   voice: 64 * 1024 * 1024,
   assetLock: 16 * 1024 * 1024,
   packageLock: 32 * 1024 * 1024,
@@ -51,13 +54,15 @@ export interface RuntimePins {
 }
 
 export interface RenderInputManifest {
-  schema: typeof INPUT_MANIFEST_SCHEMA;
+  schema: typeof LEGACY_INPUT_MANIFEST_SCHEMA | typeof SEMANTIC_INPUT_MANIFEST_SCHEMA;
   provenance: 'pre-render-authorized' | 'retroactive-integrity-seal';
   job: { jobId: string; outputPath: string; visual: VisualMode; renderProfile: RenderProfileId; evidenceProfile: EvidenceProfileId; workerSafe?: true };
   source: { repository: string; commitSha: string; treeSha: string; baseSha: string };
   inputs: {
     storyboard: { path: string; sha256: string };
     beatSheet: { path: string; sha256: string };
+    /** Required in schema /3. Null authorizes only non-Director hand-authored BeatSheets. */
+    directorReport?: { path: string; sha256: string } | null;
     voice: { sha256: string };
     solvedCompositions: { sha256: string; count: number };
     assetLock: { path: string; sha256: string };
@@ -131,15 +136,20 @@ export function parseJsonBytes(bytes: Uint8Array, label: string): unknown {
   catch (error) { throw new Error(`cannot parse ${label}: ${error instanceof Error ? error.message : String(error)}`); }
 }
 
-export interface TrustedRenderInputPaths { storyboard: string; beatSheet: string; voice: string }
-export interface TrustedRenderInputBytes { storyboard: Uint8Array; beatSheet: Uint8Array; voice: Uint8Array }
+export interface TrustedRenderInputPaths { storyboard: string; beatSheet: string; directorReport?: string; voice: string }
+export interface TrustedRenderInputBytes { storyboard: Uint8Array; beatSheet: Uint8Array; directorReport?: Uint8Array; voice: Uint8Array }
 
 /** Authenticate the complete parser/native-input set before the caller parses even the first JSON document. */
 export function readTrustedRenderInputs(manifest: RenderInputManifest, paths: TrustedRenderInputPaths): TrustedRenderInputBytes {
   const storyboard = readAuthenticatedFile(paths.storyboard, manifest.inputs.storyboard, RENDER_BYTE_LIMITS.storyboard, 'storyboard');
   const beatSheet = readAuthenticatedFile(paths.beatSheet, manifest.inputs.beatSheet, RENDER_BYTE_LIMITS.beatSheet, 'BeatSheet');
+  let directorReport: Uint8Array | undefined;
+  if (manifest.inputs.directorReport) {
+    if (!paths.directorReport) throw new Error('trusted manifest pins a Director report but no path was supplied');
+    directorReport = readAuthenticatedFile(paths.directorReport, manifest.inputs.directorReport, RENDER_BYTE_LIMITS.directorReport, 'Director report');
+  } else if (paths.directorReport) throw new Error('Director report path is not pinned by the trusted manifest');
   const voice = readAuthenticatedFile(paths.voice, manifest.inputs.voice, RENDER_BYTE_LIMITS.voice, 'voice');
-  return { storyboard, beatSheet, voice };
+  return { storyboard, beatSheet, ...(directorReport ? { directorReport } : {}), voice };
 }
 
 export function hashFile(path: string, maxBytes = RENDER_BYTE_LIMITS.runtimeBinary, label = 'runtime binary'): { sha256: string; bytes: number } {
@@ -218,7 +228,8 @@ export function safeManifestPath(value: unknown, label: string): string {
 
 export function parseInputManifest(value: unknown): RenderInputManifest {
   const root = object(value, 'manifest', ['schema', 'provenance', 'job', 'source', 'inputs', 'tools', 'runtime']);
-  if (root.schema !== INPUT_MANIFEST_SCHEMA) throw new Error(`unsupported input manifest schema '${String(root.schema)}'`);
+  if (root.schema !== LEGACY_INPUT_MANIFEST_SCHEMA && root.schema !== SEMANTIC_INPUT_MANIFEST_SCHEMA) throw new Error(`unsupported input manifest schema '${String(root.schema)}'`);
+  const semanticManifest = root.schema === SEMANTIC_INPUT_MANIFEST_SCHEMA;
   if (root.provenance !== 'pre-render-authorized' && root.provenance !== 'retroactive-integrity-seal') throw new Error('manifest.provenance is invalid');
   const workerAuthorized = root.provenance === 'pre-render-authorized';
   const job = object(root.job, 'manifest.job', workerAuthorized
@@ -233,19 +244,22 @@ export function parseInputManifest(value: unknown): RenderInputManifest {
   const outputPath = safeManifestPath(job.outputPath, 'manifest.job.outputPath');
 
   const source = object(root.source, 'manifest.source', ['repository', 'commitSha', 'treeSha', 'baseSha']);
-  const inputs = object(root.inputs, 'manifest.inputs', ['storyboard', 'beatSheet', 'voice', 'solvedCompositions', 'assetLock', 'packageLock']);
-  const filePin = (key: 'storyboard' | 'beatSheet' | 'assetLock' | 'packageLock') => {
+  const inputs = object(root.inputs, 'manifest.inputs', semanticManifest
+    ? ['storyboard', 'beatSheet', 'directorReport', 'voice', 'solvedCompositions', 'assetLock', 'packageLock']
+    : ['storyboard', 'beatSheet', 'voice', 'solvedCompositions', 'assetLock', 'packageLock']);
+  const filePin = (key: 'storyboard' | 'beatSheet' | 'assetLock' | 'packageLock' | 'directorReport') => {
     const pin = object(inputs[key], `manifest.inputs.${key}`, ['path', 'sha256']);
     return { path: safeManifestPath(pin.path, `manifest.inputs.${key}.path`), sha256: digest(pin.sha256, `manifest.inputs.${key}.sha256`) };
   };
   const voice = object(inputs.voice, 'manifest.inputs.voice', ['sha256']);
+  const directorReport = semanticManifest ? (inputs.directorReport === null ? null : filePin('directorReport')) : undefined;
   const solved = object(inputs.solvedCompositions, 'manifest.inputs.solvedCompositions', ['sha256', 'count']);
   const tools = object(root.tools, 'manifest.tools', ['node', 'typescript', 'playwrightCore', 'chromium', 'ffmpegStatic', 'ffprobeStatic', 'rendererCodec']);
   const runtime = object(root.runtime, 'manifest.runtime', ['visualEntry', 'bundleTreeSha256', 'ffmpegSha256', 'ffprobeSha256', 'playwrightTreeSha256', 'chromiumSha256']);
   if (tools.rendererCodec !== 'avc1.64001f' && tools.rendererCodec !== 'avc1.640028') throw new Error('manifest.tools.rendererCodec is invalid');
 
   return {
-    schema: INPUT_MANIFEST_SCHEMA,
+    schema: root.schema,
     provenance: root.provenance,
     job: { jobId, outputPath, visual: job.visual, renderProfile: job.renderProfile, evidenceProfile: job.evidenceProfile, ...(workerAuthorized ? { workerSafe: true as const } : {}) } as RenderInputManifest['job'],
     source: {
@@ -256,6 +270,7 @@ export function parseInputManifest(value: unknown): RenderInputManifest {
     },
     inputs: {
       storyboard: filePin('storyboard'), beatSheet: filePin('beatSheet'),
+      ...(semanticManifest ? { directorReport } : {}),
       voice: { sha256: digest(voice.sha256, 'manifest.inputs.voice.sha256') },
       solvedCompositions: { sha256: digest(solved.sha256, 'manifest.inputs.solvedCompositions.sha256'), count: integer(solved.count, 'manifest.inputs.solvedCompositions.count') },
       assetLock: filePin('assetLock'), packageLock: filePin('packageLock'),
